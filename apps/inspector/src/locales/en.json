@@ -1,7 +1,15 @@
 {
   "home": {
-    "title": "Gearonimo Pro",
-    "subtitle": "Welcome, inspector"
+    "appName": "Gearonimo Pro",
+    "searchPlaceholder": "Search customer or serial number...",
+    "tiles": {
+      "newInspection": "New inspection",
+      "inspections": "Existing inspections",
+      "customers": "Customers",
+      "serialSearch": "SN search / Recall",
+      "settings": "Settings",
+      "reserved": ""
+    }
   },
   "login": {
     "title": "Log in",
