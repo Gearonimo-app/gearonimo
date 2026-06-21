@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
+import { useAuth } from "./composables/useAuth";
 
 const i18n = createI18n({
   locale: "nl",
@@ -17,12 +18,21 @@ const router = createRouter({
     {
       path: "/",
       component: () => import("./pages/Home.vue"),
+      meta: { requiresAuth: true },
     },
     {
       path: "/login",
       component: () => import("./pages/Login.vue"),
     },
   ],
+});
+
+router.beforeEach((to) => {
+  const { isLoggedIn, loading } = useAuth();
+  if (loading.value) return true;
+  if (to.meta.requiresAuth && !isLoggedIn.value) {
+    return "/login";
+  }
 });
 
 createApp(App).use(i18n).use(router).mount("#app");
