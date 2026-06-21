@@ -55,9 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useSupabase } from '../composables/useSupabase'
-
-const { supabase } = useSupabase()
+import { supabase } from '@gearonimo/core'
 
 interface Customer {
   id: string
@@ -119,7 +117,6 @@ onMounted(load)
 
 <style scoped>
 .customers { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
-
 .customers__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;
@@ -129,16 +126,13 @@ onMounted(load)
 .customers__back, .customers__add {
   background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 0.25rem 0.5rem;
 }
-
 .customers__search { padding: 1rem 1.25rem 0.5rem; }
 .customers__search-input {
   width: 100%; padding: 0.75rem 1rem; border-radius: 10px;
   border: 1px solid #ddd; font-size: 1rem; box-sizing: border-box;
 }
-
 .customers__state { text-align: center; padding: 3rem 1rem; color: #666; }
 .customers__state--error { color: #dc2626; }
-
 .customers__list { list-style: none; margin: 0.5rem 0 0; padding: 0; }
 .customers__item {
   background: #fff; border-bottom: 1px solid #eee;
@@ -148,8 +142,6 @@ onMounted(load)
 .customers__name { font-weight: 600; flex: 1; }
 .customers__meta { font-size: 0.85rem; color: #666; margin-top: 0.2rem; flex: 2; }
 .customers__arrow { color: #999; font-size: 1.4rem; margin-left: 0.5rem; }
-
-/* Overlay / formulier */
 .customers__overlay {
   position: fixed; inset: 0; background: rgba(0,0,0,0.5);
   display: flex; align-items: flex-end; z-index: 100;
