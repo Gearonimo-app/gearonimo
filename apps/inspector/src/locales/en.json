@@ -3,7 +3,8 @@
     "loading": "Loading...",
     "cancel": "Cancel",
     "save": "Save",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "back": "Back"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -28,6 +29,16 @@
       "city": "City",
       "phone": "Phone",
       "email": "Email"
+    }
+  },
+  "customerDetail": {
+    "startInspection": "Start inspection",
+    "articlesEmpty": "No articles for this customer yet.",
+    "historyEmpty": "No inspection history yet.",
+    "tabs": {
+      "articles": "Articles",
+      "history": "History",
+      "data": "Details"
     }
   },
   "login": {

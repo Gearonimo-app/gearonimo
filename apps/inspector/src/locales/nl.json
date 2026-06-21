@@ -3,7 +3,8 @@
     "loading": "Laden...",
     "cancel": "Annuleren",
     "save": "Opslaan",
-    "saving": "Bezig..."
+    "saving": "Bezig...",
+    "back": "Terug"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -28,6 +29,16 @@
       "city": "Stad",
       "phone": "Telefoon",
       "email": "E-mail"
+    }
+  },
+  "customerDetail": {
+    "startInspection": "Start keuring",
+    "articlesEmpty": "Nog geen artikelen voor deze klant.",
+    "historyEmpty": "Nog geen keuringshistorie.",
+    "tabs": {
+      "articles": "Artikelen",
+      "history": "Historie",
+      "data": "Gegevens"
     }
   },
   "login": {
