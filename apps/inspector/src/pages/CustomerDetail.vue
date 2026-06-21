@@ -460,7 +460,8 @@ onMounted(() => {
 .catalog-results { list-style: none; margin: -0.4rem 0 0.6rem; padding: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .catalog-results li { padding: 0.6rem 0.9rem; cursor: pointer; border-bottom: 1px solid #f3f3f3; }
 .catalog-results li:hover { background: #f9fafb; }
-.catalog-results__item--active { background: #ecfdf5; }
+.catalog-results__item--active { background: #16a34a; color: #fff; }
+.catalog-results__item--active strong { color: #fff; }
 .article-form__selected { background: #ecfdf5; color: #065f46; padding: 0.5rem 0.75rem; border-radius: 8px; margin: -0.3rem 0 0.6rem; }
 .article-form__clear { background: none; border: none; color: #065f46; font-size: 1.1rem; cursor: pointer; float: right; }
 .article-form__free-toggle { color: #2563eb; background: none; border: none; cursor: pointer; padding: 0; margin: 0 0 0.6rem; font-size: 0.9rem; }
