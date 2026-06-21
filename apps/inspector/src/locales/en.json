@@ -35,6 +35,18 @@
     "startInspection": "Start inspection",
     "articlesEmpty": "No articles for this customer yet.",
     "historyEmpty": "No inspection history yet.",
+    "addArticle": "Add article",
+    "catalogSearchPlaceholder": "Search brand or model in the catalog...",
+    "cantFindIt": "Can't find it — add a free article",
+    "backToCatalog": "Back to catalog search",
+    "suggestForCatalog": "Add to the product database",
+    "freeArticleBadge": "free article",
+    "fields": {
+      "brand": "Brand",
+      "description": "Description",
+      "manualUrl": "Manual link",
+      "serialNumber": "Serial number"
+    },
     "tabs": {
       "articles": "Articles",
       "history": "History",

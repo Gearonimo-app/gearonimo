@@ -35,6 +35,18 @@
     "startInspection": "Start keuring",
     "articlesEmpty": "Nog geen artikelen voor deze klant.",
     "historyEmpty": "Nog geen keuringshistorie.",
+    "addArticle": "Artikel toevoegen",
+    "catalogSearchPlaceholder": "Zoek merk of model in de catalogus...",
+    "cantFindIt": "Kan ik niet vinden — vrij artikel toevoegen",
+    "backToCatalog": "Terug naar catalogus zoeken",
+    "suggestForCatalog": "Voeg toe aan de productendatabase",
+    "freeArticleBadge": "vrij artikel",
+    "fields": {
+      "brand": "Merk",
+      "description": "Omschrijving",
+      "manualUrl": "Link naar handleiding",
+      "serialNumber": "Serienummer"
+    },
     "tabs": {
       "articles": "Artikelen",
       "history": "Historie",
