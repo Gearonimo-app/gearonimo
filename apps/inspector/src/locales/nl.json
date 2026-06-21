@@ -4,6 +4,10 @@
     "subtitle": "Welkom, keurmeester"
   },
   "login": {
-    "title": "Inloggen"
+    "title": "Inloggen",
+    "email": "E-mailadres",
+    "password": "Wachtwoord",
+    "submit": "Inloggen",
+    "busy": "Bezig..."
   }
 }
