@@ -1,0 +1,17 @@
+{
+  "name": "gearonimo",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:inspector": "npm run dev --workspace=apps/inspector",
+    "dev:customer": "npm run dev --workspace=apps/customer",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  }
+}
