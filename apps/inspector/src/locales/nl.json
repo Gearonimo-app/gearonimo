@@ -1,7 +1,15 @@
 {
   "home": {
-    "title": "Gearonimo Pro",
-    "subtitle": "Welkom, keurmeester"
+    "appName": "Gearonimo Pro",
+    "searchPlaceholder": "Zoek klant of serienummer...",
+    "tiles": {
+      "newInspection": "Nieuwe keuring",
+      "inspections": "Bestaande keuringen",
+      "customers": "Klanten",
+      "serialSearch": "SN zoeken / Recall",
+      "settings": "Instellingen",
+      "reserved": ""
+    }
   },
   "login": {
     "title": "Inloggen",
