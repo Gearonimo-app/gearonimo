@@ -4,6 +4,10 @@
     "subtitle": "Jouw materiaal, altijd in orde"
   },
   "login": {
-    "title": "Inloggen"
+    "title": "Inloggen",
+    "email": "E-mailadres",
+    "submit": "Stuur inloglink",
+    "busy": "Bezig...",
+    "check_email": "Check je e-mail — we hebben je een inloglink gestuurd."
   }
 }
