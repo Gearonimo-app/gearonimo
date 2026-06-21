@@ -57,6 +57,23 @@
             <h3>{{ $t('customerDetail.addArticle') }}</h3>
 
             <template v-if="!freeMode">
+              <div class="article-form__brand">
+                <input
+                  v-model="brandQuery"
+                  type="search"
+                  :placeholder="$t('customerDetail.brandFilterPlaceholder')"
+                  class="article-form__input"
+                  @input="onBrandQueryChange"
+                />
+                <ul v-if="brandResults.length" class="catalog-results">
+                  <li v-for="b in brandResults" :key="b" @click="pickBrand(b)">{{ b }}</li>
+                </ul>
+                <p v-if="selectedBrand" class="article-form__selected">
+                  ✓ {{ selectedBrand }}
+                  <button class="article-form__clear" @click="clearBrand">×</button>
+                </p>
+              </div>
+
               <input
                 v-model="catalogQuery"
                 type="search"
@@ -186,6 +203,11 @@ const selectedProduct = ref<ProductMatch | null>(null)
 const savingArticle = ref(false)
 const addArticleError = ref('')
 
+const brandQuery = ref('')
+const brandResults = ref<string[]>([])
+const selectedBrand = ref<string | null>(null)
+let brandSearchTimeout: ReturnType<typeof setTimeout> | undefined
+
 const form = ref({
   free_brand: '',
   free_description: '',
@@ -227,13 +249,13 @@ function onCatalogQueryChange() {
   selectedProduct.value = null
   clearTimeout(catalogSearchTimeout)
   const q = catalogQuery.value.trim()
-  if (!q) { catalogResults.value = []; return }
+  if (!q && !selectedBrand.value) { catalogResults.value = []; return }
   catalogSearchTimeout = setTimeout(async () => {
-    const { data } = await supabase
-      .from('products')
-      .select('id, brand, name')
-      .or(`name.ilike.%${q}%,brand.ilike.%${q}%`)
-      .limit(8)
+    const { data, error: err } = await supabase.rpc('search_products', {
+      q: q || null,
+      brand_filter: selectedBrand.value,
+    })
+    if (err) { catalogResults.value = []; return }
     catalogResults.value = data ?? []
   }, 250)
 }
@@ -248,6 +270,36 @@ function clearSelectedProduct() {
   catalogQuery.value = ''
 }
 
+function onBrandQueryChange() {
+  selectedBrand.value = null
+  clearTimeout(brandSearchTimeout)
+  const q = brandQuery.value.trim()
+  if (!q) { brandResults.value = []; return }
+  brandSearchTimeout = setTimeout(async () => {
+    const { data } = await supabase
+      .from('products')
+      .select('brand')
+      .ilike('brand', `%${q}%`)
+      .not('brand', 'is', null)
+      .limit(50)
+    const unique = Array.from(new Set((data ?? []).map((r) => r.brand as string))).sort()
+    brandResults.value = unique.slice(0, 8)
+  }, 200)
+}
+
+function pickBrand(b: string) {
+  selectedBrand.value = b
+  brandQuery.value = b
+  brandResults.value = []
+  if (catalogQuery.value.trim() || selectedProduct.value) onCatalogQueryChange()
+}
+
+function clearBrand() {
+  selectedBrand.value = null
+  brandQuery.value = ''
+  if (catalogQuery.value.trim()) onCatalogQueryChange()
+}
+
 function openAddArticle() {
   showAddArticle.value = true
 }
@@ -258,6 +310,9 @@ function closeAddArticle() {
   catalogQuery.value = ''
   catalogResults.value = []
   selectedProduct.value = null
+  brandQuery.value = ''
+  brandResults.value = []
+  selectedBrand.value = null
   addArticleError.value = ''
   form.value = { free_brand: '', free_description: '', free_manual_url: '', serial_number: '', suggest_for_catalog: false }
 }
@@ -355,6 +410,7 @@ onMounted(() => {
 .article-form__selected { background: #ecfdf5; color: #065f46; padding: 0.5rem 0.75rem; border-radius: 8px; margin: -0.3rem 0 0.6rem; }
 .article-form__clear { background: none; border: none; color: #065f46; font-size: 1.1rem; cursor: pointer; float: right; }
 .article-form__free-toggle { color: #2563eb; background: none; border: none; cursor: pointer; padding: 0; margin: 0 0 0.6rem; font-size: 0.9rem; }
+.article-form__brand { position: relative; margin-bottom: 0.2rem; }
 .article-form__checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; margin-bottom: 0.6rem; }
 .article-form__actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
 .article-form__btn { flex: 1; padding: 0.75rem; border-radius: 8px; border: none; font-weight: 600; cursor: pointer; }
