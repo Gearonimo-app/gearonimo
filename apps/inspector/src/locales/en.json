@@ -4,6 +4,10 @@
     "subtitle": "Welcome, inspector"
   },
   "login": {
-    "title": "Log in"
+    "title": "Log in",
+    "email": "Email address",
+    "password": "Password",
+    "submit": "Log in",
+    "busy": "Please wait..."
   }
 }
