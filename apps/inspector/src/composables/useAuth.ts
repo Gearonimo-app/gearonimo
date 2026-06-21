@@ -11,8 +11,10 @@ supabase.auth.onAuthStateChange((_event, session) => {
   loading.value = false;
 });
 
-// Load initial session
-supabase.auth.getSession().then(({ data }) => {
+// Load initial session; expose readiness so the router (and pages) can wait
+// for it instead of racing ahead with a request that has no Authorization
+// header yet.
+const authReady: Promise<void> = supabase.auth.getSession().then(({ data }) => {
   user.value = data.session?.user ?? null;
   loading.value = false;
 });
@@ -29,5 +31,5 @@ export function useAuth() {
     await supabase.auth.signOut();
   }
 
-  return { user, loading, isLoggedIn, signInWithEmail, signOut };
+  return { user, loading, isLoggedIn, signInWithEmail, signOut, authReady };
 }

@@ -32,9 +32,9 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to) => {
-  const { isLoggedIn, loading } = useAuth();
-  if (loading.value) return true;
+router.beforeEach(async (to) => {
+  const { isLoggedIn, authReady } = useAuth();
+  await authReady;
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return "/login";
   }
