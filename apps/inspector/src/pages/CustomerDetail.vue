@@ -64,9 +64,15 @@
                   :placeholder="$t('customerDetail.brandFilterPlaceholder')"
                   class="article-form__input"
                   @input="onBrandQueryChange"
+                  @keydown="onBrandKeydown"
                 />
                 <ul v-if="brandResults.length" class="catalog-results">
-                  <li v-for="b in brandResults" :key="b" @click="pickBrand(b)">{{ b }}</li>
+                  <li
+                    v-for="(b, i) in brandResults"
+                    :key="b"
+                    :class="{ 'catalog-results__item--active': i === brandHighlight }"
+                    @click="pickBrand(b)"
+                  >{{ b }}</li>
                 </ul>
                 <p v-if="selectedBrand" class="article-form__selected">
                   ✓ {{ selectedBrand }}
@@ -80,9 +86,15 @@
                 :placeholder="$t('customerDetail.catalogSearchPlaceholder')"
                 class="article-form__input"
                 @input="onCatalogQueryChange"
+                @keydown="onCatalogKeydown"
               />
               <ul v-if="catalogResults.length" class="catalog-results">
-                <li v-for="p in catalogResults" :key="p.id" @click="pickProduct(p)">
+                <li
+                  v-for="(p, i) in catalogResults"
+                  :key="p.id"
+                  :class="{ 'catalog-results__item--active': i === catalogHighlight }"
+                  @click="pickProduct(p)"
+                >
                   <strong>{{ p.brand }}</strong> {{ p.name }}
                 </li>
               </ul>
@@ -206,7 +218,10 @@ const addArticleError = ref('')
 const brandQuery = ref('')
 const brandResults = ref<string[]>([])
 const selectedBrand = ref<string | null>(null)
+const brandHighlight = ref(-1)
 let brandSearchTimeout: ReturnType<typeof setTimeout> | undefined
+
+const catalogHighlight = ref(-1)
 
 const form = ref({
   free_brand: '',
@@ -247,6 +262,7 @@ async function loadArticles() {
 
 function onCatalogQueryChange() {
   selectedProduct.value = null
+  catalogHighlight.value = -1
   clearTimeout(catalogSearchTimeout)
   const q = catalogQuery.value.trim()
   if (!q && !selectedBrand.value) { catalogResults.value = []; return }
@@ -257,7 +273,24 @@ function onCatalogQueryChange() {
     })
     if (err) { catalogResults.value = []; return }
     catalogResults.value = data ?? []
+    catalogHighlight.value = catalogResults.value.length ? 0 : -1
   }, 250)
+}
+
+function onCatalogKeydown(e: KeyboardEvent) {
+  if (!catalogResults.value.length) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    catalogHighlight.value = (catalogHighlight.value + 1) % catalogResults.value.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    catalogHighlight.value = (catalogHighlight.value - 1 + catalogResults.value.length) % catalogResults.value.length
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (catalogHighlight.value >= 0) pickProduct(catalogResults.value[catalogHighlight.value])
+  } else if (e.key === 'Escape') {
+    catalogResults.value = []
+  }
 }
 
 function pickProduct(p: ProductMatch) {
@@ -272,6 +305,7 @@ function clearSelectedProduct() {
 
 function onBrandQueryChange() {
   selectedBrand.value = null
+  brandHighlight.value = -1
   clearTimeout(brandSearchTimeout)
   const q = brandQuery.value.trim()
   if (!q) { brandResults.value = []; return }
@@ -284,7 +318,24 @@ function onBrandQueryChange() {
       .limit(50)
     const unique = Array.from(new Set((data ?? []).map((r) => r.brand as string))).sort()
     brandResults.value = unique.slice(0, 8)
+    brandHighlight.value = brandResults.value.length ? 0 : -1
   }, 200)
+}
+
+function onBrandKeydown(e: KeyboardEvent) {
+  if (!brandResults.value.length) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    brandHighlight.value = (brandHighlight.value + 1) % brandResults.value.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    brandHighlight.value = (brandHighlight.value - 1 + brandResults.value.length) % brandResults.value.length
+  } else if (e.key === 'Enter') {
+    e.preventDefault()
+    if (brandHighlight.value >= 0) pickBrand(brandResults.value[brandHighlight.value])
+  } else if (e.key === 'Escape') {
+    brandResults.value = []
+  }
 }
 
 function pickBrand(b: string) {
@@ -313,6 +364,8 @@ function closeAddArticle() {
   brandQuery.value = ''
   brandResults.value = []
   selectedBrand.value = null
+  catalogHighlight.value = -1
+  brandHighlight.value = -1
   addArticleError.value = ''
   form.value = { free_brand: '', free_description: '', free_manual_url: '', serial_number: '', suggest_for_catalog: false }
 }
@@ -407,6 +460,7 @@ onMounted(() => {
 .catalog-results { list-style: none; margin: -0.4rem 0 0.6rem; padding: 0; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
 .catalog-results li { padding: 0.6rem 0.9rem; cursor: pointer; border-bottom: 1px solid #f3f3f3; }
 .catalog-results li:hover { background: #f9fafb; }
+.catalog-results__item--active { background: #ecfdf5; }
 .article-form__selected { background: #ecfdf5; color: #065f46; padding: 0.5rem 0.75rem; border-radius: 8px; margin: -0.3rem 0 0.6rem; }
 .article-form__clear { background: none; border: none; color: #065f46; font-size: 1.1rem; cursor: pointer; float: right; }
 .article-form__free-toggle { color: #2563eb; background: none; border: none; cursor: pointer; padding: 0; margin: 0 0 0.6rem; font-size: 0.9rem; }
