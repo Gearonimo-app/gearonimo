@@ -1,4 +1,10 @@
 {
+  "common": {
+    "loading": "Loading...",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving..."
+  },
   "home": {
     "appName": "Gearonimo Pro",
     "searchPlaceholder": "Search customer or serial number...",
@@ -9,6 +15,19 @@
       "serialSearch": "SN search / Recall",
       "settings": "Settings",
       "reserved": ""
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "searchPlaceholder": "Search by name, city, phone...",
+    "empty": "No customers found",
+    "addTitle": "New customer",
+    "fields": {
+      "name": "Company name *",
+      "address": "Address",
+      "city": "City",
+      "phone": "Phone",
+      "email": "Email"
     }
   },
   "login": {
