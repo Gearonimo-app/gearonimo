@@ -1,4 +1,10 @@
 {
+  "common": {
+    "loading": "Laden...",
+    "cancel": "Annuleren",
+    "save": "Opslaan",
+    "saving": "Bezig..."
+  },
   "home": {
     "appName": "Gearonimo Pro",
     "searchPlaceholder": "Zoek klant of serienummer...",
@@ -9,6 +15,19 @@
       "serialSearch": "SN zoeken / Recall",
       "settings": "Instellingen",
       "reserved": ""
+    }
+  },
+  "customers": {
+    "title": "Klanten",
+    "searchPlaceholder": "Zoek op naam, stad, telefoon...",
+    "empty": "Geen klanten gevonden",
+    "addTitle": "Nieuwe klant",
+    "fields": {
+      "name": "Bedrijfsnaam *",
+      "address": "Adres",
+      "city": "Stad",
+      "phone": "Telefoon",
+      "email": "E-mail"
     }
   },
   "login": {
