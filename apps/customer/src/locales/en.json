@@ -4,6 +4,10 @@
     "subtitle": "Your gear, always ready"
   },
   "login": {
-    "title": "Log in"
+    "title": "Log in",
+    "email": "Email address",
+    "submit": "Send login link",
+    "busy": "Please wait...",
+    "check_email": "Check your email — we sent you a login link."
   }
 }
