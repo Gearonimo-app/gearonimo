@@ -1,0 +1,6 @@
+{
+  "installCommand": "npm install",
+  "buildCommand": "cd apps/inspector && npx vite build",
+  "outputDirectory": "apps/inspector/dist",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}
