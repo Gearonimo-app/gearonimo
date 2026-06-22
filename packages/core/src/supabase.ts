@@ -7,4 +7,13 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   throw new Error("Missing Supabase environment variables");
 }
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Eén gedeelde client voor de hele app. De auth-opties staan expliciet zodat
+// duidelijk is dat de sessie wordt bewaard en automatisch wordt meegestuurd
+// met elke query (Authorization: Bearer <user_jwt>).
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+});
