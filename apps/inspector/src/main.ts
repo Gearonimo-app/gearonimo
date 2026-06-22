@@ -5,6 +5,13 @@ import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
 import { useAuth } from "./composables/useAuth";
+import { supabase } from "@gearonimo/core";
+
+// Dev-only: maak de client bereikbaar in de DevTools-console om de sessie te
+// inspecteren (await supabase.auth.getSession()). Wordt nooit meegebouwd in prod.
+if (import.meta.env.DEV) {
+  (window as Window & { supabase?: typeof supabase }).supabase = supabase;
+}
 
 const i18n = createI18n({
   locale: "nl",
