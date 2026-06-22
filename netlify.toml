@@ -1,8 +1,0 @@
-[build]
-  command = "cd apps/inspector && npx vite build"
-  publish = "apps/inspector/dist"
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
