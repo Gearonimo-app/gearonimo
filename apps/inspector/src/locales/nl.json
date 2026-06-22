@@ -24,10 +24,24 @@
     "addTitle": "Nieuwe klant",
     "fields": {
       "name": "Bedrijfsnaam *",
-      "address": "Adres",
-      "city": "Stad",
+      "customerNumber": "Klantnummer",
+      "kvk": "KvK-nummer",
+      "vat": "BTW-nummer",
+      "contactPerson": "Contactpersoon",
+      "email": "E-mail *",
       "phone": "Telefoon",
-      "email": "E-mail"
+      "street": "Straat",
+      "houseNumber": "Huisnummer",
+      "houseNumberAddition": "Toevoeging",
+      "postalCode": "Postcode",
+      "city": "Woonplaats",
+      "province": "Provincie",
+      "country": "Land",
+      "notes": "Opmerkingen"
+    },
+    "errors": {
+      "nameRequired": "Bedrijfsnaam is verplicht",
+      "emailRequired": "E-mail is verplicht"
     }
   },
   "login": {

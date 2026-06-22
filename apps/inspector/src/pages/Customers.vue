@@ -36,11 +36,23 @@
     <div v-if="showAdd" class="customers__overlay" @click.self="showAdd = false">
       <div class="customers__form">
         <h2>{{ $t('customers.addTitle') }}</h2>
-        <input v-model="form.name"    :placeholder="$t('customers.fields.name')"    class="customers__input" />
-        <input v-model="form.address" :placeholder="$t('customers.fields.address')" class="customers__input" />
-        <input v-model="form.city"    :placeholder="$t('customers.fields.city')"    class="customers__input" />
-        <input v-model="form.phone"   :placeholder="$t('customers.fields.phone')"   class="customers__input" type="tel" />
-        <input v-model="form.email"   :placeholder="$t('customers.fields.email')"   class="customers__input" type="email" />
+        <input v-model="form.name"                :placeholder="$t('customers.fields.name')"                class="customers__input" />
+        <input v-model="form.customerNumber"      :placeholder="$t('customers.fields.customerNumber')"      class="customers__input" />
+        <input v-model="form.kvk"                 :placeholder="$t('customers.fields.kvk')"                 class="customers__input" />
+        <input v-model="form.vat"                 :placeholder="$t('customers.fields.vat')"                 class="customers__input" />
+        <input v-model="form.contactPerson"       :placeholder="$t('customers.fields.contactPerson')"       class="customers__input" />
+        <input v-model="form.email"               :placeholder="$t('customers.fields.email')"               class="customers__input" type="email" />
+        <input v-model="form.phone"               :placeholder="$t('customers.fields.phone')"               class="customers__input" type="tel" />
+        <input v-model="form.street"              :placeholder="$t('customers.fields.street')"              class="customers__input" />
+        <div class="customers__row">
+          <input v-model="form.houseNumber"         :placeholder="$t('customers.fields.houseNumber')"         class="customers__input" />
+          <input v-model="form.houseNumberAddition" :placeholder="$t('customers.fields.houseNumberAddition')" class="customers__input" />
+        </div>
+        <input v-model="form.postalCode"          :placeholder="$t('customers.fields.postalCode')"          class="customers__input" />
+        <input v-model="form.city"                :placeholder="$t('customers.fields.city')"                class="customers__input" />
+        <input v-model="form.province"            :placeholder="$t('customers.fields.province')"            class="customers__input" />
+        <input v-model="form.country"             :placeholder="$t('customers.fields.country')"             class="customers__input" />
+        <textarea v-model="form.notes"            :placeholder="$t('customers.fields.notes')"               class="customers__input customers__textarea" rows="3"></textarea>
         <p v-if="formError" class="customers__form-error">{{ formError }}</p>
         <div class="customers__form-actions">
           <button class="customers__btn customers__btn--cancel" @click="showAdd = false">{{ $t('common.cancel') }}</button>
@@ -55,7 +67,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
+
+const { t } = useI18n()
 
 interface Customer {
   id: string
@@ -73,7 +88,15 @@ const showAdd = ref(false)
 const saving = ref(false)
 const formError = ref('')
 
-const form = ref({ name: '', address: '', city: '', phone: '', email: '' })
+function emptyForm() {
+  return {
+    name: '', customerNumber: '', kvk: '', vat: '', contactPerson: '',
+    email: '', phone: '', street: '', houseNumber: '', houseNumberAddition: '',
+    postalCode: '', city: '', province: '', country: '', notes: '',
+  }
+}
+
+const form = ref(emptyForm())
 
 const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
@@ -95,20 +118,32 @@ async function load() {
 }
 
 async function saveCustomer() {
-  if (!form.value.name.trim()) { formError.value = 'Naam is verplicht'; return }
+  if (!form.value.name.trim())  { formError.value = t('customers.errors.nameRequired');  return }
+  if (!form.value.email.trim()) { formError.value = t('customers.errors.emailRequired'); return }
   saving.value = true
   formError.value = ''
+  const f = form.value
   const { error: err } = await supabase.from('customers').insert({
-    name: form.value.name.trim(),
-    address: form.value.address || null,
-    city: form.value.city || null,
-    phone: form.value.phone || null,
-    email: form.value.email || null,
+    name: f.name.trim(),
+    customer_number: f.customerNumber.trim() || null,
+    kvk_number: f.kvk.trim() || null,
+    vat_number: f.vat.trim() || null,
+    contact_person: f.contactPerson.trim() || null,
+    email: f.email.trim(),
+    phone: f.phone.trim() || null,
+    street: f.street.trim() || null,
+    house_number: f.houseNumber.trim() || null,
+    house_number_addition: f.houseNumberAddition.trim() || null,
+    postal_code: f.postalCode.trim() || null,
+    city: f.city.trim() || null,
+    province: f.province.trim() || null,
+    country: f.country.trim() || null,
+    notes: f.notes.trim() || null,
   })
   saving.value = false
   if (err) { formError.value = err.message; return }
   showAdd.value = false
-  form.value = { name: '', address: '', city: '', phone: '', email: '' }
+  form.value = emptyForm()
   await load()
 }
 
@@ -149,7 +184,11 @@ onMounted(load)
 .customers__form {
   background: #fff; width: 100%; border-radius: 16px 16px 0 0;
   padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;
+  max-height: 88vh; overflow-y: auto;
 }
+.customers__row { display: flex; gap: 0.75rem; }
+.customers__row .customers__input { flex: 1; }
+.customers__textarea { font-family: inherit; resize: vertical; }
 .customers__form h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
 .customers__input {
   padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #ddd;

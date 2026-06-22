@@ -24,10 +24,24 @@
     "addTitle": "New customer",
     "fields": {
       "name": "Company name *",
-      "address": "Address",
-      "city": "City",
+      "customerNumber": "Customer number",
+      "kvk": "Chamber of Commerce no.",
+      "vat": "VAT number",
+      "contactPerson": "Contact person",
+      "email": "Email *",
       "phone": "Phone",
-      "email": "Email"
+      "street": "Street",
+      "houseNumber": "House number",
+      "houseNumberAddition": "Addition",
+      "postalCode": "Postal code",
+      "city": "City",
+      "province": "Province",
+      "country": "Country",
+      "notes": "Notes"
+    },
+    "errors": {
+      "nameRequired": "Company name is required",
+      "emailRequired": "Email is required"
     }
   },
   "login": {
