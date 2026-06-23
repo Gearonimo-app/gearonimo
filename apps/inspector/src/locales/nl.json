@@ -52,19 +52,24 @@
   },
   "articles": {
     "title": "Artikelen",
-    "add": "Artikel",
-    "addTitle": "Nieuw artikel",
+    "add": "Artikel toevoegen",
     "empty": "Nog geen artikelen",
-    "untitled": "(geen omschrijving)",
+    "untitled": "(naamloos)",
+    "freeBadge": "Vrij artikel",
+    "brandFilter": "Filter op merk…",
+    "catalogSearch": "Zoek in catalogus (merk, type, naam)…",
+    "cantFind": "Niet gevonden? Vrij artikel invoeren",
+    "backToCatalog": "← Terug naar catalogus",
+    "suggestForCatalog": "Toevoegen aan productendatabase",
     "fields": {
-      "description": "Omschrijving *",
       "brand": "Merk",
-      "serial": "Serienummer",
-      "year": "Bouwjaar",
-      "notes": "Opmerkingen"
+      "description": "Omschrijving",
+      "manualUrl": "Handleiding-link",
+      "serial": "Serienummer"
     },
     "errors": {
-      "descriptionRequired": "Omschrijving is verplicht"
+      "chooseOrDescribe": "Kies een product uit de catalogus of vul een omschrijving in.",
+      "suggestRequired": "Voor de catalogus-wachtrij zijn merk, omschrijving en handleiding-link verplicht."
     }
   },
   "login": {

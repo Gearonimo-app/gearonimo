@@ -52,19 +52,24 @@
   },
   "articles": {
     "title": "Articles",
-    "add": "Article",
-    "addTitle": "New article",
+    "add": "Add article",
     "empty": "No articles yet",
-    "untitled": "(no description)",
+    "untitled": "(unnamed)",
+    "freeBadge": "Free article",
+    "brandFilter": "Filter by brand…",
+    "catalogSearch": "Search catalogue (brand, type, name)…",
+    "cantFind": "Can't find it? Add as free article",
+    "backToCatalog": "← Back to catalogue",
+    "suggestForCatalog": "Suggest for product database",
     "fields": {
-      "description": "Description *",
       "brand": "Brand",
-      "serial": "Serial number",
-      "year": "Year",
-      "notes": "Notes"
+      "description": "Description",
+      "manualUrl": "Manual link",
+      "serial": "Serial number"
     },
     "errors": {
-      "descriptionRequired": "Description is required"
+      "chooseOrDescribe": "Choose a product from the catalogue or enter a description.",
+      "suggestRequired": "For the catalogue queue, brand, description and manual link are required."
     }
   },
   "login": {
