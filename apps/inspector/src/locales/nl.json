@@ -89,6 +89,29 @@
       }
     }
   },
+  "sets": {
+    "title": "Sets",
+    "add": "Set toevoegen",
+    "empty": "Nog geen sets",
+    "itemsSuffix": "artikelen",
+    "pickArticles": "Kies artikelen voor deze set",
+    "fields": {
+      "name": "Naam (bijv. Fliplijn Piet)"
+    },
+    "errors": {
+      "nameRequired": "Naam is verplicht",
+      "articlesRequired": "Kies minstens één artikel"
+    },
+    "detail": {
+      "notFound": "Set niet gevonden",
+      "noMembers": "Nog geen artikelen in deze set",
+      "addArticle": "Artikel toevoegen",
+      "noneToAdd": "Geen losse artikelen meer om toe te voegen",
+      "deleteSet": "Set verwijderen",
+      "deleteTitle": "Set verwijderen?",
+      "deleteBody": "De artikelen zelf blijven bestaan, alleen de groepering verdwijnt."
+    }
+  },
   "login": {
     "title": "Inloggen",
     "email": "E-mailadres",

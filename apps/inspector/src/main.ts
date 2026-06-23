@@ -45,6 +45,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/sets/:id",
+      component: () => import("./pages/SetDetail.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/login",
       component: () => import("./pages/Login.vue"),
     },

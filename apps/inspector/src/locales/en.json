@@ -89,6 +89,29 @@
       }
     }
   },
+  "sets": {
+    "title": "Sets",
+    "add": "Add set",
+    "empty": "No sets yet",
+    "itemsSuffix": "articles",
+    "pickArticles": "Choose articles for this set",
+    "fields": {
+      "name": "Name (e.g. Lanyard John)"
+    },
+    "errors": {
+      "nameRequired": "Name is required",
+      "articlesRequired": "Choose at least one article"
+    },
+    "detail": {
+      "notFound": "Set not found",
+      "noMembers": "No articles in this set yet",
+      "addArticle": "Add article",
+      "noneToAdd": "No more free articles to add",
+      "deleteSet": "Delete set",
+      "deleteTitle": "Delete this set?",
+      "deleteBody": "The articles themselves stay — only the grouping disappears."
+    }
+  },
   "login": {
     "title": "Log in",
     "email": "Email address",
