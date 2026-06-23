@@ -50,6 +50,23 @@
       "deleteBody": "Dit kan niet ongedaan gemaakt worden."
     }
   },
+  "articles": {
+    "title": "Artikelen",
+    "add": "Artikel",
+    "addTitle": "Nieuw artikel",
+    "empty": "Nog geen artikelen",
+    "untitled": "(geen omschrijving)",
+    "fields": {
+      "description": "Omschrijving *",
+      "brand": "Merk",
+      "serial": "Serienummer",
+      "year": "Bouwjaar",
+      "notes": "Opmerkingen"
+    },
+    "errors": {
+      "descriptionRequired": "Omschrijving is verplicht"
+    }
+  },
   "login": {
     "title": "Inloggen",
     "email": "E-mailadres",

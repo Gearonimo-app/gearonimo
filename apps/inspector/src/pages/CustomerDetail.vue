@@ -20,6 +20,7 @@
           </div>
         </template>
       </dl>
+      <CustomerArticles :customer-id="id" />
       <button class="cd__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
     </div>
 
@@ -58,6 +59,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
+import CustomerArticles from '../components/CustomerArticles.vue'
 
 const route = useRoute()
 const router = useRouter()

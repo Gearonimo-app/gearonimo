@@ -50,6 +50,23 @@
       "deleteBody": "This cannot be undone."
     }
   },
+  "articles": {
+    "title": "Articles",
+    "add": "Article",
+    "addTitle": "New article",
+    "empty": "No articles yet",
+    "untitled": "(no description)",
+    "fields": {
+      "description": "Description *",
+      "brand": "Brand",
+      "serial": "Serial number",
+      "year": "Year",
+      "notes": "Notes"
+    },
+    "errors": {
+      "descriptionRequired": "Description is required"
+    }
+  },
   "login": {
     "title": "Log in",
     "email": "Email address",
