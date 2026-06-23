@@ -12,6 +12,9 @@
 
     <!-- Bekijken -->
     <div v-else-if="!editMode" class="cd__body">
+      <button class="cd__start-inspection" :disabled="startingInspection" @click="onStartInspection">
+        {{ startingInspection ? $t('common.saving') : (draftInspection ? $t('inspections.resumeButton', { date: formatDate(draftInspection.inspection_date) }) : $t('inspections.startButton')) }}
+      </button>
       <dl class="cd__list">
         <template v-for="f in fieldDefs" :key="f.col">
           <div v-if="customer[f.col]" class="cd__view-row">
@@ -64,6 +67,7 @@ import { supabase } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
+import { findDraftInspection, startOrResumeInspection } from '../composables/useInspections'
 
 const route = useRoute()
 const router = useRouter()
@@ -97,6 +101,22 @@ const deleting = ref(false)
 const formError = ref('')
 const showDelete = ref(false)
 const form = ref<Record<string, string>>({})
+const draftInspection = ref<{ id: string; inspection_date: string } | null>(null)
+const startingInspection = ref(false)
+
+function formatDate(d: string) {
+  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
+}
+
+async function onStartInspection() {
+  startingInspection.value = true
+  try {
+    const inspectionId = await startOrResumeInspection(id)
+    router.push(`/inspections/${inspectionId}`)
+  } finally {
+    startingInspection.value = false
+  }
+}
 
 // Labels delen de placeholders uit het toevoegformulier; strip de " *" voor weergave.
 function label(key: string) {
@@ -114,6 +134,7 @@ async function load() {
   if (err) error.value = err.message
   else customer.value = data
   loading.value = false
+  draftInspection.value = await findDraftInspection(id)
 }
 
 function startEdit() {
@@ -172,6 +193,11 @@ onMounted(load)
 .cd__body { padding: 1.25rem; }
 
 /* Bekijken */
+.cd__start-inspection {
+  width: 100%; padding: 1rem; margin-bottom: 1rem; border-radius: 12px;
+  border: none; background: #16a34a; color: #fff; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+}
+.cd__start-inspection:disabled { opacity: 0.6; }
 .cd__list { margin: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .cd__view-row {
   display: flex; justify-content: space-between; gap: 1rem;

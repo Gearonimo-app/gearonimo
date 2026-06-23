@@ -76,3 +76,40 @@ export async function findDraftInspection(customerId: string): Promise<{ id: str
   if (error) throw error
   return data
 }
+
+// Resultaat (en datum) van de meest recente afgeronde keuring van dit artikel,
+// voor de "vorige keuring: goed (12 jun 2025)"-context in stap 2 van de wizard.
+export async function findPreviousResult(
+  articleId: string,
+  excludeInspectionId: string
+): Promise<{ result: string; comment: string | null; inspection_date: string } | null> {
+  const { data, error } = await supabase
+    .from('inspection_items')
+    .select('result, comment, inspection:inspections(inspection_date, status)')
+    .eq('article_id', articleId)
+    .neq('inspection_id', excludeInspectionId)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  if (error) throw error
+  const completed = (data ?? []).find((row: any) => row.inspection?.status === 'completed')
+  if (!completed) return null
+  return {
+    result: completed.result,
+    comment: completed.comment,
+    inspection_date: (completed as any).inspection.inspection_date,
+  }
+}
+
+// Afkeurcodes voor dit bedrijf: eigen codes (company_id = X) aangevuld met de
+// platformstandaard (company_id leeg). Leeg resultaat = wizard valt terug op
+// vrije tekst (zie 20260624_rejection_codes.sql).
+export async function fetchRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
+  const { data, error } = await supabase
+    .from('rejection_codes')
+    .select('id, code, label, company_id')
+    .eq('active', true)
+    .or(`company_id.eq.${companyId},company_id.is.null`)
+    .order('code')
+  if (error) throw error
+  return (data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
+}
