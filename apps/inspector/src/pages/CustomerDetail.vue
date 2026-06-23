@@ -20,6 +20,7 @@
           </div>
         </template>
       </dl>
+      <CustomerMembers :customer-id="id" />
       <CustomerArticles :customer-id="id" />
       <CustomerSets :customer-id="id" />
       <button class="cd__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
@@ -60,6 +61,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
+import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
 

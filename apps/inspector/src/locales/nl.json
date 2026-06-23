@@ -50,6 +50,28 @@
       "deleteBody": "Dit kan niet ongedaan gemaakt worden."
     }
   },
+  "members": {
+    "title": "Medewerkers",
+    "add": "Medewerker toevoegen",
+    "edit": "Medewerker bewerken",
+    "empty": "Nog geen medewerkers",
+    "inactiveBadge": "Inactief",
+    "fields": {
+      "name": "Naam *",
+      "role": "Functie",
+      "phone": "Telefoon",
+      "email": "E-mail",
+      "notes": "Opmerkingen",
+      "active": "In dienst"
+    },
+    "errors": {
+      "nameRequired": "Naam is verplicht"
+    },
+    "detail": {
+      "deleteTitle": "Medewerker verwijderen?",
+      "deleteBody": "Dit kan niet ongedaan gemaakt worden."
+    }
+  },
   "articles": {
     "title": "Artikelen",
     "add": "Artikel toevoegen",

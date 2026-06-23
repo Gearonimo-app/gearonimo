@@ -50,6 +50,28 @@
       "deleteBody": "This cannot be undone."
     }
   },
+  "members": {
+    "title": "Members",
+    "add": "Add member",
+    "edit": "Edit member",
+    "empty": "No members yet",
+    "inactiveBadge": "Inactive",
+    "fields": {
+      "name": "Name *",
+      "role": "Role",
+      "phone": "Phone",
+      "email": "Email",
+      "notes": "Notes",
+      "active": "Active"
+    },
+    "errors": {
+      "nameRequired": "Name is required"
+    },
+    "detail": {
+      "deleteTitle": "Delete member?",
+      "deleteBody": "This cannot be undone."
+    }
+  },
   "articles": {
     "title": "Articles",
     "add": "Add article",
