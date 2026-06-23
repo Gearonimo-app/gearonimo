@@ -3,7 +3,8 @@
     "loading": "Laden...",
     "cancel": "Annuleren",
     "save": "Opslaan",
-    "saving": "Bezig..."
+    "saving": "Bezig...",
+    "delete": "Verwijderen"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -42,6 +43,11 @@
     "errors": {
       "nameRequired": "Bedrijfsnaam is verplicht",
       "emailRequired": "E-mail is verplicht"
+    },
+    "detail": {
+      "notFound": "Klant niet gevonden",
+      "deleteTitle": "Klant verwijderen?",
+      "deleteBody": "Dit kan niet ongedaan gemaakt worden."
     }
   },
   "login": {

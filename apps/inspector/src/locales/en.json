@@ -3,7 +3,8 @@
     "loading": "Loading...",
     "cancel": "Cancel",
     "save": "Save",
-    "saving": "Saving..."
+    "saving": "Saving...",
+    "delete": "Delete"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -42,6 +43,11 @@
     "errors": {
       "nameRequired": "Company name is required",
       "emailRequired": "Email is required"
+    },
+    "detail": {
+      "notFound": "Customer not found",
+      "deleteTitle": "Delete customer?",
+      "deleteBody": "This cannot be undone."
     }
   },
   "login": {
