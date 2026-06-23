@@ -74,6 +74,19 @@
     "errors": {
       "chooseOrDescribe": "Choose a product from the catalogue or enter a description.",
       "suggestRequired": "For the catalogue queue, brand, description and manual link are required."
+    },
+    "detail": {
+      "notFound": "Article not found",
+      "retire": "Retire",
+      "retireTitle": "Retire this article?",
+      "retireBody": "The article stays on record but no longer counts towards inspections.",
+      "retiredBadge": "Retired",
+      "fields": {
+        "manufactureYear": "Manufacture year",
+        "manufactureMonth": "Manufacture month",
+        "purchaseDate": "Purchase date",
+        "severeUse": "Severe use"
+      }
     }
   },
   "login": {

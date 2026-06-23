@@ -10,7 +10,7 @@
     <p v-else-if="articles.length === 0 && !showAdd" class="ca__state">{{ $t('articles.empty') }}</p>
 
     <ul v-else-if="articles.length" class="ca__list">
-      <li v-for="a in articles" :key="a.id" class="ca__item">
+      <li v-for="a in articles" :key="a.id" class="ca__item" @click="$router.push(`/articles/${a.id}`)">
         <div class="ca__desc">{{ articleLabel(a) }}</div>
         <div class="ca__meta">
           <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
@@ -280,7 +280,7 @@ onMounted(load)
 .ca__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }
 .ca__state--error { color: #dc2626; }
 .ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
-.ca__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
+.ca__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; }
 .ca__item:last-child { border-bottom: none; }
 .ca__desc { font-weight: 600; }
 .ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; }

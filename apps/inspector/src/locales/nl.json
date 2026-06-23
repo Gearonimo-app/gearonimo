@@ -74,6 +74,19 @@
     "errors": {
       "chooseOrDescribe": "Kies een product uit de catalogus of vul een omschrijving in.",
       "suggestRequired": "Voor de catalogus-wachtrij zijn merk, omschrijving en handleiding-link verplicht."
+    },
+    "detail": {
+      "notFound": "Artikel niet gevonden",
+      "retire": "Afvoeren",
+      "retireTitle": "Artikel afvoeren?",
+      "retireBody": "Het artikel blijft bewaard maar telt niet meer mee voor keuringen.",
+      "retiredBadge": "Afgevoerd",
+      "fields": {
+        "manufactureYear": "Bouwjaar",
+        "manufactureMonth": "Bouwmaand",
+        "purchaseDate": "Aankoopdatum",
+        "severeUse": "Zwaar gebruik"
+      }
     }
   },
   "login": {
