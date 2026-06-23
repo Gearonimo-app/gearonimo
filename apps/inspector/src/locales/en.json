@@ -65,7 +65,11 @@
       "brand": "Brand",
       "description": "Description",
       "manualUrl": "Manual link",
-      "serial": "Serial number"
+      "serial": "Serial number",
+      "user": "User",
+      "firstUse": "First use",
+      "set": "Set (articles that belong together)",
+      "notes": "Notes"
     },
     "errors": {
       "chooseOrDescribe": "Choose a product from the catalogue or enter a description.",

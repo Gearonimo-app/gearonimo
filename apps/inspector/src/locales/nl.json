@@ -65,7 +65,11 @@
       "brand": "Merk",
       "description": "Omschrijving",
       "manualUrl": "Handleiding-link",
-      "serial": "Serienummer"
+      "serial": "Serienummer",
+      "user": "Gebruiker",
+      "firstUse": "Ingebruikname",
+      "set": "Set (artikelen die bij elkaar horen)",
+      "notes": "Opmerkingen"
     },
     "errors": {
       "chooseOrDescribe": "Kies een product uit de catalogus of vul een omschrijving in.",

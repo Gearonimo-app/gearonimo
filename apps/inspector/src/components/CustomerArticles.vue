@@ -23,26 +23,8 @@
     <div v-if="showAdd" class="ca__form">
       <h3>{{ $t('articles.add') }}</h3>
 
-      <!-- Catalogus-modus -->
+      <!-- Catalogus-modus: eerst artikel zoeken, daarna eventueel op merk filteren -->
       <template v-if="!freeMode">
-        <div class="ca__field">
-          <input
-            v-model="brandQuery" type="search"
-            :placeholder="$t('articles.brandFilter')"
-            class="ca__input"
-            @input="onBrandQueryChange" @keydown="onBrandKeydown"
-          />
-          <ul v-if="brandResults.length" class="ca__results">
-            <li v-for="(b, i) in brandResults" :key="b"
-                :class="{ 'ca__results-item--active': i === brandHighlight }"
-                @click="pickBrand(b)">{{ b }}</li>
-          </ul>
-          <p v-if="selectedBrand" class="ca__selected">
-            ✓ {{ selectedBrand }}
-            <button class="ca__clear" @click="clearBrand">×</button>
-          </p>
-        </div>
-
         <div class="ca__field">
           <input
             v-model="catalogQuery" type="search"
@@ -60,6 +42,24 @@
           <p v-if="selectedProduct" class="ca__selected">
             ✓ {{ selectedProduct.brand }} {{ selectedProduct.name }}
             <button class="ca__clear" @click="clearSelectedProduct">×</button>
+          </p>
+        </div>
+
+        <div class="ca__field">
+          <input
+            v-model="brandQuery" type="search"
+            :placeholder="$t('articles.brandFilter')"
+            class="ca__input"
+            @input="onBrandQueryChange" @keydown="onBrandKeydown"
+          />
+          <ul v-if="brandResults.length" class="ca__results">
+            <li v-for="(b, i) in brandResults" :key="b"
+                :class="{ 'ca__results-item--active': i === brandHighlight }"
+                @click="pickBrand(b)">{{ b }}</li>
+          </ul>
+          <p v-if="selectedBrand" class="ca__selected">
+            ✓ {{ selectedBrand }}
+            <button class="ca__clear" @click="clearBrand">×</button>
           </p>
         </div>
 
@@ -81,7 +81,15 @@
                :placeholder="$t('articles.fields.manualUrl')" class="ca__input" />
       </template>
 
-      <input v-model="form.serial_number" :placeholder="$t('articles.fields.serial')" class="ca__input" />
+      <hr class="ca__sep" />
+      <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
+      <input v-model="form.assigned_user_name" :placeholder="$t('articles.fields.user')"   class="ca__input" />
+      <label class="ca__date-label">
+        {{ $t('articles.fields.firstUse') }}
+        <input v-model="form.first_use_date" type="date" class="ca__input" />
+      </label>
+      <input v-model="form.set_label" :placeholder="$t('articles.fields.set')" class="ca__input" />
+      <textarea v-model="form.notes" :placeholder="$t('articles.fields.notes')" class="ca__input" rows="2"></textarea>
 
       <p v-if="formError" class="ca__error">{{ formError }}</p>
       <div class="ca__actions">
@@ -133,7 +141,13 @@ const selectedBrand = ref<string | null>(null)
 const brandHighlight = ref(-1)
 let brandTimeout: ReturnType<typeof setTimeout> | undefined
 
-const form = ref({ free_brand: '', free_description: '', free_manual_url: '', serial_number: '', suggest_for_catalog: false })
+function emptyForm() {
+  return {
+    free_brand: '', free_description: '', free_manual_url: '', suggest_for_catalog: false,
+    serial_number: '', assigned_user_name: '', first_use_date: '', set_label: '', notes: '',
+  }
+}
+const form = ref(emptyForm())
 
 function articleLabel(a: Article) {
   const s = a.product
@@ -222,7 +236,7 @@ function closeAdd() {
   catalogQuery.value = ''; catalogResults.value = []; selectedProduct.value = null
   brandQuery.value = ''; brandResults.value = []; selectedBrand.value = null
   catalogHighlight.value = -1; brandHighlight.value = -1; formError.value = ''
-  form.value = { free_brand: '', free_description: '', free_manual_url: '', serial_number: '', suggest_for_catalog: false }
+  form.value = emptyForm()
 }
 
 async function save() {
@@ -242,6 +256,10 @@ async function save() {
     free_description: selectedProduct.value ? null : (form.value.free_description.trim() || null),
     free_manual_url: selectedProduct.value ? null : (form.value.free_manual_url.trim() || null),
     serial_number: form.value.serial_number.trim() || null,
+    assigned_user_name: form.value.assigned_user_name.trim() || null,
+    first_use_date: form.value.first_use_date || null,
+    set_label: form.value.set_label.trim() || null,
+    notes: form.value.notes.trim() || null,
     suggest_for_catalog: selectedProduct.value ? false : form.value.suggest_for_catalog,
     retired: false,
   })
@@ -284,7 +302,10 @@ onMounted(load)
 }
 .ca__results li { padding: 0.6rem 0.85rem; cursor: pointer; border-bottom: 1px solid #f3f4f6; }
 .ca__results li:last-child { border-bottom: none; }
-.ca__results-item--active { background: #dcfce7; }
+.ca__results-item--active { background: #16a34a; color: #fff; }
+.ca__results-item--active strong { color: #fff; }
+.ca__sep { border: none; border-top: 1px solid #eee; margin: 0.4rem 0; }
+.ca__date-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: #6b7280; }
 .ca__selected { margin: 0.35rem 0 0; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
 .ca__clear { background: none; border: none; color: #6b7280; font-size: 1.1rem; cursor: pointer; }
 .ca__link { background: none; border: none; color: #2563eb; text-align: left; padding: 0; font-size: 0.9rem; cursor: pointer; }
