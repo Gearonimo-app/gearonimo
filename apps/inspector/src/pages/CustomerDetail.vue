@@ -15,6 +15,7 @@
       <button class="cd__start-inspection" :disabled="startingInspection" @click="onStartInspection">
         {{ startingInspection ? $t('common.saving') : (draftInspection ? $t('inspections.resumeButton', { date: formatDate(draftInspection.inspection_date) }) : $t('inspections.startButton')) }}
       </button>
+      <p v-if="startError" class="cd__error">{{ startError }}</p>
       <dl class="cd__list">
         <template v-for="f in fieldDefs" :key="f.col">
           <div v-if="customer[f.col]" class="cd__view-row">
@@ -103,6 +104,7 @@ const showDelete = ref(false)
 const form = ref<Record<string, string>>({})
 const draftInspection = ref<{ id: string; inspection_date: string } | null>(null)
 const startingInspection = ref(false)
+const startError = ref('')
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
@@ -110,9 +112,12 @@ function formatDate(d: string) {
 
 async function onStartInspection() {
   startingInspection.value = true
+  startError.value = ''
   try {
     const inspectionId = await startOrResumeInspection(id)
     router.push(`/inspections/${inspectionId}`)
+  } catch (e: any) {
+    startError.value = e?.message ?? String(e)
   } finally {
     startingInspection.value = false
   }

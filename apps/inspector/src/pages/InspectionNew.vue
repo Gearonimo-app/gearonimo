@@ -15,6 +15,8 @@
       />
     </div>
 
+    <div v-if="pickError" class="in__state in__state--error">{{ pickError }}</div>
+
     <div v-if="loading" class="in__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="in__state in__state--error">{{ error }}</div>
     <div v-else-if="filtered.length === 0" class="in__state">{{ $t('customers.empty') }}</div>
@@ -44,6 +46,7 @@ const loading = ref(true)
 const error = ref('')
 const query = ref('')
 const picking = ref(false)
+const pickError = ref('')
 
 const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
@@ -62,9 +65,12 @@ async function load() {
 async function pick(customerId: string) {
   if (picking.value) return
   picking.value = true
+  pickError.value = ''
   try {
     const inspectionId = await startOrResumeInspection(customerId)
     router.push(`/inspections/${inspectionId}`)
+  } catch (e: any) {
+    pickError.value = e?.message ?? String(e)
   } finally {
     picking.value = false
   }
