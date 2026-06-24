@@ -41,7 +41,9 @@ insert into storage.buckets (id, name, public)
 values ('certificates', 'certificates', true)
 on conflict (id) do nothing;
 
-create policy if not exists "certificates upload by authenticated"
+drop policy if exists "certificates upload by authenticated" on storage.objects;
+
+create policy "certificates upload by authenticated"
   on storage.objects for insert
   to authenticated
   with check (bucket_id = 'certificates');
