@@ -171,6 +171,19 @@
     "nextDueTitle": "Next inspection (editable):",
     "finish": "FINISH →",
     "totalAssessed": "Assessed",
-    "saveFinish": "OK – SAVE"
+    "saveFinish": "OK – SAVE",
+    "certificateReady": "Certificate generated and archived",
+    "downloadCertificate": "Download certificate",
+    "backToCustomer": "Back to customer"
+  },
+  "verify": {
+    "authentic": "Authentic certificate",
+    "notFound": "Certificate not found or invalid link",
+    "number": "Certificate number",
+    "customer": "Customer",
+    "date": "Inspection date",
+    "issuedAt": "Issued",
+    "items": "Inspected items",
+    "hash": "File hash"
   }
 }

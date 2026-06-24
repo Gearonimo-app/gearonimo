@@ -65,6 +65,10 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/verify/:token",
+      component: () => import("./pages/VerifyCertificate.vue"),
+    },
+    {
       path: "/login",
       component: () => import("./pages/Login.vue"),
     },

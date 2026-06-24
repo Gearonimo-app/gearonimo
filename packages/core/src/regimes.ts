@@ -85,3 +85,14 @@ export function getRegime(
   }
   return regime.interval_months;
 }
+
+export function getLegalReference(
+  product_type: ProductType,
+  country_code: CountryCode
+): string {
+  return (
+    REGIMES.find(
+      (r) => r.product_type === product_type && r.country_code === country_code
+    )?.legal_reference ?? ""
+  );
+}

@@ -140,9 +140,19 @@
         </div>
 
         <p v-if="completeError" class="iw__error">{{ completeError }}</p>
-        <button class="iw__next" :disabled="completing" @click="finish">
+        <button v-if="!finished" class="iw__next" :disabled="completing" @click="finish">
           {{ completing ? $t('common.saving') : $t('inspections.saveFinish') }}
         </button>
+
+        <div v-else class="iw__cert-done">
+          <p class="iw__cert-ok">✅ {{ $t('inspections.certificateReady') }}</p>
+          <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
+            {{ $t('inspections.downloadCertificate') }}
+          </a>
+          <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection.customer_id}`)">
+            {{ $t('inspections.backToCustomer') }}
+          </button>
+        </div>
       </div>
     </template>
   </div>
@@ -150,14 +160,14 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
 import { calcNextDue, ProductType, CountryCode } from '@gearonimo/core'
 import { fetchRejectionCodes, findPreviousResult } from '../composables/useInspections'
+import { generateCertificate } from '../composables/useCertificate'
 
 const route = useRoute()
-const router = useRouter()
 const { t } = useI18n()
 const id = route.params.id as string
 
@@ -212,6 +222,8 @@ const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>
 
 const completing = ref(false)
 const completeError = ref('')
+const finished = ref(false)
+const certificateUrl = ref('')
 
 function itemLabel(it: Item) {
   const a = it.article
@@ -381,7 +393,10 @@ async function finish() {
       .update({ status: 'completed', completed_at: new Date().toISOString() })
       .eq('id', id)
     if (err) throw err
-    router.push(`/customers/${inspection.value.customer_id}`)
+
+    const { storagePath } = await generateCertificate(id)
+    certificateUrl.value = supabase.storage.from('certificates').getPublicUrl(storagePath).data.publicUrl
+    finished.value = true
   } catch (e: any) {
     completeError.value = e.message
   } finally {
@@ -460,4 +475,8 @@ onMounted(load)
 .iw__btn--save { background: #16a34a; color: #fff; }
 .iw__btn:disabled { opacity: 0.6; }
 .iw__actions { display: flex; gap: 0.75rem; }
+
+.iw__cert-done { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
+.iw__cert-ok { font-weight: 600; color: #16a34a; margin: 0; }
+.iw__cert-link { text-align: center; text-decoration: none; display: block; }
 </style>

@@ -171,6 +171,19 @@
     "nextDueTitle": "Volgende keuring (aanpasbaar):",
     "finish": "AFRONDEN →",
     "totalAssessed": "Beoordeeld",
-    "saveFinish": "OK – OPSLAAN"
+    "saveFinish": "OK – OPSLAAN",
+    "certificateReady": "Certificaat gegenereerd en gearchiveerd",
+    "downloadCertificate": "Certificaat downloaden",
+    "backToCustomer": "Terug naar klant"
+  },
+  "verify": {
+    "authentic": "Echt certificaat",
+    "notFound": "Certificaat niet gevonden of ongeldige link",
+    "number": "Certificaatnummer",
+    "customer": "Klant",
+    "date": "Keuringsdatum",
+    "issuedAt": "Uitgegeven",
+    "items": "Gekeurde artikelen",
+    "hash": "Bestandshash"
   }
 }
