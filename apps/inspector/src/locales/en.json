@@ -174,7 +174,32 @@
     "saveFinish": "OK – SAVE",
     "certificateReady": "Certificate generated and archived",
     "downloadCertificate": "Download certificate",
-    "backToCustomer": "Back to customer"
+    "backToCustomer": "Back to customer",
+    "table": {
+      "searchPlaceholder": "Search by serial number, description, brand…",
+      "noMatches": "No articles found",
+      "addRow": "Add article",
+      "catalogSearch": "Search catalogue…",
+      "orFree": "or free article:",
+      "brand": "Brand",
+      "description": "Description",
+      "serial": "Serial number",
+      "year": "Year",
+      "month": "Month",
+      "add": "+ Add",
+      "colDescription": "Article",
+      "colSerial": "SN",
+      "colPrevious": "Previous",
+      "colResult": "Result",
+      "colNextDue": "Next inspection",
+      "colWarning": "",
+      "pass": "Pass",
+      "fail": "Fail",
+      "totals": "{passed} passed · {rejected} rejected · {open} open",
+      "finish": "Finish →",
+      "ageWarningOverdue": "Lifespan exceeded",
+      "ageWarningSoon": "Lifespan ending soon ({months} mo)"
+    }
   },
   "verify": {
     "authentic": "Authentic certificate",

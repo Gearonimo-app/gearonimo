@@ -174,7 +174,32 @@
     "saveFinish": "OK – OPSLAAN",
     "certificateReady": "Certificaat gegenereerd en gearchiveerd",
     "downloadCertificate": "Certificaat downloaden",
-    "backToCustomer": "Terug naar klant"
+    "backToCustomer": "Terug naar klant",
+    "table": {
+      "searchPlaceholder": "Zoek op serienummer, omschrijving, merk…",
+      "noMatches": "Geen artikelen gevonden",
+      "addRow": "Artikel toevoegen",
+      "catalogSearch": "Zoek in catalogus…",
+      "orFree": "of vrij artikel:",
+      "brand": "Merk",
+      "description": "Omschrijving",
+      "serial": "Serienummer",
+      "year": "Bouwjaar",
+      "month": "Maand",
+      "add": "+ Toevoegen",
+      "colDescription": "Artikel",
+      "colSerial": "SN",
+      "colPrevious": "Vorige",
+      "colResult": "Resultaat",
+      "colNextDue": "Volgende keuring",
+      "colWarning": "",
+      "pass": "Goed",
+      "fail": "Afkeur",
+      "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
+      "finish": "Afronden →",
+      "ageWarningOverdue": "Levensduur verstreken",
+      "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)"
+    }
   },
   "verify": {
     "authentic": "Echt certificaat",
