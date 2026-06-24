@@ -9,6 +9,7 @@ set
   address      = 'Energieweg 3',
   postal_code  = '6662NS',
   city         = 'Elst (Gld)',
+  email        = 'jos@safetygreen.nl',
   cert_header  = 'Keuringen worden uitgevoerd door daarvoor opgeleide medewerkers. De uitgevoerde keuring betreft een visuele controle van onderstaande punten van de aangeboden materialen. Safety Green B.V. kan nimmer aansprakelijk worden gesteld voor ongevallen, directe of indirecte schade ten gevolge van verkeerd gebruik van de materialen.',
   cert_footer  = 'Leveringen, opdrachten en offertes geschieden volgens de leveringsvoorwaarden gedeponeerd bij het Handelsregister te Arnhem onder inschrijvingsnr: 10042517'
 where name = 'Gearonimo';
