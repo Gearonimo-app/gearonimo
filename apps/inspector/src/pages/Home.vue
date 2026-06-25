@@ -72,7 +72,7 @@ function navigate(route: string | null) {
 
 function onSearch() {
   if (searchQuery.value.trim()) {
-    router.push({ path: '/search', query: { q: searchQuery.value.trim() } })
+    router.push({ path: '/serial-search', query: { q: searchQuery.value.trim() } })
     searchQuery.value = ''
   }
 }

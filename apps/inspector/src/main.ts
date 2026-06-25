@@ -55,6 +55,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/serial-search",
+      component: () => import("./pages/SerialSearch.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/inspections/:id",
       component: () => import("./pages/InspectionWizard.vue"),
       meta: { requiresAuth: true },

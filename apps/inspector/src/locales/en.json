@@ -18,6 +18,16 @@
       "reserved": ""
     }
   },
+  "serialSearch": {
+    "title": "SN search / Recall",
+    "placeholder": "Last digits of serial number or description…",
+    "hint": "Search by (part of) the serial number, or by brand/description.",
+    "prompt": "Type at least 2 characters to search.",
+    "noMatches": "No articles found",
+    "recall": "Recall — check this article",
+    "notice": "Manufacturer inspection notice",
+    "manual": "Manual"
+  },
   "customers": {
     "title": "Customers",
     "searchPlaceholder": "Search by name, city, phone...",

@@ -18,6 +18,16 @@
       "reserved": ""
     }
   },
+  "serialSearch": {
+    "title": "SN zoeken / Recall",
+    "placeholder": "Laatste cijfers serienummer of omschrijving…",
+    "hint": "Zoek op (een deel van) het serienummer, of op merk/omschrijving.",
+    "prompt": "Typ minstens 2 tekens om te zoeken.",
+    "noMatches": "Geen artikelen gevonden",
+    "recall": "Recall — controleer dit artikel",
+    "notice": "Keuringsmelding fabrikant",
+    "manual": "Handleiding"
+  },
   "customers": {
     "title": "Klanten",
     "searchPlaceholder": "Zoek op naam, stad, telefoon...",

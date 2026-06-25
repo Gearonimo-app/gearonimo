@@ -94,8 +94,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   die test nog niet teruggekoppeld — vervolgsessie begint hiermee.
   Bewust nog buiten scope: foto's bij afkeuring, instellingenscherm voor
   afkeurcodes.
+  **SN-zoeken / Recall-tegel af (2026-06-26):** de dode link op het
+  hoofdmenu (`/serial-search`) is nu een echte pagina
+  (`apps/inspector/src/pages/SerialSearch.vue`). Zoekt op (een deel van) het
+  serienummer — Jos' primaire zoekgedrag op de laatste cijfers, UX-FLOW
+  §4.2 — aangevuld met merk/omschrijving/categorie (vrije artikelen) en de
+  fuzzy `search_products`-cataloguszoeker; resultaten linken door naar
+  `/articles/:id`. Per treffer tonen we klantnaam, SN en de
+  recall-/keuringsmelding-vlaggen + handleiding-link (catalogus:
+  `products.recall_url`/`inspection_notice_url`/`manual_url`; vrij artikel:
+  `free_recall_flag`/`free_recall_url`/`free_manual_url`) — het systeem
+  signaleert, de keurmeester beslist (UX-FLOW §1.6). Geen migratie nodig
+  (alleen leesquery's op bestaande kolommen). De zoekbalk bovenaan het
+  hoofdmenu wees naar een niet-bestaande `/search` en stuurt nu door naar
+  deze pagina. Nog geen multi-tenant scope op actieve `customer_links` —
+  bewust gelijk aan de rest van de app zolang RLS uit staat en er één
+  keurbedrijf is.
   Nog te bouwen: UI-opmaak/styling-pas, plus de overige tegels
-  (keuringen-overzicht is een eerste opzet, SN-zoeken, instellingen).
+  (keuringen-overzicht is een eerste opzet, instellingen).
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
