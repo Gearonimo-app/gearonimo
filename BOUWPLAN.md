@@ -108,11 +108,14 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
     `free_manual_url`) — systeem signaleert, keurmeester beslist (UX-FLOW §1.6).
   - **Recall zoeken** — de terugroepactie-zoeker uit de oude app: vind álle
     artikelen in het klantenbestand die onder een recall vallen, op merk +
-    product + fabricagedatum-bereik (vóór jaar/maand, vanaf jaar), bv. "Petzl
-    Astro vóór oktober 2023". Resultatentabel (product, merk, SN, fabricage,
-    gebruiker, klant) met **CSV-export** en doorklik naar `/articles/:id`.
-    Bouwjaar-voorfilter server-side; merk/product/maand client-side (merk/naam
-    komt zowel uit `products` als uit `free_*`, niet in één query te filteren).
+    product + fabricagedatum-bereik (vóór jaar/maand én vanaf jaar/maand —
+    symmetrisch, dus een echt van–tot-bereik), bv. "Petzl Astro vóór oktober
+    2023". Product-match is bevat-match over naam + categorie, zodat "astro"
+    ook Astro Int / Astro Bod Fast / Astro mt 2 vindt. Resultatentabel
+    (product, merk, SN, fabricage, gebruiker, klant) met **CSV-export** en
+    doorklik naar `/articles/:id`. Bouwjaar-voorfilter server-side;
+    merk/product/maand client-side (merk/naam komt zowel uit `products` als uit
+    `free_*`, niet in één query te filteren).
   Geen migratie nodig (alleen leesquery's op bestaande kolommen). De zoekbalk
   bovenaan het hoofdmenu wees naar een niet-bestaande `/search` en stuurt nu
   door naar deze pagina (serienummer-modus). Nog geen multi-tenant scope op

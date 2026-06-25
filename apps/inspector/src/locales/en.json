@@ -37,6 +37,7 @@
     "recallBeforeYear": "Manufactured before year",
     "recallBeforeMonth": "Month",
     "recallFromYear": "Manufactured from year",
+    "recallFromMonth": "Month",
     "recallSearch": "Search recall articles",
     "recallExport": "Export list (CSV)",
     "recallNeedFilter": "Enter at least a brand, product or manufacture year.",

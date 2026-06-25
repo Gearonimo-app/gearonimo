@@ -93,9 +93,18 @@
               <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
             </select>
           </div>
+        </div>
+        <div class="ss__row">
           <div class="ss__field">
             <label>{{ $t('serialSearch.recallFromYear') }}</label>
             <input v-model.number="rcFromYear" type="number" min="1990" max="2099" placeholder="2020" class="ss__rc-input" />
+          </div>
+          <div class="ss__field">
+            <label>{{ $t('serialSearch.recallFromMonth') }}</label>
+            <select v-model.number="rcFromMonth" class="ss__rc-input">
+              <option :value="0">—</option>
+              <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
+            </select>
           </div>
         </div>
         <div class="ss__recall-actions">
@@ -283,8 +292,15 @@ const rcProduct = ref('')
 const rcBeforeYear = ref<number | null>(null)
 const rcBeforeMonth = ref(0)
 const rcFromYear = ref<number | null>(null)
+const rcFromMonth = ref(0)
 const recallResults = ref<Row[]>([])
 const recallRan = ref(false)
+
+// Doorzoekt productnaam + categorie (zowel catalogus als vrij artikel), zodat
+// "astro" óók Astro Int, Astro Bod Fast, Astro mt 2 enz. vindt (bevat-match).
+function prodHaystack(r: Row) {
+  return [name(r), r.product?.category, r.free_category].filter(Boolean).join(' ').toLowerCase()
+}
 
 const uniqueCustomers = computed(
   () => new Set(recallResults.value.map((r) => r.customer?.name || '?')).size
@@ -296,8 +312,9 @@ async function doRecall() {
   const voorJaar = rcBeforeYear.value || 0
   const voorMaand = rcBeforeMonth.value || 0
   const vanafJaar = rcFromYear.value || 0
+  const vanafMaand = rcFromMonth.value || 0
 
-  if (!bMerk && !bProd && !voorJaar) {
+  if (!bMerk && !bProd && !voorJaar && !vanafJaar) {
     error.value = t('serialSearch.recallNeedFilter')
     return
   }
@@ -315,11 +332,22 @@ async function doRecall() {
 
     const rows = ((data ?? []) as unknown as Row[]).filter((r) => {
       if (bMerk && !brand(r).toLowerCase().includes(bMerk)) return false
-      if (bProd && !name(r).toLowerCase().includes(bProd)) return false
-      if (voorJaar && voorMaand) {
-        const ij = r.manufacture_year || 0
-        const im = r.manufacture_month || 12
-        if (ij * 100 + im >= voorJaar * 100 + voorMaand) return false
+      if (bProd && !prodHaystack(r).includes(bProd)) return false
+      const ij = r.manufacture_year || 0
+      // Bovengrens "fabricage vóór": ontbrekende maand telt als dec (zo valt
+      // een artikel uit het grensjaar zonder maand buiten een "vóór juni").
+      if (voorJaar) {
+        if (!ij) return false
+        if (voorMaand) {
+          if (ij * 100 + (r.manufacture_month || 12) >= voorJaar * 100 + voorMaand) return false
+        } else if (ij > voorJaar) return false
+      }
+      // Ondergrens "fabricage vanaf": ontbrekende maand telt als jan.
+      if (vanafJaar) {
+        if (!ij) return false
+        if (vanafMaand) {
+          if (ij * 100 + (r.manufacture_month || 1) < vanafJaar * 100 + vanafMaand) return false
+        } else if (ij < vanafJaar) return false
       }
       return true
     })

@@ -37,6 +37,7 @@
     "recallBeforeYear": "Fabricage vóór jaar",
     "recallBeforeMonth": "Maand",
     "recallFromYear": "Fabricage vanaf jaar",
+    "recallFromMonth": "Maand",
     "recallSearch": "Zoek recall-artikelen",
     "recallExport": "Exporteer lijst (CSV)",
     "recallNeedFilter": "Vul minimaal een merk, product of fabricagejaar in.",
