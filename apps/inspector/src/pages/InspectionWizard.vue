@@ -34,6 +34,7 @@
             :placeholder="$t('inspections.table.article')"
             @focus="activeField = 'article'"
             @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
           />
           <input
             v-model="newBrand"
@@ -41,6 +42,7 @@
             :placeholder="$t('inspections.table.brand')"
             @focus="activeField = 'brand'"
             @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
           />
           <input
             v-model="newCategory"
@@ -48,6 +50,7 @@
             :placeholder="$t('inspections.table.category')"
             @focus="activeField = 'category'"
             @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
           />
           <input
             v-model="newSerial"
@@ -55,6 +58,7 @@
             :placeholder="$t('inspections.table.serial')"
             @focus="activeField = 'serial'"
             @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
           />
           <input v-model="newYear" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
           <select v-model="newMonth" class="iw__select iw__select--xs">
@@ -93,11 +97,13 @@
              Serienummer in de al toegevoegde artikelen van deze keuring. -->
         <div v-if="activeField && fieldSuggestions.length" class="iw__suggest">
           <button
-            v-for="s in fieldSuggestions"
+            v-for="(s, i) in fieldSuggestions"
             :key="s"
             type="button"
             class="iw__suggest-item"
+            :class="{ 'iw__suggest-item--active': i === suggestIndex }"
             @mousedown.prevent="pickSuggestion(s)"
+            @mouseenter="suggestIndex = i"
           >{{ s }}</button>
         </div>
 
@@ -403,6 +409,26 @@ function pickSuggestion(val: string) {
 // lijst door blur verdwijnt (mousedown.prevent vangt de meeste gevallen al af).
 function closeSuggest() {
   setTimeout(() => { activeField.value = null }, 120)
+}
+
+// Met pijltjestoetsen door de suggestielijst lopen, Enter kiest, Escape sluit.
+const suggestIndex = ref(-1)
+watch(fieldSuggestions, () => { suggestIndex.value = -1 })
+
+function onSuggestKeydown(e: KeyboardEvent) {
+  if (!activeField.value || !fieldSuggestions.value.length) return
+  if (e.key === 'ArrowDown') {
+    e.preventDefault()
+    suggestIndex.value = (suggestIndex.value + 1) % fieldSuggestions.value.length
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault()
+    suggestIndex.value = suggestIndex.value <= 0 ? fieldSuggestions.value.length - 1 : suggestIndex.value - 1
+  } else if (e.key === 'Enter' && suggestIndex.value >= 0) {
+    e.preventDefault()
+    pickSuggestion(fieldSuggestions.value[suggestIndex.value])
+  } else if (e.key === 'Escape') {
+    activeField.value = null
+  }
 }
 
 // Toevoegrij
@@ -861,6 +887,7 @@ onMounted(load)
   color: #111827; font-family: inherit;
 }
 .iw__suggest-item:hover { background: #f3f4f6; }
+.iw__suggest-item--active { background: #e0e7ff; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
