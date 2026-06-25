@@ -161,6 +161,28 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   certificaat-kop/voettekst-standaard wordt óók **per keurbedrijf** instelbaar,
   *niet* "per land/regime" zoals UX-FLOW §7.5 nu nog schrijft — dat punt is
   hiermee overruled. i18n nl+en toegevoegd onder `settings`.
+  **Instellingen onderdeel 2: certificaat-template + opmaak-wizard
+  (2026-06-25):** de certificaat-PDF is herbouwd tot een echte layout-engine
+  (`useCertificate.ts`), met een opmaak-wizard onder Instellingen →
+  Certificaat-template (`components/CertificateSettings.vue`). Per keurbedrijf
+  instelbaar (besluit Jos: per keurbedrijf, niet per land): bedrijfsgegevens
+  (naam/adres/contact), kop-/voettekst (met knop "standaardtekst invoegen" —
+  één generieke juridische tekst, géén per-land-bibliotheek), **logo-upload**
+  (Storage-bucket `branding`) met **grootte-slider, uitlijning en
+  links/rechts-nudge**, plaats van de bedrijfsgegevens, accentkleur, en
+  **afdrukstand** (staand/liggend/automatisch). Alles met **live PDF-preview**
+  die meebeweegt (client-side gerenderd met dezelfde generator + fictieve
+  voorbeelddata). De generator zelf: echte tabel met automatisch passende
+  kolombreedtes + tekstafbreking, automatische oriëntatie (liggend zodra de
+  tabel te breed wordt), herhaalde kolomkop per pagina, **handtekening/QR/
+  voetblok dat bij elkaar onderaan blijft** (lost de "wees-handtekening op
+  pagina 2" op), en paginanummers ("Pagina X van N"). De opmaak is een sjabloon
+  voor **nieuwe** certificaten; al uitgegeven PDF's blijven onveranderd. Nieuwe
+  velden `inspection_companies.logo_path` + `cert_layout` (jsonb) en de
+  publieke `branding`-bucket: migratie
+  `supabase/migrations/20260628_certificate_branding.sql`. Headless getest
+  (staand/liggend/meerdere pagina's gerenderd en visueel gecontroleerd);
+  live-test door Jos volgt. i18n nl+en onder `settings.certificate`.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

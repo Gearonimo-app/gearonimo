@@ -1,53 +1,92 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
 import { supabase } from '@gearonimo/core'
 
 // Genereert het certificaat-PDF bij het afronden van een keuring
-// (DATAMODEL §certificates, bouwplan fase 2: "Certificaat-PDF server-side"
-// — hier client-side gebouwd, want er is nog geen edge-function-infra; de
-// PDF wordt eenmalig vastgelegd en daarna nooit herschreven, dus waar hij
-// gebouwd wordt maakt voor de juridische waarde niet uit).
+// (DATAMODEL §certificates). Client-side gebouwd; de PDF wordt eenmalig
+// vastgelegd in Storage en daarna nooit herschreven (onveranderlijkheid).
 //
-// Verwacht een afgeronde (status='completed') inspectie; slaat de PDF op in
-// Storage-bucket "certificates", berekent een hash en maakt het
-// certificates-record met een verify_token voor de QR-verificatiepagina.
+// De opmaak is per keurbedrijf instelbaar via inspection_companies.cert_layout
+// (besluit Jos 2026-06-25). Dezelfde renderfunctie voedt zowel de echte
+// generatie als de live preview in het instellingenscherm.
 
-interface InspectionForCertificate {
-  id: string
-  customer_id: string
-  company_id: string
-  inspector_id: string
-  inspection_date: string
-  customer: { name: string }
-  company: {
-    name: string
-    country_code: string
-    address: string | null
-    postal_code: string | null
-    city: string | null
-    email: string | null
-    phone: string | null
-    cert_header: string | null
-    cert_footer: string | null
-  }
-  inspector: { name: string | null }
+// ----------------------------------------------------------------------------
+// Opmaak-configuratie (per keurbedrijf)
+// ----------------------------------------------------------------------------
+
+export interface CertLayout {
+  orientation: 'portrait' | 'landscape' | 'auto' // auto = liggend als de tabel te breed wordt
+  logoScale: number // 0.3–2.5, t.o.v. een basislogo-hoogte (~46pt)
+  logoAlign: 'left' | 'center' | 'right'
+  logoOffsetX: number // pt nudge naar links (–) / rechts (+)
+  companyInfo: 'left' | 'right' // bedrijfsgegevens links of rechts in de kop
+  showAddress: boolean
+  showContact: boolean
+  accent: string // hex, kleur van titels en tabelkop
 }
 
-interface ItemForCertificate {
+export const DEFAULT_CERT_LAYOUT: CertLayout = {
+  orientation: 'auto',
+  logoScale: 1,
+  logoAlign: 'left',
+  logoOffsetX: 0,
+  companyInfo: 'left',
+  showAddress: true,
+  showContact: true,
+  accent: '#1a3a2a',
+}
+
+// Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
+// breken bij het toevoegen van nieuwe opties.
+export function resolveLayout(raw: unknown): CertLayout {
+  if (!raw || typeof raw !== 'object') return { ...DEFAULT_CERT_LAYOUT }
+  return { ...DEFAULT_CERT_LAYOUT, ...(raw as Partial<CertLayout>) }
+}
+
+// ----------------------------------------------------------------------------
+// Genormaliseerde invoer voor de renderer (losgekoppeld van de DB-vorm, zodat
+// de preview met voorbeelddata exact dezelfde renderer kan gebruiken).
+// ----------------------------------------------------------------------------
+
+export interface CertCompany {
+  name: string
+  address: string | null
+  postal_code: string | null
+  city: string | null
+  email: string | null
+  phone: string | null
+  cert_header: string | null
+  cert_footer: string | null
+}
+
+export interface CertItem {
   result: string
+  label: string
+  serial_number: string | null
   next_due: string | null
-  comment: string | null
   rejection_code_label: string | null
-  article: {
-    serial_number: string | null
-    free_brand: string | null
-    free_description: string | null
-    product: { brand: string | null; name: string | null; product_type: string | null } | null
-  }
+  comment: string | null
 }
 
-function itemLabel(it: ItemForCertificate): string {
-  const a = it.article
+export interface CertData {
+  company: CertCompany
+  customerName: string
+  inspectionDate: string // ISO
+  inspectorName: string | null
+  number: string
+  verifyUrl: string
+  items: CertItem[]
+}
+
+// ----------------------------------------------------------------------------
+// Hulpfuncties
+// ----------------------------------------------------------------------------
+
+function itemLabelFromArticle(a: {
+  free_brand: string | null
+  free_description: string | null
+  product: { brand: string | null; name: string | null } | null
+}): string {
   const s = a.product
     ? [a.product.brand, a.product.name].filter(Boolean).join(' ')
     : [a.free_brand, a.free_description].filter(Boolean).join(' ')
@@ -56,6 +95,7 @@ function itemLabel(it: ItemForCertificate): string {
 
 function formatDate(d: string | Date): string {
   const date = typeof d === 'string' ? new Date(d) : d
+  if (isNaN(date.getTime())) return String(d)
   return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
@@ -68,6 +108,23 @@ function slugify(s: string): string {
     .toUpperCase()
 }
 
+function hexToColor(hex: string): Color {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
+  if (!m) return rgb(0.1, 0.23, 0.16)
+  const n = parseInt(m[1], 16)
+  return rgb(((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255)
+}
+
+// Lichtere tint van een kleur (voor de tabelkop-achtergrond).
+function tint(c: Color, factor: number): Color {
+  const col = c as { red: number; green: number; blue: number }
+  return rgb(
+    col.red + (1 - col.red) * factor,
+    col.green + (1 - col.green) * factor,
+    col.blue + (1 - col.blue) * factor
+  )
+}
+
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', bytes)
   return Array.from(new Uint8Array(digest))
@@ -75,35 +132,411 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
     .join('')
 }
 
+// Breekt tekst af op woordgrens binnen maxWidth; lange woorden worden hard
+// gebroken. Geeft minstens één (mogelijk lege) regel terug.
+function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  if (!text) return ['']
+  const lines: string[] = []
+  for (const paragraph of text.split('\n')) {
+    const words = paragraph.split(/\s+/).filter((w) => w.length > 0)
+    if (words.length === 0) {
+      lines.push('')
+      continue
+    }
+    let cur = ''
+    for (const w of words) {
+      const test = cur ? cur + ' ' + w : w
+      if (font.widthOfTextAtSize(test, size) <= maxWidth) {
+        cur = test
+      } else if (!cur && font.widthOfTextAtSize(w, size) > maxWidth) {
+        // Woord langer dan de kolom: hard breken op tekens.
+        let chunk = ''
+        for (const ch of w) {
+          if (chunk && font.widthOfTextAtSize(chunk + ch, size) > maxWidth) {
+            lines.push(chunk)
+            chunk = ch
+          } else {
+            chunk += ch
+          }
+        }
+        cur = chunk
+      } else {
+        if (cur) lines.push(cur)
+        cur = w
+      }
+    }
+    if (cur) lines.push(cur)
+  }
+  return lines.length ? lines : ['']
+}
+
+// ----------------------------------------------------------------------------
+// Tabel-kolommen
+// ----------------------------------------------------------------------------
+
+interface Column {
+  key: keyof CertItemRow
+  header: string
+  flex: boolean // mag groeien/krimpen om te passen
+  min: number
+  cap: number // voorkeur-maximum
+  align: 'left'
+}
+
+interface CertItemRow {
+  status: string
+  article: string
+  sn: string
+  next: string
+  note: string
+}
+
+function toRow(it: CertItem): CertItemRow {
+  const passed = it.result === 'passed'
+  const note = passed
+    ? ''
+    : [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
+  return {
+    status: passed ? 'GOED' : 'AFGEKEURD',
+    article: it.label,
+    sn: it.serial_number || '—',
+    next: it.next_due ? formatDate(it.next_due) : '—',
+    note,
+  }
+}
+
+const COLUMNS: Column[] = [
+  { key: 'status', header: 'Status', flex: false, min: 62, cap: 78, align: 'left' },
+  { key: 'article', header: 'Artikel', flex: true, min: 90, cap: 210, align: 'left' },
+  { key: 'sn', header: 'Serienummer', flex: false, min: 64, cap: 110, align: 'left' },
+  { key: 'next', header: 'Volgende keuring', flex: false, min: 78, cap: 110, align: 'left' },
+  { key: 'note', header: 'Afkeurcode / opmerking', flex: true, min: 90, cap: 240, align: 'left' },
+]
+
+const CELL_PAD = 6
+
+// Voorkeursbreedte per kolom = max(kop, langste cel) + padding, afgetopt op cap.
+function preferredWidths(rows: CertItemRow[], font: PDFFont, bold: PDFFont, size: number): number[] {
+  return COLUMNS.map((col) => {
+    let w = bold.widthOfTextAtSize(col.header, size)
+    for (const r of rows) {
+      w = Math.max(w, font.widthOfTextAtSize(String(r[col.key] ?? ''), size))
+    }
+    return Math.min(col.cap, Math.max(col.min, w + CELL_PAD * 2))
+  })
+}
+
+// Past de kolombreedtes op de beschikbare breedte: groeit de flex-kolommen als
+// er ruimte over is, of schaalt alles proportioneel als het te breed is.
+function fitWidths(pref: number[], avail: number): number[] {
+  const total = pref.reduce((a, b) => a + b, 0)
+  if (total <= avail) {
+    const flexIdx = COLUMNS.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
+    const extra = avail - total
+    const per = extra / (flexIdx.length || 1)
+    return pref.map((w, i) => (flexIdx.includes(i) ? w + per : w))
+  }
+  return pref.map((w) => (w * avail) / total)
+}
+
+// ----------------------------------------------------------------------------
+// Renderer
+// ----------------------------------------------------------------------------
+
+export async function renderCertificatePdf(
+  data: CertData,
+  layout: CertLayout,
+  logoBytes: Uint8Array | null
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.create()
+  const font = await doc.embedFont(StandardFonts.Helvetica)
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold)
+  const accent = hexToColor(layout.accent)
+  const grey = rgb(0.42, 0.42, 0.42)
+  const lineGrey = rgb(0.85, 0.85, 0.85)
+
+  const qrDataUrl = await QRCode.toDataURL(data.verifyUrl, { margin: 0, width: 200 })
+  const qrImage = await doc.embedPng(qrDataUrl)
+
+  let logo: PDFImage | null = null
+  if (logoBytes && logoBytes.length) {
+    try {
+      // PNG-signatuur (0x89 'P' 'N' 'G'); anders JPG proberen.
+      logo = logoBytes[0] === 0x89 ? await doc.embedPng(logoBytes) : await doc.embedJpg(logoBytes)
+    } catch {
+      logo = null
+    }
+  }
+
+  const margin = 50
+  const tableSize = 9.5
+  const rows = data.items.map(toRow)
+
+  // Oriëntatie bepalen. Auto = staand, tenzij de tabel echt te breed wordt om
+  // nog netjes in staand te passen (dan liggend). Staand is de natuurlijke keuze
+  // voor de meeste keuringen; pas bij brede inhoud (lange opmerkingen bij
+  // afkeuringen) loont liggend. De factor geeft staand wat speling: een artikel-
+  // naam die op twee regels afbreekt is prima, daar hoeft het niet voor draaien.
+  const A4_SHORT = 595.28
+  const A4_LONG = 841.89
+  const portraitAvail = A4_SHORT - 2 * margin
+  const AUTO_LANDSCAPE_FACTOR = 1.2
+  let landscape: boolean
+  if (layout.orientation === 'landscape') landscape = true
+  else if (layout.orientation === 'portrait') landscape = false
+  else {
+    const pref = preferredWidths(rows, font, bold, tableSize)
+    landscape = pref.reduce((a, b) => a + b, 0) > portraitAvail * AUTO_LANDSCAPE_FACTOR
+  }
+  const pageWidth = landscape ? A4_LONG : A4_SHORT
+  const pageHeight = landscape ? A4_SHORT : A4_LONG
+  const contentWidth = pageWidth - 2 * margin
+
+  const colWidths = fitWidths(preferredWidths(rows, font, bold, tableSize), contentWidth)
+
+  let page!: PDFPage
+  let y = 0
+  function newPage() {
+    page = doc.addPage([pageWidth, pageHeight])
+    y = pageHeight - margin
+  }
+  newPage()
+
+  // ---- Kop (alleen eerste pagina) ----
+  function drawHeader() {
+    const topY = y
+    let logoBottom = topY
+    if (logo) {
+      const baseH = 46 * Math.max(0.3, Math.min(2.5, layout.logoScale))
+      const dims = logo.scale(baseH / logo.height)
+      let x = margin
+      if (layout.logoAlign === 'center') x = (pageWidth - dims.width) / 2
+      else if (layout.logoAlign === 'right') x = pageWidth - margin - dims.width
+      x += layout.logoOffsetX
+      x = Math.max(margin, Math.min(x, pageWidth - margin - dims.width))
+      page.drawImage(logo, { x, y: topY - dims.height, width: dims.width, height: dims.height })
+      logoBottom = topY - dims.height
+    }
+
+    let cy = logoBottom - (logo ? 14 : 0)
+    const c = data.company
+    const infoLines: { text: string; size: number; font: PDFFont; color: Color }[] = []
+    infoLines.push({ text: c.name, size: 15, font: bold, color: accent })
+    if (layout.showAddress && (c.address || c.postal_code || c.city)) {
+      infoLines.push({
+        text: [c.address, [c.postal_code, c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+        size: 9,
+        font,
+        color: grey,
+      })
+    }
+    if (layout.showContact && (c.email || c.phone)) {
+      infoLines.push({ text: [c.email, c.phone].filter(Boolean).join('  ·  '), size: 9, font, color: grey })
+    }
+    for (const l of infoLines) {
+      const w = l.font.widthOfTextAtSize(l.text, l.size)
+      const x = layout.companyInfo === 'right' ? pageWidth - margin - w : margin
+      page.drawText(l.text, { x, y: cy - l.size, size: l.size, font: l.font, color: l.color })
+      cy -= l.size + 4
+    }
+
+    cy -= 8
+    page.drawText('Keuringscertificaat', { x: margin, y: cy - 13, size: 13, font: bold, color: accent })
+    cy -= 13 + 8
+
+    const meta = [
+      `Certificaatnummer: ${data.number}`,
+      `Klant: ${data.customerName}`,
+      `Keuringsdatum: ${formatDate(data.inspectionDate)}`,
+      `Keurmeester: ${data.inspectorName || '—'}`,
+    ]
+    for (const m of meta) {
+      page.drawText(m, { x: margin, y: cy - 10, size: 10, font, color: rgb(0, 0, 0) })
+      cy -= 10 + 3
+    }
+
+    // Intro-/koptekst (juridische standaardtekst van het keurbedrijf).
+    if (c.cert_header) {
+      cy -= 6
+      for (const ln of wrapText(c.cert_header, font, 8.5, contentWidth)) {
+        page.drawText(ln, { x: margin, y: cy - 8.5, size: 8.5, font, color: grey })
+        cy -= 8.5 + 2.5
+      }
+    }
+    y = cy - 10
+  }
+  drawHeader()
+
+  // ---- Tabel ----
+  function drawTableHeader() {
+    const h = tableSize + 10
+    page.drawRectangle({ x: margin, y: y - h, width: contentWidth, height: h, color: tint(accent, 0.86) })
+    let x = margin
+    COLUMNS.forEach((col, i) => {
+      page.drawText(col.header, { x: x + CELL_PAD, y: y - tableSize - 4, size: tableSize, font: bold, color: accent })
+      x += colWidths[i]
+    })
+    y -= h
+  }
+  drawTableHeader()
+
+  const lineGap = tableSize + 3
+  for (const r of rows) {
+    // Cel-regels vooraf berekenen om de rijhoogte te kennen.
+    const cellLines = COLUMNS.map((col, i) =>
+      wrapText(String(r[col.key] ?? ''), font, tableSize, colWidths[i] - CELL_PAD * 2)
+    )
+    const maxLines = Math.max(...cellLines.map((l) => l.length))
+    const rowHeight = maxLines * lineGap + 6
+
+    if (y - rowHeight < margin + 8) {
+      newPage()
+      drawTableHeader()
+    }
+
+    let x = margin
+    COLUMNS.forEach((col, i) => {
+      const isStatus = col.key === 'status'
+      const passed = r.status === 'GOED'
+      const cellFont = isStatus ? bold : font
+      const cellColor = isStatus ? (passed ? rgb(0.09, 0.5, 0.25) : rgb(0.75, 0.1, 0.1)) : rgb(0.1, 0.1, 0.1)
+      cellLines[i].forEach((ln, li) => {
+        page.drawText(ln, {
+          x: x + CELL_PAD,
+          y: y - tableSize - 4 - li * lineGap,
+          size: tableSize,
+          font: cellFont,
+          color: cellColor,
+        })
+      })
+      x += colWidths[i]
+    })
+    y -= rowHeight
+    page.drawLine({ start: { x: margin, y }, end: { x: pageWidth - margin, y }, thickness: 0.5, color: lineGrey })
+  }
+
+  // ---- Voetblok (bij elkaar gehouden, onderaan de laatste pagina vastgepind) ----
+  const footerText = data.company.cert_footer || ''
+  const footerLines = footerText ? wrapText(footerText, font, 8, contentWidth) : []
+  const qrSize = 64
+  const sigBlockHeight = 30 + footerLines.length * 11 + qrSize + 18
+  if (y - sigBlockHeight < margin) {
+    newPage()
+  }
+
+  // Vastpinnen onderaan: teken vanaf de ondermarge omhoog.
+  let fy = margin
+  // QR rechtsonder + verificatie-tekst.
+  page.drawImage(qrImage, { x: pageWidth - margin - qrSize, y: fy, width: qrSize, height: qrSize })
+  page.drawText('Scan om te verifiëren', {
+    x: pageWidth - margin - qrSize,
+    y: fy - 10,
+    size: 7,
+    font,
+    color: grey,
+  })
+  // Handtekeningvlak links.
+  page.drawText(`Keurmeester: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
+  page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + 200, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
+  page.drawText('Handtekening', { x: margin, y: fy, size: 7, font, color: grey })
+
+  fy += qrSize + 14
+  if (footerLines.length) {
+    for (let i = footerLines.length - 1; i >= 0; i--) {
+      page.drawText(footerLines[i], { x: margin, y: fy, size: 8, font, color: grey })
+      fy += 11
+    }
+  }
+  page.drawText(`Uitgegeven: ${formatDate(new Date())}`, { x: margin, y: fy + 2, size: 8, font, color: grey })
+
+  // ---- Paginanummers op elke pagina ----
+  const pages = doc.getPages()
+  pages.forEach((p, i) => {
+    const label = `Pagina ${i + 1} van ${pages.length}`
+    const w = font.widthOfTextAtSize(label, 8)
+    p.drawText(label, { x: (pageWidth - w) / 2, y: 22, size: 8, font, color: grey })
+  })
+
+  return doc.save()
+}
+
+// ----------------------------------------------------------------------------
+// Logo ophalen uit Storage
+// ----------------------------------------------------------------------------
+
+export async function fetchLogoBytes(logoPath: string | null): Promise<Uint8Array | null> {
+  if (!logoPath) return null
+  const { data, error } = await supabase.storage.from('branding').download(logoPath)
+  if (error || !data) return null
+  return new Uint8Array(await data.arrayBuffer())
+}
+
+// ----------------------------------------------------------------------------
+// Echte certificaatgeneratie bij het afronden van een keuring
+// ----------------------------------------------------------------------------
+
+interface CompanyRow extends CertCompany {
+  country_code: string
+  logo_path: string | null
+  cert_layout: unknown
+}
+
 export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, email, phone, cert_header, cert_footer), inspector:inspectors(name)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, email, phone, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name)'
     )
     .eq('id', inspectionId)
     .single()
   if (insErr) throw insErr
-  const inspection = insp as unknown as InspectionForCertificate
+  const inspection = insp as unknown as {
+    id: string
+    customer_id: string
+    company_id: string
+    inspection_date: string
+    customer: { name: string }
+    company: CompanyRow
+    inspector: { name: string | null }
+  }
 
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, product:products(brand, name, product_type)), rejection_code:rejection_codes(label)'
+      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, product:products(brand, name)), rejection_code:rejection_codes(label)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
   if (itemsErr) throw itemsErr
-  const items = (rows ?? []).map((r: any) => ({
-    ...r,
+
+  const items: CertItem[] = (rows ?? []).map((r: any) => ({
+    result: r.result,
+    label: itemLabelFromArticle(r.article),
+    serial_number: r.article?.serial_number ?? null,
+    next_due: r.next_due,
     rejection_code_label: r.rejection_code?.label ?? null,
-  })) as ItemForCertificate[]
+    comment: r.comment,
+  }))
 
   const verifyToken = crypto.randomUUID()
   const number = `${inspection.inspection_date.replace(/-/g, '')}-${slugify(inspection.customer.name)}`
   const verifyUrl = `${window.location.origin}/verify/${verifyToken}`
 
-  const pdfBytes = await buildPdf(inspection, items, number, verifyUrl)
+  const company = inspection.company
+  const layout = resolveLayout(company.cert_layout)
+  const logoBytes = await fetchLogoBytes(company.logo_path)
+
+  const data: CertData = {
+    company,
+    customerName: inspection.customer.name,
+    inspectionDate: inspection.inspection_date,
+    inspectorName: inspection.inspector?.name ?? null,
+    number,
+    verifyUrl,
+    items,
+  }
+
+  const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)
   const pdfHash = await sha256Hex(pdfBytes)
 
   const storagePath = `${inspection.company_id}/${inspection.id}.pdf`
@@ -116,7 +549,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     inspection_id: inspection.id,
     number,
     storage_path: storagePath,
-    language: inspection.company.country_code === 'GB' ? 'en' : 'nl',
+    language: company.country_code === 'GB' ? 'en' : 'nl',
     pdf_hash: pdfHash,
     verify_token: verifyToken,
   })
@@ -125,93 +558,4 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   await supabase.from('inspections').update({ certificate_number: number }).eq('id', inspection.id)
 
   return { verifyToken, storagePath }
-}
-
-async function buildPdf(
-  inspection: InspectionForCertificate,
-  items: ItemForCertificate[],
-  number: string,
-  verifyUrl: string
-): Promise<Uint8Array> {
-  const doc = await PDFDocument.create()
-  const font = await doc.embedFont(StandardFonts.Helvetica)
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold)
-
-  const qrDataUrl = await QRCode.toDataURL(verifyUrl, { margin: 0, width: 200 })
-  const qrImage = await doc.embedPng(qrDataUrl)
-
-  const margin = 50
-  const pageWidth = 595.28 // A4
-  const pageHeight = 841.89
-  let page = doc.addPage([pageWidth, pageHeight])
-  let y = pageHeight - margin
-
-  function ensureSpace(needed: number) {
-    if (y - needed < margin + 80) {
-      page = doc.addPage([pageWidth, pageHeight])
-      y = pageHeight - margin
-    }
-  }
-
-  function line(text: string, opts: { size?: number; bold?: boolean; gap?: number; color?: ReturnType<typeof rgb> } = {}) {
-    const size = opts.size ?? 11
-    ensureSpace(size + (opts.gap ?? 4))
-    page.drawText(text, { x: margin, y, size, font: opts.bold ? bold : font, color: opts.color ?? rgb(0, 0, 0) })
-    y -= size + (opts.gap ?? 4)
-  }
-
-  const company = inspection.company
-  const headerText = company.cert_header || `${company.name} — Keuringscertificaat`
-  line(headerText, { size: 16, bold: true, gap: 10 })
-  if (company.address || company.postal_code || company.city) {
-    line([company.address, [company.postal_code, company.city].filter(Boolean).join(' ')].filter(Boolean).join(', '), {
-      size: 9,
-      color: rgb(0.35, 0.35, 0.35),
-    })
-  }
-  if (company.email || company.phone) {
-    line([company.email, company.phone].filter(Boolean).join('  ·  '), { size: 9, color: rgb(0.35, 0.35, 0.35), gap: 14 })
-  }
-
-  line(`Certificaatnummer: ${number}`, { size: 11, gap: 2 })
-  line(`Klant: ${inspection.customer.name}`, { size: 11, gap: 2 })
-  line(`Keuringsdatum: ${formatDate(inspection.inspection_date)}`, { size: 11, gap: 2 })
-  line(`Keurmeester: ${inspection.inspector?.name ?? '—'}`, { size: 11, gap: 16 })
-
-  line('Gekeurde artikelen', { size: 13, bold: true, gap: 8 })
-
-  for (const it of items) {
-    ensureSpace(40)
-    const passed = it.result === 'passed'
-    line(`${passed ? 'GOED' : 'AFGEKEURD'} — ${itemLabel(it)}`, {
-      size: 11,
-      bold: true,
-      color: passed ? rgb(0.09, 0.5, 0.25) : rgb(0.75, 0.1, 0.1),
-      gap: 2,
-    })
-    const article = it.article
-    if (article.serial_number) line(`SN ${article.serial_number}`, { size: 9, color: rgb(0.35, 0.35, 0.35), gap: 2 })
-    if (it.next_due) line(`Volgende keuring uiterlijk: ${formatDate(it.next_due)}`, { size: 9, gap: 2 })
-    if (!passed) {
-      if (it.rejection_code_label) line(`Afkeurcode: ${it.rejection_code_label}`, { size: 9, gap: 2 })
-      if (it.comment) line(`Opmerking: ${it.comment}`, { size: 9, gap: 2 })
-    }
-    y -= 4
-  }
-
-  // Voettekst met handtekeningvlak en verificatie-QR onderaan de laatste pagina.
-  ensureSpace(140)
-  y -= 10
-  line(company.cert_footer || 'Dit certificaat is een momentopname op de genoemde keuringsdatum en geen garantie tot een datum.', {
-    size: 8,
-    color: rgb(0.45, 0.45, 0.45),
-    gap: 6,
-  })
-  line(`Uitgegeven: ${formatDate(new Date())}`, { size: 8, color: rgb(0.45, 0.45, 0.45), gap: 6 })
-
-  const qrSize = 70
-  page.drawImage(qrImage, { x: pageWidth - margin - qrSize, y: margin, width: qrSize, height: qrSize })
-  page.drawText('Scan om te verifiëren', { x: pageWidth - margin - qrSize, y: margin - 12, size: 7, font, color: rgb(0.45, 0.45, 0.45) })
-
-  return doc.save()
 }

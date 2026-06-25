@@ -107,9 +107,22 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > niet aangeleverd), en de echte kop-/voettekst (kwalificatie-/
 > aansprakelijkheidstekst resp. leveringsvoorwaarden/KvK-inschrijving) — zie
 > `supabase/migrations/20260625_company_details_and_rejection_codes.sql`.
-> `logo_url`/`brand_color`/`registration_number`/`allowed_norms`/
+> `brand_color`/`registration_number`/`allowed_norms`/
 > `allowed_product_types`/`billing_status`/`stripe_customer_id` zijn nog niet
 > aangelegd.
+>
+> **Certificaat-opmaak per keurbedrijf (2026-06-25):** kolommen `logo_path`
+> (pad in de publieke Storage-bucket `branding`) en `cert_layout` (jsonb) zijn
+> toegevoegd (migratie `20260628_certificate_branding.sql`). `cert_layout`
+> bevat de opmaakinstellingen die de PDF-generator leest: `orientation`
+> (`auto`/`portrait`/`landscape`), `logoScale`, `logoAlign`, `logoOffsetX`,
+> `companyInfo` (gegevens links/rechts), `showAddress`, `showContact`,
+> `accent` (hex). Leeg = `DEFAULT_CERT_LAYOUT` in
+> `apps/inspector/src/composables/useCertificate.ts`. Te beheren via de
+> Instellingen-tegel → Certificaat-template (live preview). De velden zijn een
+> opmaak-sjabloon voor **nieuwe** certificaten; al uitgegeven PDF's blijven
+> onveranderd (onveranderlijkheid). `logo_url`/`brand_color` uit de
+> oorspronkelijke schets zijn vervangen door `logo_path` + `cert_layout.accent`.
 
 ### `inspectors` (keurmeesters)
 | kolom | type | uitleg |
