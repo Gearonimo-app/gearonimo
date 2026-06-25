@@ -44,6 +44,8 @@
     "recallPrompt": "Fill in the filters and search.",
     "recallResultUnit": "articles",
     "recallCustomerUnit": "customers",
+    "recallUnknownNote": "{n} article(s) without a manufacture year — shown, but check yourself whether they fall under the recall.",
+    "dateUnknown": "year unknown",
     "colProduct": "Product",
     "colBrand": "Brand",
     "colSerial": "Serial number",

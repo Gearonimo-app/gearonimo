@@ -127,6 +127,9 @@
           <strong>{{ recallResults.length }}</strong> {{ $t('serialSearch.recallResultUnit') }} ·
           <strong>{{ uniqueCustomers }}</strong> {{ $t('serialSearch.recallCustomerUnit') }}
         </p>
+        <p v-if="unknownDateCount" class="ss__recall-warn">
+          ⚠ {{ $t('serialSearch.recallUnknownNote', { n: unknownDateCount }) }}
+        </p>
         <div class="ss__table-wrap">
           <table class="ss__table">
             <thead>
@@ -144,7 +147,10 @@
                 <td class="ss__td-name">{{ name(r) || '—' }}</td>
                 <td>{{ brand(r) || '—' }}</td>
                 <td class="ss__td-sn">{{ r.serial_number || '—' }}</td>
-                <td class="ss__td-mfr">{{ manufactureStr(r) }}</td>
+                <td class="ss__td-mfr" :class="{ 'ss__td-mfr--unknown': r._unknownDate }">
+                  <template v-if="r._unknownDate">⚠ {{ $t('serialSearch.dateUnknown') }}</template>
+                  <template v-else>{{ manufactureStr(r) }}</template>
+                </td>
                 <td>{{ r.assigned_user_name || '—' }}</td>
                 <td class="ss__td-cust">{{ r.customer?.name || '—' }}</td>
               </tr>
@@ -185,6 +191,7 @@ interface Row {
   assigned_user_name: string | null
   customer: { name: string } | null
   product: Product | null
+  _unknownDate?: boolean
 }
 
 const route = useRoute()
@@ -305,6 +312,9 @@ function prodHaystack(r: Row) {
 const uniqueCustomers = computed(
   () => new Set(recallResults.value.map((r) => r.customer?.name || '?')).size
 )
+const unknownDateCount = computed(
+  () => recallResults.value.filter((r) => r._unknownDate).length
+)
 
 async function doRecall() {
   const bMerk = rcBrand.value.trim().toLowerCase()
@@ -321,41 +331,45 @@ async function doRecall() {
   loading.value = true
   error.value = ''
   try {
-    // Grof voorfilter op bouwjaar server-side; merk/product/maand verfijnen we
-    // client-side omdat merk/naam zowel uit de catalogus (products) als uit een
-    // vrij artikel (free_*) kan komen — dat is niet in één query te filteren.
-    let q = supabase.from('articles').select(SELECT).eq('retired', false)
-    if (vanafJaar) q = q.gte('manufacture_year', vanafJaar)
-    if (voorJaar) q = q.lte('manufacture_year', voorJaar)
-    const { data, error: err } = await q.limit(1000)
+    // We filteren bouwjaar/maand volledig client-side (niet server-side): zo
+    // komen artikelen zónder bouwjaar óók binnen — die mogen we bij een recall
+    // niet stil weglaten. Merk/naam kan bovendien uit de catalogus (products)
+    // of uit een vrij artikel (free_*) komen, niet in één query te filteren.
+    const { data, error: err } = await supabase
+      .from('articles').select(SELECT).eq('retired', false).limit(1000)
     if (err) throw err
 
-    const rows = ((data ?? []) as unknown as Row[]).filter((r) => {
-      if (bMerk && !brand(r).toLowerCase().includes(bMerk)) return false
-      if (bProd && !prodHaystack(r).includes(bProd)) return false
+    const dateActive = !!(voorJaar || vanafJaar)
+    const rows: Row[] = []
+    for (const r of (data ?? []) as unknown as Row[]) {
+      if (bMerk && !brand(r).toLowerCase().includes(bMerk)) continue
+      if (bProd && !prodHaystack(r).includes(bProd)) continue
       const ij = r.manufacture_year || 0
-      // Bovengrens "fabricage vóór": ontbrekende maand telt als dec (zo valt
-      // een artikel uit het grensjaar zonder maand buiten een "vóór juni").
+      // Bouwjaar onbekend + datumfilter actief: niet weglaten, wél markeren
+      // zodat de keurmeester het zelf kan beoordelen (UX-FLOW §1.6).
+      if (dateActive && !ij) {
+        rows.push({ ...r, _unknownDate: true })
+        continue
+      }
+      // Bovengrens "fabricage vóór": ontbrekende maand telt als dec.
       if (voorJaar) {
-        if (!ij) return false
         if (voorMaand) {
-          if (ij * 100 + (r.manufacture_month || 12) >= voorJaar * 100 + voorMaand) return false
-        } else if (ij > voorJaar) return false
+          if (ij * 100 + (r.manufacture_month || 12) >= voorJaar * 100 + voorMaand) continue
+        } else if (ij > voorJaar) continue
       }
       // Ondergrens "fabricage vanaf": ontbrekende maand telt als jan.
       if (vanafJaar) {
-        if (!ij) return false
         if (vanafMaand) {
-          if (ij * 100 + (r.manufacture_month || 1) < vanafJaar * 100 + vanafMaand) return false
-        } else if (ij < vanafJaar) return false
+          if (ij * 100 + (r.manufacture_month || 1) < vanafJaar * 100 + vanafMaand) continue
+        } else if (ij < vanafJaar) continue
       }
-      return true
+      rows.push(r)
+    }
+    // Onbekend-bouwjaar bovenaan (vragen om aandacht), daarna oplopend bouwjaar.
+    rows.sort((a, b) => {
+      if (!!a._unknownDate !== !!b._unknownDate) return a._unknownDate ? -1 : 1
+      return (a.manufacture_year || 9999) - (b.manufacture_year || 9999) || brand(a).localeCompare(brand(b))
     })
-    rows.sort(
-      (a, b) =>
-        (a.manufacture_year || 9999) - (b.manufacture_year || 9999) ||
-        brand(a).localeCompare(brand(b))
-    )
     recallResults.value = rows
     recallRan.value = true
   } catch (e: any) {
@@ -476,5 +490,10 @@ onMounted(async () => {
 .ss__td-name { font-weight: 600; }
 .ss__td-sn { font-family: monospace; font-size: 0.8rem; }
 .ss__td-mfr { font-weight: 600; color: #b45309; }
+.ss__td-mfr--unknown { color: #b91c1c; }
 .ss__td-cust { color: #16a34a; }
+.ss__recall-warn {
+  margin: 0 1.25rem 0.6rem; font-size: 0.85rem; color: #b91c1c;
+  background: #fee2e2; border-radius: 8px; padding: 0.5rem 0.7rem;
+}
 </style>

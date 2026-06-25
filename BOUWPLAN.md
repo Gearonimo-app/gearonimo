@@ -113,9 +113,13 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
     2023". Product-match is bevat-match over naam + categorie, zodat "astro"
     ook Astro Int / Astro Bod Fast / Astro mt 2 vindt. Resultatentabel
     (product, merk, SN, fabricage, gebruiker, klant) met **CSV-export** en
-    doorklik naar `/articles/:id`. Bouwjaar-voorfilter server-side;
-    merk/product/maand client-side (merk/naam komt zowel uit `products` als uit
-    `free_*`, niet in één query te filteren).
+    doorklik naar `/articles/:id`. Alle bouwjaar/maand-filtering gebeurt
+    client-side (niet server-side) — anders zou Postgres' `lte/gte` de
+    artikelen zónder bouwjaar al wegfilteren. Die mogen we bij een recall niet
+    stil weglaten: ze worden **getoond en gemarkeerd** ("bouwjaar onbekend —
+    zelf controleren", bovenaan gesorteerd, met telling), zodat de keurmeester
+    beslist (UX-FLOW §1.6). Merk/product-match is sowieso client-side (merk/naam
+    komt zowel uit `products` als uit `free_*`, niet in één query te filteren).
   Geen migratie nodig (alleen leesquery's op bestaande kolommen). De zoekbalk
   bovenaan het hoofdmenu wees naar een niet-bestaande `/search` en stuurt nu
   door naar deze pagina (serienummer-modus). Nog geen multi-tenant scope op

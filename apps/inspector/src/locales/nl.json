@@ -44,6 +44,8 @@
     "recallPrompt": "Vul de filters in en zoek.",
     "recallResultUnit": "artikelen",
     "recallCustomerUnit": "klanten",
+    "recallUnknownNote": "{n} artikel(en) zonder bouwjaar — getoond, maar zelf controleren of ze onder de recall vallen.",
+    "dateUnknown": "bouwjaar onbekend",
     "colProduct": "Product",
     "colBrand": "Merk",
     "colSerial": "Serienummer",
