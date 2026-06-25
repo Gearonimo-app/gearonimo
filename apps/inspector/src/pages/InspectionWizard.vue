@@ -23,40 +23,24 @@
 
     <template v-else>
       <div class="iw__body">
+        <!-- Gedeelde datalists: elk invulveld zoekt in de catalogus, maar je
+             mag altijd vrij iets typen dat er niet in staat. -->
+        <datalist id="dl-articles"><option v-for="n in allArticleNames" :key="n" :value="n" /></datalist>
+        <datalist id="dl-brands"><option v-for="b in allBrands" :key="b" :value="b" /></datalist>
+        <datalist id="dl-categories"><option v-for="c in allCategories" :key="c" :value="c" /></datalist>
+
         <!-- Toevoegrij -->
         <div class="iw__add">
-          <Combobox
-            v-model="catalogQuery"
-            :items="catalogItems"
-            :placeholder="$t('inspections.table.catalogSearch')"
-            @select="pickCatalogProduct"
-          />
-          <div class="iw__add-row iw__add-row--free">
-            <span class="iw__add-label">{{ $t('inspections.table.orFree') }}</span>
-            <Combobox
-              v-model="newBrand"
-              :items="brandItems"
-              :placeholder="$t('inspections.table.brand')"
-              :disabled="!!selectedProductId"
-              allow-new
-            />
-            <Combobox
-              v-model="newCategory"
-              :items="categoryItems"
-              :placeholder="$t('inspections.table.category')"
-              :disabled="!!selectedProductId"
-              allow-new
-            />
-            <input v-model="newDescription" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.description')" :disabled="!!selectedProductId" />
-            <input v-model="newSerial" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.serial')" />
-            <input v-model="newYear" type="number" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.year')" />
-            <input v-model="newMonth" type="number" min="1" max="12" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.month')" />
-            <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
-            <button v-if="selectedProductId" class="iw__btn iw__btn--cancel" @click="clearCatalogPick">{{ $t('common.cancel') }}</button>
-          </div>
+          <input v-model="newDescription" list="dl-articles" class="iw__input" :placeholder="$t('inspections.table.article')" />
+          <input v-model="newBrand" list="dl-brands" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.brand')" />
+          <input v-model="newCategory" list="dl-categories" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.category')" />
+          <input v-model="newSerial" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.serial')" />
+          <input v-model="newYear" type="number" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.year')" />
+          <input v-model="newMonth" type="number" min="1" max="12" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.month')" />
+          <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
         </div>
 
-        <!-- Zoek/filter -->
+        <!-- Zoek/filter bestaande artikelen -->
         <input v-model="filterText" type="search" class="iw__input iw__search" :placeholder="$t('inspections.table.searchPlaceholder')" />
 
         <p v-if="addError" class="iw__error">{{ addError }}</p>
@@ -68,8 +52,10 @@
               <tr>
                 <th></th>
                 <th class="iw__sortable" @click="toggleSort('category')">{{ $t('inspections.table.colCategory') }}</th>
+                <th class="iw__sortable" @click="toggleSort('brand')">{{ $t('inspections.table.colBrand') }}</th>
                 <th class="iw__sortable" @click="toggleSort('label')">{{ $t('inspections.table.colDescription') }}</th>
                 <th class="iw__sortable" @click="toggleSort('serial')">{{ $t('inspections.table.colSerial') }}</th>
+                <th class="iw__sortable" @click="toggleSort('year')">{{ $t('inspections.table.colYear') }}</th>
                 <th>{{ $t('inspections.table.colPrevious') }}</th>
                 <th>{{ $t('inspections.table.colResult') }}</th>
                 <th class="iw__sortable" @click="toggleSort('nextDue')">{{ $t('inspections.table.colNextDue') }}</th>
@@ -85,8 +71,10 @@
                     </span>
                   </td>
                   <td class="iw__category">{{ row.category || '—' }}</td>
+                  <td>{{ row.brand || '—' }}</td>
                   <td>{{ row.label }}</td>
                   <td class="iw__sn">{{ row.it.article.serial_number || '—' }}</td>
+                  <td>{{ row.year || '—' }}</td>
                   <td>
                     <span v-if="row.previous" :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'">
                       {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
@@ -132,7 +120,7 @@
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="7" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <td colspan="9" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -148,13 +136,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
 import { fetchRejectionCodes, findPreviousResult } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
-import Combobox, { type ComboItem } from '../components/Combobox.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -210,42 +197,34 @@ const finished = ref(false)
 const certificateUrl = ref('')
 const addError = ref('')
 
-const sortKey = ref<'category' | 'label' | 'serial' | 'nextDue'>('label')
+const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
 const sortDir = ref<1 | -1>(1)
 
-// Catalogus + vrije invoer
-const catalogQuery = ref('')
-const catalogItems = ref<ComboItem[]>([])
-const selectedProductId = ref<string | null>(null)
+// Hele catalogus één keer geladen; voedt de datalists (zoeken + vrije invoer)
+// en laat ons een getypt artikel terugkoppelen aan een productrij (product_id),
+// zodat levensduur/recall/interval-data meekomen.
+const products = ref<Product[]>([])
+const allBrands = computed(() => unique(products.value.map(p => p.brand)))
+const allCategories = computed(() => unique(products.value.map(p => p.category)))
+const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
+
+function unique(arr: (string | null)[]): string[] {
+  return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
+}
+
+// Toevoegrij
 const newBrand = ref('')
 const newCategory = ref('')
 const newDescription = ref('')
 const newSerial = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
+const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
 
-// Bekende merken/categorieën uit de catalogus (voor de dropdowns met vrije invoer)
-const allBrands = ref<string[]>([])
-const allCategories = ref<string[]>([])
-
-function toItems(values: string[], query: string): ComboItem[] {
-  const q = query.toLowerCase().trim()
-  return values
-    .filter((v) => !q || v.toLowerCase().includes(q))
-    .slice(0, 30)
-    .map((v) => ({ key: v, label: v }))
-}
-const brandItems = computed(() => toItems(allBrands.value, newBrand.value))
-const categoryItems = computed(() => toItems(allCategories.value, newCategory.value))
-
-function itemLabel(it: Item) {
-  const a = it.article
-  const s = a.product ? [a.product.brand, a.product.name].filter(Boolean).join(' ') : [a.free_brand, a.free_description].filter(Boolean).join(' ')
-  return s || t('articles.untitled')
-}
-function itemCategory(it: Item) {
-  return it.article.product?.category ?? it.article.free_category ?? ''
-}
+function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
+function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
+function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
+function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -313,7 +292,9 @@ function toIsoDate(d: Date) {
 interface Row {
   it: Item
   label: string
+  brand: string
   category: string
+  year: string
   previous: { result: string; comment: string | null; inspection_date: string } | null
   warning: { icon: string; text: string } | null
   score: number
@@ -322,15 +303,12 @@ interface Row {
 function searchScore(it: Item, q: string): number {
   if (!q) return 0
   const sn = (it.article.serial_number || '').toLowerCase()
-  const label = itemLabel(it).toLowerCase()
-  const brand = (it.article.product?.brand ?? it.article.free_brand ?? '').toLowerCase()
-  const cat = itemCategory(it).toLowerCase()
   if (sn === q) return 0
   if (sn.endsWith(q)) return 1
   if (sn.includes(q)) return 2
-  if (label.includes(q)) return 3
-  if (brand.includes(q)) return 4
-  if (cat.includes(q)) return 5
+  if (itemName(it).toLowerCase().includes(q)) return 3
+  if (itemBrand(it).toLowerCase().includes(q)) return 4
+  if (itemCategory(it).toLowerCase().includes(q)) return 5
   return -1
 }
 
@@ -340,10 +318,13 @@ const rows = computed<Row[]>(() => {
   for (const it of items.value) {
     const score = searchScore(it, q)
     if (q && score < 0) continue
+    const y = it.article.manufacture_year
     result.push({
       it,
       label: itemLabel(it),
+      brand: itemBrand(it),
       category: itemCategory(it),
+      year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
       previous: previousResults.value[it.article_id] ?? null,
       warning: rowWarning(it),
       score,
@@ -361,15 +342,17 @@ const sortedRows = computed(() => {
   list.sort((a, b) => {
     let cmp = 0
     if (sortKey.value === 'category') cmp = a.category.localeCompare(b.category)
+    else if (sortKey.value === 'brand') cmp = a.brand.localeCompare(b.brand)
     else if (sortKey.value === 'label') cmp = a.label.localeCompare(b.label)
     else if (sortKey.value === 'serial') cmp = (a.it.article.serial_number || '').localeCompare(b.it.article.serial_number || '')
+    else if (sortKey.value === 'year') cmp = (a.it.article.manufacture_year ?? 0) - (b.it.article.manufacture_year ?? 0)
     else if (sortKey.value === 'nextDue') cmp = (a.it.next_due || '').localeCompare(b.it.next_due || '')
     return cmp * sortDir.value
   })
   return list
 })
 
-function toggleSort(key: 'category' | 'label' | 'serial' | 'nextDue') {
+function toggleSort(key: typeof sortKey.value) {
   if (sortKey.value === key) sortDir.value = (sortDir.value * -1) as 1 | -1
   else { sortKey.value = key; sortDir.value = 1 }
 }
@@ -400,67 +383,42 @@ async function load() {
   )
   previousResults.value = Object.fromEntries(prevEntries)
 
-  // Bekende merken/categorieën voor de dropdowns
-  const { data: prods } = await supabase.from('products').select('brand, category')
-  const brands = new Set<string>()
-  const cats = new Set<string>()
-  for (const p of (prods ?? []) as { brand: string | null; category: string | null }[]) {
-    if (p.brand) brands.add(p.brand)
-    if (p.category) cats.add(p.category)
-  }
-  allBrands.value = Array.from(brands).sort((a, b) => a.localeCompare(b))
-  allCategories.value = Array.from(cats).sort((a, b) => a.localeCompare(b))
+  const { data: prods } = await supabase
+    .from('products')
+    .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url')
+  products.value = (prods ?? []) as Product[]
 
   if (insp.status === 'completed') finished.value = true
   loading.value = false
 }
 
-// Catalogus zoeken (async) — voedt de combobox-items voor het catalogusveld.
-let catalogTimer: ReturnType<typeof setTimeout> | undefined
-watch(catalogQuery, (q) => {
-  if (selectedProductId.value) return
-  clearTimeout(catalogTimer)
-  if (!q.trim()) { catalogItems.value = []; return }
-  catalogTimer = setTimeout(async () => {
-    const { data } = await supabase.rpc('search_products', { q: q.trim() })
-    catalogItems.value = ((data ?? []) as any[]).map((p) => ({
-      key: p.id,
-      label: [p.brand, p.name].filter(Boolean).join(' '),
-      raw: p,
-    }))
-  }, 250)
-})
-
-function pickCatalogProduct(item: ComboItem) {
-  selectedProductId.value = item.raw.id
-  catalogQuery.value = item.label
-  catalogItems.value = []
-  newBrand.value = item.raw.brand ?? ''
-  newCategory.value = item.raw.category ?? ''
-  newDescription.value = item.raw.name ?? ''
+// Koppel een getypt artikel aan een catalogusproduct (op naam, en als er een
+// merk is ingevuld ook op merk). Niet gevonden = vrij artikel.
+function matchProduct(): Product | null {
+  const name = newDescription.value.trim().toLowerCase()
+  const brand = newBrand.value.trim().toLowerCase()
+  if (!name) return null
+  const matches = products.value.filter(p => (p.name ?? '').toLowerCase() === name)
+  if (!matches.length) return null
+  if (brand) {
+    const withBrand = matches.find(p => (p.brand ?? '').toLowerCase() === brand)
+    if (withBrand) return withBrand
+  }
+  return matches[0]
 }
-
-function clearCatalogPick() {
-  selectedProductId.value = null
-  catalogQuery.value = ''
-  newBrand.value = ''
-  newCategory.value = ''
-  newDescription.value = ''
-}
-
-const canAdd = computed(() => !!selectedProductId.value || !!newDescription.value.trim() || !!newCategory.value.trim())
 
 async function addRow() {
   addError.value = ''
   try {
+    const product = matchProduct()
     const { data: article, error: artErr } = await supabase
       .from('articles')
       .insert({
         customer_id: inspection.value.customer_id,
-        product_id: selectedProductId.value,
-        free_brand: selectedProductId.value ? null : (newBrand.value.trim() || null),
-        free_category: selectedProductId.value ? null : (newCategory.value.trim() || null),
-        free_description: selectedProductId.value ? null : (newDescription.value.trim() || null),
+        product_id: product?.id ?? null,
+        free_brand: product ? null : (newBrand.value.trim() || null),
+        free_category: product ? null : (newCategory.value.trim() || null),
+        free_description: product ? null : (newDescription.value.trim() || null),
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
@@ -480,7 +438,9 @@ async function addRow() {
     items.value.push({ ...item, article } as Item)
     previousResults.value[article.id] = null
 
-    clearCatalogPick()
+    newBrand.value = ''
+    newCategory.value = ''
+    newDescription.value = ''
     newSerial.value = ''
     newYear.value = null
     newMonth.value = null
@@ -536,22 +496,17 @@ onMounted(load)
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10; gap: 0.75rem;
 }
 .iw__header h1 { font-size: 1.1rem; margin: 0; flex: 1; text-align: center; }
-.iw__icon { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 0.25rem 0.5rem; min-width: 2rem; }
 .iw__totals { font-size: 0.8rem; opacity: 0.9; white-space: nowrap; }
 .iw__state { text-align: center; padding: 3rem 1rem; color: #666; }
 .iw__state--error { color: #dc2626; }
 .iw__body { padding: 1.25rem; }
 
-.iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.iw__add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
-.iw__add-row--free { font-size: 0.9rem; }
-.iw__add-label { color: #6b7280; font-size: 0.85rem; }
+.iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 0.95rem; box-sizing: border-box; font-family: inherit; flex: 1; min-width: 8rem;
 }
-.iw__input:disabled { background: #f3f4f6; color: #9ca3af; }
 .iw__input--sm { flex: 1; min-width: 7rem; }
 .iw__input--xs { flex: 0 0 5rem; min-width: 4rem; }
 .iw__select--sm { min-width: 8rem; }
