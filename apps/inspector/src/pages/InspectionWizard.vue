@@ -25,28 +25,34 @@
       <div class="iw__body">
         <!-- Toevoegrij -->
         <div class="iw__add">
-          <div class="iw__add-row">
-            <input
-              v-model="catalogQuery"
-              type="search"
-              class="iw__input"
-              :placeholder="$t('inspections.table.catalogSearch')"
-              @input="onCatalogQuery"
-            />
-            <ul v-if="catalogResults.length" class="iw__catalog-results">
-              <li v-for="p in catalogResults" :key="p.id" @click="pickCatalogProduct(p)">
-                {{ [p.brand, p.name].filter(Boolean).join(' ') }}
-              </li>
-            </ul>
-          </div>
+          <Combobox
+            v-model="catalogQuery"
+            :items="catalogItems"
+            :placeholder="$t('inspections.table.catalogSearch')"
+            @select="pickCatalogProduct"
+          />
           <div class="iw__add-row iw__add-row--free">
             <span class="iw__add-label">{{ $t('inspections.table.orFree') }}</span>
-            <input v-model="newBrand" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.brand')" />
-            <input v-model="newDescription" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.description')" />
+            <Combobox
+              v-model="newBrand"
+              :items="brandItems"
+              :placeholder="$t('inspections.table.brand')"
+              :disabled="!!selectedProductId"
+              allow-new
+            />
+            <Combobox
+              v-model="newCategory"
+              :items="categoryItems"
+              :placeholder="$t('inspections.table.category')"
+              :disabled="!!selectedProductId"
+              allow-new
+            />
+            <input v-model="newDescription" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.description')" :disabled="!!selectedProductId" />
             <input v-model="newSerial" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.serial')" />
             <input v-model="newYear" type="number" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.year')" />
             <input v-model="newMonth" type="number" min="1" max="12" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.month')" />
             <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
+            <button v-if="selectedProductId" class="iw__btn iw__btn--cancel" @click="clearCatalogPick">{{ $t('common.cancel') }}</button>
           </div>
         </div>
 
@@ -61,6 +67,7 @@
             <thead>
               <tr>
                 <th></th>
+                <th class="iw__sortable" @click="toggleSort('category')">{{ $t('inspections.table.colCategory') }}</th>
                 <th class="iw__sortable" @click="toggleSort('label')">{{ $t('inspections.table.colDescription') }}</th>
                 <th class="iw__sortable" @click="toggleSort('serial')">{{ $t('inspections.table.colSerial') }}</th>
                 <th>{{ $t('inspections.table.colPrevious') }}</th>
@@ -77,6 +84,7 @@
                       <a :href="row.it.article.product.recall_url" target="_blank">🚩</a>
                     </span>
                   </td>
+                  <td class="iw__category">{{ row.category || '—' }}</td>
                   <td>{{ row.label }}</td>
                   <td class="iw__sn">{{ row.it.article.serial_number || '—' }}</td>
                   <td>
@@ -124,7 +132,7 @@
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="6" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <td colspan="7" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -140,13 +148,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
-import { calcNextDue, ProductType, CountryCode } from '@gearonimo/core'
 import { fetchRejectionCodes, findPreviousResult } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
+import Combobox, { type ComboItem } from '../components/Combobox.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -156,6 +164,7 @@ interface Product {
   id: string
   brand: string | null
   name: string | null
+  category: string | null
   product_type: string | null
   interval_override_months: number | null
   max_age_mfr_years: number | null
@@ -167,6 +176,7 @@ interface Article {
   id: string
   serial_number: string | null
   free_brand: string | null
+  free_category: string | null
   free_description: string | null
   manufacture_year: number | null
   manufacture_month: number | null
@@ -200,21 +210,41 @@ const finished = ref(false)
 const certificateUrl = ref('')
 const addError = ref('')
 
-const sortKey = ref<'label' | 'serial' | 'nextDue'>('label')
+const sortKey = ref<'category' | 'label' | 'serial' | 'nextDue'>('label')
 const sortDir = ref<1 | -1>(1)
 
+// Catalogus + vrije invoer
 const catalogQuery = ref('')
-const catalogResults = ref<{ id: string; brand: string | null; name: string | null }[]>([])
+const catalogItems = ref<ComboItem[]>([])
+const selectedProductId = ref<string | null>(null)
 const newBrand = ref('')
+const newCategory = ref('')
 const newDescription = ref('')
 const newSerial = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 
+// Bekende merken/categorieën uit de catalogus (voor de dropdowns met vrije invoer)
+const allBrands = ref<string[]>([])
+const allCategories = ref<string[]>([])
+
+function toItems(values: string[], query: string): ComboItem[] {
+  const q = query.toLowerCase().trim()
+  return values
+    .filter((v) => !q || v.toLowerCase().includes(q))
+    .slice(0, 30)
+    .map((v) => ({ key: v, label: v }))
+}
+const brandItems = computed(() => toItems(allBrands.value, newBrand.value))
+const categoryItems = computed(() => toItems(allCategories.value, newCategory.value))
+
 function itemLabel(it: Item) {
   const a = it.article
   const s = a.product ? [a.product.brand, a.product.name].filter(Boolean).join(' ') : [a.free_brand, a.free_description].filter(Boolean).join(' ')
   return s || t('articles.untitled')
+}
+function itemCategory(it: Item) {
+  return it.article.product?.category ?? it.article.free_category ?? ''
 }
 
 function formatDate(d: string) {
@@ -225,44 +255,65 @@ const passedCount = computed(() => items.value.filter(i => i.result === 'passed'
 const rejectedCount = computed(() => items.value.filter(i => i.result === 'rejected').length)
 const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed').length)
 
-function suggestedNextDue(it: Item, ignoreCaps = false): Date {
+function addMonths(date: Date, months: number): Date {
+  const d = new Date(date)
+  d.setMonth(d.getMonth() + months)
+  return d
+}
+
+// Standaard keuringsinterval: artikel-override > product-override >
+// bedrijfsinstelling per producttype (PPE/rigging, standaard 12 mnd). Bewust
+// NIET gekapt op de levensduur — de keurmeester bepaalt zelf de datum; de
+// levensduur-waarschuwing (zie rowWarning) is alleen advies.
+function defaultIntervalMonths(it: Item): number {
   const a = it.article
-  return calcNextDue({
-    inspection_date: new Date(),
-    country_code: (inspection.value?.company?.country_code ?? 'NL') as CountryCode,
-    product_type: (a.product?.product_type ?? 'other') as ProductType,
-    severe_use: a.severe_use,
-    article_interval_override_months: a.interval_override_months,
-    product_interval_override_months: a.product?.interval_override_months,
-    manufacture_year: ignoreCaps ? null : a.manufacture_year,
-    manufacture_month: a.manufacture_month,
-    max_age_mfr_years: ignoreCaps ? null : a.product?.max_age_mfr_years,
-    first_use_date: ignoreCaps || !a.first_use_date ? null : new Date(a.first_use_date),
-    max_age_use_years: ignoreCaps ? null : a.product?.max_age_use_years,
-  })
+  if (a.interval_override_months != null) return a.interval_override_months
+  if (a.product?.interval_override_months != null) return a.product.interval_override_months
+  const type = a.product?.product_type
+  if (type === 'rigging') return inspection.value?.company?.default_interval_rigging_months ?? 12
+  return inspection.value?.company?.default_interval_ppe_months ?? 12
+}
+
+function suggestedNextDue(it: Item): Date {
+  return addMonths(new Date(), defaultIntervalMonths(it))
+}
+
+function endOfLife(it: Item): Date | null {
+  const a = it.article
+  let eol: Date | null = null
+  if (a.manufacture_year != null && a.product?.max_age_mfr_years != null) {
+    eol = new Date(a.manufacture_year + a.product.max_age_mfr_years, (a.manufacture_month ?? 1) - 1, 1)
+  }
+  if (a.first_use_date && a.product?.max_age_use_years != null) {
+    const eolUse = addMonths(new Date(a.first_use_date), a.product.max_age_use_years * 12)
+    if (!eol || eolUse < eol) eol = eolUse
+  }
+  return eol
+}
+
+// Levensduur-waarschuwing voor de keurmeester (advies, geen blokkade — de
+// keurmeester bepaalt goed/afgekeurd). Verschijnt bewust niet op het
+// certificaat (useCertificate.ts gebruikt deze data niet).
+function rowWarning(it: Item): { icon: string; text: string } | null {
+  const eol = endOfLife(it)
+  if (!eol) return null
+  const now = Date.now()
+  if (eol.getTime() <= now) return { icon: '⛔', text: t('inspections.table.ageWarningOverdue') }
+  if (eol.getTime() <= suggestedNextDue(it).getTime()) {
+    const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
+    return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
+  }
+  return null
 }
 
 function toIsoDate(d: Date) {
   return d.toISOString().slice(0, 10)
 }
 
-// Leeftijdswaarschuwing is alleen voor de keurmeester bedoeld (advies, geen
-// blokkade): de keurmeester bepaalt zelf goed/afgekeurd. Verschijnt bewust
-// niet op het certificaat (useCertificate.ts gebruikt deze data niet).
-function rowWarning(it: Item): { icon: string; text: string } | null {
-  const due = suggestedNextDue(it)
-  const dueNoCaps = suggestedNextDue(it, true)
-  if (due.getTime() >= dueNoCaps.getTime()) return null
-  if (due.getTime() <= Date.now()) {
-    return { icon: '⛔', text: t('inspections.table.ageWarningOverdue') }
-  }
-  const months = Math.max(1, Math.round((due.getTime() - Date.now()) / (1000 * 60 * 60 * 24 * 30)))
-  return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
-}
-
 interface Row {
   it: Item
   label: string
+  category: string
   previous: { result: string; comment: string | null; inspection_date: string } | null
   warning: { icon: string; text: string } | null
   score: number
@@ -273,11 +324,13 @@ function searchScore(it: Item, q: string): number {
   const sn = (it.article.serial_number || '').toLowerCase()
   const label = itemLabel(it).toLowerCase()
   const brand = (it.article.product?.brand ?? it.article.free_brand ?? '').toLowerCase()
+  const cat = itemCategory(it).toLowerCase()
   if (sn === q) return 0
   if (sn.endsWith(q)) return 1
   if (sn.includes(q)) return 2
   if (label.includes(q)) return 3
   if (brand.includes(q)) return 4
+  if (cat.includes(q)) return 5
   return -1
 }
 
@@ -290,6 +343,7 @@ const rows = computed<Row[]>(() => {
     result.push({
       it,
       label: itemLabel(it),
+      category: itemCategory(it),
       previous: previousResults.value[it.article_id] ?? null,
       warning: rowWarning(it),
       score,
@@ -306,7 +360,8 @@ const sortedRows = computed(() => {
   }
   list.sort((a, b) => {
     let cmp = 0
-    if (sortKey.value === 'label') cmp = a.label.localeCompare(b.label)
+    if (sortKey.value === 'category') cmp = a.category.localeCompare(b.category)
+    else if (sortKey.value === 'label') cmp = a.label.localeCompare(b.label)
     else if (sortKey.value === 'serial') cmp = (a.it.article.serial_number || '').localeCompare(b.it.article.serial_number || '')
     else if (sortKey.value === 'nextDue') cmp = (a.it.next_due || '').localeCompare(b.it.next_due || '')
     return cmp * sortDir.value
@@ -314,7 +369,7 @@ const sortedRows = computed(() => {
   return list
 })
 
-function toggleSort(key: 'label' | 'serial' | 'nextDue') {
+function toggleSort(key: 'category' | 'label' | 'serial' | 'nextDue') {
   if (sortKey.value === key) sortDir.value = (sortDir.value * -1) as 1 | -1
   else { sortKey.value = key; sortDir.value = 1 }
 }
@@ -324,7 +379,7 @@ async function load() {
   error.value = ''
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
-    .select('*, customer:customers(name), company:inspection_companies(country_code)')
+    .select('*, customer:customers(name), company:inspection_companies(country_code, default_interval_ppe_months, default_interval_rigging_months)')
     .eq('id', id)
     .single()
   if (insErr) { error.value = insErr.message; loading.value = false; return }
@@ -345,33 +400,55 @@ async function load() {
   )
   previousResults.value = Object.fromEntries(prevEntries)
 
-  if (insp.status === 'completed') {
-    finished.value = true
+  // Bekende merken/categorieën voor de dropdowns
+  const { data: prods } = await supabase.from('products').select('brand, category')
+  const brands = new Set<string>()
+  const cats = new Set<string>()
+  for (const p of (prods ?? []) as { brand: string | null; category: string | null }[]) {
+    if (p.brand) brands.add(p.brand)
+    if (p.category) cats.add(p.category)
   }
+  allBrands.value = Array.from(brands).sort((a, b) => a.localeCompare(b))
+  allCategories.value = Array.from(cats).sort((a, b) => a.localeCompare(b))
+
+  if (insp.status === 'completed') finished.value = true
   loading.value = false
 }
 
+// Catalogus zoeken (async) — voedt de combobox-items voor het catalogusveld.
 let catalogTimer: ReturnType<typeof setTimeout> | undefined
-function onCatalogQuery() {
+watch(catalogQuery, (q) => {
+  if (selectedProductId.value) return
   clearTimeout(catalogTimer)
-  const q = catalogQuery.value.trim()
-  if (!q) { catalogResults.value = []; return }
+  if (!q.trim()) { catalogItems.value = []; return }
   catalogTimer = setTimeout(async () => {
-    const { data } = await supabase.rpc('search_products', { q })
-    catalogResults.value = (data ?? []) as any[]
+    const { data } = await supabase.rpc('search_products', { q: q.trim() })
+    catalogItems.value = ((data ?? []) as any[]).map((p) => ({
+      key: p.id,
+      label: [p.brand, p.name].filter(Boolean).join(' '),
+      raw: p,
+    }))
   }, 250)
+})
+
+function pickCatalogProduct(item: ComboItem) {
+  selectedProductId.value = item.raw.id
+  catalogQuery.value = item.label
+  catalogItems.value = []
+  newBrand.value = item.raw.brand ?? ''
+  newCategory.value = item.raw.category ?? ''
+  newDescription.value = item.raw.name ?? ''
 }
 
-function pickCatalogProduct(p: { id: string; brand: string | null; name: string | null }) {
+function clearCatalogPick() {
+  selectedProductId.value = null
+  catalogQuery.value = ''
   newBrand.value = ''
+  newCategory.value = ''
   newDescription.value = ''
-  selectedProductId.value = p.id
-  catalogQuery.value = [p.brand, p.name].filter(Boolean).join(' ')
-  catalogResults.value = []
 }
-const selectedProductId = ref<string | null>(null)
 
-const canAdd = computed(() => !!selectedProductId.value || !!newDescription.value.trim())
+const canAdd = computed(() => !!selectedProductId.value || !!newDescription.value.trim() || !!newCategory.value.trim())
 
 async function addRow() {
   addError.value = ''
@@ -382,6 +459,7 @@ async function addRow() {
         customer_id: inspection.value.customer_id,
         product_id: selectedProductId.value,
         free_brand: selectedProductId.value ? null : (newBrand.value.trim() || null),
+        free_category: selectedProductId.value ? null : (newCategory.value.trim() || null),
         free_description: selectedProductId.value ? null : (newDescription.value.trim() || null),
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
@@ -402,10 +480,7 @@ async function addRow() {
     items.value.push({ ...item, article } as Item)
     previousResults.value[article.id] = null
 
-    catalogQuery.value = ''
-    selectedProductId.value = null
-    newBrand.value = ''
-    newDescription.value = ''
+    clearCatalogPick()
     newSerial.value = ''
     newYear.value = null
     newMonth.value = null
@@ -468,21 +543,15 @@ onMounted(load)
 .iw__body { padding: 1.25rem; }
 
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.iw__add-row { position: relative; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+.iw__add-row { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 .iw__add-row--free { font-size: 0.9rem; }
 .iw__add-label { color: #6b7280; font-size: 0.85rem; }
-.iw__catalog-results {
-  position: absolute; top: 100%; left: 0; right: 0; z-index: 20;
-  background: #fff; border: 1px solid #ddd; border-radius: 8px; margin: 0.25rem 0 0; padding: 0;
-  list-style: none; max-height: 220px; overflow-y: auto; box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-}
-.iw__catalog-results li { padding: 0.6rem 0.85rem; cursor: pointer; }
-.iw__catalog-results li:hover { background: #f3f4f6; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 0.95rem; box-sizing: border-box; font-family: inherit; flex: 1; min-width: 8rem;
 }
+.iw__input:disabled { background: #f3f4f6; color: #9ca3af; }
 .iw__input--sm { flex: 1; min-width: 7rem; }
 .iw__input--xs { flex: 0 0 5rem; min-width: 4rem; }
 .iw__select--sm { min-width: 8rem; }
@@ -498,6 +567,7 @@ onMounted(load)
 .iw__row--rejected { background: #fef2f2; }
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
+.iw__category { color: #374151; }
 .iw__sn { color: #6b7280; }
 .iw__prev--pass { color: #16a34a; }
 .iw__prev--fail { color: #dc2626; }
