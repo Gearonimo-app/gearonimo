@@ -141,19 +141,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   met meerdere onderdelen (UX-FLOW §7.5/§9.1). Eerste onderdeel af:
   **Afkeurcodes beheren** (`components/RejectionCodes.vue`) — toevoegen,
   wijzigen en aan-/uitzetten (inline toggle) van de codes uit
-  `rejection_codes`. Toont eigen codes (`company_id` = dit bedrijf) én de 8
-  platformstandaard-codes (`company_id` leeg), met een badge die ze
-  onderscheidt; voedt rechtstreeks de afkeur-keuze in de keuring-wizard
-  (`fetchRejectionCodes` in `useInspections.ts`). Nieuwe codes worden eigen
-  codes; bestaande codes (óók platformstandaard) worden ter plekke bijgewerkt
-  — bewust toegestaan zolang er één keurbedrijf is (zie DATAMODEL
-  §rejection_codes), met een waarschuwing in het formulier dat een
-  platformcode voor alle bedrijven geldt. Harde delete alleen voor eigen
-  codes; platformcodes worden gedeactiveerd i.p.v. verwijderd. Geen migratie
-  nodig (tabel + grants bestonden al, `20260624_rejection_codes.sql`). De
-  twee overige onderdelen (certificaat-kop/voettekst, keurmeesters +
-  kwalificaties) staan als "Binnenkort" in de hub en zijn de volgende
-  deelstappen. i18n nl+en toegevoegd onder `settings`.
+  `rejection_codes`; voedt rechtstreeks de afkeur-keuze in de keuring-wizard
+  (`fetchRejectionCodes` in `useInspections.ts`).
+  **Afkeurcodes zijn per keurbedrijf instelbaar (besluit Jos 2026-06-25):**
+  elk keurbedrijf beheert zijn eigen, losse set (`company_id` = bedrijf);
+  wijzigingen van het ene bedrijf raken een ander bedrijf nooit. De 8
+  platformstandaard-codes (`company_id` leeg) blijven alleen als
+  sjabloon/fallback: een bedrijf zonder eigen codes valt daarop terug, en bij
+  de eerste opening van het instellingenscherm wordt automatisch een eigen
+  kopie geseed. Bestaande keurbedrijven worden door de migratie
+  `supabase/migrations/20260627_rejection_codes_per_company.sql` (idempotent)
+  van een eigen kopie voorzien. In de UI is er daardoor geen platform/eigen-
+  onderscheid meer: alle getoonde codes zijn van het bedrijf zelf, vrij te
+  bewerken/verwijderen. (Dit corrigeert de eerste opzet, waarin de gedeelde
+  platformcodes ter plekke werden bewerkt — fout, want dat zou alle bedrijven
+  tegelijk raken.) De twee overige onderdelen (certificaat-kop/voettekst,
+  keurmeesters + kwalificaties) staan als "Binnenkort" in de hub en zijn de
+  volgende deelstappen. **Let op voor onderdeel 2 (Jos 2026-06-25):** de
+  certificaat-kop/voettekst-standaard wordt óók **per keurbedrijf** instelbaar,
+  *niet* "per land/regime" zoals UX-FLOW §7.5 nu nog schrijft — dat punt is
+  hiermee overruled. i18n nl+en toegevoegd onder `settings`.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

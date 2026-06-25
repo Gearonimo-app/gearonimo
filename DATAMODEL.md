@@ -313,16 +313,20 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 > (`label_key`/i18n-vertaling nog niet gebruikt). Migratie:
 > `supabase/migrations/20260625_company_details_and_rejection_codes.sql`.
 >
-> **Instellingenscherm toegevoegd (2026-06-25):** afkeurcodes zijn nu via de
-> UI te beheren onder de Instellingen-tegel
+> **Instellingenscherm toegevoegd + per keurbedrijf (besluit Jos 2026-06-25):**
+> afkeurcodes zijn nu via de UI te beheren onder de Instellingen-tegel
 > (`apps/inspector/src/components/RejectionCodes.vue`): toevoegen, wijzigen en
-> aan-/uitzetten. Het scherm toont eigen codes (`company_id` = bedrijf) én de
-> platformstandaard (`company_id` leeg), onderscheiden met een badge. Nieuwe
-> codes krijgen `company_id` = het huidige bedrijf; bestaande codes (óók
-> platformstandaard) worden ter plekke bijgewerkt — bewust toegestaan zolang
-> er één keurbedrijf is, met een waarschuwing in het formulier. Harde delete
-> alleen voor eigen codes; platformcodes worden gedeactiveerd
-> (`active = false`) i.p.v. verwijderd. Geen schemawijziging nodig.
+> aan-/uitzetten. Codes zijn **per keurbedrijf** instelbaar: elk bedrijf
+> beheert zijn eigen, losse set (`company_id` = bedrijf), volledig onafhankelijk
+> van andere bedrijven. De platformstandaard (`company_id` leeg) blijft staan
+> als **sjabloon/fallback**: een bedrijf zonder eigen codes valt daarop terug
+> (zie `fetchRejectionCodes` in `useInspections.ts`) en krijgt bij de eerste
+> opening van het instellingenscherm automatisch een eigen kopie geseed.
+> Bestaande bedrijven zijn via migratie
+> `20260627_rejection_codes_per_company.sql` (idempotent) van een eigen kopie
+> voorzien. In de UI dus geen platform/eigen-onderscheid meer — alle getoonde
+> codes zijn van het bedrijf zelf, vrij te bewerken/verwijderen. De gedeelde
+> platformrijen worden níét meer door een keurbedrijf ter plekke bewerkt.
 
 ---
 

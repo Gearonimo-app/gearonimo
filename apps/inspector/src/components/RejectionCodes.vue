@@ -20,12 +20,7 @@
       >
         <span class="rc__code">{{ c.code }}</span>
         <div class="rc__body">
-          <div class="rc__label">
-            {{ c.label || '—' }}
-            <span class="rc__badge" :class="c.company_id ? 'rc__badge--own' : 'rc__badge--platform'">
-              {{ c.company_id ? $t('settings.rejection.ownBadge') : $t('settings.rejection.platformBadge') }}
-            </span>
-          </div>
+          <div class="rc__label">{{ c.label || '—' }}</div>
         </div>
         <button
           class="rc__toggle"
@@ -40,10 +35,6 @@
 
     <div v-if="showForm" class="rc__form">
       <h3>{{ editing ? $t('settings.rejection.edit') : $t('settings.rejection.add') }}</h3>
-
-      <p v-if="editing && !editing.company_id" class="rc__note">
-        ⚠ {{ $t('settings.rejection.platformNote') }}
-      </p>
 
       <label class="rc__field">
         <span>{{ $t('settings.rejection.fields.code') }}</span>
@@ -65,12 +56,10 @@
           {{ saving ? $t('common.saving') : $t('common.save') }}
         </button>
       </div>
-      <button v-if="editing && editing.company_id" class="rc__delete" @click="showDelete = true">
-        {{ $t('common.delete') }}
-      </button>
+      <button v-if="editing" class="rc__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
     </div>
 
-    <!-- Verwijderen bevestigen (alleen eigen codes) -->
+    <!-- Verwijderen bevestigen -->
     <div v-if="showDelete" class="rc__overlay" @click.self="showDelete = false">
       <div class="rc__dialog">
         <h2>{{ $t('settings.rejection.deleteTitle') }}</h2>
@@ -94,7 +83,6 @@ const { t } = useI18n()
 
 interface Code {
   id: string
-  company_id: string | null
   code: number
   label: string | null
   active: boolean
@@ -118,10 +106,39 @@ function emptyForm() {
 }
 const form = ref({ code: 1, label: '', active: true })
 
-// Volgende vrije codenummer (boven het hoogste bestaande, platform + eigen),
-// zodat een nieuwe eigen code niet botst met een platformstandaard.
+// Volgende vrije codenummer boven de hoogste bestaande.
 function nextCode() {
   return codes.value.reduce((max, c) => Math.max(max, c.code), 0) + 1
+}
+
+const SELECT = 'id, code, label, active'
+
+async function fetchOwn(): Promise<Code[]> {
+  const { data, error: err } = await supabase
+    .from('rejection_codes')
+    .select(SELECT)
+    .eq('company_id', companyId.value)
+    .order('code')
+  if (err) throw err
+  return (data ?? []) as Code[]
+}
+
+// Een nieuw keurbedrijf begint met een eigen kopie van de platformstandaard
+// (company_id leeg). Vanaf dat moment beheert het bedrijf alléén zijn eigen
+// set — wijzigingen raken geen ander keurbedrijf. (Bestaande bedrijven worden
+// al door de migratie geseed; dit vangt bedrijven op die daarna ontstaan.)
+async function seedFromPlatform() {
+  const { data, error: err } = await supabase
+    .from('rejection_codes')
+    .select('code, label, active')
+    .is('company_id', null)
+    .order('code')
+  if (err) throw err
+  const rows = (data ?? []).map((r) => ({ company_id: companyId.value, ...r }))
+  if (rows.length) {
+    const { error: insErr } = await supabase.from('rejection_codes').insert(rows)
+    if (insErr) throw insErr
+  }
 }
 
 async function load() {
@@ -130,15 +147,12 @@ async function load() {
   try {
     const inspector = await ensureInspector()
     companyId.value = inspector.company_id
-    // Eigen codes van dit bedrijf + de platformstandaard (company_id leeg),
-    // gelijk aan fetchRejectionCodes in de wizard (zie useInspections.ts).
-    const { data, error: err } = await supabase
-      .from('rejection_codes')
-      .select('id, company_id, code, label, active')
-      .or(`company_id.eq.${inspector.company_id},company_id.is.null`)
-      .order('code')
-    if (err) throw err
-    codes.value = (data ?? []) as Code[]
+    let own = await fetchOwn()
+    if (own.length === 0) {
+      await seedFromPlatform()
+      own = await fetchOwn()
+    }
+    codes.value = own
   } catch (e: any) {
     error.value = e.message
   } finally {
@@ -177,9 +191,6 @@ async function save() {
     label: form.value.label.trim(),
     active: form.value.active,
   }
-  // Nieuwe codes horen bij dit bedrijf; bestaande codes (ook platformstandaard)
-  // worden ter plekke bijgewerkt — er is nog één keurbedrijf, dus dat is
-  // bewust toegestaan (zie DATAMODEL §rejection_codes).
   const { error: err } = editing.value
     ? await supabase.from('rejection_codes').update(patch).eq('id', editing.value.id)
     : await supabase.from('rejection_codes').insert({ company_id: companyId.value, ...patch })
@@ -239,12 +250,6 @@ onMounted(load)
 }
 .rc__body { flex: 1; min-width: 0; }
 .rc__label { font-weight: 600; }
-.rc__badge {
-  display: inline-block; margin-left: 0.5rem; border-radius: 6px;
-  padding: 0.1rem 0.5rem; font-size: 0.72rem; font-weight: 600; vertical-align: middle;
-}
-.rc__badge--platform { background: #e0e7ff; color: #3730a3; }
-.rc__badge--own { background: #dcfce7; color: #166534; }
 .rc__toggle {
   flex-shrink: 0; border: 1px solid #d1d5db; background: #f3f4f6; color: #6b7280;
   border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;
@@ -254,10 +259,6 @@ onMounted(load)
 
 .rc__form { background: #fff; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
 .rc__form h3 { margin: 0 0 0.25rem; font-size: 1rem; }
-.rc__note {
-  margin: 0; font-size: 0.8rem; color: #92400e; background: #fef3c7;
-  border-radius: 8px; padding: 0.5rem 0.7rem;
-}
 .rc__field { display: flex; flex-direction: column; gap: 0.25rem; }
 .rc__field > span { font-size: 0.8rem; color: #374151; font-weight: 600; }
 .rc__input {

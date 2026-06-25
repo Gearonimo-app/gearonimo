@@ -185,6 +185,11 @@ er niet twee concurrerende startpunten zijn.
    - **Certificaat-template**: kop- en voettekst zelf instelbaar door het
      keurbedrijf; **standaard staat er een juridisch correcte standaardtekst**
      klaar (per land/regime), die het keurbedrijf kan overnemen of aanpassen.
+     > **Bijstelling Jos 2026-06-25:** de instelling is **per keurbedrijf**,
+     > niet "per land/regime". Elk keurbedrijf zet zijn eigen kop-/voettekst;
+     > er kan hooguit één generieke voorbeeldtekst klaarstaan, geen
+     > per-land-gekoppelde tekstenbibliotheek. (Geldt ook voor afkeurcodes,
+     > zie BOUWPLAN/DATAMODEL §rejection_codes.)
 
 6. *(gereserveerd)* — extra knop(pen) toevoegen zodra de praktijk dat
    uitwijst (bijv. catalogus-wachtrij voor god-rol, rapportages). Niet nu al

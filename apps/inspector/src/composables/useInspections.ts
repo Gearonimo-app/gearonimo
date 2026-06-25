@@ -100,16 +100,31 @@ export async function findPreviousResult(
   }
 }
 
-// Afkeurcodes voor dit bedrijf: eigen codes (company_id = X) aangevuld met de
-// platformstandaard (company_id leeg). Leeg resultaat = wizard valt terug op
-// vrije tekst (zie 20260624_rejection_codes.sql).
+// Afkeurcodes zijn per keurbedrijf instelbaar (besluit Jos 2026-06-25). Heeft
+// dit bedrijf een eigen set, dan gebruiken we alléén die (ook als sommige
+// uitgezet zijn — bewust niet terugvallen). Heeft het er nog geen, dan vallen
+// we terug op de platformstandaard (company_id leeg) als startset; het
+// instellingenscherm seedt bij eerste opening een eigen kopie. Leeg resultaat
+// = wizard valt terug op vrije tekst (zie 20260624_rejection_codes.sql).
 export async function fetchRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
-  const { data, error } = await supabase
+  const own = await supabase
     .from('rejection_codes')
-    .select('id, code, label, company_id')
-    .eq('active', true)
-    .or(`company_id.eq.${companyId},company_id.is.null`)
+    .select('id, code, label, active')
+    .eq('company_id', companyId)
     .order('code')
-  if (error) throw error
-  return (data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
+  if (own.error) throw own.error
+  if (own.data && own.data.length) {
+    return own.data
+      .filter((r) => r.active)
+      .map((r) => ({ id: r.id, code: r.code, label: r.label }))
+  }
+
+  const platform = await supabase
+    .from('rejection_codes')
+    .select('id, code, label')
+    .eq('active', true)
+    .is('company_id', null)
+    .order('code')
+  if (platform.error) throw platform.error
+  return (platform.data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
 }
