@@ -127,8 +127,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   uit staat en er één keurbedrijf is. Bewust niet (nog) overgenomen uit de
   oude app: de keuringstatus-kolom in de recall-tabel (status is in Gearonimo
   berekend i.p.v. opgeslagen) en de klikbare sorteerkoppen.
-  Nog te bouwen: UI-opmaak/styling-pas, plus de overige tegels
-  (keuringen-overzicht is een eerste opzet, instellingen).
+  **Live getest en akkoord (2026-06-26):** Jos heeft beide modi op
+  gearonimo.net getest — serienummer-zoeken werkt, en recall-zoeken werkt
+  zowel mét fabricagedatum-bereik (artikelen in/buiten bereik) als zonder
+  (artikelen zonder bouwjaar netjes getoond + gemarkeerd). Tegel is af; de
+  feature-branch is naar `main` gemerged (live).
+  Nog te bouwen: UI-opmaak/styling-pas, plus de **Instellingen-tegel** (de
+  laatste grote tegel — zie UX-FLOW §7.5/§9.1) en kleinere afwerking
+  (keuringen-overzicht is een eerste opzet).
+  **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
+  (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
+  derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde
+  vlak vóór er andere keurbedrijven/echte klanten bijkomen (zie fase 4 + de
+  RLS-let-op onderaan deze sectie). Niet er tussendoor.
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
