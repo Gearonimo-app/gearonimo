@@ -205,7 +205,12 @@
       "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
       "finish": "Afronden →",
       "ageWarningOverdue": "Levensduur verstreken",
-      "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)"
+      "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)",
+      "dayHelper": "Productiedag (uit SN):",
+      "dayPlaceholder": "bv. 045",
+      "weekHelper": "Weeknummer:",
+      "weekPlaceholder": "bv. 12",
+      "useMonth": "Gebruik"
     }
   },
   "verify": {

@@ -205,7 +205,12 @@
       "totals": "{passed} passed · {rejected} rejected · {open} open",
       "finish": "Finish →",
       "ageWarningOverdue": "Lifespan exceeded",
-      "ageWarningSoon": "Lifespan ending soon ({months} mo)"
+      "ageWarningSoon": "Lifespan ending soon ({months} mo)",
+      "dayHelper": "Production day (from SN):",
+      "dayPlaceholder": "e.g. 045",
+      "weekHelper": "Week number:",
+      "weekPlaceholder": "e.g. 12",
+      "useMonth": "Use"
     }
   },
   "verify": {

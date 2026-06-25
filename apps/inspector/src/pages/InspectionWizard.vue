@@ -29,19 +29,53 @@
         <datalist id="dl-brands"><option v-for="b in allBrands" :key="b" :value="b" /></datalist>
         <datalist id="dl-categories"><option v-for="c in allCategories" :key="c" :value="c" /></datalist>
 
-        <!-- Toevoegrij -->
+        <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
+             hieronder; staat een artikel er niet bij, vul de overige velden
+             aan en klik op Toevoegen. -->
         <div class="iw__add">
           <input v-model="newDescription" list="dl-articles" class="iw__input" :placeholder="$t('inspections.table.article')" />
           <input v-model="newBrand" list="dl-brands" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.brand')" />
           <input v-model="newCategory" list="dl-categories" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.category')" />
           <input v-model="newSerial" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.serial')" />
-          <input v-model="newYear" type="number" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.year')" />
-          <input v-model="newMonth" type="number" min="1" max="12" class="iw__input iw__input--xs" :placeholder="$t('inspections.table.month')" />
+          <input v-model="newYear" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
+          <select v-model="newMonth" class="iw__select iw__select--xs">
+            <option :value="null">{{ $t('inspections.table.month') }}</option>
+            <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
+          </select>
+          <div class="iw__result-buttons">
+            <button
+              class="iw__result-btn iw__result-btn--pass"
+              :class="{ 'iw__result-btn--active': newResult === 'passed' }"
+              @click="newResult = newResult === 'passed' ? 'not_assessed' : 'passed'"
+            >✅</button>
+            <button
+              class="iw__result-btn iw__result-btn--fail"
+              :class="{ 'iw__result-btn--active': newResult === 'rejected' }"
+              @click="newResult = newResult === 'rejected' ? 'not_assessed' : 'rejected'"
+            >❌</button>
+          </div>
+          <select v-if="newResult === 'rejected'" v-model="newRejectionCodeId" class="iw__select iw__select--sm">
+            <option :value="null">{{ $t('inspections.noCode') }}</option>
+            <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
+          </select>
           <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
         </div>
 
-        <!-- Zoek/filter bestaande artikelen -->
-        <input v-model="filterText" type="search" class="iw__input iw__search" :placeholder="$t('inspections.table.searchPlaceholder')" />
+        <!-- Spiekbriefje: productiedag (uit SN) of weeknummer naar maand. Past
+             niets automatisch toe — alleen op klik, om verwarring tussen
+             dag-van-jaar en datum te voorkomen. -->
+        <div class="iw__cheatsheet">
+          <span class="iw__cheatsheet-label">{{ $t('inspections.table.dayHelper') }}</span>
+          <input v-model="dayHint" type="number" min="1" max="366" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.dayPlaceholder')" />
+          <template v-if="dayHintMonth">
+            <span class="iw__cheatsheet-result">→ {{ monthName(dayHintMonth) }}</span>
+            <button class="iw__cheatsheet-apply" @click="newMonth = dayHintMonth">{{ $t('inspections.table.useMonth') }}</button>
+          </template>
+          <span class="iw__cheatsheet-sep">·</span>
+          <span class="iw__cheatsheet-label">{{ $t('inspections.table.weekHelper') }}</span>
+          <input v-model="weekHint" type="number" min="1" max="53" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.weekPlaceholder')" />
+          <span v-if="weekHintRange" class="iw__cheatsheet-result">→ {{ monthName(weekHintRange[0]) }}<template v-if="weekHintRange[1] !== weekHintRange[0]"> / {{ monthName(weekHintRange[1]) }}</template></span>
+        </div>
 
         <p v-if="addError" class="iw__error">{{ addError }}</p>
 
@@ -60,6 +94,7 @@
                 <th>{{ $t('inspections.table.colPrevious') }}</th>
                 <th>{{ $t('inspections.table.colResult') }}</th>
                 <th class="iw__sortable" @click="toggleSort('nextDue')">{{ $t('inspections.table.colNextDue') }}</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -106,7 +141,7 @@
                     </span>
                     <span v-else class="iw__prev--none">—</span>
                   </td>
-                  <td>
+                  <td class="iw__result-cell">
                     <div class="iw__result-buttons">
                       <button
                         class="iw__result-btn iw__result-btn--pass"
@@ -118,15 +153,13 @@
                         :class="{ 'iw__result-btn--active': row.it.result === 'rejected' }"
                         @click="setResult(row.it, 'rejected')"
                       >❌ {{ $t('inspections.table.fail') }}</button>
-                    </div>
-                    <div v-if="row.it.result === 'rejected'" class="iw__reject-form">
-                      <select v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
+                      <select v-if="row.it.result === 'rejected'" v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
                         <option :value="null">{{ $t('inspections.noCode') }}</option>
                         <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
                       </select>
                       <input
                         v-model="row.it.comment"
-                        class="iw__input iw__input--sm"
+                        class="iw__input iw__input--sm iw__comment-input"
                         :placeholder="$t('inspections.commentPlaceholder')"
                         @blur="saveRow(row.it)"
                       />
@@ -142,10 +175,14 @@
                     />
                     <span v-else>—</span>
                   </td>
+                  <td class="iw__actions-cell">
+                    <span v-if="row.it.article.retired" class="iw__retired-badge" :title="$t('articles.detail.retiredBadge')">🗑</span>
+                    <button v-else class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
+                  </td>
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="10" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <td colspan="11" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -195,6 +232,7 @@ interface Article {
   first_use_date: string | null
   severe_use: boolean
   interval_override_months: number | null
+  retired: boolean
   product: Product | null
 }
 interface Item {
@@ -212,7 +250,6 @@ const items = ref<Item[]>([])
 const loading = ref(true)
 const error = ref('')
 
-const filterText = ref('')
 const previousResults = ref<Record<string, { result: string; comment: string | null; inspection_date: string } | null>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
 
@@ -244,7 +281,32 @@ const newDescription = ref('')
 const newSerial = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
+const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
+const newRejectionCodeId = ref<string | null>(null)
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
+
+// Spiekbriefje: dag-van-jaar (Juliaanse dag, vaak 3 cijfers in het SN
+// verwerkt) of weeknummer naar maand. Levert alleen een suggestie — de
+// keurmeester past 'm zelf toe op Maand, zodat "3" nooit stilzwijgend als
+// "3 juni" wordt opgeslagen.
+const dayHint = ref<number | null>(null)
+const weekHint = ref<number | null>(null)
+const MONTH_NAMES_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+function monthName(m: number) { return MONTH_NAMES_NL[m - 1] }
+const dayHintMonth = computed<number | null>(() => {
+  const d = dayHint.value
+  if (!d || d < 1 || d > 366) return null
+  const y = newYear.value || new Date().getFullYear()
+  return new Date(y, 0, d).getMonth() + 1
+})
+const weekHintRange = computed<[number, number] | null>(() => {
+  const w = weekHint.value
+  if (!w || w < 1 || w > 53) return null
+  const y = newYear.value || new Date().getFullYear()
+  const start = new Date(y, 0, 1 + (w - 1) * 7)
+  const end = new Date(y, 0, w * 7)
+  return [start.getMonth() + 1, end.getMonth() + 1]
+})
 
 // Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
 // product), meteen merk en categorie invullen. Vrije tekst laat de velden met
@@ -338,24 +400,42 @@ interface Row {
   score: number
 }
 
-function searchScore(it: Item, q: string): number {
-  if (!q) return 0
-  const sn = (it.article.serial_number || '').toLowerCase()
-  if (sn === q) return 0
-  if (sn.endsWith(q)) return 1
-  if (sn.includes(q)) return 2
-  if (itemName(it).toLowerCase().includes(q)) return 3
-  if (itemBrand(it).toLowerCase().includes(q)) return 4
-  if (itemCategory(it).toLowerCase().includes(q)) return 5
-  return -1
+// De toevoegvelden filteren meteen de tabel: elk ingevuld veld moet matchen
+// (AND), zo niet dan blijft de getypte tekst gewoon staan om als nieuw
+// (vrij) artikel te kunnen toevoegen.
+const hasFilter = computed(() =>
+  !!(newDescription.value.trim() || newBrand.value.trim() || newCategory.value.trim() || newSerial.value.trim())
+)
+
+function matchesFilters(it: Item): boolean {
+  const d = newDescription.value.trim().toLowerCase()
+  const b = newBrand.value.trim().toLowerCase()
+  const c = newCategory.value.trim().toLowerCase()
+  const s = newSerial.value.trim().toLowerCase()
+  if (d && !itemName(it).toLowerCase().includes(d)) return false
+  if (b && !itemBrand(it).toLowerCase().includes(b)) return false
+  if (c && !itemCategory(it).toLowerCase().includes(c)) return false
+  if (s && !(it.article.serial_number || '').toLowerCase().includes(s)) return false
+  return true
+}
+
+function matchScore(it: Item): number {
+  const s = newSerial.value.trim().toLowerCase()
+  if (s) {
+    const sn = (it.article.serial_number || '').toLowerCase()
+    if (sn === s) return 0
+    if (sn.endsWith(s)) return 1
+    return 2
+  }
+  const d = newDescription.value.trim().toLowerCase()
+  if (d && itemName(it).toLowerCase().startsWith(d)) return 1
+  return 3
 }
 
 const rows = computed<Row[]>(() => {
-  const q = filterText.value.toLowerCase().trim()
   const result: Row[] = []
   for (const it of items.value) {
-    const score = searchScore(it, q)
-    if (q && score < 0) continue
+    if (hasFilter.value && !matchesFilters(it)) continue
     const y = it.article.manufacture_year
     result.push({
       it,
@@ -365,7 +445,7 @@ const rows = computed<Row[]>(() => {
       year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
       previous: previousResults.value[it.article_id] ?? null,
       warning: rowWarning(it),
-      score,
+      score: matchScore(it),
     })
   }
   return result
@@ -373,7 +453,7 @@ const rows = computed<Row[]>(() => {
 
 const sortedRows = computed(() => {
   const list = [...rows.value]
-  if (filterText.value.trim()) {
+  if (hasFilter.value) {
     list.sort((a, b) => a.score - b.score)
     return list
   }
@@ -466,9 +546,17 @@ async function addRow() {
       .single()
     if (artErr) throw artErr
 
+    const initialNextDue = newResult.value === 'passed' ? toIsoDate(suggestedNextDue({ article } as Item)) : null
     const { data: item, error: itemErr } = await supabase
       .from('inspection_items')
-      .insert({ inspection_id: id, article_id: article.id, article_snapshot: article, result: 'not_assessed' })
+      .insert({
+        inspection_id: id,
+        article_id: article.id,
+        article_snapshot: article,
+        result: newResult.value,
+        next_due: initialNextDue,
+        rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
+      })
       .select('id, article_id, result, next_due, rejection_code_id, comment')
       .single()
     if (itemErr) throw itemErr
@@ -482,16 +570,39 @@ async function addRow() {
     newSerial.value = ''
     newYear.value = null
     newMonth.value = null
+    newResult.value = 'not_assessed'
+    newRejectionCodeId.value = null
+    dayHint.value = null
+    weekHint.value = null
   } catch (e: any) {
     addError.value = e.message
   }
 }
 
+// Klik op een al actief resultaat zet 'm terug naar niet-beoordeeld (herstel
+// van een misklik); opmerking blijft altijd staan, ook bij goedkeur.
 function setResult(it: Item, result: 'passed' | 'rejected') {
-  it.result = result
-  it.next_due = result === 'passed' ? toIsoDate(suggestedNextDue(it)) : null
-  if (result === 'passed') { it.rejection_code_id = null; it.comment = null }
+  if (it.result === result) {
+    it.result = 'not_assessed'
+    it.next_due = null
+  } else {
+    it.result = result
+    it.next_due = result === 'passed' ? toIsoDate(suggestedNextDue(it)) : null
+    if (result === 'passed') it.rejection_code_id = null
+  }
   saveRow(it)
+}
+
+// "Afvoeren" = zachte verwijdering (prullenbak): het artikel blijft bestaan
+// zodat eerder uitgegeven certificaten (die een snapshot bevatten) intact
+// blijven, maar telt niet meer mee voor nieuwe keuringen.
+async function retireArticle(it: Item) {
+  if (!confirm(t('articles.detail.retireBody'))) return
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ retired: true, retired_at: new Date().toISOString() })
+    .eq('id', it.article.id)
+  if (!err) it.article.retired = true
 }
 
 // Bestaande artikelgegevens corrigeren vanuit de tabel (verkeerd serienummer,
@@ -559,7 +670,20 @@ onMounted(load)
 .iw__input--sm { flex: 1; min-width: 7rem; }
 .iw__input--xs { flex: 0 0 5rem; min-width: 4rem; }
 .iw__select--sm { min-width: 8rem; }
-.iw__search { width: 100%; margin-bottom: 0.85rem; }
+.iw__select--xs { flex: 0 0 5.5rem; min-width: 5rem; padding: 0.6rem 0.5rem; border-radius: 8px; border: 1px solid #ddd; font-size: 0.95rem; font-family: inherit; }
+.iw__input--nospin { -moz-appearance: textfield; }
+.iw__input--nospin::-webkit-outer-spin-button,
+.iw__input--nospin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+.iw__cheatsheet {
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  font-size: 0.8rem; color: #6b7280; margin-bottom: 0.85rem; padding: 0 0.25rem;
+}
+.iw__cheatsheet .iw__input { flex: 0 0 4rem; min-width: 3.5rem; padding: 0.35rem 0.5rem; }
+.iw__cheatsheet-label { white-space: nowrap; }
+.iw__cheatsheet-result { font-weight: 600; color: #16a34a; white-space: nowrap; }
+.iw__cheatsheet-apply { border: 1px solid #16a34a; color: #16a34a; background: #fff; border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.75rem; cursor: pointer; }
+.iw__cheatsheet-sep { opacity: 0.5; }
 
 .iw__table-wrap { background: #fff; border-radius: 12px; overflow-x: auto; }
 .iw__table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
@@ -578,11 +702,16 @@ onMounted(load)
 .iw__prev--none { color: #9ca3af; }
 .iw__empty { text-align: center; color: #9ca3af; padding: 2rem 1rem; }
 
-.iw__result-buttons { display: flex; gap: 0.4rem; }
+.iw__result-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
 .iw__result-btn { padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .iw__result-btn--pass.iw__result-btn--active { background: #16a34a; color: #fff; border-color: #16a34a; }
 .iw__result-btn--fail.iw__result-btn--active { background: #dc2626; color: #fff; border-color: #dc2626; }
-.iw__reject-form { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; min-width: 12rem; }
+.iw__result-cell { min-width: 11rem; }
+.iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
+.iw__actions-cell { text-align: center; }
+.iw__retire-btn { border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: 0.6; }
+.iw__retire-btn:hover { opacity: 1; }
+.iw__retired-badge { opacity: 0.5; }
 .iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
 .iw__cell-input {
   padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid transparent;
