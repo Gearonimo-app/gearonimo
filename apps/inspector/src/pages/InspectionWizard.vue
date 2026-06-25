@@ -56,6 +56,7 @@
                 <th class="iw__sortable" @click="toggleSort('label')">{{ $t('inspections.table.colDescription') }}</th>
                 <th class="iw__sortable" @click="toggleSort('serial')">{{ $t('inspections.table.colSerial') }}</th>
                 <th class="iw__sortable" @click="toggleSort('year')">{{ $t('inspections.table.colYear') }}</th>
+                <th>{{ $t('inspections.table.colFirstUse') }}</th>
                 <th>{{ $t('inspections.table.colPrevious') }}</th>
                 <th>{{ $t('inspections.table.colResult') }}</th>
                 <th class="iw__sortable" @click="toggleSort('nextDue')">{{ $t('inspections.table.colNextDue') }}</th>
@@ -73,8 +74,32 @@
                   <td class="iw__category">{{ row.category || '—' }}</td>
                   <td>{{ row.brand || '—' }}</td>
                   <td>{{ row.label }}</td>
-                  <td class="iw__sn">{{ row.it.article.serial_number || '—' }}</td>
-                  <td>{{ row.year || '—' }}</td>
+                  <td>
+                    <input
+                      v-model="row.it.article.serial_number"
+                      class="iw__cell-input"
+                      :placeholder="$t('inspections.table.serial')"
+                      @change="saveArticle(row.it)"
+                    />
+                  </td>
+                  <td class="iw__year-cell">
+                    <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
+                    <input
+                      v-model.number="row.it.article.manufacture_year"
+                      type="number"
+                      class="iw__cell-input iw__cell-input--xs"
+                      placeholder="JJJJ"
+                      @change="saveArticle(row.it)"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      v-model="row.it.article.first_use_date"
+                      type="date"
+                      class="iw__date-input"
+                      @change="saveArticle(row.it)"
+                    />
+                  </td>
                   <td>
                     <span v-if="row.previous" :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'">
                       {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
@@ -120,7 +145,7 @@
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="9" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <td colspan="10" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -136,7 +161,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
@@ -220,6 +245,19 @@ const newSerial = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
+
+// Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
+// product), meteen merk en categorie invullen. Vrije tekst laat de velden met
+// rust.
+watch(newDescription, (name) => {
+  const n = name.trim().toLowerCase()
+  if (!n) return
+  const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
+  if (p) {
+    if (p.brand) newBrand.value = p.brand
+    if (p.category) newCategory.value = p.category
+  }
+})
 
 function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
 function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
@@ -456,6 +494,17 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
   saveRow(it)
 }
 
+// Bestaande artikelgegevens corrigeren vanuit de tabel (verkeerd serienummer,
+// vergeten datum/bouwjaar). Slaat direct op in de articles-tabel.
+async function saveArticle(it: Item) {
+  const a = it.article
+  await supabase.from('articles').update({
+    serial_number: a.serial_number?.toString().trim() || null,
+    manufacture_year: a.manufacture_year || null,
+    first_use_date: a.first_use_date || null,
+  }).eq('id', a.id)
+}
+
 async function saveRow(it: Item) {
   await supabase.from('inspection_items').update({
     result: it.result,
@@ -535,6 +584,15 @@ onMounted(load)
 .iw__result-btn--fail.iw__result-btn--active { background: #dc2626; color: #fff; border-color: #dc2626; }
 .iw__reject-form { display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.5rem; min-width: 12rem; }
 .iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
+.iw__cell-input {
+  padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid transparent;
+  font-size: 0.9rem; font-family: inherit; width: 100%; min-width: 6rem; box-sizing: border-box;
+  background: transparent;
+}
+.iw__cell-input:hover { border-color: #ddd; }
+.iw__cell-input:focus { border-color: #16a34a; background: #fff; outline: none; }
+.iw__cell-input--xs { min-width: 4rem; width: 4.5rem; }
+.iw__year-cell { white-space: nowrap; }
 
 .iw__error { color: #dc2626; font-size: 0.9rem; margin: 0.5rem 0; }
 

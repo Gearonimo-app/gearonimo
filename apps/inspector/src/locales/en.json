@@ -195,6 +195,7 @@
       "colDescription": "Article",
       "colSerial": "SN",
       "colYear": "Year",
+      "colFirstUse": "In use",
       "colPrevious": "Previous",
       "colResult": "Result",
       "colNextDue": "Next inspection",

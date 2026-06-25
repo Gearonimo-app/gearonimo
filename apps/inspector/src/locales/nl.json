@@ -195,6 +195,7 @@
       "colDescription": "Artikel",
       "colSerial": "SN",
       "colYear": "Bouwjaar",
+      "colFirstUse": "In gebruik",
       "colPrevious": "Vorige",
       "colResult": "Resultaat",
       "colNextDue": "Volgende keuring",
