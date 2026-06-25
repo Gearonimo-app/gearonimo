@@ -207,8 +207,10 @@
       "ageWarningOverdue": "Lifespan exceeded",
       "ageWarningSoon": "Lifespan ending soon ({months} mo)",
       "dayHelper": "Production day (from SN):",
+      "dayHelperTooltip": "The day number of the year, often embedded as 3 digits in the serial number. 003 = Jan 3rd, 123 = day 123 of the year (May 1st). Runs up to 365 max (366 in a leap year) — not the same as a calendar date.",
       "dayPlaceholder": "e.g. 045",
       "weekHelper": "Week number:",
+      "weekHelperTooltip": "The week number of the year (1-53), sometimes embedded in the serial number. A week can span two months, so you may see two months here — pick the correct one yourself.",
       "weekPlaceholder": "e.g. 12",
       "useMonth": "Use"
     }

@@ -207,8 +207,10 @@
       "ageWarningOverdue": "Levensduur verstreken",
       "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)",
       "dayHelper": "Productiedag (uit SN):",
+      "dayHelperTooltip": "Het dagnummer van het jaar, vaak 3 cijfers in het serienummer verwerkt. 003 = 3 januari, 123 = dag 123 van het jaar (1 mei). Loopt op tot maximaal 365 (366 in een schrikkeljaar) — niet hetzelfde als een datum.",
       "dayPlaceholder": "bv. 045",
       "weekHelper": "Weeknummer:",
+      "weekHelperTooltip": "Het weeknummer van het jaar (1-53), soms verwerkt in het serienummer. Een week kan over twee maanden lopen, daarom zie je hier mogelijk twee maanden — kies zelf de juiste.",
       "weekPlaceholder": "bv. 12",
       "useMonth": "Gebruik"
     }

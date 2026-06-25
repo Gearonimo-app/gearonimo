@@ -65,15 +65,31 @@
              niets automatisch toe — alleen op klik, om verwarring tussen
              dag-van-jaar en datum te voorkomen. -->
         <div class="iw__cheatsheet">
-          <span class="iw__cheatsheet-label">{{ $t('inspections.table.dayHelper') }}</span>
-          <input v-model="dayHint" type="number" min="1" max="366" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.dayPlaceholder')" />
+          <span class="iw__cheatsheet-label" :title="$t('inspections.table.dayHelperTooltip')">{{ $t('inspections.table.dayHelper') }} ⓘ</span>
+          <input
+            v-model="dayHint"
+            type="number"
+            min="1"
+            max="366"
+            class="iw__input iw__input--xs iw__input--nospin"
+            :placeholder="$t('inspections.table.dayPlaceholder')"
+            :title="$t('inspections.table.dayHelperTooltip')"
+          />
           <template v-if="dayHintMonth">
             <span class="iw__cheatsheet-result">→ {{ monthName(dayHintMonth) }}</span>
             <button class="iw__cheatsheet-apply" @click="newMonth = dayHintMonth">{{ $t('inspections.table.useMonth') }}</button>
           </template>
           <span class="iw__cheatsheet-sep">·</span>
-          <span class="iw__cheatsheet-label">{{ $t('inspections.table.weekHelper') }}</span>
-          <input v-model="weekHint" type="number" min="1" max="53" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.weekPlaceholder')" />
+          <span class="iw__cheatsheet-label" :title="$t('inspections.table.weekHelperTooltip')">{{ $t('inspections.table.weekHelper') }} ⓘ</span>
+          <input
+            v-model="weekHint"
+            type="number"
+            min="1"
+            max="53"
+            class="iw__input iw__input--xs iw__input--nospin"
+            :placeholder="$t('inspections.table.weekPlaceholder')"
+            :title="$t('inspections.table.weekHelperTooltip')"
+          />
           <span v-if="weekHintRange" class="iw__cheatsheet-result">→ {{ monthName(weekHintRange[0]) }}<template v-if="weekHintRange[1] !== weekHintRange[0]"> / {{ monthName(weekHintRange[1]) }}</template></span>
         </div>
 
