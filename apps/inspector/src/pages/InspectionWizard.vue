@@ -43,6 +43,7 @@
                 <th class="iw__sortable" @click="toggleSort('serial')">{{ $t('inspections.table.colSerial') }}</th>
                 <th class="iw__sortable" @click="toggleSort('year')">{{ $t('inspections.table.colYear') }}</th>
                 <th>{{ $t('inspections.table.colFirstUse') }}</th>
+                <th>{{ $t('inspections.table.colUser') }}</th>
                 <th>{{ $t('inspections.table.colPrevious') }}</th>
                 <th>{{ $t('inspections.table.colResult') }}</th>
                 <th class="iw__sortable" @click="toggleSort('nextDue')">{{ $t('inspections.table.colNextDue') }}</th>
@@ -54,9 +55,17 @@
                 <tr :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed' }">
                   <td class="iw__warn-cell">
                     <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
-                    <span v-if="row.it.article.product?.recall_url" class="iw__warn-icon" title="Recall">
-                      <a :href="row.it.article.product.recall_url" target="_blank">🚩</a>
-                    </span>
+                    <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
+                    <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
+                    <a v-if="itemHasRecall(row.it) && itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
+                    <span v-else-if="itemHasRecall(row.it)" class="iw__warn-icon" title="Recall">🚩</span>
+                    <button
+                      v-if="!row.it.article.product"
+                      class="iw__icon-btn"
+                      :class="{ 'iw__icon-btn--active': row.it.article.free_recall_flag }"
+                      :title="$t('inspections.table.toggleRecall')"
+                      @click="toggleFreeRecall(row.it)"
+                    >🚩</button>
                   </td>
                   <td class="iw__category">{{ row.category || '—' }}</td>
                   <td>{{ row.brand || '—' }}</td>
@@ -84,6 +93,14 @@
                       v-model="row.it.article.first_use_date"
                       type="date"
                       class="iw__date-input"
+                      @change="saveArticle(row.it)"
+                    />
+                  </td>
+                  <td>
+                    <input
+                      v-model="row.it.article.assigned_user_name"
+                      class="iw__cell-input"
+                      :placeholder="$t('articles.fields.user')"
                       @change="saveArticle(row.it)"
                     />
                   </td>
@@ -134,7 +151,7 @@
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="11" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <td colspan="12" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -246,6 +263,7 @@ interface Product {
   max_age_use_years: number | null
   recall_url: string | null
   inspection_notice_url: string | null
+  manual_url: string | null
 }
 interface Article {
   id: string
@@ -253,6 +271,10 @@ interface Article {
   free_brand: string | null
   free_category: string | null
   free_description: string | null
+  free_manual_url: string | null
+  free_recall_flag: boolean
+  free_recall_url: string | null
+  assigned_user_name: string | null
   manufacture_year: number | null
   manufacture_month: number | null
   first_use_date: string | null
@@ -381,6 +403,35 @@ function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.fr
 function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
 function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
+function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
+function itemRecallUrl(it: Item) { return it.article.product?.recall_url ?? it.article.free_recall_url ?? null }
+function itemHasRecall(it: Item) { return !!it.article.product?.recall_url || it.article.free_recall_flag }
+
+// Bij vrije (niet-catalogus) artikelen kan de keurmeester zelf een recall
+// aanvinken (en optioneel een link erbij zetten) — bij catalogusartikelen
+// komt dit automatisch uit het product.
+async function toggleFreeRecall(it: Item) {
+  if (it.article.product) return
+  const next = !it.article.free_recall_flag
+  let url = it.article.free_recall_url
+  if (next) {
+    url = window.prompt(t('inspections.table.recallUrlPrompt'), url ?? '') || null
+  }
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ free_recall_flag: next, free_recall_url: url })
+    .eq('id', it.article.id)
+  if (!err) { it.article.free_recall_flag = next; it.article.free_recall_url = url }
+}
+
+async function editManualUrl(it: Item) {
+  if (it.article.product) return
+  const url = window.prompt(t('inspections.table.manualUrlPrompt'), it.article.free_manual_url ?? '')
+  if (url === null) return
+  const value = url.trim() || null
+  const { error: err } = await supabase.from('articles').update({ free_manual_url: value }).eq('id', it.article.id)
+  if (!err) it.article.free_manual_url = value
+}
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -559,7 +610,7 @@ async function load() {
 
   const { data: prods } = await supabase
     .from('products')
-    .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url')
+    .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
   products.value = (prods ?? []) as Product[]
 
   if (insp.status === 'completed') finished.value = true
@@ -677,6 +728,7 @@ async function saveArticle(it: Item) {
     serial_number: a.serial_number?.toString().trim() || null,
     manufacture_year: a.manufacture_year || null,
     first_use_date: a.first_use_date || null,
+    assigned_user_name: a.assigned_user_name?.toString().trim() || null,
   }).eq('id', a.id)
 }
 
@@ -759,6 +811,18 @@ onMounted(load)
 .iw__row--rejected { background: #fef2f2; }
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
+.iw__icon-btn {
+  margin-right: 0.25rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.1rem;
+  opacity: 0.55;
+}
+.iw__icon-btn:hover { opacity: 1; }
+.iw__icon-btn--active { opacity: 1; filter: drop-shadow(0 0 1px #dc2626); }
 .iw__category { color: #374151; }
 .iw__sn { color: #6b7280; }
 .iw__prev--pass { color: #16a34a; }

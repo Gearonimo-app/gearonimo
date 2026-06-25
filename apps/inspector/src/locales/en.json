@@ -196,6 +196,7 @@
       "colSerial": "SN",
       "colYear": "Year",
       "colFirstUse": "In use",
+      "colUser": "User",
       "colPrevious": "Previous",
       "colResult": "Result",
       "colNextDue": "Next inspection",
@@ -214,7 +215,11 @@
       "weekPlaceholder": "e.g. 12",
       "useMonth": "Use",
       "copyLast": "⧉ Copy previous",
-      "copyLastTooltip": "Fills in all fields from the last added article again (without serial number) — handy for multiple identical items."
+      "copyLastTooltip": "Fills in all fields from the last added article again (without serial number) — handy for multiple identical items.",
+      "addManualUrl": "Add manual link",
+      "toggleRecall": "Recall flag (free article)",
+      "recallUrlPrompt": "Recall link (leave empty if none):",
+      "manualUrlPrompt": "Manual link:"
     }
   },
   "verify": {
