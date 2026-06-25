@@ -60,6 +60,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/settings",
+      component: () => import("./pages/Settings.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/inspections/:id",
       component: () => import("./pages/InspectionWizard.vue"),
       meta: { requiresAuth: true },

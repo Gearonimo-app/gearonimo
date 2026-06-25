@@ -266,5 +266,43 @@
     "issuedAt": "Issued",
     "items": "Inspected items",
     "hash": "File hash"
+  },
+  "settings": {
+    "title": "Settings",
+    "soon": "Coming soon",
+    "rejection": {
+      "menuTitle": "Rejection codes",
+      "menuDesc": "Manage codes for rejected items",
+      "title": "Rejection codes",
+      "intro": "You pick these codes when rejecting an item during an inspection. Platform codes apply to every inspection company; your own codes apply only to you.",
+      "add": "Code",
+      "edit": "Edit code",
+      "empty": "No rejection codes yet.",
+      "on": "On",
+      "off": "Off",
+      "platformBadge": "Standard",
+      "ownBadge": "Own",
+      "platformNote": "This is a platform-standard code. Changes apply to every inspection company.",
+      "deleteTitle": "Delete rejection code?",
+      "deleteBody": "This cannot be undone. Codes already used stay on existing certificates.",
+      "fields": {
+        "code": "Number",
+        "label": "Description",
+        "labelPh": "e.g. Worn out",
+        "active": "Active"
+      },
+      "errors": {
+        "labelRequired": "Description is required",
+        "codeRequired": "A valid number is required"
+      }
+    },
+    "certificate": {
+      "menuTitle": "Certificate template",
+      "menuDesc": "Certificate header and footer text"
+    },
+    "inspectors": {
+      "menuTitle": "Inspectors",
+      "menuDesc": "Manage inspectors and qualifications"
+    }
   }
 }

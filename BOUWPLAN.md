@@ -92,8 +92,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   https://gearonimo.net en controleren of het certificaat klopt
   (PDF-inhoud, QR-link naar `/verify/:token`, downloadlink). Resultaat van
   die test nog niet teruggekoppeld — vervolgsessie begint hiermee.
-  Bewust nog buiten scope: foto's bij afkeuring, instellingenscherm voor
-  afkeurcodes.
+  Bewust nog buiten scope: foto's bij afkeuring. (Het instellingenscherm voor
+  afkeurcodes is inmiddels wél gebouwd — zie de Instellingen-tegel hieronder.)
   **SN-zoeken / Recall-tegel af (2026-06-26):** de dode link op het
   hoofdmenu (`/serial-search`) is nu een echte pagina
   (`apps/inspector/src/pages/SerialSearch.vue`) met **twee modi** (schakelaar
@@ -135,6 +135,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   Nog te bouwen: UI-opmaak/styling-pas, plus de **Instellingen-tegel** (de
   laatste grote tegel — zie UX-FLOW §7.5/§9.1) en kleinere afwerking
   (keuringen-overzicht is een eerste opzet).
+  **Instellingen-tegel gestart — onderdeel 1: afkeurcodes-beheer
+  (2026-06-25):** de laatste dode link op het hoofdmenu (`/settings`) is nu
+  een echte pagina (`apps/inspector/src/pages/Settings.vue`), opgezet als hub
+  met meerdere onderdelen (UX-FLOW §7.5/§9.1). Eerste onderdeel af:
+  **Afkeurcodes beheren** (`components/RejectionCodes.vue`) — toevoegen,
+  wijzigen en aan-/uitzetten (inline toggle) van de codes uit
+  `rejection_codes`. Toont eigen codes (`company_id` = dit bedrijf) én de 8
+  platformstandaard-codes (`company_id` leeg), met een badge die ze
+  onderscheidt; voedt rechtstreeks de afkeur-keuze in de keuring-wizard
+  (`fetchRejectionCodes` in `useInspections.ts`). Nieuwe codes worden eigen
+  codes; bestaande codes (óók platformstandaard) worden ter plekke bijgewerkt
+  — bewust toegestaan zolang er één keurbedrijf is (zie DATAMODEL
+  §rejection_codes), met een waarschuwing in het formulier dat een
+  platformcode voor alle bedrijven geldt. Harde delete alleen voor eigen
+  codes; platformcodes worden gedeactiveerd i.p.v. verwijderd. Geen migratie
+  nodig (tabel + grants bestonden al, `20260624_rejection_codes.sql`). De
+  twee overige onderdelen (certificaat-kop/voettekst, keurmeesters +
+  kwalificaties) staan als "Binnenkort" in de hub en zijn de volgende
+  deelstappen. i18n nl+en toegevoegd onder `settings`.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

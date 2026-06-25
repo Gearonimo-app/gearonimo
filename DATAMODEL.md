@@ -312,9 +312,17 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 > 7 modificatie, 8 anders/zie opmerkingen — als vrije tekst in `label`
 > (`label_key`/i18n-vertaling nog niet gebruikt). Migratie:
 > `supabase/migrations/20260625_company_details_and_rejection_codes.sql`.
-> Er is nog **geen instellingenscherm** waarmee een gebruiker deze codes zelf
-> kan beheren (toevoegen/wijzigen/uitzetten) — dat staat nog open, alleen via
-> SQL aan te passen.
+>
+> **Instellingenscherm toegevoegd (2026-06-25):** afkeurcodes zijn nu via de
+> UI te beheren onder de Instellingen-tegel
+> (`apps/inspector/src/components/RejectionCodes.vue`): toevoegen, wijzigen en
+> aan-/uitzetten. Het scherm toont eigen codes (`company_id` = bedrijf) én de
+> platformstandaard (`company_id` leeg), onderscheiden met een badge. Nieuwe
+> codes krijgen `company_id` = het huidige bedrijf; bestaande codes (óók
+> platformstandaard) worden ter plekke bijgewerkt — bewust toegestaan zolang
+> er één keurbedrijf is, met een waarschuwing in het formulier. Harde delete
+> alleen voor eigen codes; platformcodes worden gedeactiveerd
+> (`active = false`) i.p.v. verwijderd. Geen schemawijziging nodig.
 
 ---
 

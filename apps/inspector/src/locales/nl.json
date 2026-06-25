@@ -266,5 +266,43 @@
     "issuedAt": "Uitgegeven",
     "items": "Gekeurde artikelen",
     "hash": "Bestandshash"
+  },
+  "settings": {
+    "title": "Instellingen",
+    "soon": "Binnenkort",
+    "rejection": {
+      "menuTitle": "Afkeurcodes",
+      "menuDesc": "Codes voor afgekeurde artikelen beheren",
+      "title": "Afkeurcodes",
+      "intro": "Deze codes kies je bij het afkeuren van een artikel in de keuring. Platformcodes gelden voor alle keurbedrijven; eigen codes alleen voor jou.",
+      "add": "Code",
+      "edit": "Code bewerken",
+      "empty": "Nog geen afkeurcodes.",
+      "on": "Aan",
+      "off": "Uit",
+      "platformBadge": "Standaard",
+      "ownBadge": "Eigen",
+      "platformNote": "Dit is een platformstandaard-code. Wijzigingen gelden voor alle keurbedrijven.",
+      "deleteTitle": "Afkeurcode verwijderen?",
+      "deleteBody": "Dit kan niet ongedaan worden gemaakt. Eerder gebruikte codes blijven op bestaande certificaten staan.",
+      "fields": {
+        "code": "Nummer",
+        "label": "Omschrijving",
+        "labelPh": "bijv. Slijtage, opgebruikt",
+        "active": "Actief"
+      },
+      "errors": {
+        "labelRequired": "Omschrijving is verplicht",
+        "codeRequired": "Een geldig nummer is verplicht"
+      }
+    },
+    "certificate": {
+      "menuTitle": "Certificaat-template",
+      "menuDesc": "Kop- en voettekst van het certificaat"
+    },
+    "inspectors": {
+      "menuTitle": "Keurmeesters",
+      "menuDesc": "Keurmeesters en kwalificaties beheren"
+    }
   }
 }
