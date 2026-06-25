@@ -212,7 +212,9 @@
       "weekHelper": "Weeknummer:",
       "weekHelperTooltip": "Het weeknummer van het jaar (1-53), soms verwerkt in het serienummer. Een week kan over twee maanden lopen, daarom zie je hier mogelijk twee maanden — kies zelf de juiste.",
       "weekPlaceholder": "bv. 12",
-      "useMonth": "Gebruik"
+      "useMonth": "Gebruik",
+      "copyLast": "⧉ Kopieer vorige",
+      "copyLastTooltip": "Vult alle velden van het laatst toegevoegde artikel opnieuw in (zonder serienummer) — handig bij meerdere identieke exemplaren."
     }
   },
   "verify": {

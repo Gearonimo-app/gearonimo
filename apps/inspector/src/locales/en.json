@@ -212,7 +212,9 @@
       "weekHelper": "Week number:",
       "weekHelperTooltip": "The week number of the year (1-53), sometimes embedded in the serial number. A week can span two months, so you may see two months here — pick the correct one yourself.",
       "weekPlaceholder": "e.g. 12",
-      "useMonth": "Use"
+      "useMonth": "Use",
+      "copyLast": "⧉ Copy previous",
+      "copyLastTooltip": "Fills in all fields from the last added article again (without serial number) — handy for multiple identical items."
     }
   },
   "verify": {

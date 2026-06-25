@@ -25,7 +25,7 @@
       <div class="iw__body">
         <!-- Gedeelde datalists: elk invulveld zoekt in de catalogus, maar je
              mag altijd vrij iets typen dat er niet in staat. -->
-        <datalist id="dl-articles"><option v-for="n in allArticleNames" :key="n" :value="n" /></datalist>
+        <datalist id="dl-articles"><option v-for="n in matchingArticleNames" :key="n" :value="n" /></datalist>
         <datalist id="dl-brands"><option v-for="b in allBrands" :key="b" :value="b" /></datalist>
         <datalist id="dl-categories"><option v-for="c in allCategories" :key="c" :value="c" /></datalist>
 
@@ -59,6 +59,13 @@
             <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
           <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
+          <button
+            v-if="lastArticle"
+            class="iw__btn iw__btn--copy"
+            type="button"
+            :title="$t('inspections.table.copyLastTooltip')"
+            @click="copyLastArticle"
+          >{{ $t('inspections.table.copyLast') }}</button>
         </div>
 
         <!-- Spiekbriefje: productiedag (uit SN) of weeknummer naar maand. Past
@@ -90,7 +97,11 @@
             :placeholder="$t('inspections.table.weekPlaceholder')"
             :title="$t('inspections.table.weekHelperTooltip')"
           />
-          <span v-if="weekHintRange" class="iw__cheatsheet-result">→ {{ monthName(weekHintRange[0]) }}<template v-if="weekHintRange[1] !== weekHintRange[0]"> / {{ monthName(weekHintRange[1]) }}</template></span>
+          <template v-if="weekHintRange">
+            <span class="iw__cheatsheet-result">→ {{ monthName(weekHintRange[0]) }}<template v-if="weekHintRange[1] !== weekHintRange[0]"> / {{ monthName(weekHintRange[1]) }}</template></span>
+            <button class="iw__cheatsheet-apply" @click="newMonth = weekHintRange[0]">{{ $t('inspections.table.useMonth') }} {{ monthName(weekHintRange[0]) }}</button>
+            <button v-if="weekHintRange[1] !== weekHintRange[0]" class="iw__cheatsheet-apply" @click="newMonth = weekHintRange[1]">{{ $t('inspections.table.useMonth') }} {{ monthName(weekHintRange[1]) }}</button>
+          </template>
         </div>
 
         <p v-if="addError" class="iw__error">{{ addError }}</p>
@@ -286,6 +297,20 @@ const allBrands = computed(() => unique(products.value.map(p => p.brand)))
 const allCategories = computed(() => unique(products.value.map(p => p.category)))
 const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 
+// Artikel-dropdown houdt rekening met al gekozen Merk/Categorie, zodat je
+// na het selecteren van "FALL SAFE" + "Harnesses" alleen nog FALL SAFE
+// harnassen ziet (en de lijst korter en relevanter blijft).
+const matchingArticleNames = computed(() => {
+  const b = newBrand.value.trim().toLowerCase()
+  const c = newCategory.value.trim().toLowerCase()
+  if (!b && !c) return allArticleNames.value
+  const filtered = products.value.filter(p =>
+    (!b || (p.brand ?? '').toLowerCase() === b) &&
+    (!c || (p.category ?? '').toLowerCase() === c)
+  )
+  return unique(filtered.map(p => p.name))
+})
+
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
 }
@@ -300,6 +325,20 @@ const newMonth = ref<number | null>(null)
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
+
+// Onthoudt het laatst toegevoegde artikel zodat een serie identieke
+// exemplaren (bv. 10 karabiners) snel achter elkaar in te voeren is: alles
+// kopiëren behalve het serienummer.
+const lastArticle = ref<{ description: string; brand: string; category: string; year: number | null; month: number | null } | null>(null)
+function copyLastArticle() {
+  if (!lastArticle.value) return
+  newDescription.value = lastArticle.value.description
+  newBrand.value = lastArticle.value.brand
+  newCategory.value = lastArticle.value.category
+  newYear.value = lastArticle.value.year
+  newMonth.value = lastArticle.value.month
+  newSerial.value = ''
+}
 
 // Spiekbriefje: dag-van-jaar (Juliaanse dag, vaak 3 cijfers in het SN
 // verwerkt) of weeknummer naar maand. Levert alleen een suggestie — de
@@ -580,6 +619,14 @@ async function addRow() {
     items.value.push({ ...item, article } as Item)
     previousResults.value[article.id] = null
 
+    lastArticle.value = {
+      description: newDescription.value.trim(),
+      brand: newBrand.value.trim(),
+      category: newCategory.value.trim(),
+      year: newYear.value,
+      month: newMonth.value,
+    }
+
     newBrand.value = ''
     newCategory.value = ''
     newDescription.value = ''
@@ -750,6 +797,7 @@ onMounted(load)
 .iw__btn { padding: 0.85rem; border-radius: 10px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; }
 .iw__btn--cancel { background: #f3f4f6; color: #374151; }
 .iw__btn--save { background: #16a34a; color: #fff; }
+.iw__btn--copy { background: #f3f4f6; color: #374151; padding: 0.6rem 0.85rem; font-size: 0.9rem; }
 .iw__btn:disabled { opacity: 0.6; }
 
 .iw__cert-done { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
