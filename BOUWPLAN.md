@@ -52,6 +52,30 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   — zonder de volledige klant-/keuringdata aan anonieme bezoekers te geven.
   Certificaatnummer-formaat volgt Jos' huidige praktijk
   (`JJJJMMDD-KLANTNAAM`). Migratie: `supabase/migrations/20260624_certificates.sql`.
+  **Plandocumenten teruggevonden en verplaatst (2026-06-26):** BLAUWDRUK,
+  BOUWPLAN, DATAMODEL, UX-FLOW en ONDERZOEK-CERTIFICAATEISEN stonden op een
+  branch van de **klimkeur-pro**-repo (verkeerde repo,
+  `claude/klimkeurpro-english-translation-bco5ti`) en waren in geen
+  sessie-scratchpad meer terug te vinden. Nu gekopieerd naar de root van de
+  **gearonimo**-repo en gecommit naar `main`, zodat ze niet nogmaals
+  kwijtraken.
+  **Keuringstabel-redesign (2026-06-26):** de invoer/zoekvelden bovenaan de
+  keuringswizard zijn vervangen door een eigen inline suggestielijst i.p.v.
+  de native `<datalist>` (die altijd over de tabel heen viel). Elk veld
+  zoekt nu in zijn eigen, afgebakende bron: Artikel/Merk/Categorie in de
+  catalogus (Artikel optioneel genauwd door gekozen Merk/Categorie),
+  Serienummer alleen in de artikelen die al op déze keuringslijst staan.
+  Pijltjestoetsen (↑/↓) lopen door de suggesties, Enter kiest, Escape
+  sluit, de lijst scrollt automatisch mee. Verder toegevoegd aan de
+  keuringstabel: een **Gebruiker**-kolom (`assigned_user_name`, vooruitlopend
+  op de echte `assigned_member_id`-koppeling uit DATAMODEL §3), een
+  **handleiding-link** (catalogus: `products.manual_url`; vrij artikel:
+  `articles.free_manual_url`, met een knop om die toe te voegen), en een
+  **recall-waarschuwing** (catalogus: automatisch uit `products.recall_url`;
+  vrij artikel: handmatige toggle via nieuwe kolommen
+  `articles.free_recall_flag`/`free_recall_url`). Migratie:
+  `supabase/migrations/20260625_free_recall_manual_url.sql` (uitgevoerd in
+  Supabase).
   **Echte bedrijfsgegevens + afkeurcodes ingevuld (2026-06-25):** Jos heeft
   de echte naam/adres/kop-/voettekst van Safety Green B.V. en de 8
   afkeurcodes uit de huidige praktijk aangeleverd (1 slijtage/opgebruikt,

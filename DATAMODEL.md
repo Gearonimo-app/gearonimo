@@ -339,6 +339,16 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 > `assigned_member_id → customer_members`) en `set_label` (wordt later de echte
 > `article_sets`-tabel).
 >
+> **Keuringstabel (2026-06-26):** `assigned_user_name` is nu ook een
+> bewerkbare kolom in de keuringswizard (niet alleen op het
+> artikeldetailscherm); handleiding-link en recall-vlag (zie
+> `free_manual_url`/`free_recall_flag`/`free_recall_url` hierboven) zijn daar
+> ook zichtbaar/bewerkbaar geworden. De native browser-`<datalist>` voor
+> Artikel/Merk/Categorie/Serienummer is vervangen door een eigen, niet-
+> zwevende suggestielijst (loste op dat de native dropdown over de tabel
+> heen viel); elk veld zoekt nu strikt in zijn eigen bron in plaats van alle
+> velden tegelijk in de catalogus.
+>
 > **Artikeldetailscherm 2026-06-23:** `/articles/:id` (vanuit de klantenlijst
 > aanklikbaar) toont/bewerkt nu ook bouwjaar/-maand, aankoopdatum en
 > severe_use; `first_use_date` is eenmalig invulbaar (daarna alleen-lezen, zie
@@ -352,6 +362,8 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 | product_id | FK? → products | leeg = "vrij artikel" (nog niet in catalogus); komt pas in de wachtrij als `suggest_for_catalog=true` |
 | free_description, free_brand, free_material | text? | alleen gevuld bij vrij artikel |
 | free_manufacturer_code, free_manual_url | text? | idem, alleen bij vrij artikel — verplicht zodra `suggest_for_catalog=true` (zie hieronder) |
+| free_recall_flag | boolean | **toegevoegd 2026-06-26** — handmatige recall-vlag voor een vrij artikel (geen `product_id`); de keurmeester zet deze zelf aan/uit in de keuringstabel, met een prompt voor `free_recall_url`. Catalogusproducten hebben dit niet nodig: die gebruiken het bestaande `products.recall_url` |
+| free_recall_url | text? | idem, het bijbehorende recall-bericht-linkje bij een vrij artikel |
 | serial_number | text? | |
 | manufacture_year | int? | |
 | manufacture_month | int? | |
