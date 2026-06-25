@@ -23,15 +23,117 @@
 
     <template v-else>
       <div class="iw__body">
-        <!-- Gedeelde datalists: elk invulveld zoekt in de catalogus, maar je
-             mag altijd vrij iets typen dat er niet in staat. -->
-        <datalist id="dl-articles"><option v-for="n in matchingArticleNames" :key="n" :value="n" /></datalist>
-        <datalist id="dl-brands"><option v-for="b in allBrands" :key="b" :value="b" /></datalist>
-        <datalist id="dl-categories"><option v-for="c in allCategories" :key="c" :value="c" /></datalist>
+        <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
+             hieronder; staat een artikel er niet bij, vul de overige velden
+             aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
+             altijd in beeld blijft. -->
+        <div class="iw__add">
+          <input
+            v-model="newDescription"
+            class="iw__input"
+            :placeholder="$t('inspections.table.article')"
+            @focus="activeField = 'article'"
+            @blur="closeSuggest"
+          />
+          <input
+            v-model="newBrand"
+            class="iw__input iw__input--sm"
+            :placeholder="$t('inspections.table.brand')"
+            @focus="activeField = 'brand'"
+            @blur="closeSuggest"
+          />
+          <input
+            v-model="newCategory"
+            class="iw__input iw__input--sm"
+            :placeholder="$t('inspections.table.category')"
+            @focus="activeField = 'category'"
+            @blur="closeSuggest"
+          />
+          <input
+            v-model="newSerial"
+            class="iw__input iw__input--sm"
+            :placeholder="$t('inspections.table.serial')"
+            @focus="activeField = 'serial'"
+            @blur="closeSuggest"
+          />
+          <input v-model="newYear" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
+          <select v-model="newMonth" class="iw__select iw__select--xs">
+            <option :value="null">{{ $t('inspections.table.month') }}</option>
+            <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
+          </select>
+          <div class="iw__result-buttons">
+            <button
+              class="iw__result-btn iw__result-btn--pass"
+              :class="{ 'iw__result-btn--active': newResult === 'passed' }"
+              @click="newResult = newResult === 'passed' ? 'not_assessed' : 'passed'"
+            >✅</button>
+            <button
+              class="iw__result-btn iw__result-btn--fail"
+              :class="{ 'iw__result-btn--active': newResult === 'rejected' }"
+              @click="newResult = newResult === 'rejected' ? 'not_assessed' : 'rejected'"
+            >❌</button>
+          </div>
+          <select v-if="newResult === 'rejected'" v-model="newRejectionCodeId" class="iw__select iw__select--sm">
+            <option :value="null">{{ $t('inspections.noCode') }}</option>
+            <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
+          </select>
+          <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
+          <button
+            v-if="lastArticle"
+            class="iw__btn iw__btn--copy"
+            type="button"
+            :title="$t('inspections.table.copyLastTooltip')"
+            @click="copyLastArticle"
+          >{{ $t('inspections.table.copyLast') }}</button>
+        </div>
 
-        <!-- Tabel staat boven de zoek/toevoegvelden: zo komt de native
-             dropdown van het Artikel-veld nooit over de al toegevoegde
-             artikelen heen te staan. -->
+        <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
+             de tabel naar beneden i.p.v. eroverheen te vallen. Elk veld zoekt
+             in z'n eigen bron: Artikel/Merk/Categorie in de catalogus,
+             Serienummer in de al toegevoegde artikelen van deze keuring. -->
+        <div v-if="activeField && fieldSuggestions.length" class="iw__suggest">
+          <button
+            v-for="s in fieldSuggestions"
+            :key="s"
+            type="button"
+            class="iw__suggest-item"
+            @mousedown.prevent="pickSuggestion(s)"
+          >{{ s }}</button>
+        </div>
+
+        <!-- Spiekbriefje: productiedag (uit SN) of weeknummer naar maand. Past
+             niets automatisch toe — alleen op klik, om verwarring tussen
+             dag-van-jaar en datum te voorkomen. -->
+        <div class="iw__cheatsheet">
+          <span class="iw__cheatsheet-label" :title="$t('inspections.table.dayHelperTooltip')">{{ $t('inspections.table.dayHelper') }} ⓘ</span>
+          <input
+            v-model="dayHint"
+            type="number"
+            min="1"
+            max="366"
+            class="iw__input iw__input--xs iw__input--nospin"
+            :placeholder="$t('inspections.table.dayPlaceholder')"
+            :title="$t('inspections.table.dayHelperTooltip')"
+          />
+          <template v-if="dayHintMonth">
+            <span class="iw__cheatsheet-result">→ {{ monthName(dayHintMonth) }}</span>
+            <button class="iw__cheatsheet-apply" @click="newMonth = dayHintMonth">{{ $t('inspections.table.useMonth') }}</button>
+          </template>
+          <span class="iw__cheatsheet-sep">·</span>
+          <span class="iw__cheatsheet-label" :title="$t('inspections.table.weekHelperTooltip')">{{ $t('inspections.table.weekHelper') }} ⓘ</span>
+          <input
+            v-model="weekHint"
+            type="number"
+            min="1"
+            max="53"
+            class="iw__input iw__input--xs iw__input--nospin"
+            :placeholder="$t('inspections.table.weekPlaceholder')"
+            :title="$t('inspections.table.weekHelperTooltip')"
+          />
+          <span v-if="weekHintMonth" class="iw__cheatsheet-result">→ {{ monthName(weekHintMonth) }}</span>
+          <button v-if="weekHintMonth" class="iw__cheatsheet-apply" @click="newMonth = weekHintMonth">{{ $t('inspections.table.useMonth') }}</button>
+        </div>
+
         <div class="iw__table-wrap">
           <table class="iw__table">
             <thead>
@@ -157,78 +259,6 @@
           </table>
         </div>
 
-        <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
-             hierboven; staat een artikel er niet bij, vul de overige velden
-             aan en klik op Toevoegen. -->
-        <div class="iw__add">
-          <input v-model="newDescription" list="dl-articles" class="iw__input" :placeholder="$t('inspections.table.article')" />
-          <input v-model="newBrand" list="dl-brands" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.brand')" />
-          <input v-model="newCategory" list="dl-categories" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.category')" />
-          <input v-model="newSerial" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.serial')" />
-          <input v-model="newYear" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
-          <select v-model="newMonth" class="iw__select iw__select--xs">
-            <option :value="null">{{ $t('inspections.table.month') }}</option>
-            <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
-          </select>
-          <div class="iw__result-buttons">
-            <button
-              class="iw__result-btn iw__result-btn--pass"
-              :class="{ 'iw__result-btn--active': newResult === 'passed' }"
-              @click="newResult = newResult === 'passed' ? 'not_assessed' : 'passed'"
-            >✅</button>
-            <button
-              class="iw__result-btn iw__result-btn--fail"
-              :class="{ 'iw__result-btn--active': newResult === 'rejected' }"
-              @click="newResult = newResult === 'rejected' ? 'not_assessed' : 'rejected'"
-            >❌</button>
-          </div>
-          <select v-if="newResult === 'rejected'" v-model="newRejectionCodeId" class="iw__select iw__select--sm">
-            <option :value="null">{{ $t('inspections.noCode') }}</option>
-            <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
-          </select>
-          <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
-          <button
-            v-if="lastArticle"
-            class="iw__btn iw__btn--copy"
-            type="button"
-            :title="$t('inspections.table.copyLastTooltip')"
-            @click="copyLastArticle"
-          >{{ $t('inspections.table.copyLast') }}</button>
-        </div>
-
-        <!-- Spiekbriefje: productiedag (uit SN) of weeknummer naar maand. Past
-             niets automatisch toe — alleen op klik, om verwarring tussen
-             dag-van-jaar en datum te voorkomen. -->
-        <div class="iw__cheatsheet">
-          <span class="iw__cheatsheet-label" :title="$t('inspections.table.dayHelperTooltip')">{{ $t('inspections.table.dayHelper') }} ⓘ</span>
-          <input
-            v-model="dayHint"
-            type="number"
-            min="1"
-            max="366"
-            class="iw__input iw__input--xs iw__input--nospin"
-            :placeholder="$t('inspections.table.dayPlaceholder')"
-            :title="$t('inspections.table.dayHelperTooltip')"
-          />
-          <template v-if="dayHintMonth">
-            <span class="iw__cheatsheet-result">→ {{ monthName(dayHintMonth) }}</span>
-            <button class="iw__cheatsheet-apply" @click="newMonth = dayHintMonth">{{ $t('inspections.table.useMonth') }}</button>
-          </template>
-          <span class="iw__cheatsheet-sep">·</span>
-          <span class="iw__cheatsheet-label" :title="$t('inspections.table.weekHelperTooltip')">{{ $t('inspections.table.weekHelper') }} ⓘ</span>
-          <input
-            v-model="weekHint"
-            type="number"
-            min="1"
-            max="53"
-            class="iw__input iw__input--xs iw__input--nospin"
-            :placeholder="$t('inspections.table.weekPlaceholder')"
-            :title="$t('inspections.table.weekHelperTooltip')"
-          />
-          <span v-if="weekHintMonth" class="iw__cheatsheet-result">→ {{ monthName(weekHintMonth) }}</span>
-          <button v-if="weekHintMonth" class="iw__cheatsheet-apply" @click="newMonth = weekHintMonth">{{ $t('inspections.table.useMonth') }}</button>
-        </div>
-
         <p v-if="addError" class="iw__error">{{ addError }}</p>
 
         <p v-if="completeError" class="iw__error">{{ completeError }}</p>
@@ -334,6 +364,45 @@ const matchingArticleNames = computed(() => {
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
+}
+
+// Eigen suggestielijst (Optie A): in plaats van de native <datalist> die over
+// de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Elk veld
+// zoekt strikt in z'n eigen bron — Serienummer kijkt alleen naar de artikelen
+// die al in deze keuring staan, niet in de catalogus.
+const activeField = ref<null | 'article' | 'brand' | 'category' | 'serial'>(null)
+const existingSerials = computed(() => unique(items.value.map(i => i.article.serial_number)))
+
+function suggestFilter(list: string[], typed: string): string[] {
+  const q = typed.trim().toLowerCase()
+  const out = q ? list.filter(v => v.toLowerCase().includes(q)) : list
+  return out.slice(0, 30)
+}
+
+const fieldSuggestions = computed<string[]>(() => {
+  switch (activeField.value) {
+    case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+    case 'brand': return suggestFilter(allBrands.value, newBrand.value)
+    case 'category': return suggestFilter(allCategories.value, newCategory.value)
+    case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
+    default: return []
+  }
+})
+
+function pickSuggestion(val: string) {
+  switch (activeField.value) {
+    case 'article': newDescription.value = val; break
+    case 'brand': newBrand.value = val; break
+    case 'category': newCategory.value = val; break
+    case 'serial': newSerial.value = val; break
+  }
+  activeField.value = null
+}
+
+// Korte vertraging zodat een klik op een suggestie nog registreert voordat de
+// lijst door blur verdwijnt (mousedown.prevent vangt de meeste gevallen al af).
+function closeSuggest() {
+  setTimeout(() => { activeField.value = null }, 120)
 }
 
 // Toevoegrij
@@ -778,6 +847,20 @@ onMounted(load)
 .iw__body { padding: 1.25rem; }
 
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+
+/* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
+.iw__suggest {
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  margin: -0.35rem 0 0.85rem; padding: 0.3rem;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  max-height: 240px; overflow-y: auto;
+}
+.iw__suggest-item {
+  text-align: left; border: none; background: transparent; cursor: pointer;
+  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
+  color: #111827; font-family: inherit;
+}
+.iw__suggest-item:hover { background: #f3f4f6; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
