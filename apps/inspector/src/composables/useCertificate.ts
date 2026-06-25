@@ -1,7 +1,6 @@
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 import QRCode from 'qrcode'
 import { supabase } from '@gearonimo/core'
-import { getLegalReference, ProductType, CountryCode } from '@gearonimo/core'
 
 // Genereert het certificaat-PDF bij het afronden van een keuring
 // (DATAMODEL §certificates, bouwplan fase 2: "Certificaat-PDF server-side"
@@ -192,10 +191,7 @@ async function buildPdf(
     })
     const article = it.article
     if (article.serial_number) line(`SN ${article.serial_number}`, { size: 9, color: rgb(0.35, 0.35, 0.35), gap: 2 })
-    const legal = article.product?.product_type
-      ? getLegalReference(article.product.product_type as ProductType, inspection.company.country_code as CountryCode)
-      : ''
-    if (it.next_due) line(`Volgende keuring uiterlijk: ${formatDate(it.next_due)}${legal ? `  (${legal})` : ''}`, { size: 9, gap: 2 })
+    if (it.next_due) line(`Volgende keuring uiterlijk: ${formatDate(it.next_due)}`, { size: 9, gap: 2 })
     if (!passed) {
       if (it.rejection_code_label) line(`Afkeurcode: ${it.rejection_code_label}`, { size: 9, gap: 2 })
       if (it.comment) line(`Opmerking: ${it.comment}`, { size: 9, gap: 2 })
