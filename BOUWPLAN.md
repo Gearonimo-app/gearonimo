@@ -96,20 +96,30 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   afkeurcodes.
   **SN-zoeken / Recall-tegel af (2026-06-26):** de dode link op het
   hoofdmenu (`/serial-search`) is nu een echte pagina
-  (`apps/inspector/src/pages/SerialSearch.vue`). Zoekt op (een deel van) het
-  serienummer — Jos' primaire zoekgedrag op de laatste cijfers, UX-FLOW
-  §4.2 — aangevuld met merk/omschrijving/categorie (vrije artikelen) en de
-  fuzzy `search_products`-cataloguszoeker; resultaten linken door naar
-  `/articles/:id`. Per treffer tonen we klantnaam, SN en de
-  recall-/keuringsmelding-vlaggen + handleiding-link (catalogus:
-  `products.recall_url`/`inspection_notice_url`/`manual_url`; vrij artikel:
-  `free_recall_flag`/`free_recall_url`/`free_manual_url`) — het systeem
-  signaleert, de keurmeester beslist (UX-FLOW §1.6). Geen migratie nodig
-  (alleen leesquery's op bestaande kolommen). De zoekbalk bovenaan het
-  hoofdmenu wees naar een niet-bestaande `/search` en stuurt nu door naar
-  deze pagina. Nog geen multi-tenant scope op actieve `customer_links` —
-  bewust gelijk aan de rest van de app zolang RLS uit staat en er één
-  keurbedrijf is.
+  (`apps/inspector/src/pages/SerialSearch.vue`) met **twee modi** (schakelaar
+  bovenaan), gelijk aan de oude KlimKeur Pro-functie `js/snref.js`:
+  - **Serienummer zoeken** — op (een deel van) het serienummer, Jos' primaire
+    zoekgedrag op de laatste cijfers (UX-FLOW §4.2), aangevuld met
+    merk/omschrijving/categorie (vrije artikelen) en de fuzzy
+    `search_products`-cataloguszoeker; resultaten linken naar `/articles/:id`.
+    Per treffer: klantnaam, SN en de recall-/keuringsmelding-vlaggen +
+    handleiding-link (catalogus: `products.recall_url`/`inspection_notice_url`/
+    `manual_url`; vrij artikel: `free_recall_flag`/`free_recall_url`/
+    `free_manual_url`) — systeem signaleert, keurmeester beslist (UX-FLOW §1.6).
+  - **Recall zoeken** — de terugroepactie-zoeker uit de oude app: vind álle
+    artikelen in het klantenbestand die onder een recall vallen, op merk +
+    product + fabricagedatum-bereik (vóór jaar/maand, vanaf jaar), bv. "Petzl
+    Astro vóór oktober 2023". Resultatentabel (product, merk, SN, fabricage,
+    gebruiker, klant) met **CSV-export** en doorklik naar `/articles/:id`.
+    Bouwjaar-voorfilter server-side; merk/product/maand client-side (merk/naam
+    komt zowel uit `products` als uit `free_*`, niet in één query te filteren).
+  Geen migratie nodig (alleen leesquery's op bestaande kolommen). De zoekbalk
+  bovenaan het hoofdmenu wees naar een niet-bestaande `/search` en stuurt nu
+  door naar deze pagina (serienummer-modus). Nog geen multi-tenant scope op
+  actieve `customer_links` — bewust gelijk aan de rest van de app zolang RLS
+  uit staat en er één keurbedrijf is. Bewust niet (nog) overgenomen uit de
+  oude app: de keuringstatus-kolom in de recall-tabel (status is in Gearonimo
+  berekend i.p.v. opgeslagen) en de klikbare sorteerkoppen.
   Nog te bouwen: UI-opmaak/styling-pas, plus de overige tegels
   (keuringen-overzicht is een eerste opzet, instellingen).
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
