@@ -100,6 +100,7 @@
             v-for="(s, i) in fieldSuggestions"
             :key="s"
             type="button"
+            ref="suggestItemRefs"
             class="iw__suggest-item"
             :class="{ 'iw__suggest-item--active': i === suggestIndex }"
             @mousedown.prevent="pickSuggestion(s)"
@@ -277,7 +278,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
@@ -413,7 +414,12 @@ function closeSuggest() {
 
 // Met pijltjestoetsen door de suggestielijst lopen, Enter kiest, Escape sluit.
 const suggestIndex = ref(-1)
+const suggestItemRefs = ref<HTMLButtonElement[]>([])
 watch(fieldSuggestions, () => { suggestIndex.value = -1 })
+watch(suggestIndex, (i) => {
+  if (i < 0) return
+  nextTick(() => suggestItemRefs.value[i]?.scrollIntoView({ block: 'nearest' }))
+})
 
 function onSuggestKeydown(e: KeyboardEvent) {
   if (!activeField.value || !fieldSuggestions.value.length) return
