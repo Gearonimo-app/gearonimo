@@ -229,6 +229,53 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   suggestie + naar volgend veld); **wachtlijst-vinkje "naar catalogus"** nu ook
   in de keuring-wizard bij een vrij artikel; **home-knop (🏠)** in de kopbalk
   van keuring-wizard, klant-, artikel- en setdetail.
+  **Norm/MBS bij vrije artikelen (2026-06-26):** als een keurbedrijf de Norm-/
+  MBS-kolom heeft aangezet, verschijnen die invoervelden nu ook bij vrije
+  invoer (keuring-wizard + klantartikelformulier); opgeslagen in
+  `articles.free_norm`/`free_mbs` (migratie `20260701_articles_free_norm_mbs.sql`),
+  certificaat valt voor vrije artikelen op die velden terug. Zichtbaarheid via
+  `fetchFreeInputFields` (leest `cert_layout.columns`).
+
+  ### Volgende grote stap — Excel/CSV-import (onboarding-motor) {#next-excel-import}
+  **Besloten met Jos 2026-06-26.** De catalogus bevat al veel echte producten;
+  wat nog ontbreekt (en wat KlimKeur Pro wél had) is **import van bestaande
+  Excel-certificaten/keuringen** zodat een keurbedrijf met historie kan
+  overstappen zonder vanaf nul te beginnen. Dit is de algemene onboarding-tool
+  voor **nieuwe keurbedrijven** (BLAUWDRUK §9), los van de directe
+  DB-naar-DB-migratie van Safety Green's eigen oude Supabase (DATAMODEL §8).
+  **Kernprobleem:** elk keurbedrijf heeft een andere kolomindeling/taal/
+  datumnotatie. **Aanpak (de "truc"): een begeleide mapping-wizard in 3 lagen:**
+  1. **Auto-herkenning** — lees de kopregel en match kolommen tegen
+     Gearonimo-velden via een meertalig synoniemen-woordenboek + fuzzy matching
+     (merk/brand/fabrikant→brand, serienr/SN/serial→serial_number,
+     keurdatum/datum→inspection_date, goed-afgekeurd/OK-NOK→result, …).
+  2. **Controle + live preview** — per kolom een dropdown (auto-gok
+     voor-ingevuld), voorvertoning van de eerste ~10 rijen, en een
+     droogloop-validatie (ontbrekende verplichte velden, onleesbare datums,
+     dubbele serienummers) vóór commit.
+  3. **Opgeslagen import-profiel per bedrijf** (`import_profiles`: company_id +
+     mapping + bestandshandtekening) zodat een volgende import met dezelfde
+     lay-out één klik is. Dít maakt "elk bedrijf andere kolommen" schaalbaar.
+
+  **Ontwerpkeuzes voor de bouwsessie:**
+  - **Granulariteit detecteren/vragen:** één bestand = één keuring (kop +
+    artikelrijen) vs. platte lijst van meerdere keuringen.
+  - **Historische certificaten = juridisch anker:** her-render een oude keuring
+    NIET als nieuw PDF (bestond toen niet); bewaar het **originele bestand**
+    (PDF/Excel) in Storage als bewijs en vul de **data** in het systeem,
+    gemarkeerd `source='import'`/historisch (voor historie +
+    volgende-keuringberekening).
+  - **Dedup/idempotentie:** ontdubbelen op (klant + serienummer); keuze
+    overslaan/bijwerken/toch toevoegen.
+  - **Techniek:** client-side parsen met SheetJS (`xlsx`); `.xlsx` + `.csv`;
+    gevoelige data pas na mapping naar de DB.
+  - **Nieuwe tabellen (concept):** `import_profiles`, `import_batches`
+    (originele bestand-ref + telling), markering `source` op
+    articles/inspections.
+  > Status: ontworpen, nog te bouwen. Begin een nieuwe chat hiermee (zie de
+  > prompt die Jos bewaart). Catalogus-import van Safety Green-producten is
+  > minder urgent geworden (catalogus al goed gevuld).
+
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde
