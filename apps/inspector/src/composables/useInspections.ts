@@ -31,21 +31,31 @@ export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: bool
   return { norm: !!cols.norm, mbs: !!cols.mbs }
 }
 
-// Vindt een openstaand concept voor deze klant bij dit bedrijf, of maakt een
-// nieuwe keuring aan met alle actieve artikelen van de klant als (nog
-// onbeoordeelde) keuringsitems.
-export async function startOrResumeInspection(customerId: string): Promise<string> {
-  const inspector = await ensureInspector()
+export interface ActiveArticleOption { id: string; label: string }
 
-  const { data: existing, error: findErr } = await supabase
-    .from('inspections')
-    .select('id')
+// Lijst van actieve (niet-afgevoerde) artikelen van een klant, voor de
+// selectiedialoog bij het starten van een nieuwe keuring — de keurmeester
+// vinkt zelf aan welke artikelen erbij horen, in plaats van dat alles
+// automatisch wordt toegevoegd.
+export async function fetchActiveArticles(customerId: string): Promise<ActiveArticleOption[]> {
+  const { data, error } = await supabase
+    .from('articles')
+    .select('id, free_description, free_brand, serial_number, product:products(name, brand)')
     .eq('customer_id', customerId)
-    .eq('company_id', inspector.company_id)
-    .eq('status', 'draft')
-    .maybeSingle()
-  if (findErr) throw findErr
-  if (existing) return existing.id
+    .eq('retired', false)
+  if (error) throw error
+  return (data ?? []).map((a: any) => {
+    const brand = a.product?.brand ?? a.free_brand
+    const name = a.product?.name ?? a.free_description ?? 'Onbekend artikel'
+    const label = [brand, name].filter(Boolean).join(' — ')
+    return { id: a.id, label: a.serial_number ? `${label} (${a.serial_number})` : label }
+  })
+}
+
+// Maakt een nieuwe keuring (concept) aan met precies de gekozen artikelen als
+// (nog onbeoordeelde) keuringsitems — het resultaat van de selectiedialoog.
+export async function startInspectionWithArticles(customerId: string, articleIds: string[]): Promise<string> {
+  const inspector = await ensureInspector()
 
   const { data: inspection, error: insErr } = await supabase
     .from('inspections')
@@ -54,16 +64,11 @@ export async function startOrResumeInspection(customerId: string): Promise<strin
     .single()
   if (insErr) throw insErr
 
-  const { data: articles, error: artErr } = await supabase
-    .from('articles')
-    .select('*')
-    .eq('customer_id', customerId)
-    .eq('retired', false)
-  if (artErr) throw artErr
-
-  if (articles && articles.length) {
+  if (articleIds.length) {
+    const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
+    if (artErr) throw artErr
     const { error: itemsErr } = await supabase.from('inspection_items').insert(
-      articles.map((a) => ({
+      (articles ?? []).map((a) => ({
         inspection_id: inspection.id,
         article_id: a.id,
         article_snapshot: a,

@@ -97,6 +97,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
 
   const customerCache = new Map<string, string>() // naam (lower) -> id
   const inspectionCache = new Map<string, string>() // customerId|date -> inspection id
+  const draftInspectionCache = new Map<string, string>() // customerId -> concept-inspection id (rijen zonder datum)
   let imported = 0
   let skipped = 0
 
@@ -211,6 +212,49 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           result: normalizeResult(cellsForField(opts.mapping, 'result', row)),
           next_due: parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null),
           comment: cellsForField(opts.mapping, 'rejectionComment', row) || null,
+        })
+        if (itemErr) throw itemErr
+      } else {
+        // Geen datum bekend: artikel komt wel bij de klant te staan, maar er is
+        // geen echte keuring geweest. Toch zetten we 'm in een concept-keuring
+        // (status 'draft', geen certificaat) zodat hij vanzelf opduikt zodra de
+        // keurmeester via Klant → Nieuwe keuring deze klant oppakt — in plaats
+        // van pas zichtbaar te worden na een handmatige zoekactie.
+        let draftInspectionId = draftInspectionCache.get(customerId)
+        if (!draftInspectionId) {
+          const { data: existingDraft } = await supabase
+            .from('inspections')
+            .select('id')
+            .eq('customer_id', customerId)
+            .eq('company_id', inspector.company_id)
+            .eq('status', 'draft')
+            .maybeSingle()
+          if (existingDraft) {
+            draftInspectionId = existingDraft.id
+          } else {
+            const { data: createdDraft, error: draftErr } = await supabase
+              .from('inspections')
+              .insert({
+                customer_id: customerId,
+                company_id: inspector.company_id,
+                inspector_id: inspector.id,
+                status: 'draft',
+                source: 'import',
+                import_batch_id: batch.id,
+              })
+              .select('id')
+              .single()
+            if (draftErr) throw draftErr
+            draftInspectionId = createdDraft.id
+            result.inspectionsCreated++
+          }
+          draftInspectionCache.set(customerId, draftInspectionId)
+        }
+
+        const { error: itemErr } = await supabase.from('inspection_items').insert({
+          inspection_id: draftInspectionId,
+          article_id: articleId,
+          result: 'not_assessed',
         })
         if (itemErr) throw itemErr
       }

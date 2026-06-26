@@ -185,6 +185,13 @@
     "empty": "Nog geen afgeronde keuringen",
     "startButton": "▶ START KEURING",
     "resumeButton": "▶ HERVAT KEURING — concept van {date}",
+    "selectArticles": {
+      "title": "Welke artikelen horen bij deze keuring?",
+      "hint": "Standaard staan alle actieve artikelen van deze klant aangevinkt. Vink uit wat er niet bij hoort.",
+      "selectAll": "Alles selecteren",
+      "selectNone": "Niets selecteren",
+      "confirm": "Start keuring ({count})"
+    },
     "step": "Stap {n}/4",
     "filterPlaceholder": "Zoek op serienummer of omschrijving…",
     "filterAll": "Alles",

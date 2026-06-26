@@ -185,6 +185,13 @@
     "empty": "No completed inspections yet",
     "startButton": "▶ START INSPECTION",
     "resumeButton": "▶ RESUME INSPECTION — draft from {date}",
+    "selectArticles": {
+      "title": "Which articles belong to this inspection?",
+      "hint": "All active articles of this customer are checked by default. Uncheck anything that doesn't belong.",
+      "selectAll": "Select all",
+      "selectNone": "Select none",
+      "confirm": "Start inspection ({count})"
+    },
     "step": "Step {n}/4",
     "filterPlaceholder": "Search by serial number or description…",
     "filterAll": "All",

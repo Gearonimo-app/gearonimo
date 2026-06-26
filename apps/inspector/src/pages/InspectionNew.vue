@@ -28,6 +28,13 @@
         <span class="in__arrow">›</span>
       </li>
     </ul>
+
+    <ArticleSelectDialog
+      v-if="showArticleSelect"
+      :articles="selectableArticles"
+      @confirm="confirmArticleSelect"
+      @cancel="showArticleSelect = false"
+    />
   </div>
 </template>
 
@@ -35,7 +42,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@gearonimo/core'
-import { startOrResumeInspection } from '../composables/useInspections'
+import ArticleSelectDialog from '../components/ArticleSelectDialog.vue'
+import { findDraftInspection, fetchActiveArticles, startInspectionWithArticles, type ActiveArticleOption } from '../composables/useInspections'
 
 const router = useRouter()
 
@@ -47,6 +55,9 @@ const error = ref('')
 const query = ref('')
 const picking = ref(false)
 const pickError = ref('')
+const showArticleSelect = ref(false)
+const selectableArticles = ref<ActiveArticleOption[]>([])
+const pendingCustomerId = ref<string | null>(null)
 
 const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
@@ -62,12 +73,42 @@ async function load() {
   loading.value = false
 }
 
+// Bestaat er al een concept-keuring voor deze klant, dan hervatten we die
+// direct. Anders vraagt de keurmeester eerst zelf welke actieve artikelen
+// van deze klant in de nieuwe keuring moeten staan.
 async function pick(customerId: string) {
   if (picking.value) return
   picking.value = true
   pickError.value = ''
   try {
-    const inspectionId = await startOrResumeInspection(customerId)
+    const existingDraft = await findDraftInspection(customerId)
+    if (existingDraft) {
+      router.push(`/inspections/${existingDraft.id}`)
+      return
+    }
+    const articles = await fetchActiveArticles(customerId)
+    if (!articles.length) {
+      const inspectionId = await startInspectionWithArticles(customerId, [])
+      router.push(`/inspections/${inspectionId}`)
+      return
+    }
+    pendingCustomerId.value = customerId
+    selectableArticles.value = articles
+    showArticleSelect.value = true
+  } catch (e: any) {
+    pickError.value = e?.message ?? String(e)
+  } finally {
+    picking.value = false
+  }
+}
+
+async function confirmArticleSelect(articleIds: string[]) {
+  showArticleSelect.value = false
+  if (!pendingCustomerId.value) return
+  picking.value = true
+  pickError.value = ''
+  try {
+    const inspectionId = await startInspectionWithArticles(pendingCustomerId.value, articleIds)
     router.push(`/inspections/${inspectionId}`)
   } catch (e: any) {
     pickError.value = e?.message ?? String(e)

@@ -60,6 +60,13 @@
         </div>
       </div>
     </div>
+
+    <ArticleSelectDialog
+      v-if="showArticleSelect"
+      :articles="selectableArticles"
+      @confirm="confirmArticleSelect"
+      @cancel="showArticleSelect = false"
+    />
   </div>
 </template>
 
@@ -71,7 +78,8 @@ import { supabase } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
-import { findDraftInspection, startOrResumeInspection } from '../composables/useInspections'
+import ArticleSelectDialog from '../components/ArticleSelectDialog.vue'
+import { findDraftInspection, fetchActiveArticles, startInspectionWithArticles, type ActiveArticleOption } from '../composables/useInspections'
 
 const route = useRoute()
 const router = useRouter()
@@ -108,16 +116,45 @@ const form = ref<Record<string, string>>({})
 const draftInspection = ref<{ id: string; inspection_date: string } | null>(null)
 const startingInspection = ref(false)
 const startError = ref('')
+const showArticleSelect = ref(false)
+const selectableArticles = ref<ActiveArticleOption[]>([])
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
 }
 
+// Bestaat er al een concept-keuring, dan hervatten we die direct (de
+// artikelen staan er al in). Anders vraagt de keurmeester eerst zelf welke
+// van de actieve artikelen van deze klant erbij horen.
 async function onStartInspection() {
+  startError.value = ''
+  if (draftInspection.value) {
+    router.push(`/inspections/${draftInspection.value.id}`)
+    return
+  }
+  startingInspection.value = true
+  try {
+    const articles = await fetchActiveArticles(id)
+    if (!articles.length) {
+      const inspectionId = await startInspectionWithArticles(id, [])
+      router.push(`/inspections/${inspectionId}`)
+      return
+    }
+    selectableArticles.value = articles
+    showArticleSelect.value = true
+  } catch (e: any) {
+    startError.value = e?.message ?? String(e)
+  } finally {
+    startingInspection.value = false
+  }
+}
+
+async function confirmArticleSelect(articleIds: string[]) {
+  showArticleSelect.value = false
   startingInspection.value = true
   startError.value = ''
   try {
-    const inspectionId = await startOrResumeInspection(id)
+    const inspectionId = await startInspectionWithArticles(id, articleIds)
     router.push(`/inspections/${inspectionId}`)
   } catch (e: any) {
     startError.value = e?.message ?? String(e)
