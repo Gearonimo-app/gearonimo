@@ -210,6 +210,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   "g"-monogram in het midden van de verificatie-QR (QR nu op error-correctie
   `H` zodat dat de scanbaarheid niet breekt) + "geverifieerd met gearonimo".
   Een echt Gearonimo-logo-bestand kan later het monogram vervangen.
+  **Echt Gearonimo-logo + branded QR (2026-06-26):** Jos leverde het
+  Gearonimo-merk (karabijnhaak die een G vormt met een vinkje); het zit nu in
+  het midden van de verificatie-QR (branded QR, error-correctie H, scanbaarheid
+  geverifieerd met een echte decoder). QR-grootte gelijkgetrokken met de groene
+  "geverifieerd"-regel eronder, en bij bedrijf-links wordt het certificaatblok
+  netjes rechts uitgelijnd. Logo inline als base64 (`composables/gearonimoMark.ts`).
+  **Certificaat: configureerbare kolommen (2026-06-26):** de tabel is opgebouwd
+  uit losse kolommen; vast = Status/Merk/Artikel/Bouwjaar/Serienummer, optioneel
+  (aan/uit in de wizard) = Categorie/Norm/MBS/Gebruiker/Volgende keuring/
+  Afkeurcode-opmerking (zo kan "norm i.p.v. categorie" of "MBS erbij"). Een kolom
+  verschijnt alleen als hij aan staat én er data voor is. `cert_layout.columns`
+  (jsonb, geen migratie). Norm = `products.standard`, MBS =
+  `products.breaking_strength`.
+  **Keuring-flow-polish na live-test (2026-06-26):** recall-vlag bij vrij
+  artikel niet langer dubbel (alleen-lezen vlag enkel voor catalogus, vrije
+  artikelen alleen de toggle); **Tab = Enter** bij materiaal-invoer (bevestig
+  suggestie + naar volgend veld); **wachtlijst-vinkje "naar catalogus"** nu ook
+  in de keuring-wizard bij een vrij artikel; **home-knop (🏠)** in de kopbalk
+  van keuring-wizard, klant-, artikel- en setdetail.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde
