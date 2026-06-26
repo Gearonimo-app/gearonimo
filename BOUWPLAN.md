@@ -183,6 +183,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   `supabase/migrations/20260628_certificate_branding.sql`. Headless getest
   (staand/liggend/meerdere pagina's gerenderd en visueel gecontroleerd);
   live-test door Jos volgt. i18n nl+en onder `settings.certificate`.
+  **Instellingen onderdeel 3: keurmeesters + kwalificaties (2026-06-26):** de
+  laatste "Binnenkort" in de hub is af — Instellingen → Keurmeesters
+  (`components/InspectorsSettings.vue`). Lijst van keurmeesters van het bedrijf
+  (badges admin/geen-account/inactief), toevoegen/bewerken (naam, beheerder,
+  actief), en per keurmeester een **kwalificatielijst** (naam, nummer, geldig-
+  tot met verlopen/verloopt-binnenkort-markering) met **upload én bekijken van
+  kwalificatiebewijzen** (PDF/foto). Schemawijziging
+  `20260629_inspector_qualifications.sql`: `inspectors.user_id` nullable
+  gemaakt (een admin kan een keurmeester + certificaten vastleggen vóór die
+  zelf inlogt; account-koppeling later), `is_admin` toegevoegd, de
+  `inspector_qualifications`-tabel aangelegd, en een **private** Storage-bucket
+  `qualifications` (gevoelige documenten — niet publiek zoals logo/certificaat;
+  toegang via signed URLs). Harde delete van een keurmeester alleen voor
+  account-loze records; anders op inactief. Hiermee zijn alle drie de
+  onderdelen van de Instellingen-tegel af. Bewust nog buiten scope:
+  account-invite/koppeling voor keurmeesters, en kwalificaties tonen aan
+  klanten / op het certificaat. i18n nl+en onder `settings.inspectors`.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

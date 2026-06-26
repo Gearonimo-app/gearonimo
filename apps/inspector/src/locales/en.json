@@ -340,7 +340,44 @@
     },
     "inspectors": {
       "menuTitle": "Inspectors",
-      "menuDesc": "Manage inspectors and qualifications"
+      "menuDesc": "Manage inspectors and qualifications",
+      "title": "Inspectors",
+      "intro": "Manage your company's inspectors and their qualification certificates (competency, IPAF, manufacturer certificates). You can record an inspector before they have their own account.",
+      "add": "Inspector",
+      "empty": "No inspectors yet.",
+      "noName": "(no name)",
+      "adminBadge": "Admin",
+      "noAccountBadge": "No account",
+      "inactiveBadge": "Inactive",
+      "backToList": "Back to inspectors",
+      "noAccountNote": "This inspector has no login account yet. For now you only record their details and qualifications; linking an account can come later.",
+      "accountNote": "This inspector has their own login account. The account itself cannot be deleted here; set it to inactive instead.",
+      "qualifications": "Qualifications",
+      "addQual": "Qualification",
+      "noQuals": "No qualifications recorded yet.",
+      "qNumber": "Number",
+      "validUntil": "Valid until",
+      "expired": "expired",
+      "expiringSoon": "expiring soon",
+      "viewFile": "View file",
+      "deleteTitle": "Delete inspector?",
+      "deleteBody": "This removes the inspector and their qualifications. This cannot be undone. Inspections carried out by this inspector are kept.",
+      "fields": {
+        "name": "Name",
+        "admin": "Administrator (can manage inspectors/settings)",
+        "active": "Active"
+      },
+      "qFields": {
+        "name": "Qualification name",
+        "namePh": "e.g. Competency PSAgA (DGUV 312-906)",
+        "number": "Certificate / card number",
+        "validUntil": "Valid until",
+        "file": "File (PDF or photo)"
+      },
+      "errors": {
+        "nameRequired": "Name is required",
+        "qNameRequired": "Qualification name is required"
+      }
     }
   }
 }

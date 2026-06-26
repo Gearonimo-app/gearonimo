@@ -147,6 +147,24 @@ waarschuwt bij verlopen.
 | valid_until | date? | herinnering vóór verlopen |
 | storage_path | text? | PDF/foto in Supabase Storage |
 
+> **Implementatie onderdeel 3 (2026-06-26):** keurmeesters + kwalificaties zijn
+> nu te beheren via de Instellingen-tegel → Keurmeesters
+> (`apps/inspector/src/components/InspectorsSettings.vue`). Migratie
+> `20260629_inspector_qualifications.sql`:
+> - `inspectors.user_id` is **nullable** gemaakt — een admin kan een keurmeester
+>   + certificaten vastleggen vóórdat die persoon zelf inlogt; de koppeling aan
+>   een echt account (invite/claim) komt later. Unique blijft (meerdere NULLs
+>   toegestaan), dus `ensure_inspector()` blijft werken.
+> - `inspectors.is_admin` toegevoegd (keurbedrijf-admin); bestaande
+>   auto-geprovisioneerde keurmeester is op `true` gezet als er nog geen admin
+>   was.
+> - `inspector_qualifications`-tabel aangelegd (zoals hierboven) en een
+>   **private** Storage-bucket `qualifications` (gevoelige documenten — niet
+>   publiek; toegang via signed URLs). Harde delete van een keurmeester alleen
+>   voor account-loze records (de FK vanuit `inspections` beschermt de rest);
+>   anders op inactief zetten. Nog niet gebouwd: account-invite/koppeling, en
+>   het tonen van kwalificaties aan klanten / op het certificaat.
+
 ### `customers` (klantbedrijven én zelfstandige gebruikers)
 Eigenaar van artikelen en historie (besloten: de klant bezit de data).
 

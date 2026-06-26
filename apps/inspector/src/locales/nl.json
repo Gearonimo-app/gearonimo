@@ -340,7 +340,44 @@
     },
     "inspectors": {
       "menuTitle": "Keurmeesters",
-      "menuDesc": "Keurmeesters en kwalificaties beheren"
+      "menuDesc": "Keurmeesters en kwalificaties beheren",
+      "title": "Keurmeesters",
+      "intro": "Beheer de keurmeesters van je keurbedrijf en hun kwalificatiebewijzen (Sachkunde, IPAF, fabrikantencertificaten). Je kunt een keurmeester alvast vastleggen vóórdat die zelf een account heeft.",
+      "add": "Keurmeester",
+      "empty": "Nog geen keurmeesters.",
+      "noName": "(naamloos)",
+      "adminBadge": "Admin",
+      "noAccountBadge": "Geen account",
+      "inactiveBadge": "Inactief",
+      "backToList": "Terug naar keurmeesters",
+      "noAccountNote": "Deze keurmeester heeft nog geen eigen inlogaccount. Je legt nu alleen de gegevens en kwalificaties vast; koppelen aan een account kan later.",
+      "accountNote": "Deze keurmeester heeft een eigen inlogaccount. Het account zelf kun je hier niet verwijderen; zet eventueel op inactief.",
+      "qualifications": "Kwalificaties",
+      "addQual": "Kwalificatie",
+      "noQuals": "Nog geen kwalificaties vastgelegd.",
+      "qNumber": "Nummer",
+      "validUntil": "Geldig tot",
+      "expired": "verlopen",
+      "expiringSoon": "verloopt binnenkort",
+      "viewFile": "Bekijk bestand",
+      "deleteTitle": "Keurmeester verwijderen?",
+      "deleteBody": "Dit verwijdert de keurmeester en zijn kwalificaties. Dit kan niet ongedaan worden gemaakt. Keuringen die deze keurmeester heeft uitgevoerd blijven bestaan.",
+      "fields": {
+        "name": "Naam",
+        "admin": "Beheerder (mag keurmeesters/instellingen beheren)",
+        "active": "Actief"
+      },
+      "qFields": {
+        "name": "Naam kwalificatie",
+        "namePh": "bijv. Sachkunde PSAgA (DGUV 312-906)",
+        "number": "Certificaat-/pasnummer",
+        "validUntil": "Geldig tot",
+        "file": "Bestand (PDF of foto)"
+      },
+      "errors": {
+        "nameRequired": "Naam is verplicht",
+        "qNameRequired": "Naam van de kwalificatie is verplicht"
+      }
     }
   }
 }
