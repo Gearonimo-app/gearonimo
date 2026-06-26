@@ -46,6 +46,8 @@ export interface CommitOptions {
   file: File
   sheetName: string
   skipDuplicateSerials: boolean
+  /** Klantnaam voor het hele bestand, voor bestanden zonder klantkolom (bijv. één klant per import). Overschrijft een eventuele gekoppelde kolom. */
+  fixedCustomerName?: string
 }
 
 export interface CommitResult {
@@ -98,7 +100,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
 
   for (const row of opts.rows) {
     try {
-      const customerName = cellsForField(opts.mapping, 'customerName', row)
+      const customerName = opts.fixedCustomerName?.trim() || cellsForField(opts.mapping, 'customerName', row)
       const serial = cellsForField(opts.mapping, 'serialNumber', row)
       const description = cellsForField(opts.mapping, 'description', row)
       const inspectionDateRaw = cellsForField(opts.mapping, 'inspectionDate', row)

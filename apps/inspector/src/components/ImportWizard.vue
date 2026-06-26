@@ -41,6 +41,13 @@
     <section v-else-if="step === 3" class="imp__step">
       <h2>{{ $t('settings.import.step3Title') }}</h2>
       <p class="imp__hint">{{ $t('settings.import.step3Hint') }}</p>
+
+      <div class="imp__field">
+        <label>{{ $t('settings.import.fixedCustomerLabel') }}</label>
+        <input type="text" v-model="fixedCustomerName" :placeholder="$t('settings.import.fixedCustomerPlaceholder')" />
+        <p class="imp__hint">{{ $t('settings.import.fixedCustomerHint') }}</p>
+      </div>
+
       <div class="imp__mapgrid">
         <div v-for="(col, colIndex) in headerRow" :key="colIndex" class="imp__mapcol">
           <div class="imp__colhead">{{ col || $t('settings.import.unnamedColumn', { n: colIndex + 1 }) }}</div>
@@ -171,6 +178,7 @@ const headerRow = computed<RawRow>(() => allRows.value[headerRowIndex.value] ?? 
 const dataRows = computed<RawRow[]>(() => allRows.value.slice(headerRowIndex.value + 1))
 
 const mapping = ref<Record<number, FieldKey>>({})
+const fixedCustomerName = ref('')
 const skipDuplicateSerials = ref(true)
 const saveProfile = ref(true)
 const committing = ref(false)
@@ -201,7 +209,14 @@ const mappedFields = computed(() =>
     .map(([colIndex, field]) => ({ colIndex: Number(colIndex), field }))
 )
 
-const validation = computed(() => validateRows(mapping.value, dataRows.value))
+const validation = computed(() => {
+  const result = validateRows(mapping.value, dataRows.value)
+  if (fixedCustomerName.value.trim()) {
+    result.missingRequired = result.missingRequired.filter((f) => f !== 'customerName')
+    delete result.emptyRequiredCount.customerName
+  }
+  return result
+})
 
 const canAdvance = computed(() => {
   if (step.value === 1) return sheetNames.value.length > 0
@@ -268,6 +283,7 @@ async function runCommit() {
       file: file.value,
       sheetName: selectedSheet.value,
       skipDuplicateSerials: skipDuplicateSerials.value,
+      fixedCustomerName: fixedCustomerName.value,
     })
   } finally {
     committing.value = false
