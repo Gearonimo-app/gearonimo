@@ -1,6 +1,7 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
 import { supabase } from '@gearonimo/core'
+import { gearonimoMarkBytes } from './gearonimoMark'
 
 // Genereert het certificaat-PDF bij het afronden van een keuring
 // (DATAMODEL §certificates). Client-side gebouwd; de PDF wordt eenmalig
@@ -279,6 +280,14 @@ export async function renderCertificatePdf(
     }
   }
 
+  // Gearonimo-merk (platform), klein naast de verificatie-QR.
+  let gearMark: PDFImage | null = null
+  try {
+    gearMark = await doc.embedJpg(gearonimoMarkBytes())
+  } catch {
+    gearMark = null
+  }
+
   const margin = 50
   const tableSize = 9.5
   const rows = data.items.map(toRow)
@@ -468,17 +477,15 @@ export async function renderCertificatePdf(
 
   // Vastpinnen onderaan: teken vanaf de ondermarge omhoog.
   let fy = margin
-  // QR rechtsonder + verificatie-tekst, met Gearonimo-merk in het midden van de QR.
+  // QR rechtsonder + verificatie-tekst, met het Gearonimo-merk ernaast.
   const qrX = pageWidth - margin - qrSize
   page.drawImage(qrImage, { x: qrX, y: fy, width: qrSize, height: qrSize })
   const gearGreen = rgb(0.086, 0.639, 0.29) // #16a34a
-  const badge = qrSize * 0.3
-  const bcx = qrX + qrSize / 2
-  const bcy = fy + qrSize / 2
-  // Witte achtergrond (QR error-correctie 'H' verdraagt dit) + "g"-monogram.
-  page.drawRectangle({ x: bcx - badge / 2, y: bcy - badge / 2, width: badge, height: badge, color: rgb(1, 1, 1) })
-  const gW = bold.widthOfTextAtSize('g', 14)
-  page.drawText('g', { x: bcx - gW / 2, y: bcy - 5, size: 14, font: bold, color: gearGreen })
+  if (gearMark) {
+    const mh = 40
+    const mw = (gearMark.width / gearMark.height) * mh
+    page.drawImage(gearMark, { x: qrX - mw - 12, y: fy + (qrSize - mh) / 2, width: mw, height: mh })
+  }
   page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
   page.drawText('geverifieerd met gearonimo', { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
   // Handtekeningvlak links.
