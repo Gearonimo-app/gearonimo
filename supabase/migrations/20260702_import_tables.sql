@@ -61,6 +61,9 @@ create unique index if not exists import_profiles_company_signature_idx
 grant select, insert, update, delete on public.import_batches to authenticated;
 grant select, insert, update, delete on public.import_profiles to authenticated;
 
+alter table public.import_batches disable row level security;
+alter table public.import_profiles disable row level security;
+
 -- Privébucket: het originele bestand is bewijsmateriaal, geen publiek
 -- certificaat — geen publieke leestoegang nodig (in tegenstelling tot de
 -- 'certificates'-bucket).
