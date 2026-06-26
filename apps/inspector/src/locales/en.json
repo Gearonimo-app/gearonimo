@@ -439,7 +439,7 @@
       "sumArticlesCreated": "{count} new article(s) created",
       "sumArticlesSkipped": "{count} existing article reused (serial number already known)",
       "sumInspections": "{count} inspection(s) created",
-      "sumRowsSkipped": "{count} row(s) skipped (missing customer, description or date)",
+      "sumRowsSkipped": "{count} row(s) skipped (missing customer name or description)",
       "groups": {
         "ignore": "—",
         "customer": "Customer",

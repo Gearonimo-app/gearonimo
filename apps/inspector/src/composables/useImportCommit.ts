@@ -108,7 +108,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
       const inspectionDateRaw = cellsForField(opts.mapping, 'inspectionDate', row)
       const inspectionDate = opts.fixedInspectionDate?.trim() || parseToISODate(inspectionDateRaw)
 
-      if (!customerName || !description || !inspectionDate) {
+      if (!customerName || !description) {
         skipped++
         continue
       }
@@ -182,37 +182,39 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
         result.articlesCreated++
       }
 
-      const inspectionKey = `${customerId}|${inspectionDate}`
-      let inspectionId = inspectionCache.get(inspectionKey)
-      if (!inspectionId) {
-        const { data: createdInspection, error: inspErr } = await supabase
-          .from('inspections')
-          .insert({
-            customer_id: customerId,
-            company_id: inspector.company_id,
-            inspector_id: inspector.id,
-            inspection_date: inspectionDate,
-            status: 'completed',
-            completed_at: new Date().toISOString(),
-            source: 'import',
-            import_batch_id: batch.id,
-          })
-          .select('id')
-          .single()
-        if (inspErr) throw inspErr
-        inspectionId = createdInspection.id
-        inspectionCache.set(inspectionKey, inspectionId)
-        result.inspectionsCreated++
-      }
+      if (inspectionDate) {
+        const inspectionKey = `${customerId}|${inspectionDate}`
+        let inspectionId = inspectionCache.get(inspectionKey)
+        if (!inspectionId) {
+          const { data: createdInspection, error: inspErr } = await supabase
+            .from('inspections')
+            .insert({
+              customer_id: customerId,
+              company_id: inspector.company_id,
+              inspector_id: inspector.id,
+              inspection_date: inspectionDate,
+              status: 'completed',
+              completed_at: new Date().toISOString(),
+              source: 'import',
+              import_batch_id: batch.id,
+            })
+            .select('id')
+            .single()
+          if (inspErr) throw inspErr
+          inspectionId = createdInspection.id
+          inspectionCache.set(inspectionKey, inspectionId)
+          result.inspectionsCreated++
+        }
 
-      const { error: itemErr } = await supabase.from('inspection_items').insert({
-        inspection_id: inspectionId,
-        article_id: articleId,
-        result: normalizeResult(cellsForField(opts.mapping, 'result', row)),
-        next_due: parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null),
-        comment: cellsForField(opts.mapping, 'rejectionComment', row) || null,
-      })
-      if (itemErr) throw itemErr
+        const { error: itemErr } = await supabase.from('inspection_items').insert({
+          inspection_id: inspectionId,
+          article_id: articleId,
+          result: normalizeResult(cellsForField(opts.mapping, 'result', row)),
+          next_due: parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null),
+          comment: cellsForField(opts.mapping, 'rejectionComment', row) || null,
+        })
+        if (itemErr) throw itemErr
+      }
 
       imported++
     } catch (err) {
