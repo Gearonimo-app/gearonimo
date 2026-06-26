@@ -449,6 +449,8 @@
         "customerCity": "City",
         "brand": "Brand",
         "description": "Description",
+        "category": "Category",
+        "material": "Material",
         "serialNumber": "Serial number",
         "manufactureYear": "Manufacture year",
         "firstUseDate": "First use",

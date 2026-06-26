@@ -449,6 +449,8 @@
         "customerCity": "Plaats",
         "brand": "Merk",
         "description": "Omschrijving",
+        "category": "Categorie",
+        "material": "Materiaal",
         "serialNumber": "Serienummer",
         "manufactureYear": "Bouwjaar",
         "firstUseDate": "Eerste gebruik",

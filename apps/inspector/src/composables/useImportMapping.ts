@@ -11,6 +11,8 @@ export type FieldKey =
   | 'customerCity'
   | 'brand'
   | 'description'
+  | 'category'
+  | 'material'
   | 'serialNumber'
   | 'manufactureYear'
   | 'firstUseDate'
@@ -36,6 +38,8 @@ export const FIELD_DEFS: FieldDef[] = [
   { key: 'customerCity', group: 'customer', hints: ['plaats', 'stad', 'city', 'woonplaats'] },
   { key: 'brand', group: 'article', hints: ['merk', 'brand', 'fabrikant', 'manufacturer'] },
   { key: 'description', group: 'article', required: true, hints: ['omschrijving', 'artikel', 'product', 'description', 'type'] },
+  { key: 'category', group: 'article', hints: ['categorie', 'category', 'soort'] },
+  { key: 'material', group: 'article', hints: ['materiaal', 'material'] },
   { key: 'serialNumber', group: 'article', required: true, hints: ['serienr', 'serienummer', 'sn', 'serial'] },
   { key: 'manufactureYear', group: 'article', hints: ['bouwjaar', 'fabricagejaar', 'manufacture', 'year'] },
   { key: 'firstUseDate', group: 'article', hints: ['ingebruik', 'eerste gebruik', 'first use'] },
