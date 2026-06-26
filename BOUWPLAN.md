@@ -200,6 +200,16 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   onderdelen van de Instellingen-tegel af. Bewust nog buiten scope:
   account-invite/koppeling voor keurmeesters, en kwalificaties tonen aan
   klanten / op het certificaat. i18n nl+en onder `settings.inspectors`.
+  **Certificaat-kop verfijnd + extra velden (2026-06-26, na live-test Jos):**
+  bedrijfs- én certificaatgegevens staan nu als twee kolommen bovenaan en
+  flankeren een gecentreerd logo (i.p.v. eronder). Extra sliders: logo
+  verticaal (`logoOffsetY`) en gegevens verticaal (`headerOffsetY`). Nieuwe
+  optionele bedrijfsvelden `province`/`registration_number`/`vat_number`
+  (migratie `20260630_company_address_extra.sql`), alleen getoond als ingevuld
+  (provincie bv. voor Canada). Gearonimo-merk op het certificaat: een groen
+  "g"-monogram in het midden van de verificatie-QR (QR nu op error-correctie
+  `H` zodat dat de scanbaarheid niet breekt) + "geverifieerd met gearonimo".
+  Een echt Gearonimo-logo-bestand kan later het monogram vervangen.
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

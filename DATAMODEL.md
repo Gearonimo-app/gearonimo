@@ -107,16 +107,19 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > niet aangeleverd), en de echte kop-/voettekst (kwalificatie-/
 > aansprakelijkheidstekst resp. leveringsvoorwaarden/KvK-inschrijving) — zie
 > `supabase/migrations/20260625_company_details_and_rejection_codes.sql`.
-> `brand_color`/`registration_number`/`allowed_norms`/
-> `allowed_product_types`/`billing_status`/`stripe_customer_id` zijn nog niet
-> aangelegd.
+> `brand_color`/`allowed_norms`/`allowed_product_types`/`billing_status`/
+> `stripe_customer_id` zijn nog niet aangelegd. **`province` +
+> `registration_number` (KvK) + `vat_number` (BTW) toegevoegd (2026-06-26,
+> migratie `20260630_company_address_extra.sql`)** — optioneel, alleen getoond
+> op het certificaat als ze ingevuld zijn (provincie bv. relevant voor Canada).
 >
 > **Certificaat-opmaak per keurbedrijf (2026-06-25):** kolommen `logo_path`
 > (pad in de publieke Storage-bucket `branding`) en `cert_layout` (jsonb) zijn
 > toegevoegd (migratie `20260628_certificate_branding.sql`). `cert_layout`
 > bevat de opmaakinstellingen die de PDF-generator leest: `orientation`
 > (`auto`/`portrait`/`landscape`), `logoScale`, `logoAlign`, `logoOffsetX`,
-> `companyInfo` (gegevens links/rechts), `showAddress`, `showContact`,
+> `logoOffsetY`, `headerOffsetY` (gegevens verticaal nudgen), `companyInfo`
+> (gegevens links/rechts), `showAddress`, `showContact`, `showRegistration`,
 > `accent` (hex). Leeg = `DEFAULT_CERT_LAYOUT` in
 > `apps/inspector/src/composables/useCertificate.ts`. Te beheren via de
 > Instellingen-tegel → Certificaat-template (live preview). De velden zijn een

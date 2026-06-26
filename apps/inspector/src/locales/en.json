@@ -333,10 +333,17 @@
         "email": "Email",
         "phone": "Phone",
         "header": "Header / introduction",
-        "footer": "Footer"
+        "footer": "Footer",
+        "province": "Province / state",
+        "provincePh": "optional (e.g. for Canada)",
+        "kvk": "Registration number",
+        "vat": "VAT number"
       },
       "defaultHeader": "Inspections are carried out by trained personnel. The inspection is a visual check of the points listed below for the equipment presented. No rights can be derived from this inspection for any future date; it is a snapshot on the stated inspection date.",
-      "defaultFooter": "This certificate is a snapshot on the stated inspection date and is not a guarantee up to any future date."
+      "defaultFooter": "This certificate is a snapshot on the stated inspection date and is not a guarantee up to any future date.",
+      "logoNudgeY": "Logo vertical (down)",
+      "headerNudgeY": "Details vertical (down)",
+      "showRegistration": "Show reg./VAT (if filled)"
     },
     "inspectors": {
       "menuTitle": "Inspectors",

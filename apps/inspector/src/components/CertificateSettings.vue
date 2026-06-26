@@ -20,11 +20,19 @@
             <label class="cs__field cs__field--grow"><span>{{ $t('settings.certificate.fields.city') }}</span>
               <input v-model="form.city" class="cs__input" /></label>
           </div>
+          <label class="cs__field"><span>{{ $t('settings.certificate.fields.province') }}</span>
+            <input v-model="form.province" class="cs__input" :placeholder="$t('settings.certificate.fields.provincePh')" /></label>
           <div class="cs__row">
             <label class="cs__field cs__field--grow"><span>{{ $t('settings.certificate.fields.email') }}</span>
               <input v-model="form.email" class="cs__input" /></label>
             <label class="cs__field"><span>{{ $t('settings.certificate.fields.phone') }}</span>
               <input v-model="form.phone" class="cs__input" /></label>
+          </div>
+          <div class="cs__row">
+            <label class="cs__field cs__field--grow"><span>{{ $t('settings.certificate.fields.kvk') }}</span>
+              <input v-model="form.registration_number" class="cs__input" /></label>
+            <label class="cs__field cs__field--grow"><span>{{ $t('settings.certificate.fields.vat') }}</span>
+              <input v-model="form.vat_number" class="cs__input" /></label>
           </div>
 
           <h3>{{ $t('settings.certificate.logo') }}</h3>
@@ -67,6 +75,9 @@
           <label class="cs__field"><span>{{ $t('settings.certificate.logoNudge') }} ({{ layout.logoOffsetX }})</span>
             <input v-model.number="layout.logoOffsetX" type="range" min="-120" max="120" step="2" class="cs__range" /></label>
 
+          <label class="cs__field"><span>{{ $t('settings.certificate.logoNudgeY') }} ({{ layout.logoOffsetY }})</span>
+            <input v-model.number="layout.logoOffsetY" type="range" min="0" max="160" step="2" class="cs__range" /></label>
+
           <label class="cs__field"><span>{{ $t('settings.certificate.companyPos') }}</span>
             <select v-model="layout.companyInfo" class="cs__input">
               <option value="left">{{ $t('settings.certificate.alignLeft') }}</option>
@@ -74,8 +85,12 @@
             </select>
           </label>
 
+          <label class="cs__field"><span>{{ $t('settings.certificate.headerNudgeY') }} ({{ layout.headerOffsetY }})</span>
+            <input v-model.number="layout.headerOffsetY" type="range" min="0" max="200" step="2" class="cs__range" /></label>
+
           <label class="cs__check"><input type="checkbox" v-model="layout.showAddress" /> {{ $t('settings.certificate.showAddress') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.showContact" /> {{ $t('settings.certificate.showContact') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.showRegistration" /> {{ $t('settings.certificate.showRegistration') }}</label>
 
           <label class="cs__field cs__field--color"><span>{{ $t('settings.certificate.accent') }}</span>
             <input v-model="layout.accent" type="color" class="cs__color" /></label>
@@ -146,8 +161,11 @@ const form = reactive({
   address: '',
   postal_code: '',
   city: '',
+  province: '',
   email: '',
   phone: '',
+  registration_number: '',
+  vat_number: '',
   cert_header: '',
   cert_footer: '',
 })
@@ -172,7 +190,7 @@ async function load() {
     companyId.value = inspector.company_id
     const { data, error: err } = await supabase
       .from('inspection_companies')
-      .select('name, address, postal_code, city, email, phone, cert_header, cert_footer, logo_path, cert_layout')
+      .select('name, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout')
       .eq('id', inspector.company_id)
       .single()
     if (err) throw err
@@ -180,8 +198,11 @@ async function load() {
     form.address = data.address ?? ''
     form.postal_code = data.postal_code ?? ''
     form.city = data.city ?? ''
+    form.province = data.province ?? ''
     form.email = data.email ?? ''
     form.phone = data.phone ?? ''
+    form.registration_number = data.registration_number ?? ''
+    form.vat_number = data.vat_number ?? ''
     form.cert_header = data.cert_header ?? ''
     form.cert_footer = data.cert_footer ?? ''
     Object.assign(layout, resolveLayout(data.cert_layout))
@@ -227,8 +248,11 @@ function sampleData(): CertData {
       address: form.address || null,
       postal_code: form.postal_code || null,
       city: form.city || null,
+      province: form.province || null,
       email: form.email || null,
       phone: form.phone || null,
+      registration_number: form.registration_number || null,
+      vat_number: form.vat_number || null,
       cert_header: form.cert_header || null,
       cert_footer: form.cert_footer || null,
     },
@@ -293,8 +317,11 @@ async function save() {
         address: form.address.trim() || null,
         postal_code: form.postal_code.trim() || null,
         city: form.city.trim() || null,
+        province: form.province.trim() || null,
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
+        registration_number: form.registration_number.trim() || null,
+        vat_number: form.vat_number.trim() || null,
         cert_header: form.cert_header.trim() || null,
         cert_footer: form.cert_footer.trim() || null,
         cert_layout: { ...layout },

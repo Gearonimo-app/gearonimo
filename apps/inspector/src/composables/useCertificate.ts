@@ -19,9 +19,12 @@ export interface CertLayout {
   logoScale: number // 0.3–2.5, t.o.v. een basislogo-hoogte (~46pt)
   logoAlign: 'left' | 'center' | 'right'
   logoOffsetX: number // pt nudge naar links (–) / rechts (+)
+  logoOffsetY: number // pt nudge: logo naar beneden (0 = bovenaan)
+  headerOffsetY: number // pt nudge: bedrijfs-/certificaatgegevens naar beneden (0 = bovenaan)
   companyInfo: 'left' | 'right' // bedrijfsgegevens links of rechts in de kop
   showAddress: boolean
   showContact: boolean
+  showRegistration: boolean // KvK/BTW tonen als ze ingevuld zijn
   accent: string // hex, kleur van titels en tabelkop
 }
 
@@ -30,9 +33,12 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   logoScale: 1,
   logoAlign: 'left',
   logoOffsetX: 0,
+  logoOffsetY: 0,
+  headerOffsetY: 0,
   companyInfo: 'left',
   showAddress: true,
   showContact: true,
+  showRegistration: true,
   accent: '#1a3a2a',
 }
 
@@ -53,8 +59,11 @@ export interface CertCompany {
   address: string | null
   postal_code: string | null
   city: string | null
+  province: string | null
   email: string | null
   phone: string | null
+  registration_number: string | null
+  vat_number: string | null
   cert_header: string | null
   cert_footer: string | null
 }
@@ -255,7 +264,9 @@ export async function renderCertificatePdf(
   const grey = rgb(0.42, 0.42, 0.42)
   const lineGrey = rgb(0.85, 0.85, 0.85)
 
-  const qrDataUrl = await QRCode.toDataURL(data.verifyUrl, { margin: 0, width: 200 })
+  // Error-correctie 'H' zodat een (later) Gearonimo-logo in het midden van de
+  // QR de scanbaarheid niet breekt.
+  const qrDataUrl = await QRCode.toDataURL(data.verifyUrl, { margin: 0, width: 200, errorCorrectionLevel: 'H' })
   const qrImage = await doc.embedPng(qrDataUrl)
 
   let logo: PDFImage | null = null
@@ -314,22 +325,26 @@ export async function renderCertificatePdf(
       else if (layout.logoAlign === 'right') x = pageWidth - margin - dims.width
       x += layout.logoOffsetX
       x = Math.max(margin, Math.min(x, pageWidth - margin - dims.width))
-      page.drawImage(logo, { x, y: topY - dims.height, width: dims.width, height: dims.height })
-      logoBottom = topY - dims.height
+      const logoTop = topY - Math.max(0, layout.logoOffsetY) // omlaag nudgen
+      page.drawImage(logo, { x, y: logoTop - dims.height, width: dims.width, height: dims.height })
+      logoBottom = logoTop - dims.height
     }
 
     // Twee blokken naast elkaar bovenaan: bedrijfsgegevens aan de gekozen kant
-    // (companyInfo), certificaatgegevens aan de andere kant — zo staan ze allebei
-    // boven aan de pagina (wens Jos 2026-06-26).
-    const startY = logoBottom - (logo ? 14 : 0)
+    // (companyInfo), certificaatgegevens aan de andere kant. Beide starten
+    // standaard bovenaan de pagina (flankeren een gecentreerd logo) en zijn
+    // verticaal te nudgen via headerOffsetY (wens Jos 2026-06-26).
+    const startY = topY - Math.max(0, layout.headerOffsetY)
     const c = data.company
 
     // Bedrijfsgegevens-regels.
     const companyLines: { text: string; size: number; font: PDFFont; color: Color }[] = []
     companyLines.push({ text: c.name, size: 15, font: bold, color: accent })
-    if (layout.showAddress && (c.address || c.postal_code || c.city)) {
+    if (layout.showAddress && (c.address || c.postal_code || c.city || c.province)) {
       companyLines.push({
-        text: [c.address, [c.postal_code, c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '),
+        text: [c.address, [[c.postal_code, c.city].filter(Boolean).join(' '), c.province].filter(Boolean).join(', ')]
+          .filter(Boolean)
+          .join(', '),
         size: 9,
         font,
         color: grey,
@@ -337,6 +352,16 @@ export async function renderCertificatePdf(
     }
     if (layout.showContact && (c.email || c.phone)) {
       companyLines.push({ text: [c.email, c.phone].filter(Boolean).join('  ·  '), size: 9, font, color: grey })
+    }
+    if (layout.showRegistration && (c.registration_number || c.vat_number)) {
+      companyLines.push({
+        text: [c.registration_number ? `KvK ${c.registration_number}` : null, c.vat_number ? `BTW ${c.vat_number}` : null]
+          .filter(Boolean)
+          .join('  ·  '),
+        size: 9,
+        font,
+        color: grey,
+      })
     }
 
     const half = (contentWidth - 24) / 2
@@ -370,7 +395,8 @@ export async function renderCertificatePdf(
       certY -= 10 + 3
     }
 
-    let cy = Math.min(compY, certY) - 10
+    // Onder de laagste van de drie koptekst-elementen (logo + beide kolommen).
+    let cy = Math.min(compY, certY, logoBottom) - 12
 
     // Intro-/koptekst (juridische standaardtekst van het keurbedrijf), volle breedte.
     if (c.cert_header) {
@@ -442,15 +468,19 @@ export async function renderCertificatePdf(
 
   // Vastpinnen onderaan: teken vanaf de ondermarge omhoog.
   let fy = margin
-  // QR rechtsonder + verificatie-tekst.
-  page.drawImage(qrImage, { x: pageWidth - margin - qrSize, y: fy, width: qrSize, height: qrSize })
-  page.drawText('Scan om te verifiëren', {
-    x: pageWidth - margin - qrSize,
-    y: fy - 10,
-    size: 7,
-    font,
-    color: grey,
-  })
+  // QR rechtsonder + verificatie-tekst, met Gearonimo-merk in het midden van de QR.
+  const qrX = pageWidth - margin - qrSize
+  page.drawImage(qrImage, { x: qrX, y: fy, width: qrSize, height: qrSize })
+  const gearGreen = rgb(0.086, 0.639, 0.29) // #16a34a
+  const badge = qrSize * 0.3
+  const bcx = qrX + qrSize / 2
+  const bcy = fy + qrSize / 2
+  // Witte achtergrond (QR error-correctie 'H' verdraagt dit) + "g"-monogram.
+  page.drawRectangle({ x: bcx - badge / 2, y: bcy - badge / 2, width: badge, height: badge, color: rgb(1, 1, 1) })
+  const gW = bold.widthOfTextAtSize('g', 14)
+  page.drawText('g', { x: bcx - gW / 2, y: bcy - 5, size: 14, font: bold, color: gearGreen })
+  page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
+  page.drawText('geverifieerd met gearonimo', { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
   // Handtekeningvlak links.
   page.drawText(`Keurmeester: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
   page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + 200, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
@@ -501,7 +531,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, email, phone, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name)'
     )
     .eq('id', inspectionId)
     .single()

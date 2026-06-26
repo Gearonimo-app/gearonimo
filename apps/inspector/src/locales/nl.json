@@ -333,10 +333,17 @@
         "email": "E-mail",
         "phone": "Telefoon",
         "header": "Koptekst / inleiding",
-        "footer": "Voettekst"
+        "footer": "Voettekst",
+        "province": "Provincie / staat",
+        "provincePh": "optioneel (bijv. voor Canada)",
+        "kvk": "KvK-nummer",
+        "vat": "BTW-nummer"
       },
       "defaultHeader": "Keuringen worden uitgevoerd door daarvoor opgeleide medewerkers. De uitgevoerde keuring betreft een visuele controle van de hieronder vermelde punten van de aangeboden materialen. Aan deze keuring kunnen geen rechten worden ontleend voor een datum in de toekomst; het betreft een momentopname op de genoemde keuringsdatum.",
-      "defaultFooter": "Dit certificaat is een momentopname op de genoemde keuringsdatum en geen garantie tot een toekomstige datum."
+      "defaultFooter": "Dit certificaat is een momentopname op de genoemde keuringsdatum en geen garantie tot een toekomstige datum.",
+      "logoNudgeY": "Logo verticaal (omlaag)",
+      "headerNudgeY": "Gegevens verticaal (omlaag)",
+      "showRegistration": "KvK/BTW tonen (indien ingevuld)"
     },
     "inspectors": {
       "menuTitle": "Keurmeesters",
