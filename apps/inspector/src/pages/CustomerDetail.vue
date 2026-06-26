@@ -61,24 +61,23 @@
       </div>
     </div>
 
-    <ArticleSelectDialog
+    <ArticleScopeDialog
       v-if="showArticleSelect"
-      :articles="selectableArticles"
       :title="$t('inspections.selectArticles.title')"
       :hint="$t('inspections.selectArticles.hint')"
-      :confirm-label="(n) => $t('inspections.selectArticles.confirm', { count: n })"
-      @confirm="confirmArticleSelect"
+      :all-count="articleScope.allIds.length"
+      :new-count="articleScope.newIds.length"
+      @choose="confirmArticleSelect"
       @cancel="showArticleSelect = false"
     />
 
-    <ArticleSelectDialog
+    <ArticleScopeDialog
       v-if="showAddExtra"
-      :articles="selectableArticles"
-      :default-checked="false"
       :title="$t('inspections.selectArticles.addTitle')"
       :hint="$t('inspections.selectArticles.addHint')"
-      :confirm-label="(n) => $t('inspections.selectArticles.addConfirm', { count: n })"
-      @confirm="confirmAddExtra"
+      :all-count="articleScope.allIds.length"
+      :new-count="articleScope.newIds.length"
+      @choose="confirmAddExtra"
       @cancel="cancelAddExtra"
     />
   </div>
@@ -92,14 +91,14 @@ import { supabase } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
-import ArticleSelectDialog from '../components/ArticleSelectDialog.vue'
+import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
 import {
   findDraftInspection,
-  fetchActiveArticles,
+  fetchArticleScope,
   fetchInspectionArticleIds,
   addArticlesToInspection,
   startInspectionWithArticles,
-  type ActiveArticleOption,
+  type ArticleScope,
 } from '../composables/useInspections'
 
 const route = useRoute()
@@ -139,7 +138,7 @@ const startingInspection = ref(false)
 const startError = ref('')
 const showArticleSelect = ref(false)
 const showAddExtra = ref(false)
-const selectableArticles = ref<ActiveArticleOption[]>([])
+const articleScope = ref<ArticleScope>({ allIds: [], newIds: [] })
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
@@ -155,14 +154,13 @@ async function onStartInspection() {
     startingInspection.value = true
     try {
       const draftId = draftInspection.value.id
-      const [articles, existingIds] = await Promise.all([fetchActiveArticles(id), fetchInspectionArticleIds(draftId)])
-      const existing = new Set(existingIds)
-      const extra = articles.filter((a) => !existing.has(a.id))
-      if (!extra.length) {
+      const existingIds = await fetchInspectionArticleIds(draftId)
+      const scope = await fetchArticleScope(id, existingIds)
+      if (!scope.allIds.length) {
         router.push(`/inspections/${draftId}`)
         return
       }
-      selectableArticles.value = extra
+      articleScope.value = scope
       showAddExtra.value = true
     } catch (e: any) {
       startError.value = e?.message ?? String(e)
@@ -173,13 +171,13 @@ async function onStartInspection() {
   }
   startingInspection.value = true
   try {
-    const articles = await fetchActiveArticles(id)
-    if (!articles.length) {
+    const scope = await fetchArticleScope(id)
+    if (!scope.allIds.length) {
       const inspectionId = await startInspectionWithArticles(id, [])
       router.push(`/inspections/${inspectionId}`)
       return
     }
-    selectableArticles.value = articles
+    articleScope.value = scope
     showArticleSelect.value = true
   } catch (e: any) {
     startError.value = e?.message ?? String(e)
@@ -188,11 +186,12 @@ async function onStartInspection() {
   }
 }
 
-async function confirmArticleSelect(articleIds: string[]) {
+async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
   showArticleSelect.value = false
   startingInspection.value = true
   startError.value = ''
   try {
+    const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
     const inspectionId = await startInspectionWithArticles(id, articleIds)
     router.push(`/inspections/${inspectionId}`)
   } catch (e: any) {
@@ -202,10 +201,11 @@ async function confirmArticleSelect(articleIds: string[]) {
   }
 }
 
-async function confirmAddExtra(articleIds: string[]) {
+async function confirmAddExtra(scopeChoice: 'all' | 'new') {
   showAddExtra.value = false
   if (!draftInspection.value) return
   const draftId = draftInspection.value.id
+  const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
   startingInspection.value = true
   startError.value = ''
   try {

@@ -31,25 +31,32 @@ export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: bool
   return { norm: !!cols.norm, mbs: !!cols.mbs }
 }
 
-export interface ActiveArticleOption { id: string; label: string }
+export interface ArticleScope { allIds: string[]; newIds: string[] }
 
-// Lijst van actieve (niet-afgevoerde) artikelen van een klant, voor de
-// selectiedialoog bij het starten van een nieuwe keuring — de keurmeester
-// vinkt zelf aan welke artikelen erbij horen, in plaats van dat alles
-// automatisch wordt toegevoegd.
-export async function fetchActiveArticles(customerId: string): Promise<ActiveArticleOption[]> {
+// Bij grote sets (tientallen artikelen) is per-artikel aanvinken onwerkbaar.
+// In plaats daarvan biedt de keurmeester een binaire keuze: alles van de
+// klant erbij, of alleen de artikelen die nog nooit in een keuring hebben
+// gezeten (bijv. net geüpload n.a.v. een oud certificaat, of straks
+// zelf door de klant toegevoegd). "Nieuw" = geen enkele inspection_items-rij
+// ooit, dus onafhankelijk van wanneer het artikel is aangemaakt.
+export async function fetchArticleScope(customerId: string, excludeArticleIds: string[] = []): Promise<ArticleScope> {
+  const exclude = new Set(excludeArticleIds)
   const { data, error } = await supabase
     .from('articles')
-    .select('id, free_description, free_brand, serial_number, product:products(name, brand)')
+    .select('id')
     .eq('customer_id', customerId)
     .eq('retired', false)
   if (error) throw error
-  return (data ?? []).map((a: any) => {
-    const brand = a.product?.brand ?? a.free_brand
-    const name = a.product?.name ?? a.free_description ?? 'Onbekend artikel'
-    const label = [brand, name].filter(Boolean).join(' — ')
-    return { id: a.id, label: a.serial_number ? `${label} (${a.serial_number})` : label }
-  })
+  const allIds = (data ?? []).map((a) => a.id).filter((id) => !exclude.has(id))
+  if (!allIds.length) return { allIds: [], newIds: [] }
+  const { data: inspected, error: insErr } = await supabase
+    .from('inspection_items')
+    .select('article_id')
+    .in('article_id', allIds)
+  if (insErr) throw insErr
+  const inspectedSet = new Set((inspected ?? []).map((r) => r.article_id))
+  const newIds = allIds.filter((id) => !inspectedSet.has(id))
+  return { allIds, newIds }
 }
 
 // Welke artikelen staan al in deze (concept-)keuring, om bij het hervatten te
