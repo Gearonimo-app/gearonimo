@@ -17,6 +17,20 @@ export async function ensureInspector(): Promise<Inspector> {
   return cached
 }
 
+// Welke optionele velden een keurbedrijf bij vrije invoer wil kunnen invullen,
+// afgeleid van de aangezette certificaat-kolommen (cert_layout.columns). Nu
+// alleen Norm/MBS; leeg/onbekend = uit (gelijk aan DEFAULT_CERT_LAYOUT).
+export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: boolean }> {
+  const inspector = await ensureInspector()
+  const { data } = await supabase
+    .from('inspection_companies')
+    .select('cert_layout')
+    .eq('id', inspector.company_id)
+    .single()
+  const cols = ((data?.cert_layout as { columns?: Record<string, boolean> } | null)?.columns) ?? {}
+  return { norm: !!cols.norm, mbs: !!cols.mbs }
+}
+
 // Vindt een openstaand concept voor deze klant bij dit bedrijf, of maakt een
 // nieuwe keuring aan met alle actieve artikelen van de klant als (nog
 // onbeoordeelde) keuringsitems.

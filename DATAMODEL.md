@@ -124,7 +124,11 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > tabelkolommen: `category`/`norm`/`mbs`/`user`/`next`/`note`; de vaste
 > kolommen status/merk/artikel/bouwjaar/serienummer staan altijd aan). Een
 > kolom verschijnt alleen als hij aan staat én er data voor is; `norm` =
-> `products.standard`, `mbs` = `products.breaking_strength`. Leeg =
+> `products.standard`, `mbs` = `products.breaking_strength` (catalogus), of
+> `articles.free_norm`/`free_mbs` (vrij artikel — migratie
+> `20260701_articles_free_norm_mbs.sql`). Die vrije-invoervelden verschijnen in
+> de keuring-wizard en het klantartikelformulier **alleen** als het keurbedrijf
+> de betreffende kolom heeft aangezet (`fetchFreeInputFields`). Leeg =
 > `DEFAULT_CERT_LAYOUT` in
 > `apps/inspector/src/composables/useCertificate.ts`. Te beheren via de
 > Instellingen-tegel → Certificaat-template (live preview). De velden zijn een

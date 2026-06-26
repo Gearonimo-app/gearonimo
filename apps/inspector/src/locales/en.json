@@ -256,7 +256,9 @@
       "toggleRecall": "Recall flag (free article)",
       "recallUrlPrompt": "Recall link (leave empty if none):",
       "manualUrlPrompt": "Manual link:",
-      "suggestForCatalog": "Suggest for product database"
+      "suggestForCatalog": "Suggest for product database",
+      "norm": "Standard (e.g. EN 361)",
+      "mbs": "MBS / breaking strength"
     }
   },
   "verify": {

@@ -97,12 +97,18 @@
           >{{ $t('inspections.table.copyLast') }}</button>
         </div>
 
-        <!-- Vrij artikel (geen catalogusmatch): aanbieden voor de
-             catalogus-wachtlijst zodat de curator het kan toevoegen. -->
-        <label v-if="willBeFreeArticle" class="iw__waitlist">
-          <input type="checkbox" v-model="newSuggestForCatalog" />
-          {{ $t('inspections.table.suggestForCatalog') }}
-        </label>
+        <!-- Vrij artikel (geen catalogusmatch): extra velden die het keurbedrijf
+             heeft aangezet (Norm/MBS) + aanbieden voor de catalogus-wachtlijst. -->
+        <div v-if="willBeFreeArticle" class="iw__free-extras">
+          <input v-if="freeFields.norm" v-model="newNorm" class="iw__input iw__input--sm"
+                 :placeholder="$t('inspections.table.norm')" />
+          <input v-if="freeFields.mbs" v-model="newMbs" class="iw__input iw__input--sm"
+                 :placeholder="$t('inspections.table.mbs')" />
+          <label class="iw__waitlist">
+            <input type="checkbox" v-model="newSuggestForCatalog" />
+            {{ $t('inspections.table.suggestForCatalog') }}
+          </label>
+        </div>
 
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
              de tabel naar beneden i.p.v. eroverheen te vallen. Elk veld zoekt
@@ -296,7 +302,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
-import { fetchRejectionCodes, findPreviousResult } from '../composables/useInspections'
+import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 
 const route = useRoute()
@@ -491,6 +497,10 @@ const newMonth = ref<number | null>(null)
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
 const newSuggestForCatalog = ref(false)
+const newNorm = ref('')
+const newMbs = ref('')
+// Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
+const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
 // Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
 // het naar de catalogus-wachtlijst voor de curator.
@@ -749,6 +759,7 @@ async function load() {
   items.value = (rowsData ?? []) as unknown as Item[]
 
   rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
+  freeFields.value = await fetchFreeInputFields()
 
   const prevEntries = await Promise.all(
     items.value.map(async (it) => [it.article_id, await findPreviousResult(it.article_id, id)] as const)
@@ -791,6 +802,8 @@ async function addRow() {
         free_brand: product ? null : (newBrand.value.trim() || null),
         free_category: product ? null : (newCategory.value.trim() || null),
         free_description: product ? null : (newDescription.value.trim() || null),
+        free_norm: product ? null : (newNorm.value.trim() || null),
+        free_mbs: product ? null : (newMbs.value.trim() || null),
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
@@ -836,6 +849,8 @@ async function addRow() {
     newResult.value = 'not_assessed'
     newRejectionCodeId.value = null
     newSuggestForCatalog.value = false
+    newNorm.value = ''
+    newMbs.value = ''
     dayHint.value = null
     weekHint.value = null
   } catch (e: any) {
@@ -930,10 +945,11 @@ onMounted(load)
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
+.iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
 .iw__waitlist {
   display: flex; align-items: center; gap: 0.5rem;
   font-size: 0.85rem; color: #92400e; background: #fffbeb;
-  border: 1px solid #fde68a; border-radius: 8px; padding: 0.4rem 0.7rem; margin: 0.5rem 0 0;
+  border: 1px solid #fde68a; border-radius: 8px; padding: 0.4rem 0.7rem; margin: 0;
 }
 .iw__suggest {
   background: #fff; border: 1px solid #ddd; border-radius: 8px;

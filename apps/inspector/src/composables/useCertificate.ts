@@ -598,7 +598,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, free_category, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
+      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -615,8 +615,8 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       manufacture_year: a?.manufacture_year ?? null,
       manufacture_month: a?.manufacture_month ?? null,
       category: (p ? p.category : a?.free_category) ?? null,
-      norm: p?.standard ?? null,
-      mbs: p?.breaking_strength ?? null,
+      norm: (p ? p.standard : a?.free_norm) ?? null,
+      mbs: (p ? p.breaking_strength : a?.free_mbs) ?? null,
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,

@@ -256,7 +256,9 @@
       "toggleRecall": "Recall-vlag (vrij artikel)",
       "recallUrlPrompt": "Recall-link (leeg laten indien geen):",
       "manualUrlPrompt": "Handleiding-link:",
-      "suggestForCatalog": "Toevoegen aan productendatabase"
+      "suggestForCatalog": "Toevoegen aan productendatabase",
+      "norm": "Norm (bijv. EN 361)",
+      "mbs": "MBS / breeksterkte"
     }
   },
   "verify": {

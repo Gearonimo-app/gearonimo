@@ -73,6 +73,8 @@
         <button class="ca__link" @click="toCatalog">{{ $t('articles.backToCatalog') }}</button>
         <input v-model="form.free_brand"       :placeholder="$t('articles.fields.brand')"       class="ca__input" />
         <input v-model="form.free_description"  :placeholder="$t('articles.fields.description')" class="ca__input" />
+        <input v-if="freeFields.norm" v-model="form.free_norm" :placeholder="$t('inspections.table.norm')" class="ca__input" />
+        <input v-if="freeFields.mbs"  v-model="form.free_mbs"  :placeholder="$t('inspections.table.mbs')"  class="ca__input" />
         <label class="ca__checkbox">
           <input type="checkbox" v-model="form.suggest_for_catalog" />
           {{ $t('articles.suggestForCatalog') }}
@@ -106,6 +108,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
+import { fetchFreeInputFields } from '../composables/useInspections'
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
@@ -143,11 +146,14 @@ let brandTimeout: ReturnType<typeof setTimeout> | undefined
 
 function emptyForm() {
   return {
-    free_brand: '', free_description: '', free_manual_url: '', suggest_for_catalog: false,
+    free_brand: '', free_description: '', free_norm: '', free_mbs: '', free_manual_url: '', suggest_for_catalog: false,
     serial_number: '', assigned_user_name: '', first_use_date: '', set_label: '', notes: '',
   }
 }
 const form = ref(emptyForm())
+
+// Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
+const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
 
 function articleLabel(a: Article) {
   const s = a.product
@@ -254,6 +260,8 @@ async function save() {
     product_id: selectedProduct.value?.id ?? null,
     free_brand: selectedProduct.value ? null : (form.value.free_brand.trim() || null),
     free_description: selectedProduct.value ? null : (form.value.free_description.trim() || null),
+    free_norm: selectedProduct.value ? null : (form.value.free_norm.trim() || null),
+    free_mbs: selectedProduct.value ? null : (form.value.free_mbs.trim() || null),
     free_manual_url: selectedProduct.value ? null : (form.value.free_manual_url.trim() || null),
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
@@ -269,7 +277,10 @@ async function save() {
   await load()
 }
 
-onMounted(load)
+onMounted(async () => {
+  fetchFreeInputFields().then((f) => { freeFields.value = f })
+  await load()
+})
 </script>
 
 <style scoped>
