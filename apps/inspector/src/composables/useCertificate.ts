@@ -373,25 +373,25 @@ export async function renderCertificatePdf(
       })
     }
 
-    const half = (contentWidth - 24) / 2
     const rightEdge = pageWidth - margin
-    const rightColX = margin + half + 24
     const companyOnRight = layout.companyInfo === 'right'
-    // Certificaatblok staat aan de tegenoverliggende kant, altijd links uitgelijnd.
-    const certX = companyOnRight ? margin : rightColX
+    // Beide blokken hugmen hun eigen buitenkant: het blok rechts wordt rechts
+    // uitgelijnd tegen de rechtermarge, het blok links tegen de linkermarge.
+    const certOnRight = !companyOnRight
+    const lineX = (w: number, onRight: boolean) => (onRight ? rightEdge - w : margin)
 
-    // Bedrijfsgegevens tekenen (hugt zijn kant: rechts = tegen de rechtermarge).
+    // Bedrijfsgegevens tekenen.
     let compY = startY
     for (const l of companyLines) {
       const w = l.font.widthOfTextAtSize(l.text, l.size)
-      const x = companyOnRight ? rightEdge - w : margin
-      page.drawText(l.text, { x, y: compY - l.size, size: l.size, font: l.font, color: l.color })
+      page.drawText(l.text, { x: lineX(w, companyOnRight), y: compY - l.size, size: l.size, font: l.font, color: l.color })
       compY -= l.size + 4
     }
 
-    // Certificaatgegevens tekenen.
+    // Certificaatgegevens tekenen (rechts uitgelijnd als ze aan de rechterkant staan).
     let certY = startY
-    page.drawText('Keuringscertificaat', { x: certX, y: certY - 13, size: 13, font: bold, color: accent })
+    const titleW = bold.widthOfTextAtSize('Keuringscertificaat', 13)
+    page.drawText('Keuringscertificaat', { x: lineX(titleW, certOnRight), y: certY - 13, size: 13, font: bold, color: accent })
     certY -= 13 + 8
     const meta = [
       `Certificaatnummer: ${data.number}`,
@@ -400,7 +400,8 @@ export async function renderCertificatePdf(
       `Keurmeester: ${data.inspectorName || '—'}`,
     ]
     for (const m of meta) {
-      page.drawText(m, { x: certX, y: certY - 10, size: 10, font, color: rgb(0, 0, 0) })
+      const w = font.widthOfTextAtSize(m, 10)
+      page.drawText(m, { x: lineX(w, certOnRight), y: certY - 10, size: 10, font, color: rgb(0, 0, 0) })
       certY -= 10 + 3
     }
 
@@ -469,7 +470,11 @@ export async function renderCertificatePdf(
   // ---- Voetblok (bij elkaar gehouden, onderaan de laatste pagina vastgepind) ----
   const footerText = data.company.cert_footer || ''
   const footerLines = footerText ? wrapText(footerText, font, 8, contentWidth) : []
-  const qrSize = 64
+  // QR-grootte = breedte van de groene "geverifieerd"-regel, zodat QR en tekst
+  // eronder netjes uitlijnen (wens Jos 2026-06-26). Begrensd voor een redelijk
+  // formaat.
+  const verifyCaption = 'geverifieerd met gearonimo'
+  const qrSize = Math.max(82, Math.min(118, Math.round(bold.widthOfTextAtSize(verifyCaption, 6.5))))
   const sigBlockHeight = 30 + footerLines.length * 11 + qrSize + 18
   if (y - sigBlockHeight < margin) {
     newPage()
@@ -494,7 +499,7 @@ export async function renderCertificatePdf(
     page.drawImage(gearMark, { x: bcx - mw / 2, y: bcy - mh / 2, width: mw, height: mh })
   }
   page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
-  page.drawText('geverifieerd met gearonimo', { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
+  page.drawText(verifyCaption, { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
   // Handtekeningvlak links.
   page.drawText(`Keurmeester: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
   page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + 200, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
