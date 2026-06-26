@@ -253,6 +253,8 @@
       "useMonth": "Gebruik",
       "copyLast": "⧉ Kopieer vorige",
       "copyLastTooltip": "Vult alle velden van het laatst toegevoegde artikel opnieuw in (zonder serienummer) — handig bij meerdere identieke exemplaren.",
+      "matchTooltip": "Koppelen aan een artikel uit de catalogus — merk, categorie en levensduurgegevens worden dan automatisch ingevuld.",
+      "matchPlaceholder": "Typ om te zoeken…",
       "addManualUrl": "Handleiding-link toevoegen",
       "manualUrlPrompt": "Handleiding-link:",
       "suggestForCatalog": "Toevoegen aan productendatabase",

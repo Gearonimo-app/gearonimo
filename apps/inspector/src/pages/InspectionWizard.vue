@@ -192,7 +192,37 @@
                   </td>
                   <td class="iw__category">{{ row.category || '—' }}</td>
                   <td>{{ row.brand || '—' }}</td>
-                  <td>{{ row.label }}</td>
+                  <td class="iw__match-cell">
+                    <template v-if="matchingRowId === row.it.id">
+                      <input
+                        v-model="matchSearch"
+                        class="iw__cell-input"
+                        :placeholder="$t('inspections.table.matchPlaceholder')"
+                        autofocus
+                        @blur="closeSuggest"
+                        @keydown="onSuggestKeydown"
+                      />
+                      <div v-if="activeField === 'rowMatch' && fieldSuggestions.length" class="iw__suggest iw__suggest--row">
+                        <button
+                          v-for="(s, i) in fieldSuggestions"
+                          :key="s"
+                          type="button"
+                          class="iw__suggest-item"
+                          :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+                          @mousedown.prevent="pickSuggestion(s)"
+                          @mouseenter="suggestIndex = i"
+                        >{{ s }}</button>
+                      </div>
+                    </template>
+                    <button
+                      v-else-if="!row.it.article.product"
+                      type="button"
+                      class="iw__match-btn"
+                      :title="$t('inspections.table.matchTooltip')"
+                      @click="startMatch(row.it)"
+                    >{{ row.label }}</button>
+                    <span v-else>{{ row.label }}</span>
+                  </td>
                   <td>
                     <input
                       v-model="row.it.article.serial_number"
@@ -393,7 +423,7 @@ function unique(arr: (string | null)[]): string[] {
 // de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Elk veld
 // zoekt strikt in z'n eigen bron — Serienummer kijkt alleen naar de artikelen
 // die al in deze keuring staan, niet in de catalogus.
-const activeField = ref<null | 'article' | 'brand' | 'category' | 'serial'>(null)
+const activeField = ref<null | 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'>(null)
 const existingSerials = computed(() => unique(items.value.map(i => i.article.serial_number)))
 
 function suggestFilter(list: string[], typed: string): string[] {
@@ -408,6 +438,7 @@ const fieldSuggestions = computed<string[]>(() => {
     case 'brand': return suggestFilter(allBrands.value, newBrand.value)
     case 'category': return suggestFilter(allCategories.value, newCategory.value)
     case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
+    case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
     default: return []
   }
 })
@@ -422,8 +453,49 @@ function setFieldValue(field: string | null, val: string) {
 }
 
 function pickSuggestion(val: string) {
+  if (activeField.value === 'rowMatch' && matchingRowId.value) {
+    const it = items.value.find((i) => i.id === matchingRowId.value)
+    if (it) applyRowMatch(it, val)
+    return
+  }
   setFieldValue(activeField.value, val)
   activeField.value = null
+}
+
+// "Match aan bestaand artikel": een vrij (import-)artikel alsnog koppelen aan
+// een catalogusproduct, zonder dat het automatisch gokt. De keurmeester klikt
+// op de naam, krijgt dezelfde zoeklijst als bij het toevoegen van een nieuw
+// artikel, en kiest er zelf één uit — pas dan vullen merk/categorie/etc. zich.
+const matchingRowId = ref<string | null>(null)
+const matchSearch = ref('')
+
+function startMatch(it: Item) {
+  matchingRowId.value = it.id
+  matchSearch.value = ''
+  activeField.value = 'rowMatch'
+}
+
+async function applyRowMatch(it: Item, name: string) {
+  const p = products.value.find((p) => (p.name ?? '').toLowerCase() === name.trim().toLowerCase())
+  matchingRowId.value = null
+  activeField.value = null
+  if (!p) return
+  const { error: err } = await supabase
+    .from('articles')
+    .update({
+      product_id: p.id,
+      free_brand: null,
+      free_category: null,
+      free_description: null,
+      free_norm: null,
+      free_mbs: null,
+    })
+    .eq('id', it.article.id)
+  if (err) { addError.value = err.message; return }
+  it.article.product = p
+  it.article.free_brand = null
+  it.article.free_category = null
+  it.article.free_description = null
 }
 
 // Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
@@ -444,7 +516,7 @@ function focusNextField(cur: string | null) {
 // Korte vertraging zodat een klik op een suggestie nog registreert voordat de
 // lijst door blur verdwijnt (mousedown.prevent vangt de meeste gevallen al af).
 function closeSuggest() {
-  setTimeout(() => { activeField.value = null }, 120)
+  setTimeout(() => { activeField.value = null; matchingRowId.value = null }, 120)
 }
 
 // Met pijltjestoetsen door de suggestielijst lopen, Enter kiest, Escape sluit.
@@ -473,7 +545,12 @@ function onSuggestKeydown(e: KeyboardEvent) {
     // door naar het volgende veld. Tab regelt de focuswissel zelf; bij Enter
     // sturen we de focus expliciet (en voorkomen we form-submit).
     if (suggestIndex.value >= 0 && sugg.length) {
-      setFieldValue(cur, sugg[suggestIndex.value])
+      if (cur === 'rowMatch' && matchingRowId.value) {
+        const it = items.value.find((i) => i.id === matchingRowId.value)
+        if (it) applyRowMatch(it, sugg[suggestIndex.value])
+      } else {
+        setFieldValue(cur, sugg[suggestIndex.value])
+      }
     }
     activeField.value = null
     if (e.key === 'Enter') {
@@ -950,6 +1027,17 @@ onMounted(load)
 }
 .iw__suggest-item:hover { background: #f3f4f6; }
 .iw__suggest-item--active { background: #e0e7ff; }
+.iw__match-cell { position: relative; }
+.iw__suggest--row {
+  position: absolute; top: 100%; left: 0; z-index: 5; min-width: 16rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.iw__match-btn {
+  border: none; background: transparent; cursor: pointer; padding: 0;
+  font-family: inherit; font-size: inherit; color: inherit; text-align: left;
+  text-decoration: underline dotted; text-decoration-color: #9ca3af;
+}
+.iw__match-btn:hover { color: #16a34a; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;

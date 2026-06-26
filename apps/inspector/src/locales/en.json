@@ -253,6 +253,8 @@
       "useMonth": "Use",
       "copyLast": "⧉ Copy previous",
       "copyLastTooltip": "Fills in all fields from the last added article again (without serial number) — handy for multiple identical items.",
+      "matchTooltip": "Match to a catalog article — brand, category and lifespan data will be filled in automatically.",
+      "matchPlaceholder": "Type to search…",
       "addManualUrl": "Add manual link",
       "manualUrlPrompt": "Manual link:",
       "suggestForCatalog": "Suggest for product database",
