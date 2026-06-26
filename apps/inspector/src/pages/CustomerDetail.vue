@@ -64,8 +64,22 @@
     <ArticleSelectDialog
       v-if="showArticleSelect"
       :articles="selectableArticles"
+      :title="$t('inspections.selectArticles.title')"
+      :hint="$t('inspections.selectArticles.hint')"
+      :confirm-label="(n) => $t('inspections.selectArticles.confirm', { count: n })"
       @confirm="confirmArticleSelect"
       @cancel="showArticleSelect = false"
+    />
+
+    <ArticleSelectDialog
+      v-if="showAddExtra"
+      :articles="selectableArticles"
+      :default-checked="false"
+      :title="$t('inspections.selectArticles.addTitle')"
+      :hint="$t('inspections.selectArticles.addHint')"
+      :confirm-label="(n) => $t('inspections.selectArticles.addConfirm', { count: n })"
+      @confirm="confirmAddExtra"
+      @cancel="cancelAddExtra"
     />
   </div>
 </template>
@@ -79,7 +93,14 @@ import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
 import ArticleSelectDialog from '../components/ArticleSelectDialog.vue'
-import { findDraftInspection, fetchActiveArticles, startInspectionWithArticles, type ActiveArticleOption } from '../composables/useInspections'
+import {
+  findDraftInspection,
+  fetchActiveArticles,
+  fetchInspectionArticleIds,
+  addArticlesToInspection,
+  startInspectionWithArticles,
+  type ActiveArticleOption,
+} from '../composables/useInspections'
 
 const route = useRoute()
 const router = useRouter()
@@ -117,19 +138,37 @@ const draftInspection = ref<{ id: string; inspection_date: string } | null>(null
 const startingInspection = ref(false)
 const startError = ref('')
 const showArticleSelect = ref(false)
+const showAddExtra = ref(false)
 const selectableArticles = ref<ActiveArticleOption[]>([])
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
 }
 
-// Bestaat er al een concept-keuring, dan hervatten we die direct (de
-// artikelen staan er al in). Anders vraagt de keurmeester eerst zelf welke
-// van de actieve artikelen van deze klant erbij horen.
+// Bestaat er al een concept-keuring, dan bieden we eerst aan om er nog andere
+// (nog niet meegenomen) actieve artikelen van de klant bij te halen — staat
+// er niets nieuws, dan hervatten we direct. Bestaat er nog geen concept, dan
+// vraagt de keurmeester eerst zelf welke actieve artikelen erbij horen.
 async function onStartInspection() {
   startError.value = ''
   if (draftInspection.value) {
-    router.push(`/inspections/${draftInspection.value.id}`)
+    startingInspection.value = true
+    try {
+      const draftId = draftInspection.value.id
+      const [articles, existingIds] = await Promise.all([fetchActiveArticles(id), fetchInspectionArticleIds(draftId)])
+      const existing = new Set(existingIds)
+      const extra = articles.filter((a) => !existing.has(a.id))
+      if (!extra.length) {
+        router.push(`/inspections/${draftId}`)
+        return
+      }
+      selectableArticles.value = extra
+      showAddExtra.value = true
+    } catch (e: any) {
+      startError.value = e?.message ?? String(e)
+    } finally {
+      startingInspection.value = false
+    }
     return
   }
   startingInspection.value = true
@@ -161,6 +200,27 @@ async function confirmArticleSelect(articleIds: string[]) {
   } finally {
     startingInspection.value = false
   }
+}
+
+async function confirmAddExtra(articleIds: string[]) {
+  showAddExtra.value = false
+  if (!draftInspection.value) return
+  const draftId = draftInspection.value.id
+  startingInspection.value = true
+  startError.value = ''
+  try {
+    await addArticlesToInspection(draftId, articleIds)
+    router.push(`/inspections/${draftId}`)
+  } catch (e: any) {
+    startError.value = e?.message ?? String(e)
+  } finally {
+    startingInspection.value = false
+  }
+}
+
+function cancelAddExtra() {
+  showAddExtra.value = false
+  if (draftInspection.value) router.push(`/inspections/${draftInspection.value.id}`)
 }
 
 // Labels delen de placeholders uit het toevoegformulier; strip de " *" voor weergave.

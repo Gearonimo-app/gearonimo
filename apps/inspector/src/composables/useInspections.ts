@@ -52,6 +52,32 @@ export async function fetchActiveArticles(customerId: string): Promise<ActiveArt
   })
 }
 
+// Welke artikelen staan al in deze (concept-)keuring, om bij het hervatten te
+// kunnen tonen wat er nog extra van de klant bij gehaald kan worden.
+export async function fetchInspectionArticleIds(inspectionId: string): Promise<string[]> {
+  const { data, error } = await supabase.from('inspection_items').select('article_id').eq('inspection_id', inspectionId)
+  if (error) throw error
+  return (data ?? []).map((r) => r.article_id)
+}
+
+// Voegt artikelen toe aan een al bestaande keuring (bijv. een open concept
+// dat oorspronkelijk niet alle artikelen van de klant had) als nog
+// onbeoordeelde items.
+export async function addArticlesToInspection(inspectionId: string, articleIds: string[]): Promise<void> {
+  if (!articleIds.length) return
+  const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
+  if (artErr) throw artErr
+  const { error: itemsErr } = await supabase.from('inspection_items').insert(
+    (articles ?? []).map((a) => ({
+      inspection_id: inspectionId,
+      article_id: a.id,
+      article_snapshot: a,
+      result: 'not_assessed',
+    }))
+  )
+  if (itemsErr) throw itemsErr
+}
+
 // Maakt een nieuwe keuring (concept) aan met precies de gekozen artikelen als
 // (nog onbeoordeelde) keuringsitems — het resultaat van de selectiedialoog.
 export async function startInspectionWithArticles(customerId: string, articleIds: string[]): Promise<string> {

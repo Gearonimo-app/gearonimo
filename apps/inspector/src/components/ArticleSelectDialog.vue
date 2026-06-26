@@ -1,8 +1,8 @@
 <template>
   <div class="asd__overlay" @click.self="$emit('cancel')">
     <div class="asd__dialog">
-      <h2>{{ $t('inspections.selectArticles.title') }}</h2>
-      <p class="asd__hint">{{ $t('inspections.selectArticles.hint') }}</p>
+      <h2>{{ title }}</h2>
+      <p class="asd__hint">{{ hint }}</p>
       <div class="asd__toolbar">
         <button type="button" class="asd__link" @click="selected = new Set(articles.map(a => a.id))">{{ $t('inspections.selectArticles.selectAll') }}</button>
         <button type="button" class="asd__link" @click="selected = new Set()">{{ $t('inspections.selectArticles.selectNone') }}</button>
@@ -18,7 +18,7 @@
       <div class="asd__actions">
         <button class="asd__btn asd__btn--cancel" @click="$emit('cancel')">{{ $t('common.cancel') }}</button>
         <button class="asd__btn asd__btn--save" @click="$emit('confirm', Array.from(selected))">
-          {{ $t('inspections.selectArticles.confirm', { count: selected.size }) }}
+          {{ confirmLabel(selected.size) }}
         </button>
       </div>
     </div>
@@ -28,13 +28,23 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const props = defineProps<{ articles: { id: string; label: string }[] }>()
+const props = withDefaults(
+  defineProps<{
+    articles: { id: string; label: string }[]
+    title: string
+    hint: string
+    confirmLabel: (count: number) => string
+    defaultChecked?: boolean
+  }>(),
+  { defaultChecked: true }
+)
 defineEmits<{ confirm: [string[]]; cancel: [] }>()
 
-// Standaard staan alle artikelen van de klant aangevinkt — de keurmeester
-// vinkt zelf uit wat niet meegaat, in plaats van dat alles automatisch
-// (zonder keuze) wordt toegevoegd.
-const selected = ref(new Set(props.articles.map((a) => a.id)))
+// Bij het starten van een nieuwe keuring staat standaard alles aangevinkt
+// (uitvinken wat niet meegaat); bij het aanbieden van extra artikelen voor
+// een al openstaande keuring staat standaard niets aangevinkt (de
+// keurmeester koos eerder al bewust om ze niet mee te nemen).
+const selected = ref(new Set(props.defaultChecked ? props.articles.map((a) => a.id) : []))
 
 function toggle(id: string) {
   if (selected.value.has(id)) selected.value.delete(id)

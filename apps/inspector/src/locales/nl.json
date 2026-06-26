@@ -190,7 +190,10 @@
       "hint": "Standaard staan alle actieve artikelen van deze klant aangevinkt. Vink uit wat er niet bij hoort.",
       "selectAll": "Alles selecteren",
       "selectNone": "Niets selecteren",
-      "confirm": "Start keuring ({count})"
+      "confirm": "Start keuring ({count})",
+      "addTitle": "Nog meer artikelen van deze klant toevoegen?",
+      "addHint": "Deze artikelen staan nog niet in de openstaande keuring. Vink aan wat je er nu nog bij wilt hebben — niets aanvinken laat de keuring ongewijzigd.",
+      "addConfirm": "Open keuring ({count} extra)"
     },
     "step": "Stap {n}/4",
     "filterPlaceholder": "Zoek op serienummer of omschrijving…",

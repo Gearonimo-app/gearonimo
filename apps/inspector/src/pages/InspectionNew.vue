@@ -32,8 +32,22 @@
     <ArticleSelectDialog
       v-if="showArticleSelect"
       :articles="selectableArticles"
+      :title="$t('inspections.selectArticles.title')"
+      :hint="$t('inspections.selectArticles.hint')"
+      :confirm-label="(n) => $t('inspections.selectArticles.confirm', { count: n })"
       @confirm="confirmArticleSelect"
       @cancel="showArticleSelect = false"
+    />
+
+    <ArticleSelectDialog
+      v-if="showAddExtra"
+      :articles="selectableArticles"
+      :default-checked="false"
+      :title="$t('inspections.selectArticles.addTitle')"
+      :hint="$t('inspections.selectArticles.addHint')"
+      :confirm-label="(n) => $t('inspections.selectArticles.addConfirm', { count: n })"
+      @confirm="confirmAddExtra"
+      @cancel="cancelAddExtra"
     />
   </div>
 </template>
@@ -43,7 +57,14 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@gearonimo/core'
 import ArticleSelectDialog from '../components/ArticleSelectDialog.vue'
-import { findDraftInspection, fetchActiveArticles, startInspectionWithArticles, type ActiveArticleOption } from '../composables/useInspections'
+import {
+  findDraftInspection,
+  fetchActiveArticles,
+  fetchInspectionArticleIds,
+  addArticlesToInspection,
+  startInspectionWithArticles,
+  type ActiveArticleOption,
+} from '../composables/useInspections'
 
 const router = useRouter()
 
@@ -56,8 +77,10 @@ const query = ref('')
 const picking = ref(false)
 const pickError = ref('')
 const showArticleSelect = ref(false)
+const showAddExtra = ref(false)
 const selectableArticles = ref<ActiveArticleOption[]>([])
 const pendingCustomerId = ref<string | null>(null)
+const pendingDraftId = ref<string | null>(null)
 
 const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
@@ -73,9 +96,10 @@ async function load() {
   loading.value = false
 }
 
-// Bestaat er al een concept-keuring voor deze klant, dan hervatten we die
-// direct. Anders vraagt de keurmeester eerst zelf welke actieve artikelen
-// van deze klant in de nieuwe keuring moeten staan.
+// Bestaat er al een concept-keuring voor deze klant, dan bieden we eerst aan
+// om er nog andere actieve artikelen bij te halen (staat er niets nieuws,
+// dan hervatten we direct). Bestaat er nog geen concept, dan vraagt de
+// keurmeester eerst zelf welke actieve artikelen erbij horen.
 async function pick(customerId: string) {
   if (picking.value) return
   picking.value = true
@@ -83,7 +107,19 @@ async function pick(customerId: string) {
   try {
     const existingDraft = await findDraftInspection(customerId)
     if (existingDraft) {
-      router.push(`/inspections/${existingDraft.id}`)
+      const [articles, existingIds] = await Promise.all([
+        fetchActiveArticles(customerId),
+        fetchInspectionArticleIds(existingDraft.id),
+      ])
+      const existing = new Set(existingIds)
+      const extra = articles.filter((a) => !existing.has(a.id))
+      if (!extra.length) {
+        router.push(`/inspections/${existingDraft.id}`)
+        return
+      }
+      pendingDraftId.value = existingDraft.id
+      selectableArticles.value = extra
+      showAddExtra.value = true
       return
     }
     const articles = await fetchActiveArticles(customerId)
@@ -115,6 +151,27 @@ async function confirmArticleSelect(articleIds: string[]) {
   } finally {
     picking.value = false
   }
+}
+
+async function confirmAddExtra(articleIds: string[]) {
+  showAddExtra.value = false
+  if (!pendingDraftId.value) return
+  const draftId = pendingDraftId.value
+  picking.value = true
+  pickError.value = ''
+  try {
+    await addArticlesToInspection(draftId, articleIds)
+    router.push(`/inspections/${draftId}`)
+  } catch (e: any) {
+    pickError.value = e?.message ?? String(e)
+  } finally {
+    picking.value = false
+  }
+}
+
+function cancelAddExtra() {
+  showAddExtra.value = false
+  if (pendingDraftId.value) router.push(`/inspections/${pendingDraftId.value}`)
 }
 
 onMounted(load)

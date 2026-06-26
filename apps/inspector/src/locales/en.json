@@ -190,7 +190,10 @@
       "hint": "All active articles of this customer are checked by default. Uncheck anything that doesn't belong.",
       "selectAll": "Select all",
       "selectNone": "Select none",
-      "confirm": "Start inspection ({count})"
+      "confirm": "Start inspection ({count})",
+      "addTitle": "Add more articles from this customer?",
+      "addHint": "These articles aren't in the open inspection yet. Check anything you want to add now — leaving everything unchecked leaves the inspection unchanged.",
+      "addConfirm": "Open inspection ({count} extra)"
     },
     "step": "Step {n}/4",
     "filterPlaceholder": "Search by serial number or description…",
