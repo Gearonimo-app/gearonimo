@@ -27,6 +27,16 @@ export interface CertLayout {
   showContact: boolean
   showRegistration: boolean // KvK/BTW tonen als ze ingevuld zijn
   accent: string // hex, kleur van titels en tabelkop
+  // Optionele tabelkolommen aan/uit. Vaste kolommen (status/merk/artikel/
+  // bouwjaar/serienummer) staan altijd aan en zitten hier niet in.
+  columns: {
+    category: boolean
+    norm: boolean
+    mbs: boolean
+    user: boolean
+    next: boolean
+    note: boolean
+  }
 }
 
 export const DEFAULT_CERT_LAYOUT: CertLayout = {
@@ -41,13 +51,18 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   showContact: true,
   showRegistration: true,
   accent: '#1a3a2a',
+  columns: { category: true, norm: false, mbs: false, user: true, next: true, note: true },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
-// breken bij het toevoegen van nieuwe opties.
+// breken bij het toevoegen van nieuwe opties (ook de geneste columns-map).
 export function resolveLayout(raw: unknown): CertLayout {
-  if (!raw || typeof raw !== 'object') return { ...DEFAULT_CERT_LAYOUT }
-  return { ...DEFAULT_CERT_LAYOUT, ...(raw as Partial<CertLayout>) }
+  const r = raw && typeof raw === 'object' ? (raw as Partial<CertLayout>) : {}
+  return {
+    ...DEFAULT_CERT_LAYOUT,
+    ...r,
+    columns: { ...DEFAULT_CERT_LAYOUT.columns, ...(r.columns || {}) },
+  }
 }
 
 // ----------------------------------------------------------------------------
@@ -71,8 +86,15 @@ export interface CertCompany {
 
 export interface CertItem {
   result: string
-  label: string
+  brand: string | null
+  name: string | null
   serial_number: string | null
+  manufacture_year: number | null
+  manufacture_month: number | null
+  category: string | null
+  norm: string | null
+  mbs: string | null
+  user: string | null
   next_due: string | null
   rejection_code_label: string | null
   comment: string | null
@@ -91,17 +113,6 @@ export interface CertData {
 // ----------------------------------------------------------------------------
 // Hulpfuncties
 // ----------------------------------------------------------------------------
-
-function itemLabelFromArticle(a: {
-  free_brand: string | null
-  free_description: string | null
-  product: { brand: string | null; name: string | null } | null
-}): string {
-  const s = a.product
-    ? [a.product.brand, a.product.name].filter(Boolean).join(' ')
-    : [a.free_brand, a.free_description].filter(Boolean).join(' ')
-  return s || '—'
-}
 
 function formatDate(d: string | Date): string {
   const date = typeof d === 'string' ? new Date(d) : d
@@ -184,64 +195,82 @@ function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): 
 // Tabel-kolommen
 // ----------------------------------------------------------------------------
 
-interface Column {
-  key: keyof CertItemRow
+type ColumnKey = keyof CertLayout['columns']
+
+interface ColDef {
+  key: string
   header: string
+  optional: boolean // aan/uit via cert_layout.columns; vaste kolommen staan altijd aan
   flex: boolean // mag groeien/krimpen om te passen
   min: number
   cap: number // voorkeur-maximum
-  align: 'left'
+  value: (it: CertItem) => string // lege string = geen waarde
 }
 
-interface CertItemRow {
-  status: string
-  article: string
-  sn: string
-  next: string
-  note: string
+function yearStr(it: CertItem): string {
+  if (!it.manufacture_year) return ''
+  return it.manufacture_month
+    ? `${it.manufacture_year}/${String(it.manufacture_month).padStart(2, '0')}`
+    : String(it.manufacture_year)
+}
+function noteStr(it: CertItem): string {
+  if (it.result === 'passed') return ''
+  return [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
 }
 
-function toRow(it: CertItem): CertItemRow {
-  const passed = it.result === 'passed'
-  const note = passed
-    ? ''
-    : [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
-  return {
-    status: passed ? 'GOED' : 'AFGEKEURD',
-    article: it.label,
-    sn: it.serial_number || '—',
-    next: it.next_due ? formatDate(it.next_due) : '—',
-    note,
-  }
-}
-
-const COLUMNS: Column[] = [
-  { key: 'status', header: 'Status', flex: false, min: 62, cap: 78, align: 'left' },
-  { key: 'article', header: 'Artikel', flex: true, min: 90, cap: 210, align: 'left' },
-  { key: 'sn', header: 'Serienummer', flex: false, min: 64, cap: 110, align: 'left' },
-  { key: 'next', header: 'Volgende keuring', flex: false, min: 78, cap: 110, align: 'left' },
-  { key: 'note', header: 'Afkeurcode / opmerking', flex: true, min: 90, cap: 240, align: 'left' },
+// Alle mogelijke kolommen in vaste volgorde. Vaste kolommen
+// (status/merk/artikel/bouwjaar/serienummer) staan altijd aan; de optionele zijn
+// per keurbedrijf aan/uit te zetten. Een kolom verschijnt alleen als hij aan
+// staat én minstens één artikel er data voor heeft ("alleen tonen als er iets in
+// staat"); status is altijd zichtbaar. Uitgevinkt = data blijft bestaan maar
+// staat niet op het certificaat.
+const ALL_COLUMNS: ColDef[] = [
+  { key: 'status',   header: 'Status',                 optional: false, flex: false, min: 62, cap: 80,  value: (it) => (it.result === 'passed' ? 'GOED' : 'AFGEKEURD') },
+  { key: 'brand',    header: 'Merk',                   optional: false, flex: false, min: 56, cap: 120, value: (it) => it.brand || '' },
+  { key: 'article',  header: 'Artikel',                optional: false, flex: true,  min: 80, cap: 190, value: (it) => it.name || '' },
+  { key: 'year',     header: 'Bouwjaar',               optional: false, flex: false, min: 56, cap: 74,  value: yearStr },
+  { key: 'sn',       header: 'Serienummer',            optional: false, flex: false, min: 64, cap: 120, value: (it) => it.serial_number || '' },
+  { key: 'category', header: 'Categorie',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.category || '' },
+  { key: 'norm',     header: 'Norm',                   optional: true,  flex: false, min: 56, cap: 120, value: (it) => it.norm || '' },
+  { key: 'mbs',      header: 'MBS',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.mbs || '' },
+  { key: 'user',     header: 'Gebruiker',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.user || '' },
+  { key: 'next',     header: 'Volgende keuring',       optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.next_due ? formatDate(it.next_due) : '') },
+  { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
 const CELL_PAD = 6
 
+// Welke kolommen daadwerkelijk getekend worden: aan + (status of er is data).
+function activeColumns(items: CertItem[], cols: CertLayout['columns']): ColDef[] {
+  return ALL_COLUMNS.filter((col) => {
+    const enabled = col.optional ? !!cols[col.key as ColumnKey] : true
+    if (!enabled) return false
+    if (col.key === 'status') return true
+    return items.some((it) => col.value(it).trim() !== '')
+  })
+}
+
+// Toon lege cellen als streepje, behalve de opmerking-kolom (die blijft blank).
+function cellText(col: ColDef, it: CertItem): string {
+  const v = col.value(it)
+  return v !== '' ? v : col.key === 'note' ? '' : '—'
+}
+
 // Voorkeursbreedte per kolom = max(kop, langste cel) + padding, afgetopt op cap.
-function preferredWidths(rows: CertItemRow[], font: PDFFont, bold: PDFFont, size: number): number[] {
-  return COLUMNS.map((col) => {
+function preferredWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold: PDFFont, size: number): number[] {
+  return cols.map((col) => {
     let w = bold.widthOfTextAtSize(col.header, size)
-    for (const r of rows) {
-      w = Math.max(w, font.widthOfTextAtSize(String(r[col.key] ?? ''), size))
-    }
+    for (const it of items) w = Math.max(w, font.widthOfTextAtSize(col.value(it), size))
     return Math.min(col.cap, Math.max(col.min, w + CELL_PAD * 2))
   })
 }
 
 // Past de kolombreedtes op de beschikbare breedte: groeit de flex-kolommen als
 // er ruimte over is, of schaalt alles proportioneel als het te breed is.
-function fitWidths(pref: number[], avail: number): number[] {
+function fitWidths(pref: number[], cols: ColDef[], avail: number): number[] {
   const total = pref.reduce((a, b) => a + b, 0)
   if (total <= avail) {
-    const flexIdx = COLUMNS.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
+    const flexIdx = cols.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
     const extra = avail - total
     const per = extra / (flexIdx.length || 1)
     return pref.map((w, i) => (flexIdx.includes(i) ? w + per : w))
@@ -290,7 +319,8 @@ export async function renderCertificatePdf(
 
   const margin = 50
   const tableSize = 9.5
-  const rows = data.items.map(toRow)
+  const items = data.items
+  const cols = activeColumns(items, layout.columns)
 
   // Oriëntatie bepalen. Auto = staand, tenzij de tabel echt te breed wordt om
   // nog netjes in staand te passen (dan liggend). Staand is de natuurlijke keuze
@@ -305,14 +335,14 @@ export async function renderCertificatePdf(
   if (layout.orientation === 'landscape') landscape = true
   else if (layout.orientation === 'portrait') landscape = false
   else {
-    const pref = preferredWidths(rows, font, bold, tableSize)
+    const pref = preferredWidths(items, cols, font, bold, tableSize)
     landscape = pref.reduce((a, b) => a + b, 0) > portraitAvail * AUTO_LANDSCAPE_FACTOR
   }
   const pageWidth = landscape ? A4_LONG : A4_SHORT
   const pageHeight = landscape ? A4_SHORT : A4_LONG
   const contentWidth = pageWidth - 2 * margin
 
-  const colWidths = fitWidths(preferredWidths(rows, font, bold, tableSize), contentWidth)
+  const colWidths = fitWidths(preferredWidths(items, cols, font, bold, tableSize), cols, contentWidth)
 
   let page!: PDFPage
   let y = 0
@@ -424,7 +454,7 @@ export async function renderCertificatePdf(
     const h = tableSize + 10
     page.drawRectangle({ x: margin, y: y - h, width: contentWidth, height: h, color: tint(accent, 0.86) })
     let x = margin
-    COLUMNS.forEach((col, i) => {
+    cols.forEach((col, i) => {
       page.drawText(col.header, { x: x + CELL_PAD, y: y - tableSize - 4, size: tableSize, font: bold, color: accent })
       x += colWidths[i]
     })
@@ -433,10 +463,10 @@ export async function renderCertificatePdf(
   drawTableHeader()
 
   const lineGap = tableSize + 3
-  for (const r of rows) {
+  for (const it of items) {
     // Cel-regels vooraf berekenen om de rijhoogte te kennen.
-    const cellLines = COLUMNS.map((col, i) =>
-      wrapText(String(r[col.key] ?? ''), font, tableSize, colWidths[i] - CELL_PAD * 2)
+    const cellLines = cols.map((col, i) =>
+      wrapText(cellText(col, it), font, tableSize, colWidths[i] - CELL_PAD * 2)
     )
     const maxLines = Math.max(...cellLines.map((l) => l.length))
     const rowHeight = maxLines * lineGap + 6
@@ -446,10 +476,10 @@ export async function renderCertificatePdf(
       drawTableHeader()
     }
 
+    const passed = it.result === 'passed'
     let x = margin
-    COLUMNS.forEach((col, i) => {
+    cols.forEach((col, i) => {
       const isStatus = col.key === 'status'
-      const passed = r.status === 'GOED'
       const cellFont = isStatus ? bold : font
       const cellColor = isStatus ? (passed ? rgb(0.09, 0.5, 0.25) : rgb(0.75, 0.1, 0.1)) : rgb(0.1, 0.1, 0.1)
       cellLines[i].forEach((ln, li) => {
@@ -568,20 +598,31 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, product:products(brand, name)), rejection_code:rejection_codes(label)'
+      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, free_category, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
   if (itemsErr) throw itemsErr
 
-  const items: CertItem[] = (rows ?? []).map((r: any) => ({
-    result: r.result,
-    label: itemLabelFromArticle(r.article),
-    serial_number: r.article?.serial_number ?? null,
-    next_due: r.next_due,
-    rejection_code_label: r.rejection_code?.label ?? null,
-    comment: r.comment,
-  }))
+  const items: CertItem[] = (rows ?? []).map((r: any) => {
+    const a = r.article
+    const p = a?.product
+    return {
+      result: r.result,
+      brand: (p ? p.brand : a?.free_brand) ?? null,
+      name: (p ? p.name : a?.free_description) ?? null,
+      serial_number: a?.serial_number ?? null,
+      manufacture_year: a?.manufacture_year ?? null,
+      manufacture_month: a?.manufacture_month ?? null,
+      category: (p ? p.category : a?.free_category) ?? null,
+      norm: p?.standard ?? null,
+      mbs: p?.breaking_strength ?? null,
+      user: a?.assigned_user_name ?? null,
+      next_due: r.next_due,
+      rejection_code_label: r.rejection_code?.label ?? null,
+      comment: r.comment,
+    }
+  })
 
   const verifyToken = crypto.randomUUID()
   const number = `${inspection.inspection_date.replace(/-/g, '')}-${slugify(inspection.customer.name)}`

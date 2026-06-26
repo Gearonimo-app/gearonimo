@@ -120,7 +120,12 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > (`auto`/`portrait`/`landscape`), `logoScale`, `logoAlign`, `logoOffsetX`,
 > `logoOffsetY`, `headerOffsetY` (gegevens verticaal nudgen), `companyInfo`
 > (gegevens links/rechts), `showAddress`, `showContact`, `showRegistration`,
-> `accent` (hex). Leeg = `DEFAULT_CERT_LAYOUT` in
+> `accent` (hex), en `columns` (per keurbedrijf aan/uit te zetten
+> tabelkolommen: `category`/`norm`/`mbs`/`user`/`next`/`note`; de vaste
+> kolommen status/merk/artikel/bouwjaar/serienummer staan altijd aan). Een
+> kolom verschijnt alleen als hij aan staat én er data voor is; `norm` =
+> `products.standard`, `mbs` = `products.breaking_strength`. Leeg =
+> `DEFAULT_CERT_LAYOUT` in
 > `apps/inspector/src/composables/useCertificate.ts`. Te beheren via de
 > Instellingen-tegel → Certificaat-template (live preview). De velden zijn een
 > opmaak-sjabloon voor **nieuwe** certificaten; al uitgegeven PDF's blijven

@@ -95,6 +95,16 @@
           <label class="cs__field cs__field--color"><span>{{ $t('settings.certificate.accent') }}</span>
             <input v-model="layout.accent" type="color" class="cs__color" /></label>
 
+          <h3>{{ $t('settings.certificate.columns.title') }}</h3>
+          <p class="cs__hint">{{ $t('settings.certificate.columns.hint') }}</p>
+          <label class="cs__check cs__check--fixed">{{ $t('settings.certificate.columns.fixed') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.category" /> {{ $t('settings.certificate.columns.category') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.norm" /> {{ $t('settings.certificate.columns.norm') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.mbs" /> {{ $t('settings.certificate.columns.mbs') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.user" /> {{ $t('settings.certificate.columns.user') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.next" /> {{ $t('settings.certificate.columns.next') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.note" /> {{ $t('settings.certificate.columns.note') }}</label>
+
           <h3>{{ $t('settings.certificate.texts') }}</h3>
           <label class="cs__field">
             <span>
@@ -262,11 +272,11 @@ function sampleData(): CertData {
     number: '20260625-VOORBEELD',
     verifyUrl: window.location.origin + '/verify/voorbeeld',
     items: [
-      { result: 'passed', label: 'Petzl Avao Bod Fast harnasgordel', serial_number: '21A0001234', next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'passed', label: 'Petzl Astro Bod Fast', serial_number: '20B0007777', next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'failed', label: 'Edelrid karabiner staal met schroefsluiting', serial_number: '19C0042000', next_due: null, rejection_code_label: 'Slijtage, opgebruikt', comment: 'Sluiting loopt stroef, zichtbare slijtage aan de poort.' },
-      { result: 'passed', label: 'Camp Safety helm', serial_number: '22D0005555', next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'passed', label: 'Beal touw 11mm 50m', serial_number: '21E0009999', next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Petzl', name: 'Avao Bod Fast harnasgordel', serial_number: '21A0001234', manufacture_year: 2021, manufacture_month: 3, category: 'Harnasgordel', norm: 'EN 361', mbs: '15 kN', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Petzl', name: 'Astro Bod Fast', serial_number: '20B0007777', manufacture_year: 2020, manufacture_month: null, category: 'Harnasgordel', norm: 'EN 813', mbs: '15 kN', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'failed', brand: 'Edelrid', name: 'Karabiner staal met schroefsluiting', serial_number: '19C0042000', manufacture_year: 2019, manufacture_month: 7, category: 'Karabiner', norm: 'EN 362', mbs: '25 kN', user: 'Piet de Vries', next_due: null, rejection_code_label: 'Slijtage, opgebruikt', comment: 'Sluiting loopt stroef, zichtbare slijtage aan de poort.' },
+      { result: 'passed', brand: 'Camp Safety', name: 'Helm Titan', serial_number: '22D0005555', manufacture_year: 2022, manufacture_month: 1, category: 'Helm', norm: 'EN 397', mbs: null, user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Beal', name: 'Touw 11mm 50m', serial_number: '21E0009999', manufacture_year: 2021, manufacture_month: null, category: 'Touw', norm: 'EN 1891', mbs: '22 kN', user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
     ],
   }
 }
@@ -372,6 +382,8 @@ textarea.cs__input { resize: vertical; }
 .cs__range { width: 100%; }
 .cs__color { width: 100%; height: 38px; padding: 2px; border: 1px solid #ddd; border-radius: 8px; background: #fff; }
 .cs__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
+.cs__check--fixed { color: #6b7280; font-size: 0.82rem; font-style: italic; }
+.cs__hint { font-size: 0.78rem; color: #6b7280; margin: 0 0 0.2rem; }
 .cs__inline { background: none; border: none; color: #16a34a; font-size: 0.78rem; font-weight: 600; cursor: pointer; padding: 0; }
 
 .cs__logo { display: flex; gap: 0.75rem; align-items: center; }

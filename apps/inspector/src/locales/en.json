@@ -343,7 +343,18 @@
       "defaultFooter": "This certificate is a snapshot on the stated inspection date and is not a guarantee up to any future date.",
       "logoNudgeY": "Logo vertical (down)",
       "headerNudgeY": "Details vertical (down)",
-      "showRegistration": "Show reg./VAT (if filled)"
+      "showRegistration": "Show reg./VAT (if filled)",
+      "columns": {
+        "title": "Certificate columns",
+        "hint": "Tick which columns appear on the certificate. A column only shows when there is actual data; unticked means the data is kept but not printed.",
+        "fixed": "Always: Status · Brand · Article · Year · Serial number",
+        "category": "Category",
+        "norm": "Standard (e.g. EN 361)",
+        "mbs": "MBS / breaking strength",
+        "user": "User",
+        "next": "Next inspection",
+        "note": "Rejection code / comment"
+      }
     },
     "inspectors": {
       "menuTitle": "Inspectors",

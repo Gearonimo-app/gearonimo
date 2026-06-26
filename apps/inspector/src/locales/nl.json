@@ -343,7 +343,18 @@
       "defaultFooter": "Dit certificaat is een momentopname op de genoemde keuringsdatum en geen garantie tot een toekomstige datum.",
       "logoNudgeY": "Logo verticaal (omlaag)",
       "headerNudgeY": "Gegevens verticaal (omlaag)",
-      "showRegistration": "KvK/BTW tonen (indien ingevuld)"
+      "showRegistration": "KvK/BTW tonen (indien ingevuld)",
+      "columns": {
+        "title": "Kolommen op het certificaat",
+        "hint": "Vink aan welke kolommen op het certificaat komen. Een kolom verschijnt alleen als er ook echt data in staat; uitgevinkt betekent dat de data wel bewaard blijft maar niet wordt afgedrukt.",
+        "fixed": "Altijd: Status · Merk · Artikel · Bouwjaar · Serienummer",
+        "category": "Categorie",
+        "norm": "Norm (bijv. EN 361)",
+        "mbs": "MBS / breeksterkte",
+        "user": "Gebruiker",
+        "next": "Volgende keuring",
+        "note": "Afkeurcode / opmerking"
+      }
     },
     "inspectors": {
       "menuTitle": "Keurmeesters",
