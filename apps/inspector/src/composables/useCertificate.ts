@@ -318,12 +318,17 @@ export async function renderCertificatePdf(
       logoBottom = topY - dims.height
     }
 
-    let cy = logoBottom - (logo ? 14 : 0)
+    // Twee blokken naast elkaar bovenaan: bedrijfsgegevens aan de gekozen kant
+    // (companyInfo), certificaatgegevens aan de andere kant — zo staan ze allebei
+    // boven aan de pagina (wens Jos 2026-06-26).
+    const startY = logoBottom - (logo ? 14 : 0)
     const c = data.company
-    const infoLines: { text: string; size: number; font: PDFFont; color: Color }[] = []
-    infoLines.push({ text: c.name, size: 15, font: bold, color: accent })
+
+    // Bedrijfsgegevens-regels.
+    const companyLines: { text: string; size: number; font: PDFFont; color: Color }[] = []
+    companyLines.push({ text: c.name, size: 15, font: bold, color: accent })
     if (layout.showAddress && (c.address || c.postal_code || c.city)) {
-      infoLines.push({
+      companyLines.push({
         text: [c.address, [c.postal_code, c.city].filter(Boolean).join(' ')].filter(Boolean).join(', '),
         size: 9,
         font,
@@ -331,19 +336,29 @@ export async function renderCertificatePdf(
       })
     }
     if (layout.showContact && (c.email || c.phone)) {
-      infoLines.push({ text: [c.email, c.phone].filter(Boolean).join('  ·  '), size: 9, font, color: grey })
+      companyLines.push({ text: [c.email, c.phone].filter(Boolean).join('  ·  '), size: 9, font, color: grey })
     }
-    for (const l of infoLines) {
+
+    const half = (contentWidth - 24) / 2
+    const rightEdge = pageWidth - margin
+    const rightColX = margin + half + 24
+    const companyOnRight = layout.companyInfo === 'right'
+    // Certificaatblok staat aan de tegenoverliggende kant, altijd links uitgelijnd.
+    const certX = companyOnRight ? margin : rightColX
+
+    // Bedrijfsgegevens tekenen (hugt zijn kant: rechts = tegen de rechtermarge).
+    let compY = startY
+    for (const l of companyLines) {
       const w = l.font.widthOfTextAtSize(l.text, l.size)
-      const x = layout.companyInfo === 'right' ? pageWidth - margin - w : margin
-      page.drawText(l.text, { x, y: cy - l.size, size: l.size, font: l.font, color: l.color })
-      cy -= l.size + 4
+      const x = companyOnRight ? rightEdge - w : margin
+      page.drawText(l.text, { x, y: compY - l.size, size: l.size, font: l.font, color: l.color })
+      compY -= l.size + 4
     }
 
-    cy -= 8
-    page.drawText('Keuringscertificaat', { x: margin, y: cy - 13, size: 13, font: bold, color: accent })
-    cy -= 13 + 8
-
+    // Certificaatgegevens tekenen.
+    let certY = startY
+    page.drawText('Keuringscertificaat', { x: certX, y: certY - 13, size: 13, font: bold, color: accent })
+    certY -= 13 + 8
     const meta = [
       `Certificaatnummer: ${data.number}`,
       `Klant: ${data.customerName}`,
@@ -351,13 +366,14 @@ export async function renderCertificatePdf(
       `Keurmeester: ${data.inspectorName || '—'}`,
     ]
     for (const m of meta) {
-      page.drawText(m, { x: margin, y: cy - 10, size: 10, font, color: rgb(0, 0, 0) })
-      cy -= 10 + 3
+      page.drawText(m, { x: certX, y: certY - 10, size: 10, font, color: rgb(0, 0, 0) })
+      certY -= 10 + 3
     }
 
-    // Intro-/koptekst (juridische standaardtekst van het keurbedrijf).
+    let cy = Math.min(compY, certY) - 10
+
+    // Intro-/koptekst (juridische standaardtekst van het keurbedrijf), volle breedte.
     if (c.cert_header) {
-      cy -= 6
       for (const ln of wrapText(c.cert_header, font, 8.5, contentWidth)) {
         page.drawText(ln, { x: margin, y: cy - 8.5, size: 8.5, font, color: grey })
         cy -= 8.5 + 2.5
