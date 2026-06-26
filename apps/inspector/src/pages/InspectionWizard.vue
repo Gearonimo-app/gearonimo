@@ -1,7 +1,10 @@
 <template>
   <div class="iw">
     <header class="iw__header">
-      <button class="iw__icon" @click="$router.push(`/customers/${inspection?.customer_id}`)">←</button>
+      <div class="iw__nav">
+        <button class="iw__icon" @click="$router.push(`/customers/${inspection?.customer_id}`)">←</button>
+        <button class="iw__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
+      </div>
       <h1>{{ inspection?.customer?.name }}</h1>
       <span class="iw__totals">{{ $t('inspections.table.totals', { passed: passedCount, rejected: rejectedCount, open: notAssessedCount }) }}</span>
     </header>
@@ -38,6 +41,7 @@
           />
           <input
             v-model="newBrand"
+            ref="brandRef"
             class="iw__input iw__input--sm"
             :placeholder="$t('inspections.table.brand')"
             @focus="activeField = 'brand'"
@@ -46,6 +50,7 @@
           />
           <input
             v-model="newCategory"
+            ref="categoryRef"
             class="iw__input iw__input--sm"
             :placeholder="$t('inspections.table.category')"
             @focus="activeField = 'category'"
@@ -54,13 +59,14 @@
           />
           <input
             v-model="newSerial"
+            ref="serialRef"
             class="iw__input iw__input--sm"
             :placeholder="$t('inspections.table.serial')"
             @focus="activeField = 'serial'"
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
-          <input v-model="newYear" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
+          <input v-model="newYear" ref="yearRef" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
           <select v-model="newMonth" class="iw__select iw__select--xs">
             <option :value="null">{{ $t('inspections.table.month') }}</option>
             <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
@@ -90,6 +96,13 @@
             @click="copyLastArticle"
           >{{ $t('inspections.table.copyLast') }}</button>
         </div>
+
+        <!-- Vrij artikel (geen catalogusmatch): aanbieden voor de
+             catalogus-wachtlijst zodat de curator het kan toevoegen. -->
+        <label v-if="willBeFreeArticle" class="iw__waitlist">
+          <input type="checkbox" v-model="newSuggestForCatalog" />
+          {{ $t('inspections.table.suggestForCatalog') }}
+        </label>
 
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
              de tabel naar beneden i.p.v. eroverheen te vallen. Elk veld zoekt
@@ -166,10 +179,11 @@
                     <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
                     <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
                     <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
-                    <a v-if="itemHasRecall(row.it) && itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
-                    <span v-else-if="itemHasRecall(row.it)" class="iw__warn-icon" title="Recall">🚩</span>
+                    <!-- Catalogus-artikel: alleen-lezen recall-vlag uit products.recall_url -->
+                    <a v-if="row.it.article.product?.recall_url" :href="row.it.article.product.recall_url" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
+                    <!-- Vrij artikel: zelf in/uit te schakelen recall-vlag (één icoon, geen dubbele) -->
                     <button
-                      v-if="!row.it.article.product"
+                      v-else-if="!row.it.article.product"
                       class="iw__icon-btn"
                       :class="{ 'iw__icon-btn--active': row.it.article.free_recall_flag }"
                       :title="$t('inspections.table.toggleRecall')"
@@ -396,14 +410,33 @@ const fieldSuggestions = computed<string[]>(() => {
   }
 })
 
-function pickSuggestion(val: string) {
-  switch (activeField.value) {
+function setFieldValue(field: string | null, val: string) {
+  switch (field) {
     case 'article': newDescription.value = val; break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
     case 'serial': newSerial.value = val; break
   }
+}
+
+function pickSuggestion(val: string) {
+  setFieldValue(activeField.value, val)
   activeField.value = null
+}
+
+// Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
+// → serienummer → bouwjaar). Gebruikt door Enter; Tab doet dit van nature.
+const brandRef = ref<HTMLInputElement | null>(null)
+const categoryRef = ref<HTMLInputElement | null>(null)
+const serialRef = ref<HTMLInputElement | null>(null)
+const yearRef = ref<HTMLInputElement | null>(null)
+function focusNextField(cur: string | null) {
+  const order = ['article', 'brand', 'category', 'serial']
+  const nextRefs = [brandRef, categoryRef, serialRef, yearRef]
+  const i = order.indexOf(cur || '')
+  if (i < 0) return
+  const el = nextRefs[i].value
+  nextTick(() => el?.focus())
 }
 
 // Korte vertraging zodat een klik op een suggestie nog registreert voordat de
@@ -422,18 +455,29 @@ watch(suggestIndex, (i) => {
 })
 
 function onSuggestKeydown(e: KeyboardEvent) {
-  if (!activeField.value || !fieldSuggestions.value.length) return
-  if (e.key === 'ArrowDown') {
+  const cur = activeField.value
+  if (!cur) return
+  const sugg = fieldSuggestions.value
+  if (e.key === 'ArrowDown' && sugg.length) {
     e.preventDefault()
-    suggestIndex.value = (suggestIndex.value + 1) % fieldSuggestions.value.length
-  } else if (e.key === 'ArrowUp') {
+    suggestIndex.value = (suggestIndex.value + 1) % sugg.length
+  } else if (e.key === 'ArrowUp' && sugg.length) {
     e.preventDefault()
-    suggestIndex.value = suggestIndex.value <= 0 ? fieldSuggestions.value.length - 1 : suggestIndex.value - 1
-  } else if (e.key === 'Enter' && suggestIndex.value >= 0) {
-    e.preventDefault()
-    pickSuggestion(fieldSuggestions.value[suggestIndex.value])
+    suggestIndex.value = suggestIndex.value <= 0 ? sugg.length - 1 : suggestIndex.value - 1
   } else if (e.key === 'Escape') {
     activeField.value = null
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    // Tab én Enter: bevestig de gemarkeerde suggestie (indien aanwezig) en ga
+    // door naar het volgende veld. Tab regelt de focuswissel zelf; bij Enter
+    // sturen we de focus expliciet (en voorkomen we form-submit).
+    if (suggestIndex.value >= 0 && sugg.length) {
+      setFieldValue(cur, sugg[suggestIndex.value])
+    }
+    activeField.value = null
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      focusNextField(cur)
+    }
   }
 }
 
@@ -446,7 +490,11 @@ const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
+const newSuggestForCatalog = ref(false)
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
+// Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
+// het naar de catalogus-wachtlijst voor de curator.
+const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !matchProduct())
 
 // Onthoudt het laatst toegevoegde artikel zodat een serie identieke
 // exemplaren (bv. 10 karabiners) snel achter elkaar in te voeren is: alles
@@ -505,8 +553,6 @@ function itemName(it: Item) { return it.article.product?.name ?? it.article.free
 function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
-function itemRecallUrl(it: Item) { return it.article.product?.recall_url ?? it.article.free_recall_url ?? null }
-function itemHasRecall(it: Item) { return !!it.article.product?.recall_url || it.article.free_recall_flag }
 
 // Bij vrije (niet-catalogus) artikelen kan de keurmeester zelf een recall
 // aanvinken (en optioneel een link erbij zetten) — bij catalogusartikelen
@@ -748,6 +794,7 @@ async function addRow() {
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
+        suggest_for_catalog: product ? false : newSuggestForCatalog.value,
         retired: false,
       })
       .select('*, product:products(*)')
@@ -788,6 +835,7 @@ async function addRow() {
     newMonth.value = null
     newResult.value = 'not_assessed'
     newRejectionCodeId.value = null
+    newSuggestForCatalog.value = false
     dayHint.value = null
     weekHint.value = null
   } catch (e: any) {
@@ -872,6 +920,7 @@ onMounted(load)
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10; gap: 0.75rem;
 }
+.iw__nav { display: flex; align-items: center; gap: 0.15rem; }
 .iw__header h1 { font-size: 1.1rem; margin: 0; flex: 1; text-align: center; }
 .iw__totals { font-size: 0.8rem; opacity: 0.9; white-space: nowrap; }
 .iw__state { text-align: center; padding: 3rem 1rem; color: #666; }
@@ -881,6 +930,11 @@ onMounted(load)
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
+.iw__waitlist {
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.85rem; color: #92400e; background: #fffbeb;
+  border: 1px solid #fde68a; border-radius: 8px; padding: 0.4rem 0.7rem; margin: 0.5rem 0 0;
+}
 .iw__suggest {
   background: #fff; border: 1px solid #ddd; border-radius: 8px;
   margin: -0.35rem 0 0.85rem; padding: 0.3rem;

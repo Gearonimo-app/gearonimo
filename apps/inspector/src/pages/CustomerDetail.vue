@@ -1,7 +1,10 @@
 <template>
   <div class="cd">
     <header class="cd__header">
-      <button class="cd__icon" @click="$router.push('/customers')">←</button>
+      <div class="cd__nav">
+        <button class="cd__icon" @click="$router.push('/customers')">←</button>
+        <button class="cd__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
+      </div>
       <h1>{{ customer?.name || $t('customers.title') }}</h1>
       <button v-if="customer && !editMode" class="cd__icon" @click="startEdit">✎</button>
     </header>
@@ -188,6 +191,7 @@ onMounted(load)
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
+.cd__nav { display: flex; align-items: center; gap: 0.15rem; }
 .cd__header h1 { font-size: 1.2rem; margin: 0; flex: 1; text-align: center; }
 .cd__icon {
   background: none; border: none; color: #fff; font-size: 1.3rem;

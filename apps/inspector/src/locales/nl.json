@@ -4,7 +4,8 @@
     "cancel": "Annuleren",
     "save": "Opslaan",
     "saving": "Bezig...",
-    "delete": "Verwijderen"
+    "delete": "Verwijderen",
+    "home": "Home"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -254,7 +255,8 @@
       "addManualUrl": "Handleiding-link toevoegen",
       "toggleRecall": "Recall-vlag (vrij artikel)",
       "recallUrlPrompt": "Recall-link (leeg laten indien geen):",
-      "manualUrlPrompt": "Handleiding-link:"
+      "manualUrlPrompt": "Handleiding-link:",
+      "suggestForCatalog": "Toevoegen aan productendatabase"
     }
   },
   "verify": {

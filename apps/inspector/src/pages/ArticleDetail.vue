@@ -1,7 +1,10 @@
 <template>
   <div class="ad">
     <header class="ad__header">
-      <button class="ad__icon" @click="back">←</button>
+      <div class="ad__nav">
+        <button class="ad__icon" @click="back">←</button>
+        <button class="ad__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
+      </div>
       <h1>{{ articleLabel || $t('articles.title') }}</h1>
       <button v-if="article && !editMode" class="ad__icon" @click="startEdit">✎</button>
     </header>
@@ -197,6 +200,7 @@ onMounted(load)
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
+.ad__nav { display: flex; align-items: center; gap: 0.15rem; }
 .ad__header h1 { font-size: 1.2rem; margin: 0; flex: 1; text-align: center; }
 .ad__icon {
   background: none; border: none; color: #fff; font-size: 1.3rem;

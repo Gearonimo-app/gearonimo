@@ -1,7 +1,10 @@
 <template>
   <div class="sd">
     <header class="sd__header">
-      <button class="sd__icon" @click="back">←</button>
+      <div class="sd__nav">
+        <button class="sd__icon" @click="back">←</button>
+        <button class="sd__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
+      </div>
       <h1>{{ set?.name || $t('sets.title') }}</h1>
       <button v-if="set && !editMode" class="sd__icon" @click="startEdit">✎</button>
     </header>
@@ -201,6 +204,7 @@ onMounted(load)
   display: flex; align-items: center; justify-content: space-between;
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
+.sd__nav { display: flex; align-items: center; gap: 0.15rem; }
 .sd__header h1 { font-size: 1.2rem; margin: 0; flex: 1; text-align: center; }
 .sd__icon {
   background: none; border: none; color: #fff; font-size: 1.3rem;
