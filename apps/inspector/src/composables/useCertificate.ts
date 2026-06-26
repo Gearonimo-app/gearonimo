@@ -481,10 +481,17 @@ export async function renderCertificatePdf(
   const qrX = pageWidth - margin - qrSize
   page.drawImage(qrImage, { x: qrX, y: fy, width: qrSize, height: qrSize })
   const gearGreen = rgb(0.086, 0.639, 0.29) // #16a34a
+  // Branded QR: mini Gearonimo-merk in de kern, op een wit quiet-zone-blokje.
+  // De QR staat op error-correctie 'H' (~30% herstel); de afdekking is ~9% van
+  // het oppervlak, ruim binnen de tolerantie, dus de code blijft scanbaar.
   if (gearMark) {
-    const mh = 40
+    const box = qrSize * 0.3
+    const bcx = qrX + qrSize / 2
+    const bcy = fy + qrSize / 2
+    page.drawRectangle({ x: bcx - box / 2, y: bcy - box / 2, width: box, height: box, color: rgb(1, 1, 1) })
+    const mh = box * 0.86
     const mw = (gearMark.width / gearMark.height) * mh
-    page.drawImage(gearMark, { x: qrX - mw - 12, y: fy + (qrSize - mh) / 2, width: mw, height: mh })
+    page.drawImage(gearMark, { x: bcx - mw / 2, y: bcy - mh / 2, width: mw, height: mh })
   }
   page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
   page.drawText('geverifieerd met gearonimo', { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
