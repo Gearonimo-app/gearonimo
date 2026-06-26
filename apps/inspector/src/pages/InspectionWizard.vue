@@ -234,7 +234,10 @@
                     />
                   </td>
                   <td>
-                    <span v-if="row.previous" :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'">
+                    <span
+                      v-if="row.previous && row.previous.result !== 'not_assessed'"
+                      :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'"
+                    >
                       {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
                     </span>
                     <span v-else class="iw__prev--none">—</span>
