@@ -18,6 +18,7 @@
     <!-- Stap 2: koprij aanwijzen -->
     <section v-else-if="step === 2" class="imp__step">
       <h2>{{ $t('settings.import.step2Title') }}</h2>
+      <p v-if="profileApplied" class="imp__ok">{{ $t('settings.import.profileApplied') }}</p>
       <p class="imp__hint">{{ $t('settings.import.step2Hint') }}</p>
       <div class="imp__tablewrap">
         <table class="imp__table">
@@ -96,12 +97,41 @@
         </table>
       </div>
 
-      <p class="imp__comingSoon">{{ $t('settings.import.commitComingSoon') }}</p>
+      <label class="imp__checkbox">
+        <input type="checkbox" v-model="skipDuplicateSerials" />
+        {{ $t('settings.import.skipDuplicates') }}
+      </label>
+      <label class="imp__checkbox">
+        <input type="checkbox" v-model="saveProfile" />
+        {{ $t('settings.import.saveProfile') }}
+      </label>
+    </section>
+
+    <!-- Stap 5: importeren -->
+    <section v-else-if="step === 5" class="imp__step">
+      <h2>{{ $t('settings.import.step5Title') }}</h2>
+
+      <div v-if="!commitResult && !committing">
+        <p class="imp__hint">{{ $t('settings.import.step5Hint', { count: dataRows.length }) }}</p>
+        <button class="imp__btn" @click="runCommit">{{ $t('settings.import.startImport') }}</button>
+      </div>
+      <p v-else-if="committing" class="imp__hint">{{ $t('settings.import.importing') }}</p>
+      <div v-else-if="commitResult">
+        <p class="imp__ok">{{ $t('settings.import.done') }}</p>
+        <ul class="imp__summary">
+          <li>{{ $t('settings.import.sumCustomers', { count: commitResult.customersCreated }) }}</li>
+          <li>{{ $t('settings.import.sumArticlesCreated', { count: commitResult.articlesCreated }) }}</li>
+          <li>{{ $t('settings.import.sumArticlesSkipped', { count: commitResult.articlesSkipped }) }}</li>
+          <li>{{ $t('settings.import.sumInspections', { count: commitResult.inspectionsCreated }) }}</li>
+          <li>{{ $t('settings.import.sumRowsSkipped', { count: commitResult.rowsSkipped }) }}</li>
+        </ul>
+        <p v-for="(e, i) in commitResult.errors.slice(0, 5)" :key="i" class="imp__warn">{{ e }}</p>
+      </div>
     </section>
 
     <div class="imp__nav">
-      <button v-if="step > 1" class="imp__btn imp__btn--ghost" @click="step--">{{ $t('settings.import.back') }}</button>
-      <button v-if="step < 4" class="imp__btn" :disabled="!canAdvance" @click="step++">{{ $t('settings.import.next') }}</button>
+      <button v-if="step > 1 && step < 5" class="imp__btn imp__btn--ghost" @click="step--">{{ $t('settings.import.back') }}</button>
+      <button v-if="step < 5" class="imp__btn" :disabled="!canAdvance" @click="advance">{{ $t('settings.import.next') }}</button>
     </div>
   </div>
 </template>
@@ -117,9 +147,17 @@ import {
   type FieldKey,
   type RawRow,
 } from '../composables/useImportMapping'
+import {
+  commitImport,
+  findImportProfile,
+  saveImportProfile,
+  type CommitResult,
+} from '../composables/useImportCommit'
 
 const step = ref(1)
 const error = ref('')
+const file = ref<File | null>(null)
+const profileApplied = ref(false)
 
 const sheets = ref<Record<string, RawRow[]>>({})
 const sheetNames = computed(() => Object.keys(sheets.value))
@@ -133,6 +171,10 @@ const headerRow = computed<RawRow>(() => allRows.value[headerRowIndex.value] ?? 
 const dataRows = computed<RawRow[]>(() => allRows.value.slice(headerRowIndex.value + 1))
 
 const mapping = ref<Record<number, FieldKey>>({})
+const skipDuplicateSerials = ref(true)
+const saveProfile = ref(true)
+const committing = ref(false)
+const commitResult = ref<CommitResult | null>(null)
 
 watch(headerRowIndex, () => {
   mapping.value = guessMapping(headerRow.value)
@@ -166,12 +208,32 @@ const canAdvance = computed(() => {
   return true
 })
 
+function advance() {
+  step.value++
+  if (step.value === 5) commitResult.value = null
+}
+
+async function applyProfileIfAny() {
+  profileApplied.value = false
+  try {
+    const profile = await findImportProfile(headerRow.value)
+    if (profile) {
+      headerRowIndex.value = profile.header_row_index
+      mapping.value = profile.mapping
+      profileApplied.value = true
+    }
+  } catch {
+    // geen profiel gevonden of geen verbinding — gewoon doorgaan met de gok
+  }
+}
+
 async function onFileChange(e: Event) {
   error.value = ''
-  const file = (e.target as HTMLInputElement).files?.[0]
-  if (!file) return
+  const picked = (e.target as HTMLInputElement).files?.[0]
+  if (!picked) return
+  file.value = picked
   try {
-    const buf = await file.arrayBuffer()
+    const buf = await picked.arrayBuffer()
     const wb = XLSX.read(buf, { type: 'array', cellDates: true })
     const parsed: Record<string, RawRow[]> = {}
     for (const name of wb.SheetNames) {
@@ -182,6 +244,7 @@ async function onFileChange(e: Event) {
     selectedSheet.value = wb.SheetNames[0]
     headerRowIndex.value = guessHeaderRow(parsed[wb.SheetNames[0]] ?? [])
     mapping.value = guessMapping((parsed[wb.SheetNames[0]] ?? [])[headerRowIndex.value] ?? [])
+    await applyProfileIfAny()
   } catch (err) {
     error.value = (err as Error).message
   }
@@ -191,6 +254,25 @@ watch(selectedSheet, () => {
   headerRowIndex.value = guessHeaderRow(allRows.value)
   mapping.value = guessMapping(headerRow.value)
 })
+
+async function runCommit() {
+  if (!file.value) return
+  committing.value = true
+  try {
+    if (saveProfile.value) {
+      await saveImportProfile(headerRow.value, headerRowIndex.value, mapping.value)
+    }
+    commitResult.value = await commitImport({
+      rows: dataRows.value,
+      mapping: mapping.value,
+      file: file.value,
+      sheetName: selectedSheet.value,
+      skipDuplicateSerials: skipDuplicateSerials.value,
+    })
+  } finally {
+    committing.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -219,7 +301,8 @@ watch(selectedSheet, () => {
 .imp__samples { margin-top: 0.4rem; font-size: 0.75rem; color: #6b7280; }
 .imp__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.imp__comingSoon { margin-top: 1rem; font-size: 0.85rem; color: #6b7280; font-style: italic; }
+.imp__checkbox { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; margin-top: 0.6rem; }
+.imp__summary { font-size: 0.9rem; padding-left: 1.2rem; }
 
 .imp__nav { display: flex; gap: 0.5rem; margin-top: 1.25rem; }
 .imp__btn { background: #1a3a2a; color: #fff; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-weight: 600; cursor: pointer; }

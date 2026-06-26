@@ -299,18 +299,35 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   4. **Opgeslagen import-profiel per bedrijf** blijft het einddoel (nog te
      bouwen) zodat een volgende import met dezelfde lay-out één klik is.
 
-  **Geïmplementeerd (2026-06-26), eerste plak — upload + koprij + mapping +
-  preview, nog géén opslag in de database:** nieuwe Instellingen-tegel
-  "Excel/CSV-import" (`apps/inspector/src/components/ImportWizard.vue`,
-  `useImportMapping.ts`), 4 stappen: (1) bestand kiezen (`.xlsx`/`.xls`/`.csv`
-  via SheetJS/`xlsx`, client-side, tabblad-keuze bij meerdere sheets), (2)
-  koprij aanklikken in de rauwe voorvertoning, (3) per kolom een dropdown
-  (Klant/Artikel/Keuring-groepen) met substring-hint-prefill + voorbeeldwaarden,
-  (4) droogloop-validatie + preview van de eerste 10 rijen. Volgende stap:
-  commit naar de database (klant/artikel/keuring aanmaken, dedup op
-  klant+serienummer, origineel bestand als juridisch anker naar Storage),
-  daarna opgeslagen import-profielen (`import_profiles`/`import_batches`,
-  nog geen migratie aangemaakt — komt bij de commit-stap).
+  **Geïmplementeerd (2026-06-26), volledige eerste versie incl. commit:**
+  nieuwe Instellingen-tegel "Excel/CSV-import"
+  (`apps/inspector/src/components/ImportWizard.vue`, `useImportMapping.ts`,
+  `useImportCommit.ts`) in 5 stappen: (1) bestand kiezen (`.xlsx`/`.xls`/`.csv`
+  via SheetJS/`xlsx`, client-side, tabblad-keuze bij meerdere sheets) — herkent
+  hier al een eerder opgeslagen profiel op kolomkop-handtekening en vult
+  koprij+mapping automatisch in; (2) koprij aanklikken in de rauwe
+  voorvertoning; (3) per kolom een dropdown (Klant/Artikel/Keuring-groepen)
+  met substring-hint-prefill + voorbeeldwaarden; (4) droogloop-validatie +
+  preview van de eerste 10 rijen, met keuzes "dubbel serienummer overslaan"
+  en "dit profiel onthouden"; (5) **importeren** — schrijft per rij een
+  klant (find-or-create op naam, case-insensitive), artikel (dedup op
+  klant+serienummer, `source='import'`) en keuring (rijen met dezelfde
+  klant+datum komen in dezelfde `inspections`-rij, zoals een echte keurdag;
+  status meteen `completed`, `source='import'`) plus `inspection_items`.
+  **Geen nieuw certificaat-PDF** voor historische keuringen — in plaats
+  daarvan gaat het originele bestand ongewijzigd naar de nieuwe private
+  Storage-bucket `imports` als juridisch anker, gekoppeld via een
+  `import_batches`-rij (`inspections.import_batch_id`). Bij "dit profiel
+  onthouden" wordt de koprij+mapping opgeslagen in `import_profiles`
+  (uniek per bedrijf + kolomkop-handtekening, upsert) zodat een volgende
+  import met dezelfde lay-out automatisch wordt herkend. Nieuwe migratie:
+  `supabase/migrations/20260702_import_tables.sql` (`import_batches`,
+  `import_profiles`, `source`-kolom op articles/inspections, bucket
+  `imports`) — **nog door Jos uit te voeren in Supabase**. RLS uit, grant
+  `authenticated`, zelfde patroon als de rest. Niet gebouwd: "update"-keuze
+  bij een dubbel serienummer (nu alleen skip/toch-toevoegen), en koppeling
+  aan afkeurcodes uit `rejection_codes` (afkeurtekst blijft vrije tekst in
+  `comment`).
 
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
