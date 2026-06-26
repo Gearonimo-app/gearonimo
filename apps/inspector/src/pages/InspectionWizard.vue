@@ -185,16 +185,10 @@
                     <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
                     <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
                     <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
-                    <!-- Catalogus-artikel: alleen-lezen recall-vlag uit products.recall_url -->
+                    <!-- Catalogus-artikel: alleen-lezen recall-vlag uit products.recall_url. Bij vrije
+                         artikelen is een recall onbekend (geen catalogus om tegen te checken), dus
+                         daar tonen we helemaal geen vlag — niet eens een leeg/uit te zetten icoon. -->
                     <a v-if="row.it.article.product?.recall_url" :href="row.it.article.product.recall_url" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
-                    <!-- Vrij artikel: zelf in/uit te schakelen recall-vlag (één icoon, geen dubbele) -->
-                    <button
-                      v-else-if="!row.it.article.product"
-                      class="iw__icon-btn"
-                      :class="{ 'iw__icon-btn--active': row.it.article.free_recall_flag }"
-                      :title="$t('inspections.table.toggleRecall')"
-                      @click="toggleFreeRecall(row.it)"
-                    >🚩</button>
                   </td>
                   <td class="iw__category">{{ row.category || '—' }}</td>
                   <td>{{ row.brand || '—' }}</td>
@@ -277,8 +271,7 @@
                     <span v-else>—</span>
                   </td>
                   <td class="iw__actions-cell">
-                    <span v-if="row.it.article.retired" class="iw__retired-badge" :title="$t('articles.detail.retiredBadge')">🗑</span>
-                    <button v-else class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
+                    <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
               </template>
@@ -292,7 +285,7 @@
         <p v-if="addError" class="iw__error">{{ addError }}</p>
 
         <p v-if="completeError" class="iw__error">{{ completeError }}</p>
-        <button class="iw__next" :disabled="notAssessedCount > 0 || completing" @click="finish">
+        <button class="iw__next" :disabled="completing" @click="finish">
           {{ completing ? $t('common.saving') : $t('inspections.table.finish') }}
         </button>
       </div>
@@ -567,23 +560,6 @@ function itemCategory(it: Item) { return it.article.product?.category ?? it.arti
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
 
-// Bij vrije (niet-catalogus) artikelen kan de keurmeester zelf een recall
-// aanvinken (en optioneel een link erbij zetten) — bij catalogusartikelen
-// komt dit automatisch uit het product.
-async function toggleFreeRecall(it: Item) {
-  if (it.article.product) return
-  const next = !it.article.free_recall_flag
-  let url = it.article.free_recall_url
-  if (next) {
-    url = window.prompt(t('inspections.table.recallUrlPrompt'), url ?? '') || null
-  }
-  const { error: err } = await supabase
-    .from('articles')
-    .update({ free_recall_flag: next, free_recall_url: url })
-    .eq('id', it.article.id)
-  if (!err) { it.article.free_recall_flag = next; it.article.free_recall_url = url }
-}
-
 async function editManualUrl(it: Item) {
   if (it.article.product) return
   const url = window.prompt(t('inspections.table.manualUrlPrompt'), it.article.free_manual_url ?? '')
@@ -702,6 +678,7 @@ function matchScore(it: Item): number {
 const rows = computed<Row[]>(() => {
   const result: Row[] = []
   for (const it of items.value) {
+    if (it.article.retired) continue
     if (hasFilter.value && !matchesFilters(it)) continue
     const y = it.article.manufacture_year
     result.push({
@@ -909,6 +886,12 @@ async function saveRow(it: Item) {
 }
 
 async function finish() {
+  const notAssessed = items.value.filter((i) => i.result === 'not_assessed')
+  if (notAssessed.length) {
+    const names = notAssessed.map((i) => itemLabel(i)).join('\n - ')
+    const ok = confirm(t('inspections.table.notAssessedConfirm', { count: notAssessed.length }) + '\n - ' + names)
+    if (!ok) return
+  }
   completing.value = true
   completeError.value = ''
   try {

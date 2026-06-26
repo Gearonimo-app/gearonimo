@@ -604,7 +604,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     .order('created_at')
   if (itemsErr) throw itemsErr
 
-  const items: CertItem[] = (rows ?? []).map((r: any) => {
+  // Niet-beoordeelde artikelen (vergeten/kwijt op de keurdag) horen niet op
+  // het certificaat — ze blijven wel bij de klant staan voor een volgende keer.
+  const items: CertItem[] = (rows ?? []).filter((r: any) => r.result !== 'not_assessed').map((r: any) => {
     const a = r.article
     const p = a?.product
     return {

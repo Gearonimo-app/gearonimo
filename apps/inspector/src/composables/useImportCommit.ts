@@ -167,7 +167,6 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             free_brand: cellsForField(opts.mapping, 'brand', row) || null,
             free_description: description,
             free_category: cellsForField(opts.mapping, 'category', row) || null,
-            free_material: cellsForField(opts.mapping, 'material', row) || null,
             serial_number: serial || null,
             manufacture_year: yearRaw ? parseInt(yearRaw, 10) || null : null,
             first_use_date: parseToISODate(cellsForField(opts.mapping, 'firstUseDate', row) || null),
