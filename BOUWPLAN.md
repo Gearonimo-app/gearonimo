@@ -276,6 +276,42 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   > prompt die Jos bewaart). Catalogus-import van Safety Green-producten is
   > minder urgent geworden (catalogus al goed gevuld).
 
+  **Aanpassing met Jos (2026-06-26): geen fuzzy matching.** Jos' bezwaar:
+  elk keurbedrijf doet dit maar één keer, en kolomkoppen beginnen niet altijd
+  bovenaan (bij Safety Green bv. pas rij 14; een andere keurmeester gebruikt
+  een tabel in Word/Excel met eigen lay-out). Een synoniemenwoordenboek +
+  fuzzy-matchlogica is dan overbodige complexiteit. **Nieuwe aanpak: de
+  gebruiker wijst zelf de koprij en kolommen aan.** Laag 1 (auto-herkenning)
+  is hierdoor vervallen; laag 2 is uitgebreid met een koprij-picker:
+  1. **Koprij aanwijzen** — de gebruiker klikt in een rauwe voorvertoning
+     (eerste ~25 rijen) op de rij met de kolomkoppen; lost het "rij 14"-
+     probleem op zonder enige detectie. Startwaarde: de rij met de meeste
+     niet-lege cellen in de eerste 30 rijen (`guessHeaderRow`), puur een
+     snelkoppeling, niet bindend.
+  2. **Kolommen koppelen** — per kolom een dropdown met Gearonimo-velden,
+     voor-ingevuld via een lichte substring-hint (`guessMapping`, géén
+     fuzzy/typo-matching) als die kolomkop een duidelijke aanwijzing geeft
+     (bv. "serienr" → serienummer); de gebruiker corrigeert altijd zelf.
+     Live voorvertoning van de eerste 3 waarden per kolom tijdens het kiezen.
+  3. **Droogloop-validatie + preview** — vóór commit: ontbrekende verplichte
+     velden, lege verplichte cellen per rij, dubbele serienummers binnen het
+     bestand, onleesbare datums; voorvertoning van de eerste 10 gemapte rijen.
+  4. **Opgeslagen import-profiel per bedrijf** blijft het einddoel (nog te
+     bouwen) zodat een volgende import met dezelfde lay-out één klik is.
+
+  **Geïmplementeerd (2026-06-26), eerste plak — upload + koprij + mapping +
+  preview, nog géén opslag in de database:** nieuwe Instellingen-tegel
+  "Excel/CSV-import" (`apps/inspector/src/components/ImportWizard.vue`,
+  `useImportMapping.ts`), 4 stappen: (1) bestand kiezen (`.xlsx`/`.xls`/`.csv`
+  via SheetJS/`xlsx`, client-side, tabblad-keuze bij meerdere sheets), (2)
+  koprij aanklikken in de rauwe voorvertoning, (3) per kolom een dropdown
+  (Klant/Artikel/Keuring-groepen) met substring-hint-prefill + voorbeeldwaarden,
+  (4) droogloop-validatie + preview van de eerste 10 rijen. Volgende stap:
+  commit naar de database (klant/artikel/keuring aanmaken, dedup op
+  klant+serienummer, origineel bestand als juridisch anker naar Storage),
+  daarna opgeslagen import-profielen (`import_profiles`/`import_batches`,
+  nog geen migratie aangemaakt — komt bij de commit-stap).
+
   **RLS-advies aan Jos (2026-06-26):** RLS blijft bewust UIT tijdens de bouw
   (er is nog maar één keurbedrijf, dus geen risico op data-inzage door
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde

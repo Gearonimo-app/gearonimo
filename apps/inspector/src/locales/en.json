@@ -400,6 +400,52 @@
         "nameRequired": "Name is required",
         "qNameRequired": "Qualification name is required"
       }
+    },
+    "import": {
+      "menuTitle": "Excel/CSV import",
+      "menuDesc": "Import existing inspections from Excel",
+      "title": "Excel/CSV import",
+      "intro": "Import inspections from an existing Excel or CSV file. You point out the header row and columns yourself — no automatic guessing you can't rely on.",
+      "back": "← Back",
+      "next": "Next →",
+      "step1Title": "Step 1: choose a file",
+      "sheetLabel": "Sheet",
+      "step2Title": "Step 2: which row is the header row?",
+      "step2Hint": "Click the row with the column names. In some files this only starts on row 10 or later — pick the right row, even if it isn't at the top.",
+      "step3Title": "Step 3: map the columns",
+      "step3Hint": "Tell us what's in each column. We made a guess based on the column name — check and adjust where needed.",
+      "unnamedColumn": "Column {n}",
+      "step4Title": "Step 4: review and preview",
+      "missingRequired": "Required fields not mapped",
+      "emptyRequired": "{field}: {count} row(s) without a value",
+      "duplicateSerials": "{count} duplicate serial number(s) found in this file",
+      "unparsableDates": "{count} date(s) could not be read",
+      "allGood": "No problems found in the dry-run validation.",
+      "rowCount": "{count} rows in this file",
+      "commitComingSoon": "Importing (saving into the system) is coming in a next step — this screen currently only shows the mapping and preview.",
+      "groups": {
+        "ignore": "—",
+        "customer": "Customer",
+        "article": "Article",
+        "inspection": "Inspection"
+      },
+      "fields": {
+        "ignore": "Ignore",
+        "customerName": "Customer name",
+        "customerEmail": "Email",
+        "customerPhone": "Phone",
+        "customerCity": "City",
+        "brand": "Brand",
+        "description": "Description",
+        "serialNumber": "Serial number",
+        "manufactureYear": "Manufacture year",
+        "firstUseDate": "First use",
+        "assignedUserName": "User",
+        "inspectionDate": "Inspection date",
+        "result": "Result",
+        "rejectionComment": "Rejection code/comment",
+        "nextDue": "Next inspection"
+      }
     }
   }
 }

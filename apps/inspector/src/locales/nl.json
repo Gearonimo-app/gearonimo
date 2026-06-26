@@ -400,6 +400,52 @@
         "nameRequired": "Naam is verplicht",
         "qNameRequired": "Naam van de kwalificatie is verplicht"
       }
+    },
+    "import": {
+      "menuTitle": "Excel/CSV-import",
+      "menuDesc": "Bestaande keuringen vanuit Excel importeren",
+      "title": "Excel/CSV-import",
+      "intro": "Importeer keuringen uit een bestaand Excel- of CSV-bestand. Je wijst zelf de koprij en kolommen aan — geen automatisch giswerk waar je niet op kunt vertrouwen.",
+      "back": "← Terug",
+      "next": "Volgende →",
+      "step1Title": "Stap 1: bestand kiezen",
+      "sheetLabel": "Tabblad",
+      "step2Title": "Stap 2: welke rij is de koprij?",
+      "step2Hint": "Klik op de rij met de kolomnamen. Bij sommige bestanden begint dit pas op rij 10 of later — kies de juiste rij, ook als die niet bovenaan staat.",
+      "step3Title": "Stap 3: koppel de kolommen",
+      "step3Hint": "Geef per kolom aan welk gegeven erin staat. We hebben een gok gedaan op basis van de kolomnaam — controleer en pas aan waar nodig.",
+      "unnamedColumn": "Kolom {n}",
+      "step4Title": "Stap 4: controle en voorvertoning",
+      "missingRequired": "Verplichte velden niet gekoppeld",
+      "emptyRequired": "{field}: {count} rij(en) zonder waarde",
+      "duplicateSerials": "{count} dubbel(e) serienummer(s) gevonden in dit bestand",
+      "unparsableDates": "{count} datum/data niet te lezen",
+      "allGood": "Geen problemen gevonden in de droogloop-validatie.",
+      "rowCount": "{count} rijen in dit bestand",
+      "commitComingSoon": "Importeren (opslaan in het systeem) volgt in een volgende stap — dit scherm laat nu alleen de mapping en voorvertoning zien.",
+      "groups": {
+        "ignore": "—",
+        "customer": "Klant",
+        "article": "Artikel",
+        "inspection": "Keuring"
+      },
+      "fields": {
+        "ignore": "Negeren",
+        "customerName": "Klantnaam",
+        "customerEmail": "E-mail",
+        "customerPhone": "Telefoon",
+        "customerCity": "Plaats",
+        "brand": "Merk",
+        "description": "Omschrijving",
+        "serialNumber": "Serienummer",
+        "manufactureYear": "Bouwjaar",
+        "firstUseDate": "Eerste gebruik",
+        "assignedUserName": "Gebruiker",
+        "inspectionDate": "Keuringsdatum",
+        "result": "Resultaat",
+        "rejectionComment": "Afkeurcode/opmerking",
+        "nextDue": "Volgende keuring"
+      }
     }
   }
 }

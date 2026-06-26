@@ -30,6 +30,7 @@
       <RejectionCodes v-if="section === 'rejection'" />
       <CertificateSettings v-else-if="section === 'certificate'" />
       <InspectorsSettings v-else-if="section === 'inspectors'" />
+      <ImportWizard v-else-if="section === 'import'" />
     </div>
   </div>
 </template>
@@ -41,11 +42,12 @@ import { useI18n } from 'vue-i18n'
 import RejectionCodes from '../components/RejectionCodes.vue'
 import CertificateSettings from '../components/CertificateSettings.vue'
 import InspectorsSettings from '../components/InspectorsSettings.vue'
+import ImportWizard from '../components/ImportWizard.vue'
 
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors'
+type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -58,6 +60,7 @@ const sections: SectionDef[] = [
   { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true  },
   { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true  },
   { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true  },
+  { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true  },
 ]
 
 const section = ref<SectionKey | null>(null)
@@ -66,6 +69,7 @@ const headerTitle = computed(() => {
   if (section.value === 'rejection') return t('settings.rejection.menuTitle')
   if (section.value === 'certificate') return t('settings.certificate.menuTitle')
   if (section.value === 'inspectors') return t('settings.inspectors.menuTitle')
+  if (section.value === 'import') return t('settings.import.menuTitle')
   return t('settings.title')
 })
 
