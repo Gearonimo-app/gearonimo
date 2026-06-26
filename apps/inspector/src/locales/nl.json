@@ -417,6 +417,8 @@
       "fixedCustomerLabel": "Klantnaam voor dit hele bestand (optioneel)",
       "fixedCustomerPlaceholder": "Bijv. Klimhal De Toren",
       "fixedCustomerHint": "Vul dit in als de klantnaam nergens als kolom in het bestand staat — dan geldt deze naam voor alle rijen, in plaats van een gekoppelde kolom.",
+      "fixedDateLabel": "Keuringsdatum voor dit hele bestand (optioneel)",
+      "fixedDateHint": "Vul dit in als de keuringsdatum nergens als kolom in het bestand staat — dan geldt deze datum voor alle rijen, in plaats van een gekoppelde kolom.",
       "unnamedColumn": "Kolom {n}",
       "step4Title": "Stap 4: controle en voorvertoning",
       "missingRequired": "Verplichte velden niet gekoppeld",

@@ -48,6 +48,12 @@
         <p class="imp__hint">{{ $t('settings.import.fixedCustomerHint') }}</p>
       </div>
 
+      <div class="imp__field">
+        <label>{{ $t('settings.import.fixedDateLabel') }}</label>
+        <input type="date" v-model="fixedInspectionDate" />
+        <p class="imp__hint">{{ $t('settings.import.fixedDateHint') }}</p>
+      </div>
+
       <div class="imp__mapgrid">
         <div v-for="(col, colIndex) in headerRow" :key="colIndex" class="imp__mapcol">
           <div class="imp__colhead">{{ col || $t('settings.import.unnamedColumn', { n: colIndex + 1 }) }}</div>
@@ -179,6 +185,7 @@ const dataRows = computed<RawRow[]>(() => allRows.value.slice(headerRowIndex.val
 
 const mapping = ref<Record<number, FieldKey>>({})
 const fixedCustomerName = ref('')
+const fixedInspectionDate = ref('')
 const skipDuplicateSerials = ref(true)
 const saveProfile = ref(true)
 const committing = ref(false)
@@ -214,6 +221,11 @@ const validation = computed(() => {
   if (fixedCustomerName.value.trim()) {
     result.missingRequired = result.missingRequired.filter((f) => f !== 'customerName')
     delete result.emptyRequiredCount.customerName
+  }
+  if (fixedInspectionDate.value.trim()) {
+    result.missingRequired = result.missingRequired.filter((f) => f !== 'inspectionDate')
+    delete result.emptyRequiredCount.inspectionDate
+    result.unparsableDates = 0
   }
   return result
 })
@@ -284,6 +296,7 @@ async function runCommit() {
       sheetName: selectedSheet.value,
       skipDuplicateSerials: skipDuplicateSerials.value,
       fixedCustomerName: fixedCustomerName.value,
+      fixedInspectionDate: fixedInspectionDate.value,
     })
   } finally {
     committing.value = false

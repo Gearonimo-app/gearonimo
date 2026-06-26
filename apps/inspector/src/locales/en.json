@@ -417,6 +417,8 @@
       "fixedCustomerLabel": "Customer name for this whole file (optional)",
       "fixedCustomerPlaceholder": "E.g. Climbing Hall The Tower",
       "fixedCustomerHint": "Fill this in if the customer name isn't a column anywhere in the file — this name will then apply to all rows instead of a mapped column.",
+      "fixedDateLabel": "Inspection date for this whole file (optional)",
+      "fixedDateHint": "Fill this in if the inspection date isn't a column anywhere in the file — this date will then apply to all rows instead of a mapped column.",
       "unnamedColumn": "Column {n}",
       "step4Title": "Step 4: review and preview",
       "missingRequired": "Required fields not mapped",

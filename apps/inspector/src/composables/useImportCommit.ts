@@ -48,6 +48,8 @@ export interface CommitOptions {
   skipDuplicateSerials: boolean
   /** Klantnaam voor het hele bestand, voor bestanden zonder klantkolom (bijv. één klant per import). Overschrijft een eventuele gekoppelde kolom. */
   fixedCustomerName?: string
+  /** Keuringsdatum (ISO yyyy-mm-dd) voor het hele bestand, voor bestanden zonder datumkolom. Overschrijft een eventuele gekoppelde kolom. */
+  fixedInspectionDate?: string
 }
 
 export interface CommitResult {
@@ -104,7 +106,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
       const serial = cellsForField(opts.mapping, 'serialNumber', row)
       const description = cellsForField(opts.mapping, 'description', row)
       const inspectionDateRaw = cellsForField(opts.mapping, 'inspectionDate', row)
-      const inspectionDate = parseToISODate(inspectionDateRaw)
+      const inspectionDate = opts.fixedInspectionDate?.trim() || parseToISODate(inspectionDateRaw)
 
       if (!customerName || !description || !inspectionDate) {
         skipped++
