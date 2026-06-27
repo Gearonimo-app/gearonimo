@@ -182,7 +182,8 @@
               <template v-for="row in sortedRows" :key="row.it.id">
                 <tr :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed' }">
                   <td class="iw__warn-cell">
-                    <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
+                    <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
+                         bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
                     <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
                     <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
                     <!-- Catalogus-artikel: alleen-lezen recall-vlag uit products.recall_url. Bij vrije
