@@ -15,6 +15,10 @@
       />
     </div>
 
+    <button class="in__new-customer" @click="showNewCustomer = true">
+      ➕ {{ $t('inspections.newCustomer') }}
+    </button>
+
     <div v-if="pickError" class="in__state in__state--error">{{ pickError }}</div>
 
     <div v-if="loading" class="in__state">{{ $t('common.loading') }}</div>
@@ -48,6 +52,12 @@
       @choose="confirmAddExtra"
       @cancel="cancelAddExtra"
     />
+
+    <CustomerFormModal
+      v-if="showNewCustomer"
+      @saved="onNewCustomer"
+      @cancel="showNewCustomer = false"
+    />
   </div>
 </template>
 
@@ -56,6 +66,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { supabase } from '@gearonimo/core'
 import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
+import CustomerFormModal from '../components/CustomerFormModal.vue'
 import {
   findDraftInspection,
   fetchArticleScope,
@@ -77,6 +88,7 @@ const picking = ref(false)
 const pickError = ref('')
 const showArticleSelect = ref(false)
 const showAddExtra = ref(false)
+const showNewCustomer = ref(false)
 const articleScope = ref<ArticleScope>({ allIds: [], newIds: [] })
 const pendingCustomerId = ref<string | null>(null)
 const pendingDraftId = ref<string | null>(null)
@@ -171,6 +183,22 @@ function cancelAddExtra() {
   if (pendingDraftId.value) router.push(`/inspections/${pendingDraftId.value}`)
 }
 
+// Een net aangemaakte klant heeft nog geen artikelen, dus starten we direct
+// een lege keuring en gaan we naar de wizard om de artikelen in te vullen.
+async function onNewCustomer(customerId: string) {
+  showNewCustomer.value = false
+  picking.value = true
+  pickError.value = ''
+  try {
+    const inspectionId = await startInspectionWithArticles(customerId, [])
+    router.push(`/inspections/${inspectionId}`)
+  } catch (e: any) {
+    pickError.value = e?.message ?? String(e)
+  } finally {
+    picking.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -188,6 +216,12 @@ onMounted(load)
   width: 100%; padding: 0.75rem 1rem; border-radius: 10px;
   border: 1px solid #ddd; font-size: 1rem; box-sizing: border-box;
 }
+.in__new-customer {
+  margin: 0 1.25rem 0.5rem; padding: 0.85rem 1rem; width: calc(100% - 2.5rem);
+  background: #16a34a; color: #fff; border: none; border-radius: 10px;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+}
+.in__new-customer:active { opacity: 0.9; }
 .in__state { text-align: center; padding: 3rem 1rem; color: #666; }
 .in__state--error { color: #dc2626; }
 .in__list { list-style: none; margin: 0.5rem 0 0; padding: 0; }

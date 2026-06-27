@@ -46,12 +46,10 @@ const { signOut } = useAuth()
 const searchQuery = ref('')
 
 const tiles = [
-  { key: 'new-inspection',   icon: '🆕', label: 'home.tiles.newInspection',   route: '/inspection/new',   color: 'green'  },
-  { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'blue'   },
+  { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'green'  },
   { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers',        color: 'orange' },
   { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search',    color: 'purple' },
   { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings',         color: 'gray'   },
-  { key: 'reserved',         icon: '➕', label: 'home.tiles.reserved',         route: null,                color: 'light'  },
 ]
 
 // Placeholder — wordt in fase 2 gevuld vanuit Supabase

@@ -6,6 +6,26 @@
       <span class="il__icon"></span>
     </header>
 
+    <!-- Primaire actie: nieuwe keuring starten (los van de lijst zodat je
+         nooit per ongeluk een oude keuring opent) -->
+    <div class="il__actions">
+      <button class="il__primary" @click="$router.push('/inspection/new')">
+        ➕ {{ $t('inspections.startNew') }}
+      </button>
+      <button class="il__secondary" @click="$router.push('/import')">
+        📥 {{ $t('inspections.importOld') }}
+      </button>
+    </div>
+
+    <div class="il__search">
+      <input
+        v-model="query"
+        type="search"
+        :placeholder="$t('inspections.searchPlaceholder')"
+        class="il__search-input"
+      />
+    </div>
+
     <div v-if="loading" class="il__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="il__state il__state--error">{{ error }}</div>
 
@@ -23,7 +43,9 @@
 
       <section class="il__section">
         <h2>{{ $t('inspections.completed') }}</h2>
-        <p v-if="!completed.length" class="il__state">{{ $t('inspections.empty') }}</p>
+        <p v-if="!completed.length" class="il__state">
+          {{ query ? $t('inspections.noMatches') : $t('inspections.empty') }}
+        </p>
         <ul v-else class="il__list">
           <li v-for="i in completed" :key="i.id" class="il__item" @click="$router.push(`/customers/${i.customer_id}`)">
             <div class="il__name">{{ i.customer?.name }}</div>
@@ -52,13 +74,22 @@ interface InspectionRow {
 const inspections = ref<InspectionRow[]>([])
 const loading = ref(true)
 const error = ref('')
-
-const drafts = computed(() => inspections.value.filter(i => i.status === 'draft'))
-const completed = computed(() => inspections.value.filter(i => i.status === 'completed'))
+const query = ref('')
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
 }
+
+const filtered = computed(() => {
+  const q = query.value.toLowerCase().trim()
+  if (!q) return inspections.value
+  return inspections.value.filter(i =>
+    [i.customer?.name, formatDate(i.inspection_date)].some(v => v?.toLowerCase().includes(q))
+  )
+})
+
+const drafts = computed(() => filtered.value.filter(i => i.status === 'draft'))
+const completed = computed(() => filtered.value.filter(i => i.status === 'completed'))
 
 async function load() {
   loading.value = true
@@ -91,6 +122,22 @@ onMounted(load)
 }
 .il__header h1 { font-size: 1.2rem; margin: 0; }
 .il__icon { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 0.25rem 0.5rem; min-width: 2rem; }
+.il__actions { display: flex; flex-direction: column; gap: 0.6rem; padding: 1rem 1.25rem 0.25rem; }
+.il__primary {
+  padding: 1rem; border: none; border-radius: 12px; background: #16a34a;
+  color: #fff; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+}
+.il__primary:active { opacity: 0.92; }
+.il__secondary {
+  padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 12px; background: #fff;
+  color: #374151; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.il__secondary:active { background: #f9fafb; }
+.il__search { padding: 0.5rem 1.25rem 0.25rem; }
+.il__search-input {
+  width: 100%; padding: 0.75rem 1rem; border-radius: 10px;
+  border: 1px solid #ddd; font-size: 1rem; box-sizing: border-box;
+}
 .il__state { text-align: center; padding: 2rem 1rem; color: #666; }
 .il__state--error { color: #dc2626; }
 .il__section { padding: 1rem 1.25rem 0; }

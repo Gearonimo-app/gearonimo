@@ -12,7 +12,7 @@
     "searchPlaceholder": "Search customer or serial number...",
     "tiles": {
       "newInspection": "New inspection",
-      "inspections": "Existing inspections",
+      "inspections": "Inspections",
       "customers": "Customers",
       "serialSearch": "SN search / Recall",
       "settings": "Settings",
@@ -182,6 +182,11 @@
   "inspections": {
     "newTitle": "New inspection",
     "listTitle": "Inspections",
+    "startNew": "Start new inspection",
+    "importOld": "Import old certificate",
+    "searchPlaceholder": "Search by customer name or date…",
+    "noMatches": "No inspections found",
+    "newCustomer": "Create new customer",
     "drafts": "Drafts",
     "completed": "Completed",
     "empty": "No completed inspections yet",

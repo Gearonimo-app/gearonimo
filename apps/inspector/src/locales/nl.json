@@ -12,7 +12,7 @@
     "searchPlaceholder": "Zoek klant of serienummer...",
     "tiles": {
       "newInspection": "Nieuwe keuring",
-      "inspections": "Bestaande keuringen",
+      "inspections": "Keuringen",
       "customers": "Klanten",
       "serialSearch": "SN zoeken / Recall",
       "settings": "Instellingen",
@@ -182,6 +182,11 @@
   "inspections": {
     "newTitle": "Nieuwe keuring",
     "listTitle": "Keuringen",
+    "startNew": "Nieuwe keuring starten",
+    "importOld": "Oud certificaat importeren",
+    "searchPlaceholder": "Zoek op klantnaam of datum…",
+    "noMatches": "Geen keuringen gevonden",
+    "newCustomer": "Nieuwe klant aanmaken",
     "drafts": "Concepten",
     "completed": "Afgerond",
     "empty": "Nog geen afgeronde keuringen",

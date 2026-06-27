@@ -33,44 +33,14 @@
     </ul>
 
     <!-- Nieuw klant formulier -->
-    <div v-if="showAdd" class="customers__overlay" @click.self="showAdd = false">
-      <div class="customers__form">
-        <h2>{{ $t('customers.addTitle') }}</h2>
-        <input v-model="form.name"                :placeholder="$t('customers.fields.name')"                class="customers__input" />
-        <input v-model="form.customerNumber"      :placeholder="$t('customers.fields.customerNumber')"      class="customers__input" />
-        <input v-model="form.kvk"                 :placeholder="$t('customers.fields.kvk')"                 class="customers__input" />
-        <input v-model="form.vat"                 :placeholder="$t('customers.fields.vat')"                 class="customers__input" />
-        <input v-model="form.contactPerson"       :placeholder="$t('customers.fields.contactPerson')"       class="customers__input" />
-        <input v-model="form.email"               :placeholder="$t('customers.fields.email')"               class="customers__input" type="email" />
-        <input v-model="form.phone"               :placeholder="$t('customers.fields.phone')"               class="customers__input" type="tel" />
-        <input v-model="form.street"              :placeholder="$t('customers.fields.street')"              class="customers__input" />
-        <div class="customers__row">
-          <input v-model="form.houseNumber"         :placeholder="$t('customers.fields.houseNumber')"         class="customers__input" />
-          <input v-model="form.houseNumberAddition" :placeholder="$t('customers.fields.houseNumberAddition')" class="customers__input" />
-        </div>
-        <input v-model="form.postalCode"          :placeholder="$t('customers.fields.postalCode')"          class="customers__input" />
-        <input v-model="form.city"                :placeholder="$t('customers.fields.city')"                class="customers__input" />
-        <input v-model="form.province"            :placeholder="$t('customers.fields.province')"            class="customers__input" />
-        <input v-model="form.country"             :placeholder="$t('customers.fields.country')"             class="customers__input" />
-        <textarea v-model="form.notes"            :placeholder="$t('customers.fields.notes')"               class="customers__input customers__textarea" rows="3"></textarea>
-        <p v-if="formError" class="customers__form-error">{{ formError }}</p>
-        <div class="customers__form-actions">
-          <button class="customers__btn customers__btn--cancel" @click="showAdd = false">{{ $t('common.cancel') }}</button>
-          <button class="customers__btn customers__btn--save" :disabled="saving" @click="saveCustomer">
-            {{ saving ? $t('common.saving') : $t('common.save') }}
-          </button>
-        </div>
-      </div>
-    </div>
+    <CustomerFormModal v-if="showAdd" @saved="onCustomerSaved" @cancel="showAdd = false" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
-
-const { t } = useI18n()
+import CustomerFormModal from '../components/CustomerFormModal.vue'
 
 interface Customer {
   id: string
@@ -85,18 +55,6 @@ const loading = ref(true)
 const error = ref('')
 const query = ref('')
 const showAdd = ref(false)
-const saving = ref(false)
-const formError = ref('')
-
-function emptyForm() {
-  return {
-    name: '', customerNumber: '', kvk: '', vat: '', contactPerson: '',
-    email: '', phone: '', street: '', houseNumber: '', houseNumberAddition: '',
-    postalCode: '', city: '', province: '', country: '', notes: '',
-  }
-}
-
-const form = ref(emptyForm())
 
 const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
@@ -117,33 +75,8 @@ async function load() {
   loading.value = false
 }
 
-async function saveCustomer() {
-  if (!form.value.name.trim())  { formError.value = t('customers.errors.nameRequired');  return }
-  if (!form.value.email.trim()) { formError.value = t('customers.errors.emailRequired'); return }
-  saving.value = true
-  formError.value = ''
-  const f = form.value
-  const { error: err } = await supabase.from('customers').insert({
-    name: f.name.trim(),
-    customer_number: f.customerNumber.trim() || null,
-    kvk_number: f.kvk.trim() || null,
-    vat_number: f.vat.trim() || null,
-    contact_person: f.contactPerson.trim() || null,
-    email: f.email.trim(),
-    phone: f.phone.trim() || null,
-    street: f.street.trim() || null,
-    house_number: f.houseNumber.trim() || null,
-    house_number_addition: f.houseNumberAddition.trim() || null,
-    postal_code: f.postalCode.trim() || null,
-    city: f.city.trim() || null,
-    province: f.province.trim() || null,
-    country: f.country.trim() || null,
-    notes: f.notes.trim() || null,
-  })
-  saving.value = false
-  if (err) { formError.value = err.message; return }
+async function onCustomerSaved() {
   showAdd.value = false
-  form.value = emptyForm()
   await load()
 }
 
@@ -177,27 +110,4 @@ onMounted(load)
 .customers__name { font-weight: 600; flex: 1; }
 .customers__meta { font-size: 0.85rem; color: #666; margin-top: 0.2rem; flex: 2; }
 .customers__arrow { color: #999; font-size: 1.4rem; margin-left: 0.5rem; }
-.customers__overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: flex; align-items: flex-end; z-index: 100;
-}
-.customers__form {
-  background: #fff; width: 100%; border-radius: 16px 16px 0 0;
-  padding: 1.5rem; display: flex; flex-direction: column; gap: 0.75rem;
-  max-height: 88vh; overflow-y: auto;
-}
-.customers__row { display: flex; gap: 0.75rem; }
-.customers__row .customers__input { flex: 1; }
-.customers__textarea { font-family: inherit; resize: vertical; }
-.customers__form h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
-.customers__input {
-  padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #ddd;
-  font-size: 1rem; width: 100%; box-sizing: border-box;
-}
-.customers__form-error { color: #dc2626; font-size: 0.9rem; margin: 0; }
-.customers__form-actions { display: flex; gap: 0.75rem; margin-top: 0.5rem; }
-.customers__btn { flex: 1; padding: 0.85rem; border-radius: 10px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; }
-.customers__btn--cancel { background: #f3f4f6; color: #374151; }
-.customers__btn--save { background: #16a34a; color: #fff; }
-.customers__btn--save:disabled { opacity: 0.6; }
 </style>

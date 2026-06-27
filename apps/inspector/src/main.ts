@@ -65,6 +65,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/import",
+      component: () => import("./pages/ImportCertificate.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/inspections/:id",
       component: () => import("./pages/InspectionWizard.vue"),
       meta: { requiresAuth: true },
