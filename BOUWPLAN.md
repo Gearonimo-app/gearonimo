@@ -5,7 +5,7 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Voortgang (bijgewerkt 2026-06-24)
+## Voortgang (bijgewerkt 2026-06-27)
 
 - **GitHub:** github.com/Gearonimo-app/gearonimo · **Supabase:**
   buitfeiclivzzldfdelp.supabase.co (EU).
@@ -334,6 +334,70 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   derden). Het aanzetten gebeurt als één aparte, geteste beveiligingsronde
   vlak vóór er andere keurbedrijven/echte klanten bijkomen (zie fase 4 + de
   RLS-let-op onderaan deze sectie). Niet er tussendoor.
+
+  ### Na het laatste bouwplan-bijwerken — polish + eerste live-test (26–27 juni)
+  > Administratieve inhaalslag: de hieronder beschreven ~21 commits stonden nog
+  > niet in dit bouwplan ("we hielden niet netjes bij waar we waren"). Niets is
+  > losgeraakt — de branch staat gelijk met `main` (alles live). Op volgorde:
+
+  **Excel/CSV-import afgemaakt + gepolijst (2026-06-26):** bovenop de eerste
+  versie zijn de praktijkgevallen van Jos' eigen bestanden opgelost: **vaste
+  klantnaam** voor bestanden zonder klantkolom, **vaste keuringsdatum** voor
+  bestanden zonder datumkolom, **keuringsdatum optioneel** gemaakt, en
+  **Categorie + Materiaal** toegevoegd aan de kolommapping. Een import **zonder
+  keuringsdatum** maakt nu een **open concept-keuring** aan i.p.v. een afgeronde
+  — de keurmeester kiest bij Starten zelf welke artikelen mee gaan. RLS
+  expliciet uit op `import_batches`/`import_profiles`.
+  **Keuring-flow herstructurering (2026-06-27):** keuringen-navigatie en
+  klant-aanmaak-flow herzien; artikelen toevoegen op de **klantpagina** gebruikt
+  nu dezelfde typeahead-flow als de keuring-wizard; de per-artikel
+  checkbox-dialoog bij hervatten is vervangen door een simpele **"alles / alleen
+  nieuw"**-keuze; bij het **hervatten van een open concept-keuring** kun je
+  alsnog extra klant-artikelen bijpakken; **match-to-catalogus** voor een vrij
+  (import-)artikel handmatig vanuit de wizard. Verder: verwijderde/afgevoerde
+  artikelen blijven niet in beeld, recall-vlag weg bij vrije artikelen, en het
+  certificaat sluit niet-beoordeelde artikelen uit; geen ❌ meer voor een
+  niet-beoordeelde vórige keuring.
+  **Eerste live-test van het certificaat — bug gevonden en gefixt
+  (2026-06-27):** bij **"Afronden"** faalde de upload van de certificaat-PDF met
+  *"new row violates row-level security policy"* (403 op de `certificates`
+  Storage-bucket). Oorzaak: op de live database stonden naast de migratie-policies
+  nog oude/handmatig via het dashboard aangemaakte policies op `storage.objects`
+  die de upload blokkeerden. Opgelost door **álle** policies op `storage.objects`
+  te resetten naar een schone, toestemmende bouwfase-set (ingelogde keurders
+  mogen alles; publieke buckets `certificates`/`branding` ook anoniem leesbaar;
+  privébuckets `imports`/`qualifications` alleen ingelogd). Idem voor het
+  toevoegen van een **artikel** (`articles` had via de dashboard-UI per ongeluk
+  weer RLS aan): generieke RLS-uit-sweep herhaald. Certificaat-opmaak na de test
+  bijgesteld: **vinkje/kruisje** i.p.v. tekst, kolomvolgorde, serienummer op één
+  regel, en **Bouwjaar** als uitschakelbare kolom. Levensduur-waarschuwing nu
+  alleen naast het bouwjaar.
+  **Code-review-opschoning (2026-06-27):** gedeelde logica naar de packages
+  getrokken — `useAuth` naar `packages/core`, `useFieldSuggest` naar
+  `packages/ui`, plus `errors.ts` (gecentraliseerde `errorMessage`), per-package
+  `tsconfig.json` en een `tsconfig.base.json`. Robuustere certificaatflow en
+  betere types.
+
+  **⚠️ Migraties die in Supabase uitgevoerd moeten zijn (controleren!):** sinds
+  de vorige bouwplan-stand zijn deze migraties bijgekomen. Ze zijn allemaal
+  **idempotent** (veilig om opnieuw te draaien), dus bij twijfel gewoon (nog
+  eens) uitvoeren in de SQL-editor:
+  `20260627_disable_rls_articles`, `20260627_rejection_codes_per_company`,
+  `20260628_certificate_branding`, `20260629_inspector_qualifications`,
+  `20260630_company_address_extra`, `20260701_articles_free_norm_mbs`,
+  `20260702_import_tables`, `20260703_certificates_storage_update_policy`,
+  `20260703_reset_storage_policies`. Zonder de laatste twee faalt "Afronden"
+  (certificaat-upload) live nog steeds; zonder `20260702` werkt de import niet.
+
+  **Catalogus-wachtlijst-vinkje verplaatst (2026-06-27):** het vinkje "aanbieden
+  voor de productendatabase" bij een vrij artikel stond in de keuring-wizard bij
+  de invoervelden (vóór toevoegen). Het staat nu **per rij, rechts in de
+  keuringstabel** (📚-icoon in de actiekolom, naast de prullenbak), zodat de
+  keurmeester het artikel eerst toevoegt en pas daarna rustig markeert; opgeslagen
+  per artikel op `articles.suggest_for_catalog` (geen migratie). De échte
+  goedkeurings-/curatorflow voor de wachtlijst (catalogus-wachtrij + god-rol,
+  fase 4) staat nog open — zie de openstaande beslissing onderaan.
+
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub

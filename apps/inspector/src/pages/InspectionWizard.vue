@@ -98,16 +98,15 @@
         </div>
 
         <!-- Vrij artikel (geen catalogusmatch): extra velden die het keurbedrijf
-             heeft aangezet (Norm/MBS) + aanbieden voor de catalogus-wachtlijst. -->
-        <div v-if="willBeFreeArticle" class="iw__free-extras">
+             heeft aangezet (Norm/MBS). Het aanbieden voor de catalogus-wachtlijst
+             staat bewust niet hier maar per rij in de tabel hieronder (laatste
+             kolom, helemaal rechts) — dan kan de keurmeester het artikel eerst
+             toevoegen en pas daarna rustig markeren. -->
+        <div v-if="willBeFreeArticle && (freeFields.norm || freeFields.mbs)" class="iw__free-extras">
           <input v-if="freeFields.norm" v-model="newNorm" class="iw__input iw__input--sm"
                  :placeholder="$t('inspections.table.norm')" />
           <input v-if="freeFields.mbs" v-model="newMbs" class="iw__input iw__input--sm"
                  :placeholder="$t('inspections.table.mbs')" />
-          <label class="iw__waitlist">
-            <input type="checkbox" v-model="newSuggestForCatalog" />
-            {{ $t('inspections.table.suggestForCatalog') }}
-          </label>
         </div>
 
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
@@ -302,6 +301,15 @@
                     <span v-else>—</span>
                   </td>
                   <td class="iw__actions-cell">
+                    <!-- Alleen bij vrije artikelen (geen catalogusmatch): aanbieden
+                         voor de catalogus-wachtlijst. Bewust hier rechts per rij i.p.v.
+                         bij de invoervelden, zodat het artikel eerst toegevoegd wordt. -->
+                    <label v-if="!row.it.article.product" class="iw__catalog-toggle"
+                           :title="$t('inspections.table.suggestForCatalog')">
+                      <input type="checkbox" v-model="row.it.article.suggest_for_catalog"
+                             @change="saveArticle(row.it)" />
+                      📚
+                    </label>
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
@@ -366,6 +374,7 @@ interface Article {
   severe_use: boolean
   interval_override_months: number | null
   retired: boolean
+  suggest_for_catalog: boolean
   product: Product | null
 }
 interface Item {
@@ -555,7 +564,6 @@ const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
-const newSuggestForCatalog = ref(false)
 const newNorm = ref('')
 const newMbs = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
@@ -851,7 +859,7 @@ async function addRow() {
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
-        suggest_for_catalog: product ? false : newSuggestForCatalog.value,
+        suggest_for_catalog: false,
         retired: false,
       })
       .select('*, product:products(*)')
@@ -892,7 +900,6 @@ async function addRow() {
     newMonth.value = null
     newResult.value = 'not_assessed'
     newRejectionCodeId.value = null
-    newSuggestForCatalog.value = false
     newNorm.value = ''
     newMbs.value = ''
     dayHint.value = null
@@ -956,6 +963,7 @@ async function saveArticle(it: Item) {
     manufacture_year: a.manufacture_year || null,
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
+    suggest_for_catalog: a.suggest_for_catalog,
   }).eq('id', a.id)
 }
 
@@ -1019,11 +1027,16 @@ onMounted(load)
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
-.iw__waitlist {
-  display: flex; align-items: center; gap: 0.5rem;
-  font-size: 0.85rem; color: #92400e; background: #fffbeb;
-  border: 1px solid #fde68a; border-radius: 8px; padding: 0.4rem 0.7rem; margin: 0;
+/* Per-rij "aanbieden voor catalogus"-vinkje, rechts in de actiekolom. Het
+   boek-icoon kleurt op zodra het vinkje aanstaat, zodat in één oogopslag te
+   zien is welke vrije artikelen op de wachtlijst staan. */
+.iw__catalog-toggle {
+  display: inline-flex; align-items: center; gap: 0.2rem;
+  cursor: pointer; opacity: 0.4; filter: grayscale(1);
+  font-size: 0.95rem; margin-right: 0.35rem; vertical-align: middle;
 }
+.iw__catalog-toggle:has(input:checked) { opacity: 1; filter: none; }
+.iw__catalog-toggle input { cursor: pointer; }
 .iw__suggest {
   background: #fff; border: 1px solid #ddd; border-radius: 8px;
   margin: -0.35rem 0 0.85rem; padding: 0.3rem;
