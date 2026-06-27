@@ -395,8 +395,9 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   keuringstabel** (📚-icoon in de actiekolom, naast de prullenbak), zodat de
   keurmeester het artikel eerst toevoegt en pas daarna rustig markeert; opgeslagen
   per artikel op `articles.suggest_for_catalog` (geen migratie). De échte
-  goedkeurings-/curatorflow voor de wachtlijst (catalogus-wachtrij + god-rol,
-  fase 4) staat nog open — zie de openstaande beslissing onderaan.
+  goedkeurings-/curatorflow voor de wachtlijst (catalogus-wachtrij + god-rol)
+  bouwen we bewust niet nu: die hoort in **fase 4** (besluit Jos 2026-06-27 —
+  "volg het bouwplan"). Het vinkje verzamelt tot dan alleen de markeringen.
 
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
