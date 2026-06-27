@@ -929,16 +929,35 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
   saveRow(it)
 }
 
-// "Afvoeren" = zachte verwijdering (prullenbak): het artikel blijft bestaan
-// zodat eerder uitgegeven certificaten (die een snapshot bevatten) intact
-// blijven, maar telt niet meer mee voor nieuwe keuringen.
+// Prullenbak op een rij: heeft dit artikel nog nooit op een afgerond
+// certificaat gestaan, dan mag het écht weg (geen historie om te bewaren).
+// Staat het al op minstens één eerder certificaat, dan voorkomen we dat die
+// certificaten zouden "veranderen" door alleen zacht af te voeren (retired):
+// het artikel blijft bestaan, telt niet meer mee voor nieuwe keuringen.
 async function retireArticle(it: Item) {
-  if (!confirm(t('articles.detail.retireBody'))) return
-  const { error: err } = await supabase
-    .from('articles')
-    .update({ retired: true, retired_at: new Date().toISOString() })
-    .eq('id', it.article.id)
-  if (!err) it.article.retired = true
+  const { data: certified, error: checkErr } = await supabase
+    .from('inspection_items')
+    .select('id, inspections!inner(status)')
+    .eq('article_id', it.article.id)
+    .eq('inspections.status', 'completed')
+    .limit(1)
+  if (checkErr) return
+
+  if (certified && certified.length) {
+    if (!confirm(t('articles.detail.retireBody'))) return
+    const { error: err } = await supabase
+      .from('articles')
+      .update({ retired: true, retired_at: new Date().toISOString() })
+      .eq('id', it.article.id)
+    if (!err) it.article.retired = true
+    return
+  }
+
+  if (!confirm(t('articles.detail.deleteNeverInspectedBody'))) return
+  const { error: itemErr } = await supabase.from('inspection_items').delete().eq('id', it.id)
+  if (itemErr) return
+  await supabase.from('articles').delete().eq('id', it.article.id)
+  items.value = items.value.filter((x) => x.id !== it.id)
 }
 
 // Bestaande artikelgegevens corrigeren vanuit de tabel (verkeerd serienummer,

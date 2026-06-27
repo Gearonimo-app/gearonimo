@@ -138,6 +138,8 @@
       "retire": "Afvoeren",
       "retireTitle": "Artikel afvoeren?",
       "retireBody": "Het artikel blijft bewaard maar telt niet meer mee voor keuringen.",
+      "deleteTitle": "Artikel verwijderen?",
+      "deleteNeverInspectedBody": "Dit artikel heeft nog nooit op een afgerond certificaat gestaan en wordt definitief verwijderd.",
       "retiredBadge": "Afgevoerd",
       "fields": {
         "manufactureYear": "Bouwjaar",

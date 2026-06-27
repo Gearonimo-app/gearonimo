@@ -28,7 +28,7 @@
           </div>
         </template>
       </dl>
-      <button v-if="!article.retired" class="ad__retire" @click="showRetire = true">
+      <button v-if="!article.retired" class="ad__retire" @click="openRetire">
         {{ $t('articles.detail.retire') }}
       </button>
     </div>
@@ -56,15 +56,15 @@
       </div>
     </div>
 
-    <!-- Afvoeren bevestigen -->
+    <!-- Afvoeren/verwijderen bevestigen -->
     <div v-if="showRetire" class="ad__overlay" @click.self="showRetire = false">
       <div class="ad__dialog">
-        <h2>{{ $t('articles.detail.retireTitle') }}</h2>
-        <p>{{ $t('articles.detail.retireBody') }}</p>
+        <h2>{{ everCertified ? $t('articles.detail.retireTitle') : $t('articles.detail.deleteTitle') }}</h2>
+        <p>{{ everCertified ? $t('articles.detail.retireBody') : $t('articles.detail.deleteNeverInspectedBody') }}</p>
         <div class="ad__actions">
           <button class="ad__btn ad__btn--cancel" @click="showRetire = false">{{ $t('common.cancel') }}</button>
-          <button class="ad__btn ad__btn--danger" :disabled="retiring" @click="retire">
-            {{ $t('articles.detail.retire') }}
+          <button class="ad__btn ad__btn--danger" :disabled="retiring" @click="everCertified ? retire() : remove()">
+            {{ everCertified ? $t('articles.detail.retire') : $t('common.delete') }}
           </button>
         </div>
       </div>
@@ -105,6 +105,7 @@ const saving = ref(false)
 const retiring = ref(false)
 const formError = ref('')
 const showRetire = ref(false)
+const everCertified = ref(true)
 const form = ref<Record<string, any>>({})
 
 const brandLabel = computed(() => {
@@ -169,6 +170,29 @@ async function save() {
   if (err) { formError.value = err.message; return }
   article.value = data
   editMode.value = false
+}
+
+// Heeft dit artikel nog nooit op een afgerond certificaat gestaan, dan mag
+// het écht weg; staat het er al op, dan voorkomen we dat dat certificaat zou
+// "veranderen" en voeren we alleen zacht af (retired).
+async function openRetire() {
+  const { data } = await supabase
+    .from('inspection_items')
+    .select('id, inspections!inner(status)')
+    .eq('article_id', id)
+    .eq('inspections.status', 'completed')
+    .limit(1)
+  everCertified.value = !!(data && data.length)
+  showRetire.value = true
+}
+
+async function remove() {
+  retiring.value = true
+  const { error: err } = await supabase.from('articles').delete().eq('id', id)
+  retiring.value = false
+  showRetire.value = false
+  if (err) { error.value = err.message; return }
+  back()
 }
 
 async function retire() {

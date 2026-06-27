@@ -138,6 +138,8 @@
       "retire": "Retire",
       "retireTitle": "Retire this article?",
       "retireBody": "The article stays on record but no longer counts towards inspections.",
+      "deleteTitle": "Delete article?",
+      "deleteNeverInspectedBody": "This article has never been on a completed certificate and will be permanently deleted.",
       "retiredBadge": "Retired",
       "fields": {
         "manufactureYear": "Manufacture year",
