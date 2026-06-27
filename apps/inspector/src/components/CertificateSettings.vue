@@ -98,6 +98,7 @@
           <h3>{{ $t('settings.certificate.columns.title') }}</h3>
           <p class="cs__hint">{{ $t('settings.certificate.columns.hint') }}</p>
           <label class="cs__check cs__check--fixed">{{ $t('settings.certificate.columns.fixed') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.year" /> {{ $t('settings.certificate.columns.year') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.category" /> {{ $t('settings.certificate.columns.category') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.norm" /> {{ $t('settings.certificate.columns.norm') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.mbs" /> {{ $t('settings.certificate.columns.mbs') }}</label>

@@ -28,8 +28,9 @@ export interface CertLayout {
   showRegistration: boolean // KvK/BTW tonen als ze ingevuld zijn
   accent: string // hex, kleur van titels en tabelkop
   // Optionele tabelkolommen aan/uit. Vaste kolommen (status/merk/artikel/
-  // bouwjaar/serienummer) staan altijd aan en zitten hier niet in.
+  // serienummer) staan altijd aan en zitten hier niet in.
   columns: {
+    year: boolean
     category: boolean
     norm: boolean
     mbs: boolean
@@ -51,7 +52,7 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   showContact: true,
   showRegistration: true,
   accent: '#1a3a2a',
-  columns: { category: true, norm: false, mbs: false, user: true, next: true, note: true },
+  columns: { year: false, category: true, norm: false, mbs: false, user: true, next: true, note: true },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
@@ -247,17 +248,21 @@ function noteStr(it: CertItem): string {
 // staat én minstens één artikel er data voor heeft ("alleen tonen als er iets in
 // staat"); status is altijd zichtbaar. Uitgevinkt = data blijft bestaan maar
 // staat niet op het certificaat.
+// Vaste volgorde op het certificaat: Artikel · Merk · Categorie · Serienummer ·
+// Status · Volgende keuring, daarna de overige optionele kolommen. Serienummer
+// is bewust breed genoeg (en niet-flexibel) zodat het niet over twee regels
+// afbreekt.
 const ALL_COLUMNS: ColDef[] = [
-  { key: 'status',   header: 'Status',                 optional: false, flex: false, min: 40, cap: 56,  value: () => '' },
-  { key: 'brand',    header: 'Merk',                   optional: false, flex: false, min: 56, cap: 120, value: (it) => it.brand || '' },
   { key: 'article',  header: 'Artikel',                optional: false, flex: true,  min: 80, cap: 190, value: (it) => it.name || '' },
-  { key: 'year',     header: 'Bouwjaar',               optional: false, flex: false, min: 56, cap: 74,  value: yearStr },
-  { key: 'sn',       header: 'Serienummer',            optional: false, flex: false, min: 64, cap: 120, value: (it) => it.serial_number || '' },
+  { key: 'brand',    header: 'Merk',                   optional: false, flex: false, min: 56, cap: 120, value: (it) => it.brand || '' },
   { key: 'category', header: 'Categorie',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.category || '' },
+  { key: 'sn',       header: 'Serienummer',            optional: false, flex: false, min: 88, cap: 150, value: (it) => it.serial_number || '' },
+  { key: 'status',   header: 'Status',                 optional: false, flex: false, min: 40, cap: 56,  value: () => '' },
+  { key: 'next',     header: 'Volgende keuring',       optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.next_due ? formatDate(it.next_due) : '') },
+  { key: 'year',     header: 'Bouwjaar',               optional: true,  flex: false, min: 56, cap: 74,  value: yearStr },
+  { key: 'user',     header: 'Gebruiker',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.user || '' },
   { key: 'norm',     header: 'Norm',                   optional: true,  flex: false, min: 56, cap: 120, value: (it) => it.norm || '' },
   { key: 'mbs',      header: 'MBS',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.mbs || '' },
-  { key: 'user',     header: 'Gebruiker',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.user || '' },
-  { key: 'next',     header: 'Volgende keuring',       optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.next_due ? formatDate(it.next_due) : '') },
   { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
@@ -292,11 +297,23 @@ function preferredWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold:
 // er ruimte over is, of schaalt alles proportioneel als het te breed is.
 function fitWidths(pref: number[], cols: ColDef[], avail: number): number[] {
   const total = pref.reduce((a, b) => a + b, 0)
+  const flexIdx = cols.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
   if (total <= avail) {
-    const flexIdx = cols.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
     const extra = avail - total
     const per = extra / (flexIdx.length || 1)
     return pref.map((w, i) => (flexIdx.includes(i) ? w + per : w))
+  }
+  // Te breed: krimp eerst alleen de flexibele kolommen (Artikel/Opmerking) en
+  // houd de vaste kolommen — met name Serienummer — op hun voorkeursbreedte,
+  // zodat die niet over twee regels afbreekt. Past zelfs dat niet, val dan
+  // terug op proportioneel krimpen van alles.
+  const nonFlex = pref.reduce((a, w, i) => a + (cols[i].flex ? 0 : w), 0)
+  const flexPref = pref.reduce((a, w, i) => a + (cols[i].flex ? w : 0), 0)
+  const flexMin = cols.reduce((a, c) => a + (c.flex ? c.min : 0), 0)
+  const availForFlex = avail - nonFlex
+  if (flexIdx.length && availForFlex >= flexMin) {
+    const scale = availForFlex / flexPref
+    return pref.map((w, i) => (cols[i].flex ? w * scale : w))
   }
   return pref.map((w) => (w * avail) / total)
 }

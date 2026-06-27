@@ -368,7 +368,8 @@
       "columns": {
         "title": "Kolommen op het certificaat",
         "hint": "Vink aan welke kolommen op het certificaat komen. Een kolom verschijnt alleen als er ook echt data in staat; uitgevinkt betekent dat de data wel bewaard blijft maar niet wordt afgedrukt.",
-        "fixed": "Altijd: Status · Merk · Artikel · Bouwjaar · Serienummer",
+        "fixed": "Altijd: Artikel · Merk · Serienummer · Status",
+        "year": "Bouwjaar",
         "category": "Categorie",
         "norm": "Norm (bijv. EN 361)",
         "mbs": "MBS / breeksterkte",

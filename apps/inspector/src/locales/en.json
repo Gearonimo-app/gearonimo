@@ -368,7 +368,8 @@
       "columns": {
         "title": "Certificate columns",
         "hint": "Tick which columns appear on the certificate. A column only shows when there is actual data; unticked means the data is kept but not printed.",
-        "fixed": "Always: Status · Brand · Article · Year · Serial number",
+        "fixed": "Always: Article · Brand · Serial number · Status",
+        "year": "Manufacture year",
         "category": "Category",
         "norm": "Standard (e.g. EN 361)",
         "mbs": "MBS / breaking strength",
