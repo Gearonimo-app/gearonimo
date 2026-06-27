@@ -421,25 +421,37 @@ const sortDir = ref<1 | -1>(1)
 const products = ref<Product[]>([])
 const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 
+// Suggestiebron voor Artikel/Merk/Categorie: de globale catalogus én de al
+// bekende artikelen van deze klant. Dat laatste is belangrijk zolang de
+// catalogus nog groeit (BLAUWDRUK §3): vaak staat een merk/categorie/
+// omschrijving alleen bij de (bv. zojuist geïmporteerde) artikelen van de
+// klant en nog niet in de catalogus. Zonder die bron blijven de dropdowns leeg.
+interface CatalogEntry { brand: string | null; name: string | null; category: string | null }
+const customerEntries = ref<CatalogEntry[]>([])
+const catalogEntries = computed<CatalogEntry[]>(() => [
+  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category })),
+  ...customerEntries.value,
+])
+
 // Artikel, Merk en Categorie filteren elkaar wederzijds: wat al is ingevuld
 // bepaalt wat er in de andere twee dropdowns nog overblijft. Kies je "FALL
 // SAFE" als merk, dan toont Categorie alleen nog categorieën die FALL SAFE
 // voert en Artikel alleen FALL SAFE-artikelen. Het veld dat je zelf invult
 // filtert niet op zichzelf (anders verdween je eigen keuze); op de andere
 // velden matchen we op deeltekst, zodat de lijst al meekrimpt terwijl je typt.
-function catalogMatches(self: 'brand' | 'category' | 'name'): Product[] {
+function catalogMatches(self: 'brand' | 'category' | 'name'): CatalogEntry[] {
   const b = newBrand.value.trim().toLowerCase()
   const c = newCategory.value.trim().toLowerCase()
   const n = newDescription.value.trim().toLowerCase()
-  return products.value.filter(p =>
-    (self === 'brand'    || !b || (p.brand ?? '').toLowerCase().includes(b)) &&
-    (self === 'category' || !c || (p.category ?? '').toLowerCase().includes(c)) &&
-    (self === 'name'     || !n || (p.name ?? '').toLowerCase().includes(n))
+  return catalogEntries.value.filter(e =>
+    (self === 'brand'    || !b || (e.brand ?? '').toLowerCase().includes(b)) &&
+    (self === 'category' || !c || (e.category ?? '').toLowerCase().includes(c)) &&
+    (self === 'name'     || !n || (e.name ?? '').toLowerCase().includes(n))
   )
 }
-const matchingBrands = computed(() => unique(catalogMatches('brand').map(p => p.brand)))
-const matchingCategories = computed(() => unique(catalogMatches('category').map(p => p.category)))
-const matchingArticleNames = computed(() => unique(catalogMatches('name').map(p => p.name)))
+const matchingBrands = computed(() => unique(catalogMatches('brand').map(e => e.brand)))
+const matchingCategories = computed(() => unique(catalogMatches('category').map(e => e.category)))
+const matchingArticleNames = computed(() => unique(catalogMatches('name').map(e => e.name)))
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
@@ -826,6 +838,20 @@ async function load() {
     .from('products')
     .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
   products.value = (prods ?? []) as Product[]
+
+  // Al bekende artikelen van deze klant als extra suggestiebron (zie
+  // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
+  // catalogus nog (vrijwel) leeg is.
+  const { data: custArts } = await supabase
+    .from('articles')
+    .select('free_brand, free_category, free_description, product:products(brand, name, category)')
+    .eq('customer_id', insp.customer_id)
+    .eq('retired', false)
+  customerEntries.value = (custArts ?? []).map((a: any) => ({
+    brand: a.product?.brand ?? a.free_brand ?? null,
+    name: a.product?.name ?? a.free_description ?? null,
+    category: a.product?.category ?? a.free_category ?? null,
+  }))
 
   if (insp.status === 'completed') finished.value = true
   loading.value = false
