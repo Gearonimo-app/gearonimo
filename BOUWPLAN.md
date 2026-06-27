@@ -394,7 +394,10 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   de invoervelden (vóór toevoegen). Het staat nu **per rij, rechts in de
   keuringstabel** (📚-icoon in de actiekolom, naast de prullenbak), zodat de
   keurmeester het artikel eerst toevoegt en pas daarna rustig markeert; opgeslagen
-  per artikel op `articles.suggest_for_catalog` (geen migratie). De échte
+  per artikel op `articles.suggest_for_catalog` (geen migratie). Hetzelfde geldt
+  nu voor het **klant-artikelformulier** (`CustomerArticles.vue`): het vinkje is
+  daar weg bij de invoervelden en zit als 📚-toggle per rij in de artikellijst
+  (alleen bij vrije artikelen). De échte
   goedkeurings-/curatorflow voor de wachtlijst (catalogus-wachtrij + god-rol)
   bouwen we bewust niet nu: die hoort in **fase 4** (besluit Jos 2026-06-27 —
   "volg het bouwplan"). Het vinkje verzamelt tot dan alleen de markeringen.

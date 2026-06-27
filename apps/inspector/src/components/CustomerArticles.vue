@@ -10,12 +10,23 @@
     <p v-else-if="articles.length === 0 && !showAdd" class="ca__state">{{ $t('articles.empty') }}</p>
 
     <ul v-else-if="articles.length" class="ca__list">
-      <li v-for="a in articles" :key="a.id" class="ca__item" @click="$router.push(`/articles/${a.id}`)">
-        <div class="ca__desc">{{ articleLabel(a) }}</div>
-        <div class="ca__meta">
-          <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
-          <span v-if="!a.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
+      <li v-for="a in articles" :key="a.id" class="ca__item">
+        <div class="ca__item-main" @click="$router.push(`/articles/${a.id}`)">
+          <div class="ca__desc">{{ articleLabel(a) }}</div>
+          <div class="ca__meta">
+            <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
+            <span v-if="!a.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
+          </div>
         </div>
+        <!-- Alleen bij vrije artikelen: aanbieden voor de catalogus-wachtlijst.
+             Rechts in de rij (niet in het invoerformulier), gelijk aan de
+             keuringstabel. @click.stop zodat het vinkje niet doorklikt naar
+             het artikeldetail. -->
+        <label v-if="!a.product_id" class="ca__catalog-toggle"
+               :title="$t('articles.suggestForCatalog')" @click.stop>
+          <input type="checkbox" v-model="a.suggest_for_catalog" @change="toggleCatalog(a)" />
+          📚
+        </label>
       </li>
     </ul>
 
@@ -73,15 +84,12 @@
         </div>
       </div>
 
-      <template v-if="willBeFreeArticle">
+      <!-- Vrij artikel: alleen de extra velden die het keurbedrijf aanzet
+           (Norm/MBS). Het aanbieden voor de catalogus staat bewust niet hier
+           maar per rij in de artikellijst hierboven. -->
+      <template v-if="willBeFreeArticle && (freeFields.norm || freeFields.mbs)">
         <input v-if="freeFields.norm" v-model="form.free_norm" :placeholder="$t('inspections.table.norm')" class="ca__input" />
         <input v-if="freeFields.mbs"  v-model="form.free_mbs"  :placeholder="$t('inspections.table.mbs')"  class="ca__input" />
-        <label class="ca__checkbox">
-          <input type="checkbox" v-model="form.suggest_for_catalog" />
-          {{ $t('articles.suggestForCatalog') }}
-        </label>
-        <input v-if="form.suggest_for_catalog" v-model="form.free_manual_url"
-               :placeholder="$t('articles.fields.manualUrl')" class="ca__input" />
       </template>
 
       <hr class="ca__sep" />
@@ -130,6 +138,7 @@ interface Article {
   free_brand: string | null
   free_description: string | null
   product_id: string | null
+  suggest_for_catalog: boolean
   product: ProductMatch | null
 }
 
@@ -233,9 +242,18 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 
 function emptyForm() {
   return {
-    free_norm: '', free_mbs: '', free_manual_url: '', suggest_for_catalog: false,
+    free_norm: '', free_mbs: '',
     serial_number: '', assigned_user_name: '', first_use_date: '', set_label: '', notes: '',
   }
+}
+
+// Per-rij wachtlijst-toggle in de artikellijst (zie ook InspectionWizard).
+async function toggleCatalog(a: Article) {
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ suggest_for_catalog: a.suggest_for_catalog })
+    .eq('id', a.id)
+  if (err) { error.value = err.message; a.suggest_for_catalog = !a.suggest_for_catalog }
 }
 const form = ref(emptyForm())
 
@@ -254,7 +272,7 @@ async function load() {
   error.value = ''
   const { data, error: err } = await supabase
     .from('articles')
-    .select('id, serial_number, free_brand, free_description, product_id, product:products(id, brand, name)')
+    .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
     .eq('customer_id', props.customerId)
     .eq('retired', false)
     .order('created_at', { ascending: false })
@@ -279,10 +297,6 @@ async function save() {
     formError.value = t('articles.errors.chooseOrDescribe'); return
   }
   const product = matchProduct()
-  if (!product && form.value.suggest_for_catalog &&
-      (!newBrand.value.trim() || !newDescription.value.trim() || !form.value.free_manual_url.trim())) {
-    formError.value = t('articles.errors.suggestRequired'); return
-  }
   saving.value = true
   const { error: err } = await supabase.from('articles').insert({
     customer_id: props.customerId,
@@ -292,7 +306,6 @@ async function save() {
     free_description: product ? null : (newDescription.value.trim() || null),
     free_norm: product ? null : (form.value.free_norm.trim() || null),
     free_mbs: product ? null : (form.value.free_mbs.trim() || null),
-    free_manual_url: product ? null : (form.value.free_manual_url.trim() || null),
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
@@ -300,7 +313,8 @@ async function save() {
     notes: form.value.notes.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,
-    suggest_for_catalog: product ? false : form.value.suggest_for_catalog,
+    // Aanbieden voor de catalogus gebeurt nu per rij in de lijst, niet bij toevoegen.
+    suggest_for_catalog: false,
     retired: false,
   })
   saving.value = false
@@ -327,8 +341,15 @@ onMounted(async () => {
 .ca__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }
 .ca__state--error { color: #dc2626; }
 .ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
-.ca__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; }
+.ca__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
 .ca__item:last-child { border-bottom: none; }
+.ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
+.ca__catalog-toggle {
+  display: inline-flex; align-items: center; cursor: pointer;
+  opacity: 0.4; filter: grayscale(1); font-size: 1.05rem; padding: 0.2rem;
+}
+.ca__catalog-toggle:has(input:checked) { opacity: 1; filter: none; }
+.ca__catalog-toggle input { cursor: pointer; }
 .ca__desc { font-weight: 600; }
 .ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; }
 .ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
@@ -372,7 +393,6 @@ onMounted(async () => {
 .ca__selected { margin: 0.35rem 0 0; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
 .ca__clear { background: none; border: none; color: #6b7280; font-size: 1.1rem; cursor: pointer; }
 .ca__link { background: none; border: none; color: #2563eb; text-align: left; padding: 0; font-size: 0.9rem; cursor: pointer; }
-.ca__checkbox { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #374151; }
 .ca__error { color: #dc2626; font-size: 0.9rem; margin: 0; }
 .ca__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }
 .ca__btn { flex: 1; padding: 0.85rem; border-radius: 10px; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; }
