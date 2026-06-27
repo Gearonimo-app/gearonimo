@@ -132,6 +132,74 @@ function slugify(s: string): string {
     .toUpperCase()
 }
 
+// pdf-lib's StandardFonts gebruiken WinAnsi (cp1252) en crashen op tekens
+// daarbuiten — bv. de samengetrokken "ĳ" (U+0133) die uit Excel-imports of
+// sommige toetsenborden komt ("WinAnsi cannot encode 'ij'"). Eén zo'n teken
+// liet de hele certificaatgeneratie mislukken. Daarom maken we alle tekst
+// vooraf WinAnsi-veilig: codeerbare tekens (incl. é/ë/ö enz.) blijven staan,
+// ligaturen/specials worden via NFKD uitgeschreven (ĳ→ij, ﬁ→fi) en wat dan
+// nog niet kan, wordt vervangen door '?'.
+const WINANSI_EXTRA = new Set<number>([
+  0x20ac, 0x201a, 0x0192, 0x201e, 0x2026, 0x2020, 0x2021, 0x02c6, 0x2030, 0x0160,
+  0x2039, 0x0152, 0x017d, 0x2018, 0x2019, 0x201c, 0x201d, 0x2022, 0x2013, 0x2014,
+  0x02dc, 0x2122, 0x0161, 0x203a, 0x0153, 0x017e, 0x0178,
+])
+function isWinAnsi(cp: number): boolean {
+  return (cp >= 0x20 && cp <= 0x7e) || (cp >= 0xa0 && cp <= 0xff) || WINANSI_EXTRA.has(cp)
+}
+function sanitizeWinAnsi(s: string): string {
+  let out = ''
+  for (const ch of s) {
+    const cp = ch.codePointAt(0)!
+    if (isWinAnsi(cp)) { out += ch; continue }
+    let piece = ''
+    for (const d of ch.normalize('NFKD')) {
+      const dcp = d.codePointAt(0)!
+      if (dcp >= 0x0300 && dcp <= 0x036f) continue // combining marks overslaan
+      if (isWinAnsi(dcp)) piece += d
+    }
+    out += piece || '?'
+  }
+  return out
+}
+// Maak een kopie van de certificaatdata waarin alle getekende tekstvelden
+// WinAnsi-veilig zijn. De verify-URL (alleen QR, geen lettertype) blijft intact.
+function sanitizeCertData(data: CertData): CertData {
+  const S = (v: string | null) => (v == null ? v : sanitizeWinAnsi(v))
+  return {
+    ...data,
+    customerName: sanitizeWinAnsi(data.customerName),
+    inspectorName: S(data.inspectorName),
+    number: sanitizeWinAnsi(data.number),
+    company: {
+      ...data.company,
+      name: sanitizeWinAnsi(data.company.name),
+      address: S(data.company.address),
+      postal_code: S(data.company.postal_code),
+      city: S(data.company.city),
+      province: S(data.company.province),
+      email: S(data.company.email),
+      phone: S(data.company.phone),
+      registration_number: S(data.company.registration_number),
+      vat_number: S(data.company.vat_number),
+      cert_header: S(data.company.cert_header),
+      cert_footer: S(data.company.cert_footer),
+    },
+    items: data.items.map((it) => ({
+      ...it,
+      brand: S(it.brand),
+      name: S(it.name),
+      serial_number: S(it.serial_number),
+      category: S(it.category),
+      norm: S(it.norm),
+      mbs: S(it.mbs),
+      user: S(it.user),
+      rejection_code_label: S(it.rejection_code_label),
+      comment: S(it.comment),
+    })),
+  }
+}
+
 // Donker genoeg gekozen om ook op een zwartwit printer (grijswaarden) als
 // duidelijk vinkje/kruisje te herkennen, niet alleen op een kleurenprint.
 const STATUS_OK_COLOR = rgb(0, 0.36, 0.13)
@@ -329,6 +397,9 @@ export async function renderCertificatePdf(
   layout: CertLayout,
   logoBytes: Uint8Array | null
 ): Promise<Uint8Array> {
+  // Alle tekst WinAnsi-veilig maken vóór er ook maar iets gemeten of getekend
+  // wordt (pdf-lib crasht anders al bij widthOfTextAtSize op een ĳ e.d.).
+  data = sanitizeCertData(data)
   const doc = await PDFDocument.create()
   const font = await doc.embedFont(StandardFonts.Helvetica)
   const bold = await doc.embedFont(StandardFonts.HelveticaBold)
