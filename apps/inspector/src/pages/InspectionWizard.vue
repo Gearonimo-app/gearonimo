@@ -834,10 +834,22 @@ async function load() {
   )
   previousResults.value = Object.fromEntries(prevEntries)
 
-  const { data: prods } = await supabase
-    .from('products')
-    .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
-  products.value = (prods ?? []) as Product[]
+  // Hele catalogus laden in pagina's van 1000: PostgREST kapt een query
+  // standaard op 1000 rijen, en de catalogus is groter. Zonder paginering zou
+  // een deel van de producten nooit in de suggesties verschijnen.
+  const PAGE = 1000
+  const allProducts: Product[] = []
+  for (let offset = 0; ; offset += PAGE) {
+    const { data: page, error: prodErr } = await supabase
+      .from('products')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
+      .order('id')
+      .range(offset, offset + PAGE - 1)
+    if (prodErr) break
+    allProducts.push(...((page ?? []) as Product[]))
+    if (!page || page.length < PAGE) break
+  }
+  products.value = allProducts
 
   // Al bekende artikelen van deze klant als extra suggestiebron (zie
   // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
