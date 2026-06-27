@@ -419,23 +419,27 @@ const sortDir = ref<1 | -1>(1)
 // en laat ons een getypt artikel terugkoppelen aan een productrij (product_id),
 // zodat levensduur/recall/interval-data meekomen.
 const products = ref<Product[]>([])
-const allBrands = computed(() => unique(products.value.map(p => p.brand)))
-const allCategories = computed(() => unique(products.value.map(p => p.category)))
 const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 
-// Artikel-dropdown houdt rekening met al gekozen Merk/Categorie, zodat je
-// na het selecteren van "FALL SAFE" + "Harnesses" alleen nog FALL SAFE
-// harnassen ziet (en de lijst korter en relevanter blijft).
-const matchingArticleNames = computed(() => {
+// Artikel, Merk en Categorie filteren elkaar wederzijds: wat al is ingevuld
+// bepaalt wat er in de andere twee dropdowns nog overblijft. Kies je "FALL
+// SAFE" als merk, dan toont Categorie alleen nog categorieën die FALL SAFE
+// voert en Artikel alleen FALL SAFE-artikelen. Het veld dat je zelf invult
+// filtert niet op zichzelf (anders verdween je eigen keuze); op de andere
+// velden matchen we op deeltekst, zodat de lijst al meekrimpt terwijl je typt.
+function catalogMatches(self: 'brand' | 'category' | 'name'): Product[] {
   const b = newBrand.value.trim().toLowerCase()
   const c = newCategory.value.trim().toLowerCase()
-  if (!b && !c) return allArticleNames.value
-  const filtered = products.value.filter(p =>
-    (!b || (p.brand ?? '').toLowerCase() === b) &&
-    (!c || (p.category ?? '').toLowerCase() === c)
+  const n = newDescription.value.trim().toLowerCase()
+  return products.value.filter(p =>
+    (self === 'brand'    || !b || (p.brand ?? '').toLowerCase().includes(b)) &&
+    (self === 'category' || !c || (p.category ?? '').toLowerCase().includes(c)) &&
+    (self === 'name'     || !n || (p.name ?? '').toLowerCase().includes(n))
   )
-  return unique(filtered.map(p => p.name))
-})
+}
+const matchingBrands = computed(() => unique(catalogMatches('brand').map(p => p.brand)))
+const matchingCategories = computed(() => unique(catalogMatches('category').map(p => p.category)))
+const matchingArticleNames = computed(() => unique(catalogMatches('name').map(p => p.name)))
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
@@ -531,8 +535,8 @@ const {
   resolve: (field) => {
     switch (field) {
       case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
-      case 'brand': return suggestFilter(allBrands.value, newBrand.value)
-      case 'category': return suggestFilter(allCategories.value, newCategory.value)
+      case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
+      case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
       case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
       default: return []
