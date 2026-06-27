@@ -147,7 +147,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 import {
   renderCertificatePdf,
@@ -222,8 +222,8 @@ async function load() {
       const { data: pub } = supabase.storage.from('branding').getPublicUrl(logoPath.value)
       logoPreviewUrl.value = pub.publicUrl
     }
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }
@@ -340,8 +340,8 @@ async function save() {
       .eq('id', companyId.value)
     if (err) throw err
     logoRemoved = false
-  } catch (e: any) {
-    saveError.value = e.message
+  } catch (e) {
+    saveError.value = errorMessage(e)
   } finally {
     saving.value = false
   }

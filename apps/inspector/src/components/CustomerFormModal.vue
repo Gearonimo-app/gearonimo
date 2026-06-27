@@ -33,7 +33,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { errorMessage } from '@gearonimo/core'
+import { createCustomer } from '../composables/useCustomers'
 
 const { t } = useI18n()
 
@@ -61,27 +62,31 @@ async function save() {
   saving.value = true
   formError.value = ''
   const f = form.value
-  const { data, error } = await supabase.from('customers').insert({
-    name: f.name.trim(),
-    customer_number: f.customerNumber.trim() || null,
-    kvk_number: f.kvk.trim() || null,
-    vat_number: f.vat.trim() || null,
-    contact_person: f.contactPerson.trim() || null,
-    email: f.email.trim(),
-    phone: f.phone.trim() || null,
-    street: f.street.trim() || null,
-    house_number: f.houseNumber.trim() || null,
-    house_number_addition: f.houseNumberAddition.trim() || null,
-    postal_code: f.postalCode.trim() || null,
-    city: f.city.trim() || null,
-    province: f.province.trim() || null,
-    country: f.country.trim() || null,
-    notes: f.notes.trim() || null,
-  }).select('id').single()
-  saving.value = false
-  if (error) { formError.value = error.message; return }
-  form.value = emptyForm()
-  emit('saved', data.id)
+  try {
+    const id = await createCustomer({
+      name: f.name.trim(),
+      customer_number: f.customerNumber.trim() || null,
+      kvk_number: f.kvk.trim() || null,
+      vat_number: f.vat.trim() || null,
+      contact_person: f.contactPerson.trim() || null,
+      email: f.email.trim(),
+      phone: f.phone.trim() || null,
+      street: f.street.trim() || null,
+      house_number: f.houseNumber.trim() || null,
+      house_number_addition: f.houseNumberAddition.trim() || null,
+      postal_code: f.postalCode.trim() || null,
+      city: f.city.trim() || null,
+      province: f.province.trim() || null,
+      country: f.country.trim() || null,
+      notes: f.notes.trim() || null,
+    })
+    form.value = emptyForm()
+    emit('saved', id)
+  } catch (e) {
+    formError.value = errorMessage(e)
+  } finally {
+    saving.value = false
+  }
 }
 </script>
 

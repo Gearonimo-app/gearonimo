@@ -92,13 +92,14 @@ export function guessMapping(headerRow: RawRow): Record<number, FieldKey> {
 
 export interface ValidationResult {
   missingRequired: FieldKey[]
-  emptyRequiredCount: Record<FieldKey, number>
+  emptyRequiredCount: Partial<Record<FieldKey, number>>
   duplicateSerials: string[]
   unparsableDates: number
   rowCount: number
 }
 
-function tryParseDate(value: string | number | null): boolean {
+// xlsx levert datumcellen al als JS Date, dus accepteren we die expliciet.
+function tryParseDate(value: string | number | Date | null): boolean {
   if (value === null || value === '') return true // leeg telt niet als onleesbaar
   if (value instanceof Date) return true
   if (typeof value === 'number') return true // Excel-seriegetal
@@ -156,7 +157,7 @@ export function validateRows(
 
   return {
     missingRequired,
-    emptyRequiredCount: emptyRequiredCount as Record<FieldKey, number>,
+    emptyRequiredCount: emptyRequiredCount as Partial<Record<FieldKey, number>>,
     duplicateSerials: [...duplicateSerials],
     unparsableDates,
     rowCount: rows.length,

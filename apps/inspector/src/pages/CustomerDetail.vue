@@ -87,11 +87,12 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { errorMessage } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerSets from '../components/CustomerSets.vue'
 import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
+import { fetchCustomer, updateCustomer, deleteCustomer } from '../composables/useCustomers'
 import {
   findDraftInspection,
   fetchArticleScope,
@@ -124,7 +125,7 @@ const fieldDefs: { col: string; label: string; textarea?: boolean }[] = [
   { col: 'notes', label: 'customers.fields.notes', textarea: true },
 ]
 
-const customer = ref<Record<string, any> | null>(null)
+const customer = ref<Record<string, unknown> | null>(null)
 const loading = ref(true)
 const error = ref('')
 const editMode = ref(false)
@@ -162,8 +163,8 @@ async function onStartInspection() {
       }
       articleScope.value = scope
       showAddExtra.value = true
-    } catch (e: any) {
-      startError.value = e?.message ?? String(e)
+    } catch (e) {
+      startError.value = errorMessage(e)
     } finally {
       startingInspection.value = false
     }
@@ -179,8 +180,8 @@ async function onStartInspection() {
     }
     articleScope.value = scope
     showArticleSelect.value = true
-  } catch (e: any) {
-    startError.value = e?.message ?? String(e)
+  } catch (e) {
+    startError.value = errorMessage(e)
   } finally {
     startingInspection.value = false
   }
@@ -194,8 +195,8 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
     const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
     const inspectionId = await startInspectionWithArticles(id, articleIds)
     router.push(`/inspections/${inspectionId}`)
-  } catch (e: any) {
-    startError.value = e?.message ?? String(e)
+  } catch (e) {
+    startError.value = errorMessage(e)
   } finally {
     startingInspection.value = false
   }
@@ -211,8 +212,8 @@ async function confirmAddExtra(scopeChoice: 'all' | 'new') {
   try {
     await addArticlesToInspection(draftId, articleIds)
     router.push(`/inspections/${draftId}`)
-  } catch (e: any) {
-    startError.value = e?.message ?? String(e)
+  } catch (e) {
+    startError.value = errorMessage(e)
   } finally {
     startingInspection.value = false
   }
@@ -231,20 +232,19 @@ function label(key: string) {
 async function load() {
   loading.value = true
   error.value = ''
-  const { data, error: err } = await supabase
-    .from('customers')
-    .select('*')
-    .eq('id', id)
-    .maybeSingle()
-  if (err) error.value = err.message
-  else customer.value = data
-  loading.value = false
-  draftInspection.value = await findDraftInspection(id)
+  try {
+    customer.value = await fetchCustomer(id)
+    draftInspection.value = await findDraftInspection(id)
+  } catch (e) {
+    error.value = errorMessage(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 function startEdit() {
   const f: Record<string, string> = {}
-  for (const def of fieldDefs) f[def.col] = customer.value?.[def.col] ?? ''
+  for (const def of fieldDefs) f[def.col] = String(customer.value?.[def.col] ?? '')
   form.value = f
   formError.value = ''
   editMode.value = true
@@ -255,27 +255,30 @@ async function save() {
   if (!form.value.email.trim()) { formError.value = t('customers.errors.emailRequired'); return }
   saving.value = true
   formError.value = ''
-  const patch: Record<string, any> = {}
+  const patch: Record<string, unknown> = {}
   for (const def of fieldDefs) patch[def.col] = form.value[def.col].trim() || null
-  const { data, error: err } = await supabase
-    .from('customers')
-    .update(patch)
-    .eq('id', id)
-    .select('*')
-    .single()
-  saving.value = false
-  if (err) { formError.value = err.message; return }
-  customer.value = data
-  editMode.value = false
+  try {
+    customer.value = await updateCustomer(id, patch)
+    editMode.value = false
+  } catch (e) {
+    formError.value = errorMessage(e)
+  } finally {
+    saving.value = false
+  }
 }
 
 async function remove() {
   deleting.value = true
-  const { error: err } = await supabase.from('customers').delete().eq('id', id)
-  deleting.value = false
-  showDelete.value = false
-  if (err) { error.value = err.message; return }
-  router.push('/customers')
+  try {
+    await deleteCustomer(id)
+    showDelete.value = false
+    router.push('/customers')
+  } catch (e) {
+    error.value = errorMessage(e)
+    showDelete.value = false
+  } finally {
+    deleting.value = false
+  }
 }
 
 onMounted(load)

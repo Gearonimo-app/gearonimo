@@ -187,6 +187,7 @@
     "searchPlaceholder": "Zoek op klantnaam of datum…",
     "noMatches": "Geen keuringen gevonden",
     "newCustomer": "Nieuwe klant aanmaken",
+    "notFound": "Keuring niet gevonden (mogelijk verwijderd).",
     "drafts": "Concepten",
     "completed": "Afgerond",
     "empty": "Nog geen afgeronde keuringen",

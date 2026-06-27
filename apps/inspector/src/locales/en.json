@@ -187,6 +187,7 @@
     "searchPlaceholder": "Search by customer name or date…",
     "noMatches": "No inspections found",
     "newCustomer": "Create new customer",
+    "notFound": "Inspection not found (it may have been deleted).",
     "drafts": "Drafts",
     "completed": "Completed",
     "empty": "No completed inspections yet",

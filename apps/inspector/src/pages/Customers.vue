@@ -39,18 +39,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@gearonimo/core'
+import { errorMessage } from '@gearonimo/core'
+import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import CustomerFormModal from '../components/CustomerFormModal.vue'
 
-interface Customer {
-  id: string
-  name: string
-  city: string | null
-  phone: string | null
-  email: string | null
-}
-
-const customers = ref<Customer[]>([])
+const customers = ref<CustomerListItem[]>([])
 const loading = ref(true)
 const error = ref('')
 const query = ref('')
@@ -67,12 +60,13 @@ const filtered = computed(() => {
 async function load() {
   loading.value = true
   error.value = ''
-  const { data, error: err } = await supabase
-    .from('customers')
-    .select('id, name, city, phone, email')
-    .order('name')
-  if (err) { error.value = err.message } else { customers.value = data ?? [] }
-  loading.value = false
+  try {
+    customers.value = await listCustomers()
+  } catch (e) {
+    error.value = errorMessage(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 async function onCustomerSaved() {

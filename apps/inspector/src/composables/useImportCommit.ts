@@ -9,7 +9,7 @@ export function headerSignature(headerRow: RawRow): string {
 /** Zet een cel om naar een ISO-datum (yyyy-mm-dd) of null. Geen fuzzy gokwerk:
  * herkent de gangbare NL/EN-notaties en Excel-datumobjecten (xlsx levert die
  * al als JS Date als de cel een datumformaat heeft). */
-export function parseToISODate(value: string | number | null): string | null {
+export function parseToISODate(value: string | number | Date | null): string | null {
   if (value === null || value === '') return null
   if (value instanceof Date) return value.toISOString().slice(0, 10)
   const s = String(value).trim()
@@ -124,7 +124,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           .ilike('name', customerName)
           .maybeSingle()
         if (existing) {
-          customerId = existing.id
+          customerId = String(existing.id)
         } else {
           const { data: created, error: custErr } = await supabase
             .from('customers')
@@ -137,7 +137,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             .select('id')
             .single()
           if (custErr) throw custErr
-          customerId = created.id
+          customerId = String(created.id)
           result.customersCreated++
         }
         customerCache.set(customerKey, customerId)
@@ -201,7 +201,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             .select('id')
             .single()
           if (inspErr) throw inspErr
-          inspectionId = createdInspection.id
+          inspectionId = String(createdInspection.id)
           inspectionCache.set(inspectionKey, inspectionId)
           result.inspectionsCreated++
         }
@@ -230,7 +230,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             .eq('status', 'draft')
             .maybeSingle()
           if (existingDraft) {
-            draftInspectionId = existingDraft.id
+            draftInspectionId = String(existingDraft.id)
           } else {
             const { data: createdDraft, error: draftErr } = await supabase
               .from('inspections')
@@ -245,7 +245,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
               .select('id')
               .single()
             if (draftErr) throw draftErr
-            draftInspectionId = createdDraft.id
+            draftInspectionId = String(createdDraft.id)
             result.inspectionsCreated++
           }
           draftInspectionCache.set(customerId, draftInspectionId)

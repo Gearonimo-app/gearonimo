@@ -116,6 +116,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
+import { useFieldSuggest } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 
 const props = defineProps<{ customerId: string }>()
@@ -168,56 +169,41 @@ const newCategory = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 
-const activeField = ref<null | 'article' | 'brand' | 'category'>(null)
+type SuggestField = 'article' | 'brand' | 'category'
+
 function suggestFilter(list: string[], typed: string): string[] {
   const q = typed.trim().toLowerCase()
   const out = q ? list.filter(v => v.toLowerCase().includes(q)) : list
   return out.slice(0, 30)
 }
-const fieldSuggestions = computed<string[]>(() => {
-  switch (activeField.value) {
-    case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
-    case 'brand': return suggestFilter(allBrands.value, newBrand.value)
-    case 'category': return suggestFilter(allCategories.value, newCategory.value)
-    default: return []
-  }
-})
-function setFieldValue(field: string | null, val: string) {
+function setFieldValue(field: SuggestField, val: string) {
   switch (field) {
     case 'article': newDescription.value = val; break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
   }
 }
-function pickSuggestion(val: string) {
-  setFieldValue(activeField.value, val)
-  activeField.value = null
-}
-function closeSuggest() {
-  setTimeout(() => { activeField.value = null }, 120)
-}
-const suggestIndex = ref(-1)
-watch(fieldSuggestions, () => { suggestIndex.value = -1 })
-function onSuggestKeydown(e: KeyboardEvent) {
-  const cur = activeField.value
-  if (!cur) return
-  const sugg = fieldSuggestions.value
-  if (e.key === 'ArrowDown' && sugg.length) {
-    e.preventDefault()
-    suggestIndex.value = (suggestIndex.value + 1) % sugg.length
-  } else if (e.key === 'ArrowUp' && sugg.length) {
-    e.preventDefault()
-    suggestIndex.value = suggestIndex.value <= 0 ? sugg.length - 1 : suggestIndex.value - 1
-  } else if (e.key === 'Escape') {
-    activeField.value = null
-  } else if (e.key === 'Enter' || e.key === 'Tab') {
-    if (suggestIndex.value >= 0 && sugg.length) {
-      if (e.key === 'Enter') e.preventDefault()
-      setFieldValue(cur, sugg[suggestIndex.value])
+
+// Gedeelde typeahead-besturing (zie @gearonimo/ui). De template gebruikt de
+// vertrouwde namen via aliassen.
+const {
+  activeField,
+  suggestIndex,
+  suggestions: fieldSuggestions,
+  pick: pickSuggestion,
+  close: closeSuggest,
+  onKeydown: onSuggestKeydown,
+} = useFieldSuggest<SuggestField>({
+  resolve: (field) => {
+    switch (field) {
+      case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+      case 'brand': return suggestFilter(allBrands.value, newBrand.value)
+      case 'category': return suggestFilter(allCategories.value, newCategory.value)
+      default: return []
     }
-    activeField.value = null
-  }
-}
+  },
+  select: setFieldValue,
+})
 
 // Zodra het getypte artikel exact een catalogusproduct matcht, merk en
 // categorie meteen invullen. Vrije tekst laat de velden met rust.

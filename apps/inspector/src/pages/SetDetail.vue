@@ -84,8 +84,10 @@ interface ArticleRow {
   product: ProductMatch | null
 }
 interface MemberRow { id: string; article_id: string; label: string }
+interface RawMember { id: string; article_id: string; article: ArticleRow }
+interface SetRecord { name: string | null; customer_id: string }
 
-const set = ref<Record<string, any> | null>(null)
+const set = ref<SetRecord | null>(null)
 const members = ref<MemberRow[]>([])
 const addableArticles = ref<{ id: string; label: string }[]>([])
 const loading = ref(true)
@@ -125,7 +127,7 @@ async function load() {
     .select('id, article_id, article:articles(id, serial_number, free_brand, free_description, product:products(id, brand, name))')
     .eq('set_id', id)
   if (memberErr) { error.value = memberErr.message; loading.value = false; return }
-  members.value = (memberData ?? []).map((m: any) => ({
+  members.value = ((memberData ?? []) as unknown as RawMember[]).map((m) => ({
     id: m.id,
     article_id: m.article_id,
     label: articleLabel(m.article),

@@ -39,10 +39,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
-const { signOut } = useAuth()
 const searchQuery = ref('')
 
 const tiles = [

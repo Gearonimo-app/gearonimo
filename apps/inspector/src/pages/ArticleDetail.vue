@@ -97,7 +97,16 @@ const fieldDefs: FieldDef[] = [
   { col: 'notes', label: 'articles.fields.notes', textarea: true },
 ]
 
-const article = ref<Record<string, any> | null>(null)
+// Een artikelrij met de paar genest gelezen velden expliciet getypeerd; de
+// overige DB-kolommen worden generiek via de fieldDefs benaderd (index-sig).
+interface ArticleRecord {
+  product: { brand: string | null; name: string | null } | null
+  free_brand: string | null
+  free_description: string | null
+  [key: string]: unknown
+}
+
+const article = ref<ArticleRecord | null>(null)
 const loading = ref(true)
 const error = ref('')
 const editMode = ref(false)
@@ -106,6 +115,9 @@ const retiring = ref(false)
 const formError = ref('')
 const showRetire = ref(false)
 const everCertified = ref(true)
+// Bewerk-formulier wordt dynamisch uit fieldDefs opgebouwd (tekst, getal,
+// checkbox door elkaar) en via v-model gebonden; één concreet type past hier
+// niet, vandaar bewust Record<string, any> voor alleen dit formulierobject.
 const form = ref<Record<string, any>>({})
 
 const brandLabel = computed(() => {
@@ -121,7 +133,7 @@ function label(key: string) {
   return t(key).replace(' *', '')
 }
 
-function displayValue(f: FieldDef, v: any) {
+function displayValue(f: FieldDef, v: unknown) {
   if (f.type === 'checkbox') return v ? t('common.save') : ''
   return v
 }
@@ -140,7 +152,7 @@ async function load() {
 }
 
 function startEdit() {
-  const f: Record<string, any> = {}
+  const f: Record<string, unknown> = {}
   for (const def of fieldDefs) {
     const v = article.value?.[def.col]
     f[def.col] = def.type === 'checkbox' ? !!v : (v ?? '')
@@ -153,7 +165,7 @@ function startEdit() {
 async function save() {
   saving.value = true
   formError.value = ''
-  const patch: Record<string, any> = {}
+  const patch: Record<string, unknown> = {}
   for (const def of fieldDefs) {
     const v = form.value[def.col]
     if (def.type === 'checkbox') patch[def.col] = !!v

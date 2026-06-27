@@ -60,7 +60,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 interface InspectionRow {
@@ -103,8 +103,8 @@ async function load() {
       .order('inspection_date', { ascending: false })
     if (err) throw err
     inspections.value = (data ?? []) as unknown as InspectionRow[]
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }

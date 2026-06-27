@@ -102,7 +102,8 @@ async function load() {
 
   if (setsRes.error) error.value = setsRes.error.message
   else {
-    sets.value = (setsRes.data ?? []).map((s: any) => ({
+    type RawSet = { id: string; name: string; article_set_members?: { count: number }[] }
+    sets.value = ((setsRes.data ?? []) as unknown as RawSet[]).map((s) => ({
       id: s.id,
       name: s.name,
       memberCount: s.article_set_members?.[0]?.count ?? 0,

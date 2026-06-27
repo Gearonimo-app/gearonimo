@@ -24,7 +24,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useRouter } from "vue-router";
-import { useAuth } from "../composables/useAuth";
+import { useAuth, errorMessage } from "@gearonimo/core";
 
 const { signInWithEmail } = useAuth();
 const router = useRouter();
@@ -40,8 +40,8 @@ async function handleLogin() {
   try {
     await signInWithEmail(email.value, password.value);
     router.push("/");
-  } catch (e: any) {
-    error.value = e.message;
+  } catch (e) {
+    error.value = errorMessage(e);
   } finally {
     busy.value = false;
   }

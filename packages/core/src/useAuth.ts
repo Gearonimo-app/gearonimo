@@ -1,7 +1,10 @@
 import { ref, computed } from "vue";
-import { supabase } from "@gearonimo/core";
 import type { User } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
 
+// Module-niveau state: één gedeelde sessie voor de hele app. De listener en de
+// initiële sessie-load draaien éénmalig bij import, daarna leest elke
+// useAuth()-aanroep dezelfde refs.
 const user = ref<User | null>(null);
 const loading = ref(true);
 

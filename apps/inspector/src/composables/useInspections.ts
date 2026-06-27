@@ -143,12 +143,18 @@ export async function findPreviousResult(
     .order('created_at', { ascending: false })
     .limit(20)
   if (error) throw error
-  const completed = (data ?? []).find((row: any) => row.inspection?.status === 'completed')
-  if (!completed) return null
+  interface PrevItemRow {
+    result: string
+    comment: string | null
+    inspection: { inspection_date: string; status: string } | null
+  }
+  const rows = (data ?? []) as unknown as PrevItemRow[]
+  const completed = rows.find((row) => row.inspection?.status === 'completed')
+  if (!completed || !completed.inspection) return null
   return {
     result: completed.result,
     comment: completed.comment,
-    inspection_date: (completed as any).inspection.inspection_date,
+    inspection_date: completed.inspection.inspection_date,
   }
 }
 

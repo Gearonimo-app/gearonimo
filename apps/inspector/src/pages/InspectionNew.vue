@@ -64,9 +64,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { supabase } from '@gearonimo/core'
+import { errorMessage } from '@gearonimo/core'
 import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
 import CustomerFormModal from '../components/CustomerFormModal.vue'
+import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import {
   findDraftInspection,
   fetchArticleScope,
@@ -78,9 +79,7 @@ import {
 
 const router = useRouter()
 
-interface Customer { id: string; name: string; city: string | null; phone: string | null }
-
-const customers = ref<Customer[]>([])
+const customers = ref<CustomerListItem[]>([])
 const loading = ref(true)
 const error = ref('')
 const query = ref('')
@@ -102,9 +101,13 @@ const filtered = computed(() => {
 async function load() {
   loading.value = true
   error.value = ''
-  const { data, error: err } = await supabase.from('customers').select('id, name, city, phone').order('name')
-  if (err) { error.value = err.message } else { customers.value = data ?? [] }
-  loading.value = false
+  try {
+    customers.value = await listCustomers()
+  } catch (e) {
+    error.value = errorMessage(e)
+  } finally {
+    loading.value = false
+  }
 }
 
 // Bestaat er al een concept-keuring voor deze klant, dan bieden we eerst aan
@@ -138,8 +141,8 @@ async function pick(customerId: string) {
     pendingCustomerId.value = customerId
     articleScope.value = scope
     showArticleSelect.value = true
-  } catch (e: any) {
-    pickError.value = e?.message ?? String(e)
+  } catch (e) {
+    pickError.value = errorMessage(e)
   } finally {
     picking.value = false
   }
@@ -154,8 +157,8 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
     const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
     const inspectionId = await startInspectionWithArticles(pendingCustomerId.value, articleIds)
     router.push(`/inspections/${inspectionId}`)
-  } catch (e: any) {
-    pickError.value = e?.message ?? String(e)
+  } catch (e) {
+    pickError.value = errorMessage(e)
   } finally {
     picking.value = false
   }
@@ -171,8 +174,8 @@ async function confirmAddExtra(scopeChoice: 'all' | 'new') {
   try {
     await addArticlesToInspection(draftId, articleIds)
     router.push(`/inspections/${draftId}`)
-  } catch (e: any) {
-    pickError.value = e?.message ?? String(e)
+  } catch (e) {
+    pickError.value = errorMessage(e)
   } finally {
     picking.value = false
   }
@@ -192,8 +195,8 @@ async function onNewCustomer(customerId: string) {
   try {
     const inspectionId = await startInspectionWithArticles(customerId, [])
     router.push(`/inspections/${inspectionId}`)
-  } catch (e: any) {
-    pickError.value = e?.message ?? String(e)
+  } catch (e) {
+    pickError.value = errorMessage(e)
   } finally {
     picking.value = false
   }

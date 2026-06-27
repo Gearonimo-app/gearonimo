@@ -168,7 +168,9 @@ function tint(c: Color, factor: number): Color {
 }
 
 async function sha256Hex(bytes: Uint8Array): Promise<string> {
-  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  // Kopie met een gewone ArrayBuffer als backing: voldoet aan het BufferSource-
+  // type van crypto.subtle (sluit SharedArrayBuffer uit).
+  const digest = await crypto.subtle.digest('SHA-256', bytes.slice() as BufferSource)
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('')
@@ -629,7 +631,28 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
 
   // Niet-beoordeelde artikelen (vergeten/kwijt op de keurdag) horen niet op
   // het certificaat — ze blijven wel bij de klant staan voor een volgende keer.
-  const items: CertItem[] = (rows ?? []).filter((r: any) => r.result !== 'not_assessed').map((r: any) => {
+  interface ItemRow {
+    result: string
+    next_due: string | null
+    comment: string | null
+    article: {
+      serial_number: string | null
+      free_brand: string | null
+      free_description: string | null
+      free_category: string | null
+      free_norm: string | null
+      free_mbs: string | null
+      manufacture_year: number | null
+      manufacture_month: number | null
+      assigned_user_name: string | null
+      product: {
+        brand: string | null; name: string | null; category: string | null
+        standard: string | null; breaking_strength: string | null
+      } | null
+    } | null
+    rejection_code: { label: string } | null
+  }
+  const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
     const a = r.article
     const p = a?.product
     return {
@@ -670,12 +693,16 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)
   const pdfHash = await sha256Hex(pdfBytes)
 
+  // Idempotent: een eerdere (half mislukte) poging mag het opnieuw afronden niet
+  // blokkeren. upsert overschrijft een bestaand PDF; een eventueel achtergebleven
+  // certificaatrij voor deze keuring ruimen we eerst op vóór de nieuwe insert.
   const storagePath = `${inspection.company_id}/${inspection.id}.pdf`
   const { error: uploadErr } = await supabase.storage
     .from('certificates')
-    .upload(storagePath, pdfBytes, { contentType: 'application/pdf', upsert: false })
+    .upload(storagePath, pdfBytes, { contentType: 'application/pdf', upsert: true })
   if (uploadErr) throw uploadErr
 
+  await supabase.from('certificates').delete().eq('inspection_id', inspection.id)
   const { error: certErr } = await supabase.from('certificates').insert({
     inspection_id: inspection.id,
     number,

@@ -18,7 +18,7 @@
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
         </a>
-        <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection.customer_id}`)">
+        <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
           {{ $t('inspections.backToCustomer') }}
         </button>
       </div>
@@ -327,7 +327,8 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
+import { useFieldSuggest } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 
@@ -376,7 +377,18 @@ interface Item {
   article: Article
 }
 
-const inspection = ref<any>(null)
+interface InspectionRecord {
+  id: string
+  customer_id: string
+  company_id: string
+  customer: { name: string } | null
+  company: {
+    country_code: string | null
+    default_interval_ppe_months: number | null
+    default_interval_rigging_months: number | null
+  } | null
+}
+const inspection = ref<InspectionRecord | null>(null)
 const items = ref<Item[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -423,7 +435,7 @@ function unique(arr: (string | null)[]): string[] {
 // de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Elk veld
 // zoekt strikt in z'n eigen bron — Serienummer kijkt alleen naar de artikelen
 // die al in deze keuring staan, niet in de catalogus.
-const activeField = ref<null | 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'>(null)
+type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'
 const existingSerials = computed(() => unique(items.value.map(i => i.article.serial_number)))
 
 function suggestFilter(list: string[], typed: string): string[] {
@@ -432,17 +444,6 @@ function suggestFilter(list: string[], typed: string): string[] {
   return out.slice(0, 30)
 }
 
-const fieldSuggestions = computed<string[]>(() => {
-  switch (activeField.value) {
-    case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
-    case 'brand': return suggestFilter(allBrands.value, newBrand.value)
-    case 'category': return suggestFilter(allCategories.value, newCategory.value)
-    case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
-    case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
-    default: return []
-  }
-})
-
 function setFieldValue(field: string | null, val: string) {
   switch (field) {
     case 'article': newDescription.value = val; break
@@ -450,16 +451,6 @@ function setFieldValue(field: string | null, val: string) {
     case 'category': newCategory.value = val; break
     case 'serial': newSerial.value = val; break
   }
-}
-
-function pickSuggestion(val: string) {
-  if (activeField.value === 'rowMatch' && matchingRowId.value) {
-    const it = items.value.find((i) => i.id === matchingRowId.value)
-    if (it) applyRowMatch(it, val)
-    return
-  }
-  setFieldValue(activeField.value, val)
-  activeField.value = null
 }
 
 // "Match aan bestaand artikel": een vrij (import-)artikel alsnog koppelen aan
@@ -513,51 +504,45 @@ function focusNextField(cur: string | null) {
   nextTick(() => el?.focus())
 }
 
-// Korte vertraging zodat een klik op een suggestie nog registreert voordat de
-// lijst door blur verdwijnt (mousedown.prevent vangt de meeste gevallen al af).
-function closeSuggest() {
-  setTimeout(() => { activeField.value = null; matchingRowId.value = null }, 120)
-}
-
-// Met pijltjestoetsen door de suggestielijst lopen, Enter kiest, Escape sluit.
-const suggestIndex = ref(-1)
-const suggestItemRefs = ref<HTMLButtonElement[]>([])
-watch(fieldSuggestions, () => { suggestIndex.value = -1 })
-watch(suggestIndex, (i) => {
-  if (i < 0) return
-  nextTick(() => suggestItemRefs.value[i]?.scrollIntoView({ block: 'nearest' }))
+// Gedeelde typeahead-besturing (zie @gearonimo/ui). De velddefinities en de
+// rowMatch-/setFieldValue-logica blijven hier; de besturing (actief veld,
+// suggestielijst, toetsenbordnavigatie) komt uit de composable. De template
+// gebruikt de vertrouwde namen via aliassen.
+const {
+  activeField,
+  suggestIndex,
+  suggestions: fieldSuggestions,
+  itemRefs: suggestItemRefs,
+  pick: pickSuggestion,
+  close: rawCloseSuggest,
+  onKeydown: onSuggestKeydown,
+} = useFieldSuggest<WizardField>({
+  scrollToActive: true,
+  resolve: (field) => {
+    switch (field) {
+      case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+      case 'brand': return suggestFilter(allBrands.value, newBrand.value)
+      case 'category': return suggestFilter(allCategories.value, newCategory.value)
+      case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
+      case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
+      default: return []
+    }
+  },
+  select: (field, value) => {
+    if (field === 'rowMatch' && matchingRowId.value) {
+      const it = items.value.find((i) => i.id === matchingRowId.value)
+      if (it) applyRowMatch(it, value)
+      return
+    }
+    setFieldValue(field, value)
+  },
+  onEnter: (field) => focusNextField(field),
 })
 
-function onSuggestKeydown(e: KeyboardEvent) {
-  const cur = activeField.value
-  if (!cur) return
-  const sugg = fieldSuggestions.value
-  if (e.key === 'ArrowDown' && sugg.length) {
-    e.preventDefault()
-    suggestIndex.value = (suggestIndex.value + 1) % sugg.length
-  } else if (e.key === 'ArrowUp' && sugg.length) {
-    e.preventDefault()
-    suggestIndex.value = suggestIndex.value <= 0 ? sugg.length - 1 : suggestIndex.value - 1
-  } else if (e.key === 'Escape') {
-    activeField.value = null
-  } else if (e.key === 'Enter' || e.key === 'Tab') {
-    // Tab én Enter: bevestig de gemarkeerde suggestie (indien aanwezig) en ga
-    // door naar het volgende veld. Tab regelt de focuswissel zelf; bij Enter
-    // sturen we de focus expliciet (en voorkomen we form-submit).
-    if (suggestIndex.value >= 0 && sugg.length) {
-      if (cur === 'rowMatch' && matchingRowId.value) {
-        const it = items.value.find((i) => i.id === matchingRowId.value)
-        if (it) applyRowMatch(it, sugg[suggestIndex.value])
-      } else {
-        setFieldValue(cur, sugg[suggestIndex.value])
-      }
-    }
-    activeField.value = null
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      focusNextField(cur)
-    }
-  }
+// Bij blur ook een lopende rij-match sluiten (extra t.o.v. de generieke close).
+function closeSuggest() {
+  rawCloseSuggest()
+  window.setTimeout(() => { matchingRowId.value = null }, 120)
 }
 
 // Toevoegrij
@@ -803,9 +788,10 @@ async function load() {
     .from('inspections')
     .select('*, customer:customers(name), company:inspection_companies(country_code, default_interval_ppe_months, default_interval_rigging_months)')
     .eq('id', id)
-    .single()
+    .maybeSingle()
   if (insErr) { error.value = insErr.message; loading.value = false; return }
-  inspection.value = insp
+  if (!insp) { error.value = t('inspections.notFound'); loading.value = false; return }
+  inspection.value = insp as unknown as InspectionRecord
 
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
@@ -854,7 +840,7 @@ async function addRow() {
     const { data: article, error: artErr } = await supabase
       .from('articles')
       .insert({
-        customer_id: inspection.value.customer_id,
+        customer_id: inspection.value!.customer_id,
         product_id: product?.id ?? null,
         free_brand: product ? null : (newBrand.value.trim() || null),
         free_category: product ? null : (newCategory.value.trim() || null),
@@ -910,8 +896,8 @@ async function addRow() {
     newMbs.value = ''
     dayHint.value = null
     weekHint.value = null
-  } catch (e: any) {
-    addError.value = e.message
+  } catch (e) {
+    addError.value = errorMessage(e)
   }
 }
 
@@ -991,17 +977,21 @@ async function finish() {
   completing.value = true
   completeError.value = ''
   try {
+    // Eerst het certificaat genereren en opslaan; pas als dat lukt, markeren we
+    // de keuring als afgerond. Zo blijft een mislukte PDF-upload een hervatbaar
+    // concept i.p.v. een "afgeronde" keuring zonder certificaat.
+    const { storagePath } = await generateCertificate(id)
+
     const { error: err } = await supabase
       .from('inspections')
       .update({ status: 'completed', completed_at: new Date().toISOString() })
       .eq('id', id)
     if (err) throw err
 
-    const { storagePath } = await generateCertificate(id)
     certificateUrl.value = supabase.storage.from('certificates').getPublicUrl(storagePath).data.publicUrl
     finished.value = true
-  } catch (e: any) {
-    completeError.value = e.message
+  } catch (e) {
+    completeError.value = errorMessage(e)
   } finally {
     completing.value = false
   }

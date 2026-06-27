@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const { t } = useI18n()
@@ -153,8 +153,8 @@ async function load() {
       own = await fetchOwn()
     }
     codes.value = own
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }

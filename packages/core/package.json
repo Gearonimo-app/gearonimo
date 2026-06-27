@@ -6,6 +6,10 @@
   "scripts": {
     "test": "vitest run"
   },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.0",
+    "vue": "^3.4.0"
+  },
   "devDependencies": {
     "vitest": "^1.6.0",
     "typescript": "^5.4.0"

@@ -166,7 +166,7 @@
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
 
 interface Product {
   brand: string | null
@@ -285,8 +285,8 @@ async function runSearch() {
     }
 
     results.value = Array.from(byId.values())
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
     results.value = []
   } finally {
     loading.value = false
@@ -372,8 +372,8 @@ async function doRecall() {
     })
     recallResults.value = rows
     recallRan.value = true
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
     recallResults.value = []
   } finally {
     loading.value = false

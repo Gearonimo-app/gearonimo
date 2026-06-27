@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useAuth } from "../composables/useAuth";
+import { useAuth, errorMessage } from "@gearonimo/core";
 
 const { signInWithMagicLink } = useAuth();
 
@@ -40,8 +40,8 @@ async function handleLogin() {
   try {
     await signInWithMagicLink(email.value);
     sent.value = true;
-  } catch (e: any) {
-    error.value = e.message;
+  } catch (e) {
+    error.value = errorMessage(e);
   } finally {
     busy.value = false;
   }

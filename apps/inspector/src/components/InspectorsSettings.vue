@@ -124,7 +124,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const { t } = useI18n()
@@ -199,8 +199,8 @@ async function load() {
       .order('created_at')
     if (err) throw err
     inspectors.value = (data ?? []) as Inspector[]
-  } catch (e: any) {
-    error.value = e.message
+  } catch (e) {
+    error.value = errorMessage(e)
   } finally {
     loading.value = false
   }
@@ -270,8 +270,8 @@ async function deleteInspector() {
     showDelete.value = false
     await load()
     deselect()
-  } catch (e: any) {
-    editError.value = e.message
+  } catch (e) {
+    editError.value = errorMessage(e)
     showDelete.value = false
   } finally {
     deleting.value = false
@@ -328,8 +328,8 @@ async function addQual() {
     if (err) throw err
     showQual.value = false
     await loadQuals(selected.value.id)
-  } catch (e: any) {
-    qualError.value = e.message
+  } catch (e) {
+    qualError.value = errorMessage(e)
   } finally {
     savingQual.value = false
   }
