@@ -60,6 +60,22 @@
         </div>
       </div>
 
+      <!-- Handtekening -->
+      <div class="ins__qhead">
+        <h3>{{ $t('settings.inspectors.signature') }}</h3>
+      </div>
+      <div class="ins__card">
+        <p class="ins__note">{{ $t('settings.inspectors.signatureIntro') }}</p>
+        <div v-if="selected.signature_path" class="ins__sig">
+          <img :src="signatureUrl" alt="" class="ins__sig-img" />
+          <button class="ins__link ins__link--del" :disabled="savingSig" @click="removeSignature">{{ $t('settings.inspectors.removeSignature') }}</button>
+        </div>
+        <label class="ins__field"><span>{{ selected.signature_path ? $t('settings.inspectors.replaceSignature') : $t('settings.inspectors.uploadSignature') }}</span>
+          <input type="file" accept="image/png,image/jpeg" class="ins__input" :disabled="savingSig" @change="onSignatureFile" /></label>
+        <p v-if="savingSig" class="ins__state">{{ $t('common.saving') }}</p>
+        <p v-if="sigError" class="ins__error">{{ sigError }}</p>
+      </div>
+
       <!-- Kwalificaties -->
       <div class="ins__qhead">
         <h3>{{ $t('settings.inspectors.qualifications') }}</h3>
@@ -122,7 +138,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
@@ -135,6 +151,7 @@ interface Inspector {
   active: boolean
   is_admin: boolean
   user_id: string | null
+  signature_path: string | null
 }
 interface Qualification {
   id: string
@@ -174,6 +191,15 @@ const opening = ref<string | null>(null)
 const qualForm = reactive({ name: '', number: '', valid_until: '' })
 let qualFile: File | null = null
 
+// --- handtekening ---
+const savingSig = ref(false)
+const sigError = ref('')
+const signatureUrl = computed(() =>
+  selected.value?.signature_path
+    ? supabase.storage.from('branding').getPublicUrl(selected.value.signature_path).data.publicUrl
+    : ''
+)
+
 function formatDate(d: string) {
   const date = new Date(d)
   return isNaN(date.getTime()) ? d : date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -194,7 +220,7 @@ async function load() {
     companyId.value = me.company_id
     const { data, error: err } = await supabase
       .from('inspectors')
-      .select('id, name, active, is_admin, user_id')
+      .select('id, name, active, is_admin, user_id, signature_path')
       .eq('company_id', me.company_id)
       .order('created_at')
     if (err) throw err
@@ -265,6 +291,7 @@ async function deleteInspector() {
     // Eerst de geüploade kwalificatiebestanden opruimen (rijen gaan via cascade).
     const paths = quals.value.map((q) => q.storage_path).filter(Boolean) as string[]
     if (paths.length) await supabase.storage.from('qualifications').remove(paths)
+    if (selected.value.signature_path) await supabase.storage.from('branding').remove([selected.value.signature_path])
     const { error: err } = await supabase.from('inspectors').delete().eq('id', selected.value.id)
     if (err) throw err
     showDelete.value = false
@@ -349,6 +376,51 @@ async function openFile(q: Qualification) {
   window.open(data.signedUrl, '_blank', 'noopener')
 }
 
+// ---- handtekening ----
+async function onSignatureFile(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !selected.value) return
+  sigError.value = ''
+  savingSig.value = true
+  try {
+    const path = `${companyId.value}/signatures/${selected.value.id}-${crypto.randomUUID()}-${sanitize(file.name)}`
+    const { error: upErr } = await supabase.storage
+      .from('branding')
+      .upload(path, file, { contentType: file.type || 'image/png', upsert: false })
+    if (upErr) throw upErr
+    const old = selected.value.signature_path
+    const { error: err } = await supabase.from('inspectors').update({ signature_path: path }).eq('id', selected.value.id)
+    if (err) throw err
+    // Pas na een geslaagde DB-update het oude bestand opruimen (anders verlies je
+    // de handtekening als de update faalt). selected.value zit ook in de lijst,
+    // dus deze mutatie werkt meteen door in het overzicht.
+    if (old) await supabase.storage.from('branding').remove([old])
+    selected.value.signature_path = path
+  } catch (e) {
+    sigError.value = errorMessage(e)
+  } finally {
+    savingSig.value = false
+    input.value = ''
+  }
+}
+async function removeSignature() {
+  if (!selected.value?.signature_path) return
+  savingSig.value = true
+  sigError.value = ''
+  try {
+    const old = selected.value.signature_path
+    const { error: err } = await supabase.from('inspectors').update({ signature_path: null }).eq('id', selected.value.id)
+    if (err) throw err
+    await supabase.storage.from('branding').remove([old])
+    selected.value.signature_path = null
+  } catch (e) {
+    sigError.value = errorMessage(e)
+  } finally {
+    savingSig.value = false
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -396,6 +468,12 @@ onMounted(load)
 .ins__btn--danger { background: #dc2626; color: #fff; }
 .ins__btn--danger-ghost { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
 .ins__btn:disabled { opacity: 0.6; }
+
+.ins__sig { display: flex; align-items: center; gap: 1rem; }
+.ins__sig-img {
+  max-width: 220px; max-height: 80px; object-fit: contain;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.4rem;
+}
 
 .ins__qitem { gap: 0.5rem; }
 .ins__qmeta { display: flex; flex-wrap: wrap; gap: 0.75rem; font-size: 0.82rem; color: #6b7280; margin-top: 0.2rem; }

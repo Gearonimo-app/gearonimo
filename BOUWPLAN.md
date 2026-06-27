@@ -399,6 +399,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   bouwen we bewust niet nu: die hoort in **fase 4** (besluit Jos 2026-06-27 —
   "volg het bouwplan"). Het vinkje verzamelt tot dan alleen de markeringen.
 
+  **Handtekening keurmeester op het certificaat (2026-06-27):** elke keurmeester
+  kan in **Instellingen → Keurmeesters** een handtekening uploaden (PNG/JPG, met
+  preview, vervangen en verwijderen). Bij het afronden van een keuring wordt die
+  handtekening in het certificaat-PDF ingebed, **boven de bestaande
+  handtekeninglijn** (proportioneel geschaald; geen handtekening = lege lijn om
+  met de hand te tekenen, zoals voorheen). Opgeslagen als `inspectors.signature_path`
+  (migratie `supabase/migrations/20260704_inspector_signature.sql` — **nog door
+  Jos in Supabase uit te voeren**, idempotent) met het bestand in de bestaande
+  publieke `branding`-bucket (de handtekening komt sowieso op het publieke
+  certificaat). De bedrijfsbrede certificaat-preview onder Instellingen toont de
+  handtekening niet (die is per keurmeester, niet per bedrijf).
+
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub

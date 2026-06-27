@@ -279,6 +279,9 @@ function sampleData(): CertData {
       { result: 'passed', brand: 'Camp Safety', name: 'Helm Titan', serial_number: '22D0005555', manufacture_year: 2022, manufacture_month: 1, category: 'Helm', norm: 'EN 397', mbs: null, user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
       { result: 'passed', brand: 'Beal', name: 'Touw 11mm 50m', serial_number: '21E0009999', manufacture_year: 2021, manufacture_month: null, category: 'Touw', norm: 'EN 1891', mbs: '22 kN', user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
     ],
+    // De handtekening is per keurmeester (Instellingen → Keurmeesters), niet
+    // per bedrijf; in deze bedrijfsbrede voorbeeldweergave tonen we 'm niet.
+    signature: null,
   }
 }
 

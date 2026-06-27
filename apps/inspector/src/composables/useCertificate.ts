@@ -109,6 +109,8 @@ export interface CertData {
   number: string
   verifyUrl: string
   items: CertItem[]
+  /** Ingebedde handtekening-PNG/JPG van de keurmeester, of null. */
+  signature: Uint8Array | null
 }
 
 // ----------------------------------------------------------------------------
@@ -357,6 +359,18 @@ export async function renderCertificatePdf(
     gearMark = null
   }
 
+  // Handtekening van de keurmeester (optioneel). Zelfde PNG/JPG-detectie als
+  // het logo, zodat zowel een geëxporteerde PNG als een foto van een
+  // handtekening werkt.
+  let signature: PDFImage | null = null
+  if (data.signature && data.signature.length) {
+    try {
+      signature = data.signature[0] === 0x89 ? await doc.embedPng(data.signature) : await doc.embedJpg(data.signature)
+    } catch {
+      signature = null
+    }
+  }
+
   const margin = 50
   const tableSize = 9.5
   const items = data.items
@@ -572,9 +586,20 @@ export async function renderCertificatePdf(
   }
   page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
   page.drawText(verifyCaption, { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
-  // Handtekeningvlak links.
+  // Handtekeningvlak links. Een geüploade handtekening wordt boven de lijn
+  // ingebed (proportioneel geschaald, breedte tot de lijnlengte, hoogte tot ~34);
+  // is er geen, dan blijft de lijn vrij om met de hand te tekenen.
+  const sigLineWidth = 200
+  if (signature) {
+    const maxH = 34
+    const ratio = signature.width / signature.height
+    let sw = maxH * ratio
+    let sh = maxH
+    if (sw > sigLineWidth) { sw = sigLineWidth; sh = sigLineWidth / ratio }
+    page.drawImage(signature, { x: margin, y: fy + 32, width: sw, height: sh })
+  }
   page.drawText(`Keurmeester: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
-  page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + 200, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
+  page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + sigLineWidth, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
   page.drawText('Handtekening', { x: margin, y: fy, size: 7, font, color: grey })
 
   fy += qrSize + 14
@@ -608,6 +633,15 @@ export async function fetchLogoBytes(logoPath: string | null): Promise<Uint8Arra
   return new Uint8Array(await data.arrayBuffer())
 }
 
+// Handtekening van de keurmeester staat in dezelfde 'branding'-bucket als het
+// logo (zie migratie 20260704); ophalen gaat identiek.
+export async function fetchSignatureBytes(signaturePath: string | null): Promise<Uint8Array | null> {
+  if (!signaturePath) return null
+  const { data, error } = await supabase.storage.from('branding').download(signaturePath)
+  if (error || !data) return null
+  return new Uint8Array(await data.arrayBuffer())
+}
+
 // ----------------------------------------------------------------------------
 // Echte certificaatgeneratie bij het afronden van een keuring
 // ----------------------------------------------------------------------------
@@ -622,7 +656,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -634,7 +668,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     inspection_date: string
     customer: { name: string }
     company: CompanyRow
-    inspector: { name: string | null }
+    inspector: { name: string | null; signature_path: string | null }
   }
 
   const { data: rows, error: itemsErr } = await supabase
@@ -696,6 +730,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const company = inspection.company
   const layout = resolveLayout(company.cert_layout)
   const logoBytes = await fetchLogoBytes(company.logo_path)
+  const signatureBytes = await fetchSignatureBytes(inspection.inspector?.signature_path ?? null)
 
   const data: CertData = {
     company,
@@ -705,6 +740,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     number,
     verifyUrl,
     items,
+    signature: signatureBytes,
   }
 
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)
