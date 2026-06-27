@@ -129,6 +129,27 @@ function slugify(s: string): string {
     .toUpperCase()
 }
 
+// Donker genoeg gekozen om ook op een zwartwit printer (grijswaarden) als
+// duidelijk vinkje/kruisje te herkennen, niet alleen op een kleurenprint.
+const STATUS_OK_COLOR = rgb(0, 0.36, 0.13)
+const STATUS_FAIL_COLOR = rgb(0.62, 0, 0)
+
+// Vinkje (goedgekeurd) of kruisje (afgekeurd) i.p.v. tekst in de statuskolom,
+// getekend met lijnen (niet als tekstglyph) zodat het altijd hetzelfde
+// oogt, onafhankelijk van het gekozen lettertype.
+function drawStatusMark(page: PDFPage, cx: number, cy: number, tableSize: number, passed: boolean) {
+  const s = tableSize * 0.62
+  const thickness = Math.max(1.3, tableSize * 0.16)
+  const color = passed ? STATUS_OK_COLOR : STATUS_FAIL_COLOR
+  if (passed) {
+    page.drawLine({ start: { x: cx - s * 0.9, y: cy + s * 0.05 }, end: { x: cx - s * 0.2, y: cy - s * 0.6 }, thickness, color })
+    page.drawLine({ start: { x: cx - s * 0.2, y: cy - s * 0.6 }, end: { x: cx + s * 1.0, y: cy + s * 0.7 }, thickness, color })
+  } else {
+    page.drawLine({ start: { x: cx - s * 0.7, y: cy + s * 0.7 }, end: { x: cx + s * 0.7, y: cy - s * 0.7 }, thickness, color })
+    page.drawLine({ start: { x: cx - s * 0.7, y: cy - s * 0.7 }, end: { x: cx + s * 0.7, y: cy + s * 0.7 }, thickness, color })
+  }
+}
+
 function hexToColor(hex: string): Color {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
   if (!m) return rgb(0.1, 0.23, 0.16)
@@ -225,7 +246,7 @@ function noteStr(it: CertItem): string {
 // staat"); status is altijd zichtbaar. Uitgevinkt = data blijft bestaan maar
 // staat niet op het certificaat.
 const ALL_COLUMNS: ColDef[] = [
-  { key: 'status',   header: 'Status',                 optional: false, flex: false, min: 62, cap: 80,  value: (it) => (it.result === 'passed' ? 'GOED' : 'AFGEKEURD') },
+  { key: 'status',   header: 'Status',                 optional: false, flex: false, min: 40, cap: 56,  value: () => '' },
   { key: 'brand',    header: 'Merk',                   optional: false, flex: false, min: 56, cap: 120, value: (it) => it.brand || '' },
   { key: 'article',  header: 'Artikel',                optional: false, flex: true,  min: 80, cap: 190, value: (it) => it.name || '' },
   { key: 'year',     header: 'Bouwjaar',               optional: false, flex: false, min: 56, cap: 74,  value: yearStr },
@@ -480,17 +501,19 @@ export async function renderCertificatePdf(
     let x = margin
     cols.forEach((col, i) => {
       const isStatus = col.key === 'status'
-      const cellFont = isStatus ? bold : font
-      const cellColor = isStatus ? (passed ? rgb(0.09, 0.5, 0.25) : rgb(0.75, 0.1, 0.1)) : rgb(0.1, 0.1, 0.1)
-      cellLines[i].forEach((ln, li) => {
-        page.drawText(ln, {
-          x: x + CELL_PAD,
-          y: y - tableSize - 4 - li * lineGap,
-          size: tableSize,
-          font: cellFont,
-          color: cellColor,
+      if (isStatus) {
+        drawStatusMark(page, x + colWidths[i] / 2, y - rowHeight / 2, tableSize, passed)
+      } else {
+        cellLines[i].forEach((ln, li) => {
+          page.drawText(ln, {
+            x: x + CELL_PAD,
+            y: y - tableSize - 4 - li * lineGap,
+            size: tableSize,
+            font,
+            color: rgb(0.1, 0.1, 0.1),
+          })
         })
-      })
+      }
       x += colWidths[i]
     })
     y -= rowHeight
