@@ -23,56 +23,57 @@
     <div v-if="showAdd" class="ca__form">
       <h3>{{ $t('articles.add') }}</h3>
 
-      <!-- Catalogus-modus: eerst artikel zoeken, daarna eventueel op merk filteren -->
-      <template v-if="!freeMode">
-        <div class="ca__field">
-          <input
-            v-model="catalogQuery" type="search"
-            :placeholder="$t('articles.catalogSearch')"
-            class="ca__input"
-            @input="onCatalogQueryChange" @keydown="onCatalogKeydown"
-          />
-          <ul v-if="catalogResults.length" class="ca__results">
-            <li v-for="(p, i) in catalogResults" :key="p.id"
-                :class="{ 'ca__results-item--active': i === catalogHighlight }"
-                @click="pickProduct(p)">
-              <strong>{{ p.brand }}</strong> {{ p.name }}
-            </li>
-          </ul>
-          <p v-if="selectedProduct" class="ca__selected">
-            ✓ {{ selectedProduct.brand }} {{ selectedProduct.name }}
-            <button class="ca__clear" @click="clearSelectedProduct">×</button>
-          </p>
+      <!-- Zelfde invoerflow als bij een keuring: Artikel/Merk/Categorie hebben
+           ieder hun eigen typeahead op de catalogus; matcht het getypte
+           artikel exact een catalogusproduct, dan vullen merk/categorie zich
+           vanzelf. Geen match = vrij artikel. -->
+      <div class="ca__field">
+        <input
+          v-model="newDescription"
+          class="ca__input"
+          :placeholder="$t('inspections.table.article')"
+          @focus="activeField = 'article'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
         </div>
-
-        <div class="ca__field">
-          <input
-            v-model="brandQuery" type="search"
-            :placeholder="$t('articles.brandFilter')"
-            class="ca__input"
-            @input="onBrandQueryChange" @keydown="onBrandKeydown"
-          />
-          <ul v-if="brandResults.length" class="ca__results">
-            <li v-for="(b, i) in brandResults" :key="b"
-                :class="{ 'ca__results-item--active': i === brandHighlight }"
-                @click="pickBrand(b)">{{ b }}</li>
-          </ul>
-          <p v-if="selectedBrand" class="ca__selected">
-            ✓ {{ selectedBrand }}
-            <button class="ca__clear" @click="clearBrand">×</button>
-          </p>
+      </div>
+      <div class="ca__field">
+        <input
+          v-model="newBrand"
+          class="ca__input"
+          :placeholder="$t('inspections.table.brand')"
+          @focus="activeField = 'brand'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'brand' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
         </div>
+      </div>
+      <div class="ca__field">
+        <input
+          v-model="newCategory"
+          class="ca__input"
+          :placeholder="$t('inspections.table.category')"
+          @focus="activeField = 'category'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'category' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+        </div>
+      </div>
 
-        <button v-if="catalogQuery.trim() && !selectedProduct" class="ca__link" @click="freeMode = true">
-          {{ $t('articles.cantFind') }}
-        </button>
-      </template>
-
-      <!-- Vrij artikel -->
-      <template v-else>
-        <button class="ca__link" @click="toCatalog">{{ $t('articles.backToCatalog') }}</button>
-        <input v-model="form.free_brand"       :placeholder="$t('articles.fields.brand')"       class="ca__input" />
-        <input v-model="form.free_description"  :placeholder="$t('articles.fields.description')" class="ca__input" />
+      <template v-if="willBeFreeArticle">
         <input v-if="freeFields.norm" v-model="form.free_norm" :placeholder="$t('inspections.table.norm')" class="ca__input" />
         <input v-if="freeFields.mbs"  v-model="form.free_mbs"  :placeholder="$t('inspections.table.mbs')"  class="ca__input" />
         <label class="ca__checkbox">
@@ -84,6 +85,13 @@
       </template>
 
       <hr class="ca__sep" />
+      <div class="ca__row">
+        <input v-model="newYear" type="number" class="ca__input ca__input--sm" :placeholder="$t('inspections.table.year')" />
+        <select v-model="newMonth" class="ca__input ca__input--sm">
+          <option :value="null">{{ $t('inspections.table.month') }}</option>
+          <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
+        </select>
+      </div>
       <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
       <input v-model="form.assigned_user_name" :placeholder="$t('articles.fields.user')"   class="ca__input" />
       <label class="ca__date-label">
@@ -105,7 +113,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
 import { fetchFreeInputFields } from '../composables/useInspections'
@@ -113,6 +121,7 @@ import { fetchFreeInputFields } from '../composables/useInspections'
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
 
+interface Product { id: string; brand: string | null; name: string | null; category: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
 interface Article {
   id: string
@@ -128,25 +137,117 @@ const loading = ref(true)
 const error = ref('')
 
 const showAdd = ref(false)
-const freeMode = ref(false)
 const saving = ref(false)
 const formError = ref('')
 
-const catalogQuery = ref('')
-const catalogResults = ref<ProductMatch[]>([])
-const selectedProduct = ref<ProductMatch | null>(null)
-const catalogHighlight = ref(-1)
-let catalogTimeout: ReturnType<typeof setTimeout> | undefined
+// Hele catalogus één keer geladen, zelfde aanpak als in InspectionWizard.vue:
+// voedt de Artikel/Merk/Categorie-typeaheads en laat een getypt artikel
+// terugkoppelen aan een catalogusproduct.
+const products = ref<Product[]>([])
+const allBrands = computed(() => unique(products.value.map(p => p.brand)))
+const allCategories = computed(() => unique(products.value.map(p => p.category)))
+const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
+const matchingArticleNames = computed(() => {
+  const b = newBrand.value.trim().toLowerCase()
+  const c = newCategory.value.trim().toLowerCase()
+  if (!b && !c) return allArticleNames.value
+  const filtered = products.value.filter(p =>
+    (!b || (p.brand ?? '').toLowerCase() === b) &&
+    (!c || (p.category ?? '').toLowerCase() === c)
+  )
+  return unique(filtered.map(p => p.name))
+})
 
-const brandQuery = ref('')
-const brandResults = ref<string[]>([])
-const selectedBrand = ref<string | null>(null)
-const brandHighlight = ref(-1)
-let brandTimeout: ReturnType<typeof setTimeout> | undefined
+function unique(arr: (string | null)[]): string[] {
+  return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
+}
+
+const newDescription = ref('')
+const newBrand = ref('')
+const newCategory = ref('')
+const newYear = ref<number | null>(null)
+const newMonth = ref<number | null>(null)
+
+const activeField = ref<null | 'article' | 'brand' | 'category'>(null)
+function suggestFilter(list: string[], typed: string): string[] {
+  const q = typed.trim().toLowerCase()
+  const out = q ? list.filter(v => v.toLowerCase().includes(q)) : list
+  return out.slice(0, 30)
+}
+const fieldSuggestions = computed<string[]>(() => {
+  switch (activeField.value) {
+    case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+    case 'brand': return suggestFilter(allBrands.value, newBrand.value)
+    case 'category': return suggestFilter(allCategories.value, newCategory.value)
+    default: return []
+  }
+})
+function setFieldValue(field: string | null, val: string) {
+  switch (field) {
+    case 'article': newDescription.value = val; break
+    case 'brand': newBrand.value = val; break
+    case 'category': newCategory.value = val; break
+  }
+}
+function pickSuggestion(val: string) {
+  setFieldValue(activeField.value, val)
+  activeField.value = null
+}
+function closeSuggest() {
+  setTimeout(() => { activeField.value = null }, 120)
+}
+const suggestIndex = ref(-1)
+watch(fieldSuggestions, () => { suggestIndex.value = -1 })
+function onSuggestKeydown(e: KeyboardEvent) {
+  const cur = activeField.value
+  if (!cur) return
+  const sugg = fieldSuggestions.value
+  if (e.key === 'ArrowDown' && sugg.length) {
+    e.preventDefault()
+    suggestIndex.value = (suggestIndex.value + 1) % sugg.length
+  } else if (e.key === 'ArrowUp' && sugg.length) {
+    e.preventDefault()
+    suggestIndex.value = suggestIndex.value <= 0 ? sugg.length - 1 : suggestIndex.value - 1
+  } else if (e.key === 'Escape') {
+    activeField.value = null
+  } else if (e.key === 'Enter' || e.key === 'Tab') {
+    if (suggestIndex.value >= 0 && sugg.length) {
+      if (e.key === 'Enter') e.preventDefault()
+      setFieldValue(cur, sugg[suggestIndex.value])
+    }
+    activeField.value = null
+  }
+}
+
+// Zodra het getypte artikel exact een catalogusproduct matcht, merk en
+// categorie meteen invullen. Vrije tekst laat de velden met rust.
+watch(newDescription, (name) => {
+  const n = name.trim().toLowerCase()
+  if (!n) return
+  const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
+  if (p) {
+    if (p.brand) newBrand.value = p.brand
+    if (p.category) newCategory.value = p.category
+  }
+})
+
+function matchProduct(): Product | null {
+  const name = newDescription.value.trim().toLowerCase()
+  const brand = newBrand.value.trim().toLowerCase()
+  if (!name) return null
+  const matches = products.value.filter(p => (p.name ?? '').toLowerCase() === name)
+  if (!matches.length) return null
+  if (brand) {
+    const withBrand = matches.find(p => (p.brand ?? '').toLowerCase() === brand)
+    if (withBrand) return withBrand
+  }
+  return matches[0]
+}
+const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !matchProduct())
 
 function emptyForm() {
   return {
-    free_brand: '', free_description: '', free_norm: '', free_mbs: '', free_manual_url: '', suggest_for_catalog: false,
+    free_norm: '', free_mbs: '', free_manual_url: '', suggest_for_catalog: false,
     serial_number: '', assigned_user_name: '', first_use_date: '', set_label: '', notes: '',
   }
 }
@@ -176,99 +277,44 @@ async function load() {
   loading.value = false
 }
 
-function onCatalogQueryChange() {
-  selectedProduct.value = null
-  catalogHighlight.value = -1
-  clearTimeout(catalogTimeout)
-  const q = catalogQuery.value.trim()
-  if (!q && !selectedBrand.value) { catalogResults.value = []; return }
-  catalogTimeout = setTimeout(async () => {
-    const { data, error: err } = await supabase.rpc('search_products', { q: q || null, brand_filter: selectedBrand.value })
-    if (err) { catalogResults.value = []; return }
-    catalogResults.value = (data ?? []) as ProductMatch[]
-    catalogHighlight.value = catalogResults.value.length ? 0 : -1
-  }, 250)
-}
-
-function onCatalogKeydown(e: KeyboardEvent) {
-  if (!catalogResults.value.length) return
-  if (e.key === 'ArrowDown') { e.preventDefault(); catalogHighlight.value = (catalogHighlight.value + 1) % catalogResults.value.length }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); catalogHighlight.value = (catalogHighlight.value - 1 + catalogResults.value.length) % catalogResults.value.length }
-  else if (e.key === 'Enter') { e.preventDefault(); if (catalogHighlight.value >= 0) pickProduct(catalogResults.value[catalogHighlight.value]) }
-  else if (e.key === 'Escape') { catalogResults.value = [] }
-}
-
-function pickProduct(p: ProductMatch) { selectedProduct.value = p; catalogResults.value = [] }
-function clearSelectedProduct() { selectedProduct.value = null; catalogQuery.value = '' }
-
-function onBrandQueryChange() {
-  selectedBrand.value = null
-  brandHighlight.value = -1
-  clearTimeout(brandTimeout)
-  const q = brandQuery.value.trim()
-  if (!q) { brandResults.value = []; return }
-  brandTimeout = setTimeout(async () => {
-    const { data } = await supabase
-      .from('products').select('brand')
-      .ilike('brand', `%${q}%`).not('brand', 'is', null).limit(50)
-    const unique = Array.from(new Set((data ?? []).map((r: any) => r.brand as string))).sort()
-    brandResults.value = unique.slice(0, 8)
-    brandHighlight.value = brandResults.value.length ? 0 : -1
-  }, 200)
-}
-
-function onBrandKeydown(e: KeyboardEvent) {
-  if (!brandResults.value.length) return
-  if (e.key === 'ArrowDown') { e.preventDefault(); brandHighlight.value = (brandHighlight.value + 1) % brandResults.value.length }
-  else if (e.key === 'ArrowUp') { e.preventDefault(); brandHighlight.value = (brandHighlight.value - 1 + brandResults.value.length) % brandResults.value.length }
-  else if (e.key === 'Enter') { e.preventDefault(); if (brandHighlight.value >= 0) pickBrand(brandResults.value[brandHighlight.value]) }
-  else if (e.key === 'Escape') { brandResults.value = [] }
-}
-
-function pickBrand(b: string) {
-  selectedBrand.value = b; brandQuery.value = b; brandResults.value = []
-  if (catalogQuery.value.trim() || selectedProduct.value) onCatalogQueryChange()
-}
-function clearBrand() {
-  selectedBrand.value = null; brandQuery.value = ''
-  if (catalogQuery.value.trim()) onCatalogQueryChange()
-}
-
 function openAdd() { showAdd.value = true }
-function toCatalog() { freeMode.value = false; selectedProduct.value = null }
 function closeAdd() {
   showAdd.value = false
-  freeMode.value = false
-  catalogQuery.value = ''; catalogResults.value = []; selectedProduct.value = null
-  brandQuery.value = ''; brandResults.value = []; selectedBrand.value = null
-  catalogHighlight.value = -1; brandHighlight.value = -1; formError.value = ''
+  newDescription.value = ''; newBrand.value = ''; newCategory.value = ''
+  newYear.value = null; newMonth.value = null
+  activeField.value = null; suggestIndex.value = -1
+  formError.value = ''
   form.value = emptyForm()
 }
 
 async function save() {
   formError.value = ''
-  if (!selectedProduct.value && !form.value.free_description.trim()) {
+  if (!newDescription.value.trim()) {
     formError.value = t('articles.errors.chooseOrDescribe'); return
   }
-  if (form.value.suggest_for_catalog &&
-      (!form.value.free_brand.trim() || !form.value.free_description.trim() || !form.value.free_manual_url.trim())) {
+  const product = matchProduct()
+  if (!product && form.value.suggest_for_catalog &&
+      (!newBrand.value.trim() || !newDescription.value.trim() || !form.value.free_manual_url.trim())) {
     formError.value = t('articles.errors.suggestRequired'); return
   }
   saving.value = true
   const { error: err } = await supabase.from('articles').insert({
     customer_id: props.customerId,
-    product_id: selectedProduct.value?.id ?? null,
-    free_brand: selectedProduct.value ? null : (form.value.free_brand.trim() || null),
-    free_description: selectedProduct.value ? null : (form.value.free_description.trim() || null),
-    free_norm: selectedProduct.value ? null : (form.value.free_norm.trim() || null),
-    free_mbs: selectedProduct.value ? null : (form.value.free_mbs.trim() || null),
-    free_manual_url: selectedProduct.value ? null : (form.value.free_manual_url.trim() || null),
+    product_id: product?.id ?? null,
+    free_brand: product ? null : (newBrand.value.trim() || null),
+    free_category: product ? null : (newCategory.value.trim() || null),
+    free_description: product ? null : (newDescription.value.trim() || null),
+    free_norm: product ? null : (form.value.free_norm.trim() || null),
+    free_mbs: product ? null : (form.value.free_mbs.trim() || null),
+    free_manual_url: product ? null : (form.value.free_manual_url.trim() || null),
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
     set_label: form.value.set_label.trim() || null,
     notes: form.value.notes.trim() || null,
-    suggest_for_catalog: selectedProduct.value ? false : form.value.suggest_for_catalog,
+    manufacture_year: newYear.value || null,
+    manufacture_month: newMonth.value || null,
+    suggest_for_catalog: product ? false : form.value.suggest_for_catalog,
     retired: false,
   })
   saving.value = false
@@ -279,6 +325,10 @@ async function save() {
 
 onMounted(async () => {
   fetchFreeInputFields().then((f) => { freeFields.value = f })
+  const { data: prods } = await supabase
+    .from('products')
+    .select('id, brand, name, category')
+  products.value = (prods ?? []) as Product[]
   await load()
 })
 </script>
@@ -315,6 +365,22 @@ onMounted(async () => {
 .ca__results li:last-child { border-bottom: none; }
 .ca__results-item--active { background: #16a34a; color: #fff; }
 .ca__results-item--active strong { color: #fff; }
+.ca__suggest {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 5;
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  margin-top: 0.25rem; padding: 0.3rem;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  max-height: 240px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.ca__suggest-item {
+  text-align: left; border: none; background: transparent; cursor: pointer;
+  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
+  color: #111827; font-family: inherit;
+}
+.ca__suggest-item:hover { background: #f3f4f6; }
+.ca__suggest-item--active { background: #e0e7ff; }
+.ca__row { display: flex; gap: 0.6rem; }
+.ca__input--sm { flex: 1; }
 .ca__sep { border: none; border-top: 1px solid #eee; margin: 0.4rem 0; }
 .ca__date-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.8rem; color: #6b7280; }
 .ca__selected { margin: 0.35rem 0 0; color: #16a34a; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; }
