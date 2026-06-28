@@ -337,7 +337,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
-import { useFieldSuggest } from '@gearonimo/ui'
+import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 
@@ -464,10 +464,10 @@ function unique(arr: (string | null)[]): string[] {
 type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'
 const existingSerials = computed(() => unique(items.value.map(i => i.article.serial_number)))
 
+// Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
+// (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
 function suggestFilter(list: string[], typed: string): string[] {
-  const q = typed.trim().toLowerCase()
-  const out = q ? list.filter(v => v.toLowerCase().includes(q)) : list
-  return out.slice(0, 30)
+  return fuzzyFilter(list, typed, 30)
 }
 
 function setFieldValue(field: string | null, val: string) {
@@ -488,7 +488,10 @@ const matchSearch = ref('')
 
 function startMatch(it: Item) {
   matchingRowId.value = it.id
-  matchSearch.value = ''
+  // Behoud de oude schrijfwijze als startwaarde: zo verdwijnt de tekst niet
+  // (de keurmeester ziet nog wat er stond én kan met backspace bijschaven), en
+  // de suggestielijst toont meteen de "bedoelt u …?"-treffers voor die tekst.
+  matchSearch.value = itemName(it)
   activeField.value = 'rowMatch'
 }
 

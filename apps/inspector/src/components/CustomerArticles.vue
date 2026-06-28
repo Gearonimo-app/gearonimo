@@ -124,7 +124,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase } from '@gearonimo/core'
-import { useFieldSuggest } from '@gearonimo/ui'
+import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 
 const props = defineProps<{ customerId: string }>()
@@ -180,10 +180,10 @@ const newMonth = ref<number | null>(null)
 
 type SuggestField = 'article' | 'brand' | 'category'
 
+// Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
+// (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
 function suggestFilter(list: string[], typed: string): string[] {
-  const q = typed.trim().toLowerCase()
-  const out = q ? list.filter(v => v.toLowerCase().includes(q)) : list
-  return out.slice(0, 30)
+  return fuzzyFilter(list, typed, 30)
 }
 function setFieldValue(field: SuggestField, val: string) {
   switch (field) {
