@@ -84,10 +84,12 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
-          <div v-if="activeField === 'serial' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
-            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
-              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
-              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--field iw__sn-list">
+            <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
+              <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
+              <span class="iw__sn-meta">{{ [r.name, r.brand].filter(Boolean).join(' · ') }}</span>
+              <span class="iw__sn-badge" :class="r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add'">{{ r.inKeuring ? $t('inspections.table.snInInspection') : $t('inspections.table.snAdd') }}</span>
+            </button>
           </div>
           <input v-model="newYear" ref="yearRef" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
           <select v-model="newMonth" class="iw__select iw__select--xs">
@@ -133,9 +135,9 @@
         </div>
 
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
-             de tabel naar beneden i.p.v. eroverheen te vallen. Elk veld zoekt
-             in z'n eigen bron: Artikel/Merk/Categorie in de catalogus,
-             Serienummer in de al toegevoegde artikelen van deze keuring. -->
+             de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
+             Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
+             eigen dropdown die in álle artikelen van de klant zoekt. -->
         <div v-if="activeField && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
           <button
             v-for="(s, i) in fieldSuggestions"
@@ -147,6 +149,14 @@
             @mousedown.prevent="pickSuggestion(s)"
             @mouseenter="suggestIndex = i"
           >{{ s }}</button>
+        </div>
+        <!-- SN-zoekresultaten (desktop): bestaande artikelen van de klant. -->
+        <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--main iw__sn-list">
+          <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
+            <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
+            <span class="iw__sn-meta">{{ [r.name, r.brand].filter(Boolean).join(' · ') }}</span>
+            <span class="iw__sn-badge" :class="r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add'">{{ r.inKeuring ? $t('inspections.table.snInInspection') : $t('inspections.table.snAdd') }}</span>
+          </button>
         </div>
 
         <!-- Spiekbriefje: productiedag (uit SN) of weeknummer naar maand. Past
@@ -202,7 +212,7 @@
             </thead>
             <tbody>
               <template v-for="row in sortedRows" :key="row.it.id">
-                <tr :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed' }">
+                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id }">
                   <td class="iw__warn-cell">
                     <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
                          bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
@@ -263,6 +273,10 @@
                       placeholder="JJJJ"
                       @change="saveArticle(row.it)"
                     />
+                    <select v-model.number="row.it.article.manufacture_month" class="iw__month-select" @change="saveArticle(row.it)">
+                      <option :value="null">{{ $t('inspections.table.month') }}</option>
+                      <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
+                    </select>
                   </td>
                   <td :data-label="$t('inspections.table.colFirstUse')">
                     <input
@@ -456,6 +470,12 @@ const catalogEntries = computed<CatalogEntry[]>(() => [
   ...customerEntries.value,
 ])
 
+// Alle (niet-afgevoerde) artikelen van de klant — de bron voor de SN-zoek-
+// dropdown. Bevat ook artikelen die (nog) niet in deze keuring zitten, zodat we
+// ze kunnen terugvinden en toevoegen i.p.v. een duplicaat aan te maken.
+interface CustArticle { id: string; serial: string; brand: string; name: string; category: string }
+const customerArticles = ref<CustArticle[]>([])
+
 // Artikel, Merk en Categorie filteren elkaar wederzijds: wat al is ingevuld
 // bepaalt wat er in de andere twee dropdowns nog overblijft. Kies je "FALL
 // SAFE" als merk, dan toont Categorie alleen nog categorieën die FALL SAFE
@@ -481,11 +501,10 @@ function unique(arr: (string | null)[]): string[] {
 }
 
 // Eigen suggestielijst (Optie A): in plaats van de native <datalist> die over
-// de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Elk veld
-// zoekt strikt in z'n eigen bron — Serienummer kijkt alleen naar de artikelen
-// die al in deze keuring staan, niet in de catalogus.
+// de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Artikel/
+// Merk/Categorie zoeken in de catalogus; Serienummer heeft een eigen, rijkere
+// dropdown (snResults) die in álle artikelen van de klant zoekt.
 type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'
-const existingSerials = computed(() => unique(items.value.map(i => i.article.serial_number)))
 
 // Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
 // (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
@@ -575,7 +594,7 @@ const {
       case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
       case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
-      case 'serial': return suggestFilter(existingSerials.value, newSerial.value)
+      case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
       case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
       default: return []
     }
@@ -653,6 +672,70 @@ const weekHintMonth = computed<number | null>(() => {
   const start = new Date(y, 0, 1 + (w - 1) * 7)
   return start.getMonth() + 1
 })
+
+// ── Zoeken op serienummer ─────────────────────────────────────────────────
+// De keurmeester zoekt meestal eerst een bestaand artikel op SN. We matchen op
+// deeltekst (de cijfers mogen overal in het SN zitten — zo werkt zowel "van
+// vooraan" als "de laatste 3 cijfers"), en sorteren exact → eindigt-op → bevat.
+// Doorzoekt álle artikelen van de klant, zodat een artikel dat nog niet in de
+// keuring zit teruggevonden en toegevoegd kan worden i.p.v. gedupliceerd.
+interface SnResult { id: string; serial: string; name: string; brand: string; inKeuring: boolean; rank: number }
+const snResults = computed<SnResult[]>(() => {
+  const q = newSerial.value.trim().toLowerCase()
+  if (!q) return []
+  const inSet = new Set(items.value.map((i) => i.article.id))
+  return customerArticles.value
+    .filter((a) => a.serial && a.serial.toLowerCase().includes(q))
+    .map((a) => {
+      const sn = a.serial.toLowerCase()
+      return {
+        id: a.id, serial: a.serial, name: a.name, brand: a.brand,
+        inKeuring: inSet.has(a.id), rank: sn === q ? 0 : sn.endsWith(q) ? 1 : 2,
+      }
+    })
+    .sort((x, y) => x.rank - y.rank || x.serial.localeCompare(y.serial))
+    .slice(0, 30)
+})
+
+// Korte oplichting van de rij waar we naartoe springen, zodat duidelijk is welk
+// artikel bedoeld wordt nadat het zoekveld is leeggemaakt.
+const highlightId = ref<string | null>(null)
+function revealItem(itemId: string) {
+  highlightId.value = itemId
+  nextTick(() => {
+    document.getElementById('iw-row-' + itemId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    window.setTimeout(() => { if (highlightId.value === itemId) highlightId.value = null }, 2000)
+  })
+}
+
+// Een al bestaand klant-artikel dat nog niet in deze keuring zit toevoegen als
+// nog onbeoordeeld item — geen nieuw/duplicaat artikel.
+async function addCustomerArticle(articleId: string) {
+  addError.value = ''
+  const { data: article, error: artErr } = await supabase
+    .from('articles').select('*, product:products(*)').eq('id', articleId).single()
+  if (artErr || !article) { addError.value = artErr?.message ?? ''; return }
+  const { data: item, error: itemErr } = await supabase
+    .from('inspection_items')
+    .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed' })
+    .select('id, article_id, result, next_due, rejection_code_id, comment')
+    .single()
+  if (itemErr || !item) { addError.value = itemErr?.message ?? ''; return }
+  const newItem = { ...item, article } as Item
+  items.value.push(newItem)
+  previousResults.value[articleId] = await findPreviousResult(articleId, id)
+  revealItem(newItem.id)
+}
+
+// Klik op een SN-zoekresultaat: zit het al in de keuring → erheen springen;
+// staat het er nog niet in → toevoegen. Daarna de zoekvelden leegmaken.
+function pickSnResult(r: SnResult) {
+  activeField.value = null
+  const existing = r.inKeuring ? items.value.find((i) => i.article.id === r.id) : null
+  resetAddRow()
+  if (existing) revealItem(existing.id)
+  else if (!r.inKeuring) void addCustomerArticle(r.id)
+}
 
 // Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
 // product), meteen merk en categorie invullen. Vrije tekst laat de velden met
@@ -882,13 +965,18 @@ async function load() {
   // catalogus nog (vrijwel) leeg is.
   const { data: custArts } = await supabase
     .from('articles')
-    .select('free_brand, free_category, free_description, product:products(brand, name, category)')
+    .select('id, serial_number, free_brand, free_category, free_description, product:products(brand, name, category)')
     .eq('customer_id', insp.customer_id)
     .eq('retired', false)
-  customerEntries.value = (custArts ?? []).map((a: any) => ({
-    brand: a.product?.brand ?? a.free_brand ?? null,
-    name: a.product?.name ?? a.free_description ?? null,
-    category: a.product?.category ?? a.free_category ?? null,
+  customerArticles.value = (custArts ?? []).map((a: any) => ({
+    id: a.id,
+    serial: a.serial_number ?? '',
+    brand: (a.product?.brand ?? a.free_brand) ?? '',
+    name: (a.product?.name ?? a.free_description) ?? '',
+    category: (a.product?.category ?? a.free_category) ?? '',
+  }))
+  customerEntries.value = customerArticles.value.map((a) => ({
+    brand: a.brand || null, name: a.name || null, category: a.category || null,
   }))
 
   if (insp.status === 'completed') finished.value = true
@@ -908,6 +996,22 @@ function matchProduct(): Product | null {
     if (withBrand) return withBrand
   }
   return matches[0]
+}
+
+// Maakt de toevoeg-/zoekvelden leeg (na toevoegen of na een SN-keuze).
+function resetAddRow() {
+  newBrand.value = ''
+  newCategory.value = ''
+  newDescription.value = ''
+  newSerial.value = ''
+  newYear.value = null
+  newMonth.value = null
+  newResult.value = 'not_assessed'
+  newRejectionCodeId.value = null
+  newNorm.value = ''
+  newMbs.value = ''
+  dayHint.value = null
+  weekHint.value = null
 }
 
 async function addRow() {
@@ -951,6 +1055,15 @@ async function addRow() {
 
     items.value.push({ ...item, article } as Item)
     previousResults.value[article.id] = null
+    // Ook in de SN-zoekbron opnemen, zodat een net toegevoegd artikel meteen via
+    // het serienummer terugvindbaar is (en niet per ongeluk gedupliceerd wordt).
+    customerArticles.value.push({
+      id: article.id,
+      serial: article.serial_number ?? '',
+      brand: (article.product?.brand ?? article.free_brand) ?? '',
+      name: (article.product?.name ?? article.free_description) ?? '',
+      category: (article.product?.category ?? article.free_category) ?? '',
+    })
 
     lastArticle.value = {
       description: newDescription.value.trim(),
@@ -960,18 +1073,7 @@ async function addRow() {
       month: newMonth.value,
     }
 
-    newBrand.value = ''
-    newCategory.value = ''
-    newDescription.value = ''
-    newSerial.value = ''
-    newYear.value = null
-    newMonth.value = null
-    newResult.value = 'not_assessed'
-    newRejectionCodeId.value = null
-    newNorm.value = ''
-    newMbs.value = ''
-    dayHint.value = null
-    weekHint.value = null
+    resetAddRow()
   } catch (e) {
     addError.value = errorMessage(e)
   }
@@ -1029,6 +1131,7 @@ async function saveArticle(it: Item) {
   await supabase.from('articles').update({
     serial_number: a.serial_number?.toString().trim() || null,
     manufacture_year: a.manufacture_year || null,
+    manufacture_month: a.manufacture_month || null,
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
@@ -1114,6 +1217,30 @@ onMounted(load)
 /* De per-veld-suggestielijst is alleen voor telefoon/tablet (zie media-query);
    op desktop staat de gedeelde lijst onder de hele rij (iw__suggest--main). */
 .iw__suggest--field { display: none; }
+
+/* SN-zoekresultaten: serienummer prominent, daarnaast artikel/merk en een
+   badge of het al in de keuring zit of nog toegevoegd moet worden. */
+.iw__sn-item {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%;
+  text-align: left; border: none; background: transparent; cursor: pointer;
+  padding: 0.5rem 0.6rem; border-radius: 6px; font-family: inherit;
+}
+.iw__sn-item:hover { background: #f3f4f6; }
+.iw__sn-serial { font-weight: 700; color: #111827; font-size: 0.9rem; white-space: nowrap; }
+.iw__sn-meta { color: #6b7280; font-size: 0.82rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.iw__sn-badge { font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; white-space: nowrap; }
+.iw__sn-badge--in { background: #e0e7ff; color: #3730a3; }
+.iw__sn-badge--add { background: #dcfce7; color: #166534; }
+
+/* Maand naast het bouwjaar in de tabel/kaart. */
+.iw__month-select {
+  padding: 0.35rem 0.4rem; border-radius: 6px; border: 1px solid #ddd;
+  font-size: 0.85rem; font-family: inherit; background: #fff; color: #111827;
+}
+
+/* Even oplichten waar je naartoe springt na een SN-keuze. */
+.iw__row--highlight { animation: iw-flash 2s ease; }
+@keyframes iw-flash { 0%, 35% { background: #fef9c3; } 100% { background: transparent; } }
 .iw__suggest-item {
   text-align: left; border: none; background: transparent; cursor: pointer;
   padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
@@ -1269,6 +1396,11 @@ onMounted(load)
   .iw__cell-input,
   .iw__cell-input--xs,
   .iw__date-input { width: auto; flex: 1 1 auto; min-width: 0; max-width: 62%; }
+
+  /* Bouwjaar + maand passen samen rechts naast het label. */
+  .iw__year-cell { white-space: normal; gap: 0.4rem; }
+  .iw__year-cell .iw__cell-input--xs { flex: 0 0 4.5rem; width: 4.5rem; max-width: 4.5rem; }
+  .iw__month-select { flex: 0 0 auto; }
 
   /* Artikelnaam en beoordeling: label boven, inhoud eronder op volle breedte. */
   .iw__match-cell,

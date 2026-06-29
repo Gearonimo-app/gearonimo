@@ -242,6 +242,8 @@
       "month": "Month",
       "firstUse": "In use",
       "add": "+ Add",
+      "snInInspection": "in inspection",
+      "snAdd": "+ add",
       "colCategory": "Category",
       "colBrand": "Brand",
       "colDescription": "Article",
