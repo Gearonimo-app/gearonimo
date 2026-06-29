@@ -190,9 +190,9 @@
                          daar tonen we helemaal geen vlag — niet eens een leeg/uit te zetten icoon. -->
                     <a v-if="row.it.article.product?.recall_url" :href="row.it.article.product.recall_url" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
                   </td>
-                  <td class="iw__category">{{ row.category || '—' }}</td>
-                  <td>{{ row.brand || '—' }}</td>
-                  <td class="iw__match-cell">
+                  <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
+                  <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
+                  <td class="iw__match-cell" :data-label="$t('inspections.table.colDescription')">
                     <template v-if="matchingRowId === row.it.id">
                       <input
                         v-model="matchSearch"
@@ -223,7 +223,7 @@
                     >{{ row.label }}</button>
                     <span v-else>{{ row.label }}</span>
                   </td>
-                  <td>
+                  <td :data-label="$t('inspections.table.colSerial')">
                     <input
                       v-model="row.it.article.serial_number"
                       class="iw__cell-input"
@@ -231,7 +231,7 @@
                       @change="saveArticle(row.it)"
                     />
                   </td>
-                  <td class="iw__year-cell">
+                  <td class="iw__year-cell" :data-label="$t('inspections.table.colYear')">
                     <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
                     <input
                       v-model.number="row.it.article.manufacture_year"
@@ -241,7 +241,7 @@
                       @change="saveArticle(row.it)"
                     />
                   </td>
-                  <td>
+                  <td :data-label="$t('inspections.table.colFirstUse')">
                     <input
                       v-model="row.it.article.first_use_date"
                       type="date"
@@ -249,7 +249,7 @@
                       @change="saveArticle(row.it)"
                     />
                   </td>
-                  <td>
+                  <td :data-label="$t('inspections.table.colUser')">
                     <input
                       v-model="row.it.article.assigned_user_name"
                       class="iw__cell-input"
@@ -257,7 +257,7 @@
                       @change="saveArticle(row.it)"
                     />
                   </td>
-                  <td>
+                  <td :data-label="$t('inspections.table.colPrevious')">
                     <span
                       v-if="row.previous && row.previous.result !== 'not_assessed'"
                       :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'"
@@ -266,7 +266,7 @@
                     </span>
                     <span v-else class="iw__prev--none">—</span>
                   </td>
-                  <td class="iw__result-cell">
+                  <td class="iw__result-cell" :data-label="$t('inspections.table.colResult')">
                     <div class="iw__result-buttons">
                       <button
                         class="iw__result-btn iw__result-btn--pass"
@@ -290,7 +290,7 @@
                       />
                     </div>
                   </td>
-                  <td>
+                  <td :data-label="$t('inspections.table.colNextDue')">
                     <input
                       v-if="row.it.result === 'passed'"
                       type="date"
@@ -1196,4 +1196,60 @@ onMounted(load)
 .iw__cert-done { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 .iw__cert-ok { font-weight: 600; color: #16a34a; margin: 0; }
 .iw__cert-link { text-align: center; text-decoration: none; display: block; }
+
+/* ── Telefoon & tablet: keurtabel als kaartjes ────────────────────────────
+   De brede tabel past niet op smalle schermen. Onder 820px tonen we elke rij
+   als een kaartje met labels (de data-label per cel); laptop/desktop houden de
+   vertrouwde tabel. Zo werkt het scherm op alle formaten. */
+@media (max-width: 820px) {
+  .iw__body { padding: 0.85rem; }
+
+  /* Toevoegrij: velden vol-breed onder elkaar i.p.v. samengeknepen. */
+  .iw__add .iw__input,
+  .iw__add .iw__input--sm,
+  .iw__add .iw__select--xs { flex: 1 1 100%; min-width: 0; }
+  .iw__add .iw__input--xs { flex: 1 1 45%; }
+
+  .iw__table-wrap { background: transparent; overflow: visible; }
+  .iw__table,
+  .iw__table tbody { display: block; width: 100%; }
+  .iw__table thead { display: none; }
+
+  .iw__table tr {
+    display: block; background: #fff; border: 1px solid #e5e7eb;
+    border-radius: 12px; padding: 0.35rem 0.85rem; margin-bottom: 0.7rem;
+  }
+
+  .iw__table td {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 0.75rem; padding: 0.45rem 0; border: none; border-bottom: 1px solid #f1f1f1;
+    text-align: right; min-height: 2.25rem;
+  }
+  .iw__table tr td:last-child { border-bottom: none; }
+  .iw__table td::before {
+    content: attr(data-label); font-weight: 600; color: #6b7280;
+    font-size: 0.78rem; text-align: left; flex: 0 0 auto; white-space: nowrap;
+  }
+  /* Cellen zonder label (icoontjes / acties): geen labelkolom. */
+  .iw__table td:not([data-label]) { justify-content: flex-end; }
+  .iw__table td:not([data-label])::before { content: none; }
+
+  /* Invoervelden vullen de ruimte naast hun label. */
+  .iw__cell-input,
+  .iw__cell-input--xs,
+  .iw__date-input { width: auto; flex: 1 1 auto; min-width: 0; max-width: 62%; }
+
+  /* Artikelnaam en beoordeling: label boven, inhoud eronder op volle breedte. */
+  .iw__match-cell,
+  .iw__result-cell { display: block; text-align: left; }
+  .iw__match-cell::before,
+  .iw__result-cell::before { display: block; margin-bottom: 0.35rem; }
+  .iw__result-buttons { justify-content: flex-start; }
+  .iw__comment-input { flex: 1 1 100%; }
+  /* Rij-match-suggestielijst niet zwevend maar in de kaart (geen overlap). */
+  .iw__suggest--row { position: static; box-shadow: none; min-width: 0; }
+
+  /* Lege-staat-rij gewoon gecentreerd, niet als kaartcel. */
+  .iw__table td.iw__empty { display: block; text-align: center; border: none; }
+}
 </style>
