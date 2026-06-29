@@ -39,6 +39,14 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
+          <!-- Telefoon/tablet: suggesties direct onder het actieve veld (anders
+               vallen ze onderaan, achter het toetsenbord). Op desktop verborgen;
+               daar staat de gedeelde lijst onder de hele rij (iw__suggest--main). -->
+          <div v-if="activeField === 'article' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
+              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
           <input
             v-model="newBrand"
             ref="brandRef"
@@ -48,6 +56,11 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
+          <div v-if="activeField === 'brand' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
+              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
           <input
             v-model="newCategory"
             ref="categoryRef"
@@ -57,6 +70,11 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
+          <div v-if="activeField === 'category' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
+              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
           <input
             v-model="newSerial"
             ref="serialRef"
@@ -66,6 +84,11 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
+          <div v-if="activeField === 'serial' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
+              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
           <input v-model="newYear" ref="yearRef" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
           <select v-model="newMonth" class="iw__select iw__select--xs">
             <option :value="null">{{ $t('inspections.table.month') }}</option>
@@ -113,7 +136,7 @@
              de tabel naar beneden i.p.v. eroverheen te vallen. Elk veld zoekt
              in z'n eigen bron: Artikel/Merk/Categorie in de catalogus,
              Serienummer in de al toegevoegde artikelen van deze keuring. -->
-        <div v-if="activeField && fieldSuggestions.length" class="iw__suggest">
+        <div v-if="activeField && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
           <button
             v-for="(s, i) in fieldSuggestions"
             :key="s"
@@ -1088,6 +1111,9 @@ onMounted(load)
   display: flex; flex-direction: column; gap: 0.1rem;
   max-height: 240px; overflow-y: auto;
 }
+/* De per-veld-suggestielijst is alleen voor telefoon/tablet (zie media-query);
+   op desktop staat de gedeelde lijst onder de hele rij (iw__suggest--main). */
+.iw__suggest--field { display: none; }
 .iw__suggest-item {
   text-align: left; border: none; background: transparent; cursor: pointer;
   padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
@@ -1209,6 +1235,11 @@ onMounted(load)
   .iw__add .iw__input--sm,
   .iw__add .iw__select--xs { flex: 1 1 100%; min-width: 0; }
   .iw__add .iw__input--xs { flex: 1 1 45%; }
+
+  /* Suggesties direct onder het actieve veld (i.p.v. de gedeelde lijst die
+     onderaan, achter het toetsenbord, zou vallen). */
+  .iw__suggest--main { display: none; }
+  .iw__suggest--field { display: flex; flex: 1 1 100%; margin: 0.1rem 0 0.2rem; }
 
   .iw__table-wrap { background: transparent; overflow: visible; }
   .iw__table,
