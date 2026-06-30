@@ -16,6 +16,15 @@ export interface ArticleRecord extends EncryptedRecord {
   customerId: string;
 }
 
+export interface InspectionRecordRow extends EncryptedRecord {
+  customerId: string;
+  status: string;
+}
+
+export interface InspectionItemRecord extends EncryptedRecord {
+  inspectionId: string;
+}
+
 export interface DownloadEntry {
   customerId: string;
   customerNameEnc: EncryptedPayload;
@@ -53,6 +62,16 @@ interface OfflineSchema extends DBSchema {
   products: { key: string; value: EncryptedRecord };
   rejectionCodes: { key: string; value: EncryptedRecord };
   companySettings: { key: string; value: EncryptedRecord };
+  inspections: {
+    key: string;
+    value: InspectionRecordRow;
+    indexes: { customerId: string };
+  };
+  inspectionItems: {
+    key: string;
+    value: InspectionItemRecord;
+    indexes: { inspectionId: string };
+  };
   mutations: {
     key: number;
     value: MutationRecord;
@@ -74,6 +93,10 @@ export function getOfflineDb(): Promise<IDBPDatabase<OfflineSchema>> {
         db.createObjectStore("products", { keyPath: "id" });
         db.createObjectStore("rejectionCodes", { keyPath: "id" });
         db.createObjectStore("companySettings", { keyPath: "id" });
+        const inspections = db.createObjectStore("inspections", { keyPath: "id" });
+        inspections.createIndex("customerId", "customerId");
+        const inspectionItems = db.createObjectStore("inspectionItems", { keyPath: "id" });
+        inspectionItems.createIndex("inspectionId", "inspectionId");
         const mutations = db.createObjectStore("mutations", {
           keyPath: "id",
           autoIncrement: true,
@@ -107,6 +130,8 @@ export async function wipeAllOfflineData(): Promise<void> {
     db.clear("products"),
     db.clear("rejectionCodes"),
     db.clear("companySettings"),
+    db.clear("inspections"),
+    db.clear("inspectionItems"),
     db.clear("mutations"),
     db.delete("meta", "pinSalt"),
     db.delete("meta", "pinCheck"),

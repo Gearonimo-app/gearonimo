@@ -378,7 +378,21 @@
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import {
+  supabase,
+  errorMessage,
+  useOnline,
+  useOfflineSession,
+  getInspection,
+  getCustomer,
+  getCompanySettings,
+  getInspectionItems,
+  getArticlesForCustomer,
+  getProducts,
+  patchInspectionItem,
+  enqueueMutation,
+  touchDownloadActivity,
+} from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
@@ -386,6 +400,7 @@ import { generateCertificate } from '../composables/useCertificate'
 const route = useRoute()
 const { t } = useI18n()
 const id = route.params.id as string
+const { isOnline } = useOnline()
 
 interface Product {
   id: string
@@ -924,6 +939,12 @@ function toggleSort(key: typeof sortKey.value) {
 async function load() {
   loading.value = true
   error.value = ''
+
+  if (!isOnline.value) {
+    await loadOffline()
+    return
+  }
+
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select('*, customer:customers(name), company:inspection_companies(country_code, default_interval_ppe_months, default_interval_rigging_months)')
@@ -987,6 +1008,109 @@ async function load() {
 
   if (insp.status === 'completed') finished.value = true
   loading.value = false
+}
+
+// Offline-tak van load(): leest alles uit de lokale, versleutelde cache i.p.v.
+// Supabase. Bewust een apart pad i.p.v. de online-query's overal met
+// if/else te doorspekken -- zo blijft de online-code (hierboven, getest en
+// in productie) volledig onaangeroerd. Dekt het kernscenario "keuring
+// hervatten/invullen offline"; de catalogus-zoeksuggesties zijn offline
+// beperkt tot wat voor déze klant gedownload is (zie BOUWPLAN, slice 3).
+async function loadOffline() {
+  try {
+    const key = useOfflineSession().getKey()
+    const insp = await getInspection<{
+      id: string
+      customer_id: string
+      company_id: string
+      status: string
+    }>(key, id)
+    if (!insp) {
+      error.value = t('offline.notCachedInspection')
+      loading.value = false
+      return
+    }
+    await touchDownloadActivity(insp.customer_id)
+
+    const customer = await getCustomer<{ name: string }>(key, insp.customer_id)
+    const company = await getCompanySettings<{
+      country_code: string | null
+      default_interval_ppe_months: number | null
+      default_interval_rigging_months: number | null
+    }>(key, insp.company_id)
+
+    inspection.value = {
+      id: insp.id,
+      customer_id: insp.customer_id,
+      company_id: insp.company_id,
+      customer: customer ? { name: customer.name } : null,
+      company: company
+        ? {
+            country_code: company.country_code ?? null,
+            default_interval_ppe_months: company.default_interval_ppe_months ?? null,
+            default_interval_rigging_months: company.default_interval_rigging_months ?? null,
+          }
+        : null,
+    }
+
+    const rawItems = await getInspectionItems<{
+      id: string
+      article_id: string
+      result: string
+      next_due: string | null
+      rejection_code_id: string | null
+      comment: string | null
+    }>(key, id)
+    const cachedArticles = await getArticlesForCustomer<Article & { product_id: string | null }>(key, insp.customer_id)
+    const articleById = new Map(cachedArticles.map((a) => [a.id, a]))
+    const productIds = [...new Set(cachedArticles.map((a) => a.product_id).filter((p): p is string => !!p))]
+    const cachedProducts = await getProducts<Product>(key, productIds)
+    const productById = new Map(cachedProducts.map((p) => [p.id, p]))
+
+    items.value = rawItems.map((it) => {
+      const article = articleById.get(it.article_id)
+      const product = article?.product_id ? productById.get(article.product_id) ?? null : null
+      return {
+        id: it.id,
+        article_id: it.article_id,
+        result: it.result,
+        next_due: it.next_due,
+        rejection_code_id: it.rejection_code_id,
+        comment: it.comment,
+        article: { ...(article as Article), product },
+      }
+    }) as Item[]
+
+    rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
+    freeFields.value = await fetchFreeInputFields()
+
+    const prevEntries = await Promise.all(
+      items.value.map(async (it) => [it.article_id, await findPreviousResult(it.article_id, id)] as const)
+    )
+    previousResults.value = Object.fromEntries(prevEntries)
+
+    // Offline beperkt tot wat voor déze klant gedownload is, i.p.v. de hele
+    // globale catalogus (die wordt online sowieso al per 1000 gepagineerd
+    // geladen en is voor offline gebruik te groot om in zijn geheel mee te
+    // nemen -- zie de "download per klant"-keuze in slice 2).
+    products.value = cachedProducts
+    customerArticles.value = cachedArticles.map((a) => ({
+      id: a.id,
+      serial: a.serial_number ?? '',
+      brand: (productById.get(a.product_id ?? '')?.brand ?? a.free_brand) ?? '',
+      name: (productById.get(a.product_id ?? '')?.name ?? a.free_description) ?? '',
+      category: (productById.get(a.product_id ?? '')?.category ?? a.free_category) ?? '',
+    }))
+    customerEntries.value = customerArticles.value.map((a) => ({
+      brand: a.brand || null, name: a.name || null, category: a.category || null,
+    }))
+
+    if (insp.status === 'completed') finished.value = true
+    loading.value = false
+  } catch (e) {
+    error.value = errorMessage(e)
+    loading.value = false
+  }
 }
 
 // Koppel een getypt artikel aan een catalogusproduct (op naam, en als er een
@@ -1147,12 +1271,32 @@ async function saveArticle(it: Item) {
 }
 
 async function saveRow(it: Item) {
-  await supabase.from('inspection_items').update({
+  const patch = {
     result: it.result,
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
     comment: it.comment,
-  }).eq('id', it.id)
+  }
+  if (!isOnline.value) {
+    // Offline: lokale weergave bijwerken + de wijziging in de mutatiewachtrij
+    // zetten. Meerdere wijzigingen aan hetzelfde item vóór de volgende sync
+    // worden daar samengevoegd tot één mutatie (last-write-wins per record,
+    // zie mutationQueue.ts) -- niet per toetsaanslag een eigen wachtrij-item.
+    try {
+      const key = useOfflineSession().getKey()
+      await patchInspectionItem(key, it.id, patch)
+      await enqueueMutation({
+        customerId: inspection.value!.customer_id,
+        table: 'inspection_items',
+        op: 'update',
+        payload: { id: it.id, ...patch },
+      })
+    } catch (e) {
+      error.value = errorMessage(e)
+    }
+    return
+  }
+  await supabase.from('inspection_items').update(patch).eq('id', it.id)
 }
 
 async function finish() {

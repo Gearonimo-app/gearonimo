@@ -486,6 +486,57 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   opruiming) — `packages/core` test-suite groen. i18n nl/en onder `offline.*`.
   Lezen-uit-cache-koppeling in de bestaande klant-/keuringsschermen en de
   mutatiewachtrij/sync-engine volgen in slices 3-4.
+
+  **Slice 3 — Offline schrijven via mutatiewachtrij (af, 2026-06-30):**
+  mutatiewachtrij (`packages/core/src/offline/mutationQueue.ts`) en een
+  lokale keuringscache (`inspectionCache.ts`) toegevoegd, plus twee nieuwe
+  IndexedDB-stores (`inspections`, `inspectionItems`). Conflictstrategie
+  zoals besloten: insert-mutaties zijn losse wachtrij-rijen, herhaalde
+  update-mutaties op hetzelfde record (zelfde tabel + id) worden
+  samengevoegd tot één openstaande mutatie i.p.v. een mutatie per
+  toetsaanslag (last-write-wins, in volgorde af te spelen door de
+  sync-engine van slice 4).
+
+  `apps/inspector/src/composables/useInspections.ts` is omgebouwd tot een
+  online/offline-dispatcher: elke functie (`ensureInspector`,
+  `fetchArticleScope`, `startInspectionWithArticles`, `findDraftInspection`,
+  `addArticlesToInspection`, `findPreviousResult`, `fetchRejectionCodes`,
+  `fetchFreeInputFields`) controleert de verbindingsstatus en valt offline
+  terug op de lokale cache/wachtrij — de online-tak is **ongewijzigd**
+  overgenomen uit de bestaande, werkende code. Hierdoor hoefden
+  `CustomerDetail.vue` en `InspectionNew.vue` (Start/Hervat-knop) niet
+  aangepast te worden: zij roepen dezelfde functies aan als voorheen.
+  Keuring-id's en item-id's worden offline client-side gegenereerd
+  (`crypto.randomUUID()`) i.p.v. door de server; de certificaatnummering
+  (`JJJJMMDD-KLANTNAAM`, geen volgnummer) loopt hier niet doorheen en heeft
+  dus geen botsingsrisico.
+
+  In `InspectionWizard.vue` (het daadwerkelijke invullen) is een aparte
+  `loadOffline()`-tak toegevoegd naast de bestaande `load()` — bewust een
+  los pad i.p.v. de bestaande, beproefde online-query's te doorspekken met
+  if/else, zodat de online-code onaangeroerd blijft. Dekt het kernscenario
+  (een al gedownloade keuring offline hervatten/invullen: resultaat,
+  afkeurcode, opmerking, volgende-keuringsdatum); `saveRow()` schrijft
+  offline naar de lokale cache + wachtrij i.p.v. rechtstreeks naar Supabase.
+  **Bewust nog niet offline meegenomen** (blijven online-only, falen
+  netjes met een netwerkfout i.p.v. de app te laten crashen): een nieuw vrij
+  artikel toevoegen tijdens de keuring, artikelgegevens corrigeren
+  (`saveArticle`), een artikel afvoeren/verwijderen (`retireArticle`), de
+  handleiding-link bewerken, en afronden/certificaat genereren (`finish()` —
+  hoort bij slice 5, certificaatupload kan sowieso niet zonder netwerk).
+  Reden voor deze afbakening: `InspectionWizard.vue` is een groot,
+  intensief stuk UI (zoek-suggesties, SN-zoeken, catalogus-matching) dat
+  niet live tegen een echte Supabase-sessie te testen was in deze sessie;
+  de kernhandeling (resultaten invullen) is voorzichtig en additief
+  toegevoegd, de rest blijft ongemoeid tot een volgende sessie met
+  Jos' akkoord/test hierop verder bouwt.
+
+  Nieuwe unit-tests: mutatiewachtrij (coalescing van herhaalde updates,
+  geen samenvoeging na het starten van sync, telling per klant) en
+  keuringscache (round-trip, draft-opzoeken, patch-merge, lokale
+  "vorige keuring"-hint, verzamelen van lokaal beoordeelde artikel-id's) —
+  `packages/core` test-suite groen (29 tests). `vue-tsc`- en
+  productiebuild van `apps/inspector` slagen.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.

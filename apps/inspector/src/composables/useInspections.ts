@@ -1,4 +1,22 @@
-import { supabase } from '@gearonimo/core'
+import {
+  supabase,
+  useOnline,
+  useOfflineSession,
+  getArticlesForCustomer,
+  getRejectionCodes,
+  getCompanySettings,
+  cacheInspectorContext,
+  getCachedInspectorContext,
+  enqueueMutation,
+  putInspection,
+  putInspectionItems,
+  getInspection,
+  getDraftInspectionForCustomer,
+  getInspectionItems,
+  findLocalPreviousResult,
+  getLocallyInspectedArticleIds,
+  touchDownloadActivity,
+} from '@gearonimo/core'
 
 export interface Inspector {
   id: string
@@ -7,13 +25,30 @@ export interface Inspector {
 
 let cached: Inspector | null = null
 
+function requireOfflineKey(): CryptoKey {
+  return useOfflineSession().getKey()
+}
+
 // De inspectors-tabel heeft nog geen beheerscherm; deze RPC zet automatisch
-// een rij neer voor de ingelogde gebruiker bij het (enige) keurbedrijf.
+// een rij neer voor de ingelogde gebruiker bij het (enige) keurbedrijf. Het
+// resultaat wordt ook lokaal gecached (niet gevoelig, het is de eigen
+// identiteit van de keurmeester) zodat de rest van deze module ook zonder
+// netwerk weet welk keurbedrijf/welke keurmeester het is.
 export async function ensureInspector(): Promise<Inspector> {
   if (cached) return cached
-  const { data, error } = await supabase.rpc('ensure_inspector').single()
-  if (error) throw error
-  cached = data as Inspector
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase.rpc('ensure_inspector').single()
+    if (error) throw error
+    cached = data as Inspector
+    await cacheInspectorContext({ companyId: cached.company_id, inspectorId: cached.id })
+    return cached
+  }
+  const ctx = await getCachedInspectorContext()
+  if (!ctx) {
+    throw new Error('Geen offline keurmeester-gegevens bekend. Log eerst één keer online in voordat je offline werkt.')
+  }
+  cached = { id: ctx.inspectorId, company_id: ctx.companyId }
   return cached
 }
 
@@ -22,12 +57,24 @@ export async function ensureInspector(): Promise<Inspector> {
 // alleen Norm/MBS; leeg/onbekend = uit (gelijk aan DEFAULT_CERT_LAYOUT).
 export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: boolean }> {
   const inspector = await ensureInspector()
-  const { data } = await supabase
-    .from('inspection_companies')
-    .select('cert_layout')
-    .eq('id', inspector.company_id)
-    .single()
-  const cols = ((data?.cert_layout as { columns?: Record<string, boolean> } | null)?.columns) ?? {}
+  const { isOnline } = useOnline()
+  let certLayout: { columns?: Record<string, boolean> } | null = null
+  if (isOnline.value) {
+    const { data } = await supabase
+      .from('inspection_companies')
+      .select('cert_layout')
+      .eq('id', inspector.company_id)
+      .single()
+    certLayout = (data?.cert_layout as { columns?: Record<string, boolean> } | null) ?? null
+  } else {
+    const key = requireOfflineKey()
+    const company = await getCompanySettings<{ cert_layout?: { columns?: Record<string, boolean> } }>(
+      key,
+      inspector.company_id
+    )
+    certLayout = company?.cert_layout ?? null
+  }
+  const cols = certLayout?.columns ?? {}
   return { norm: !!cols.norm, mbs: !!cols.mbs }
 }
 
@@ -39,22 +86,39 @@ export interface ArticleScope { allIds: string[]; newIds: string[] }
 // gezeten (bijv. net geüpload n.a.v. een oud certificaat, of straks
 // zelf door de klant toegevoegd). "Nieuw" = geen enkele inspection_items-rij
 // ooit, dus onafhankelijk van wanneer het artikel is aangemaakt.
+//
+// Offline-beperking: "nieuw" wordt dan bepaald op basis van wat lokaal
+// gecached is (gedownloade klant + eventuele eerder offline gemaakte
+// keuringen), niet de volledige serverhistorie. Een prima hint, geen
+// besluitvormende logica.
 export async function fetchArticleScope(customerId: string, excludeArticleIds: string[] = []): Promise<ArticleScope> {
   const exclude = new Set(excludeArticleIds)
-  const { data, error } = await supabase
-    .from('articles')
-    .select('id')
-    .eq('customer_id', customerId)
-    .eq('retired', false)
-  if (error) throw error
-  const allIds = (data ?? []).map((a) => a.id).filter((id) => !exclude.has(id))
+  const { isOnline } = useOnline()
+
+  if (isOnline.value) {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('id')
+      .eq('customer_id', customerId)
+      .eq('retired', false)
+    if (error) throw error
+    const allIds = (data ?? []).map((a) => a.id).filter((id) => !exclude.has(id))
+    if (!allIds.length) return { allIds: [], newIds: [] }
+    const { data: inspected, error: insErr } = await supabase
+      .from('inspection_items')
+      .select('article_id')
+      .in('article_id', allIds)
+    if (insErr) throw insErr
+    const inspectedSet = new Set((inspected ?? []).map((r) => r.article_id))
+    const newIds = allIds.filter((id) => !inspectedSet.has(id))
+    return { allIds, newIds }
+  }
+
+  const key = requireOfflineKey()
+  const articles = await getArticlesForCustomer<{ id: string; retired: boolean }>(key, customerId)
+  const allIds = articles.filter((a) => !a.retired).map((a) => a.id).filter((id) => !exclude.has(id))
   if (!allIds.length) return { allIds: [], newIds: [] }
-  const { data: inspected, error: insErr } = await supabase
-    .from('inspection_items')
-    .select('article_id')
-    .in('article_id', allIds)
-  if (insErr) throw insErr
-  const inspectedSet = new Set((inspected ?? []).map((r) => r.article_id))
+  const inspectedSet = await getLocallyInspectedArticleIds(key)
   const newIds = allIds.filter((id) => !inspectedSet.has(id))
   return { allIds, newIds }
 }
@@ -62,9 +126,15 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
 // Welke artikelen staan al in deze (concept-)keuring, om bij het hervatten te
 // kunnen tonen wat er nog extra van de klant bij gehaald kan worden.
 export async function fetchInspectionArticleIds(inspectionId: string): Promise<string[]> {
-  const { data, error } = await supabase.from('inspection_items').select('article_id').eq('inspection_id', inspectionId)
-  if (error) throw error
-  return (data ?? []).map((r) => r.article_id)
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase.from('inspection_items').select('article_id').eq('inspection_id', inspectionId)
+    if (error) throw error
+    return (data ?? []).map((r) => r.article_id)
+  }
+  const key = requireOfflineKey()
+  const items = await getInspectionItems<{ article_id: string }>(key, inspectionId)
+  return items.map((i) => i.article_id)
 }
 
 // Voegt artikelen toe aan een al bestaande keuring (bijv. een open concept
@@ -72,90 +142,180 @@ export async function fetchInspectionArticleIds(inspectionId: string): Promise<s
 // onbeoordeelde items.
 export async function addArticlesToInspection(inspectionId: string, articleIds: string[]): Promise<void> {
   if (!articleIds.length) return
-  const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
-  if (artErr) throw artErr
-  const { error: itemsErr } = await supabase.from('inspection_items').insert(
-    (articles ?? []).map((a) => ({
-      inspection_id: inspectionId,
-      article_id: a.id,
-      article_snapshot: a,
-      result: 'not_assessed',
-    }))
-  )
-  if (itemsErr) throw itemsErr
-}
+  const { isOnline } = useOnline()
 
-// Maakt een nieuwe keuring (concept) aan met precies de gekozen artikelen als
-// (nog onbeoordeelde) keuringsitems — het resultaat van de selectiedialoog.
-export async function startInspectionWithArticles(customerId: string, articleIds: string[]): Promise<string> {
-  const inspector = await ensureInspector()
-
-  const { data: inspection, error: insErr } = await supabase
-    .from('inspections')
-    .insert({ customer_id: customerId, company_id: inspector.company_id, inspector_id: inspector.id })
-    .select('id')
-    .single()
-  if (insErr) throw insErr
-
-  if (articleIds.length) {
+  if (isOnline.value) {
     const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
     if (artErr) throw artErr
     const { error: itemsErr } = await supabase.from('inspection_items').insert(
       (articles ?? []).map((a) => ({
-        inspection_id: inspection.id,
+        inspection_id: inspectionId,
         article_id: a.id,
         article_snapshot: a,
         result: 'not_assessed',
       }))
     )
     if (itemsErr) throw itemsErr
+    return
   }
 
-  return inspection.id
+  const key = requireOfflineKey()
+  const inspection = await getInspection<{ id: string; customer_id: string }>(key, inspectionId)
+  if (!inspection) throw new Error('Deze keuring is niet offline beschikbaar.')
+  const articles = await getArticlesForCustomer<Record<string, unknown> & { id: string }>(key, inspection.customer_id)
+  const byId = new Map(articles.map((a) => [a.id, a]))
+  const newItems = articleIds.map((articleId) => ({
+    id: crypto.randomUUID(),
+    inspection_id: inspectionId,
+    article_id: articleId,
+    article_snapshot: byId.get(articleId) ?? null,
+    result: 'not_assessed',
+    next_due: null,
+    rejection_code_id: null,
+    comment: null,
+  }))
+  await putInspectionItems(key, inspectionId, newItems)
+  for (const item of newItems) {
+    await enqueueMutation({ customerId: inspection.customer_id, table: 'inspection_items', op: 'insert', payload: item })
+  }
+  await touchDownloadActivity(inspection.customer_id)
+}
+
+// Maakt een nieuwe keuring (concept) aan met precies de gekozen artikelen als
+// (nog onbeoordeelde) keuringsitems — het resultaat van de selectiedialoog.
+// Offline: het keuring-id en de item-id's worden hier client-side aangemaakt
+// (crypto.randomUUID()) i.p.v. door de server -- nodig om zonder netwerk toch
+// een bruikbaar id te hebben. De certificaatnummering (JJJJMMDD-KLANTNAAM,
+// geen volgnummer) loopt hier niet doorheen en heeft dus geen last van een
+// client-side id (zie BOUWPLAN, slice 5).
+export async function startInspectionWithArticles(customerId: string, articleIds: string[]): Promise<string> {
+  const inspector = await ensureInspector()
+  const { isOnline } = useOnline()
+
+  if (isOnline.value) {
+    const { data: inspection, error: insErr } = await supabase
+      .from('inspections')
+      .insert({ customer_id: customerId, company_id: inspector.company_id, inspector_id: inspector.id })
+      .select('id')
+      .single()
+    if (insErr) throw insErr
+
+    if (articleIds.length) {
+      const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
+      if (artErr) throw artErr
+      const { error: itemsErr } = await supabase.from('inspection_items').insert(
+        (articles ?? []).map((a) => ({
+          inspection_id: inspection.id,
+          article_id: a.id,
+          article_snapshot: a,
+          result: 'not_assessed',
+        }))
+      )
+      if (itemsErr) throw itemsErr
+    }
+
+    return inspection.id
+  }
+
+  const key = requireOfflineKey()
+  const inspectionId = crypto.randomUUID()
+  const inspectionRow = {
+    id: inspectionId,
+    customer_id: customerId,
+    company_id: inspector.company_id,
+    inspector_id: inspector.id,
+    status: 'draft',
+    inspection_date: new Date().toISOString().slice(0, 10),
+  }
+  await putInspection(key, inspectionRow)
+  await enqueueMutation({ customerId, table: 'inspections', op: 'insert', payload: inspectionRow })
+
+  if (articleIds.length) {
+    const articles = await getArticlesForCustomer<Record<string, unknown> & { id: string }>(key, customerId)
+    const byId = new Map(articles.map((a) => [a.id, a]))
+    const items = articleIds.map((articleId) => ({
+      id: crypto.randomUUID(),
+      inspection_id: inspectionId,
+      article_id: articleId,
+      article_snapshot: byId.get(articleId) ?? null,
+      result: 'not_assessed',
+      next_due: null,
+      rejection_code_id: null,
+      comment: null,
+    }))
+    await putInspectionItems(key, inspectionId, items)
+    for (const item of items) {
+      await enqueueMutation({ customerId, table: 'inspection_items', op: 'insert', payload: item })
+    }
+  }
+
+  await touchDownloadActivity(customerId)
+  return inspectionId
 }
 
 // Bestaand concept ophalen zonder er een aan te maken (voor de Start/Hervat-
 // knop op de klantpagina).
 export async function findDraftInspection(customerId: string): Promise<{ id: string; inspection_date: string } | null> {
   const inspector = await ensureInspector()
-  const { data, error } = await supabase
-    .from('inspections')
-    .select('id, inspection_date')
-    .eq('customer_id', customerId)
-    .eq('company_id', inspector.company_id)
-    .eq('status', 'draft')
-    .maybeSingle()
-  if (error) throw error
-  return data
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase
+      .from('inspections')
+      .select('id, inspection_date')
+      .eq('customer_id', customerId)
+      .eq('company_id', inspector.company_id)
+      .eq('status', 'draft')
+      .maybeSingle()
+    if (error) throw error
+    return data
+  }
+  const key = requireOfflineKey()
+  return getDraftInspectionForCustomer<{ id: string; inspection_date: string }>(key, customerId)
 }
 
 // Resultaat (en datum) van de meest recente afgeronde keuring van dit artikel,
 // voor de "vorige keuring: goed (12 jun 2025)"-context in stap 2 van de wizard.
+// Offline-beperking: ziet alleen geschiedenis die lokaal gecached is (zie
+// findLocalPreviousResult) -- een contexthint, geen besluitvormende logica.
 export async function findPreviousResult(
   articleId: string,
   excludeInspectionId: string
 ): Promise<{ result: string; comment: string | null; inspection_date: string } | null> {
-  const { data, error } = await supabase
-    .from('inspection_items')
-    .select('result, comment, inspection:inspections(inspection_date, status)')
-    .eq('article_id', articleId)
-    .neq('inspection_id', excludeInspectionId)
-    .order('created_at', { ascending: false })
-    .limit(20)
-  if (error) throw error
-  interface PrevItemRow {
-    result: string
-    comment: string | null
-    inspection: { inspection_date: string; status: string } | null
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase
+      .from('inspection_items')
+      .select('result, comment, inspection:inspections(inspection_date, status)')
+      .eq('article_id', articleId)
+      .neq('inspection_id', excludeInspectionId)
+      .order('created_at', { ascending: false })
+      .limit(20)
+    if (error) throw error
+    interface PrevItemRow {
+      result: string
+      comment: string | null
+      inspection: { inspection_date: string; status: string } | null
+    }
+    const rows = (data ?? []) as unknown as PrevItemRow[]
+    const completed = rows.find((row) => row.inspection?.status === 'completed')
+    if (!completed || !completed.inspection) return null
+    return {
+      result: completed.result,
+      comment: completed.comment,
+      inspection_date: completed.inspection.inspection_date,
+    }
   }
-  const rows = (data ?? []) as unknown as PrevItemRow[]
-  const completed = rows.find((row) => row.inspection?.status === 'completed')
-  if (!completed || !completed.inspection) return null
-  return {
-    result: completed.result,
-    comment: completed.comment,
-    inspection_date: completed.inspection.inspection_date,
-  }
+
+  const key = requireOfflineKey()
+  const item = await findLocalPreviousResult<{ result: string; comment: string | null; inspection_id: string; article_id: string }>(
+    key,
+    articleId,
+    excludeInspectionId
+  )
+  if (!item) return null
+  const inspection = await getInspection<{ status: string; inspection_date: string }>(key, item.inspection_id)
+  if (!inspection || inspection.status !== 'completed') return null
+  return { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date }
 }
 
 // Afkeurcodes zijn per keurbedrijf instelbaar (besluit Jos 2026-06-25). Heeft
@@ -165,6 +325,12 @@ export async function findPreviousResult(
 // instellingenscherm seedt bij eerste opening een eigen kopie. Leeg resultaat
 // = wizard valt terug op vrije tekst (zie 20260624_rejection_codes.sql).
 export async function fetchRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
+  const { isOnline } = useOnline()
+  if (!isOnline.value) {
+    const key = requireOfflineKey()
+    return getRejectionCodes<{ id: string; code: number; label: string | null }>(key, companyId)
+  }
+
   const own = await supabase
     .from('rejection_codes')
     .select('id, code, label, active')

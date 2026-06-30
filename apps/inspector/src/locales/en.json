@@ -547,6 +547,7 @@
       "wrongPin": "Incorrect PIN.",
       "tooShort": "PIN must be at least 4 characters.",
       "mismatch": "PINs do not match."
-    }
+    },
+    "notCachedInspection": "This inspection is not cached locally -- go online to fetch it."
   }
 }

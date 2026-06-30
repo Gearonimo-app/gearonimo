@@ -9,11 +9,27 @@ import {
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
+import { putInspection, putInspectionItems } from "./inspectionCache";
 import { encryptJson, decryptJson } from "./crypto";
 
 export interface InspectorContext {
   companyId: string;
   inspectorId: string;
+}
+
+// De inspector-eigen identiteit (welk keurbedrijf, welke keurmeester-rij) is
+// niet klant-specifiek en niet gevoelig (de gebruiker kent zijn eigen
+// gegevens al uit zijn sessie) -- onversleuteld in meta, zodat
+// ensureInspector() ook zonder netwerk werkt, zolang er ooit online is
+// ingelogd.
+export async function cacheInspectorContext(ctx: InspectorContext): Promise<void> {
+  const db = await getOfflineDb();
+  await db.put("meta", ctx, "inspectorContext");
+}
+
+export async function getCachedInspectorContext(): Promise<InspectorContext | undefined> {
+  const db = await getOfflineDb();
+  return (await db.get("meta", "inspectorContext")) as InspectorContext | undefined;
 }
 
 export interface DownloadSummary {
@@ -79,6 +95,26 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
     .single();
   if (companyErr) throw companyErr;
 
+  // Een al lopend concept van deze klant ook meenemen, zodat hervatten
+  // offline werkt (niet alleen nieuw starten).
+  const { data: draftInspection, error: draftErr } = await supabase
+    .from("inspections")
+    .select("*")
+    .eq("customer_id", customerId)
+    .eq("company_id", ctx.companyId)
+    .eq("status", "draft")
+    .maybeSingle();
+  if (draftErr) throw draftErr;
+  let draftItems: ({ id: string } & Record<string, unknown>)[] = [];
+  if (draftInspection) {
+    const { data, error } = await supabase
+      .from("inspection_items")
+      .select("*")
+      .eq("inspection_id", draftInspection.id);
+    if (error) throw error;
+    draftItems = data ?? [];
+  }
+
   const watermarkId = await recordWatermark(ctx, customerId);
 
   await putCustomer(key, customer);
@@ -86,6 +122,10 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   if (products.length) await putProducts(key, products);
   await putRejectionCodes(key, ctx.companyId, (rejectionCodes ?? []) as { id: string; code: number; label: string | null }[]);
   await putCompanySettings(key, ctx.companyId, company);
+  if (draftInspection) {
+    await putInspection(key, draftInspection);
+    if (draftItems.length) await putInspectionItems(key, draftInspection.id, draftItems);
+  }
 
   const db = await getOfflineDb();
   const now = new Date().toISOString();

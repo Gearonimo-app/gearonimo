@@ -547,6 +547,7 @@
       "wrongPin": "Onjuiste PIN.",
       "tooShort": "PIN moet minimaal 4 tekens zijn.",
       "mismatch": "PIN's komen niet overeen."
-    }
+    },
+    "notCachedInspection": "Deze keuring staat niet lokaal -- ga online om hem op te halen."
   }
 }
