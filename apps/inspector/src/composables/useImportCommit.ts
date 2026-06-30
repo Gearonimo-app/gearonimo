@@ -48,6 +48,10 @@ export interface CommitOptions {
   skipDuplicateSerials: boolean
   /** Klantnaam voor het hele bestand, voor bestanden zonder klantkolom (bijv. één klant per import). Overschrijft een eventuele gekoppelde kolom. */
   fixedCustomerName?: string
+  /** Id van een al bestaande klant voor het hele bestand. Is dit gezet, dan
+   * gaan alle rijen naar precies die klant (geen zoek-op-naam, geen nieuwe
+   * klant) — gekozen via de klant-dropdown in stap 3. */
+  fixedCustomerId?: string
   /** Keuringsdatum (ISO yyyy-mm-dd) voor het hele bestand, voor bestanden zonder datumkolom. Overschrijft een eventuele gekoppelde kolom. */
   fixedInspectionDate?: string
 }
@@ -115,43 +119,51 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
       const inspectionDateRaw = cellsForField(opts.mapping, 'inspectionDate', row)
       const inspectionDate = opts.fixedInspectionDate?.trim() || parseToISODate(inspectionDateRaw)
 
-      if (!customerName || !description) {
+      // Een gekozen bestaande klant (fixedCustomerId) telt altijd als "klant bekend",
+      // ook als er geen klantkolom/naam in het bestand staat.
+      if ((!customerName && !opts.fixedCustomerId) || !description) {
         skipped++
         // Splits de reden uit zodat het eindscherm kan zeggen wélk veld ontbrak
         // (bij een bestand zonder klantkolom is dat bijna altijd de klantnaam —
-        // dan moet de "vaste klantnaam" in stap 3 ingevuld worden).
-        if (!customerName) result.rowsSkippedNoCustomer++
+        // dan moet in stap 3 een klant gekozen worden).
+        if (!customerName && !opts.fixedCustomerId) result.rowsSkippedNoCustomer++
         else result.rowsSkippedNoDescription++
         continue
       }
 
-      const customerKey = customerName.toLowerCase()
-      let customerId = customerCache.get(customerKey)
-      if (!customerId) {
-        const email = cellsForField(opts.mapping, 'customerEmail', row)
-        const { data: existing } = await supabase
-          .from('customers')
-          .select('id')
-          .ilike('name', customerName)
-          .maybeSingle()
-        if (existing) {
-          customerId = String(existing.id)
-        } else {
-          const { data: created, error: custErr } = await supabase
+      let customerId: string
+      if (opts.fixedCustomerId) {
+        // Vast gekozen klant: alle rijen naar die klant, geen zoek/aanmaak.
+        customerId = opts.fixedCustomerId
+      } else {
+        const customerKey = customerName.toLowerCase()
+        customerId = customerCache.get(customerKey) ?? ''
+        if (!customerId) {
+          const email = cellsForField(opts.mapping, 'customerEmail', row)
+          const { data: existing } = await supabase
             .from('customers')
-            .insert({
-              name: customerName,
-              email: email || `import-${Date.now()}-${Math.random().toString(36).slice(2)}@onbekend.nl`,
-              phone: cellsForField(opts.mapping, 'customerPhone', row) || null,
-              city: cellsForField(opts.mapping, 'customerCity', row) || null,
-            })
             .select('id')
-            .single()
-          if (custErr) throw custErr
-          customerId = String(created.id)
-          result.customersCreated++
+            .ilike('name', customerName)
+            .maybeSingle()
+          if (existing) {
+            customerId = String(existing.id)
+          } else {
+            const { data: created, error: custErr } = await supabase
+              .from('customers')
+              .insert({
+                name: customerName,
+                email: email || `import-${Date.now()}-${Math.random().toString(36).slice(2)}@onbekend.nl`,
+                phone: cellsForField(opts.mapping, 'customerPhone', row) || null,
+                city: cellsForField(opts.mapping, 'customerCity', row) || null,
+              })
+              .select('id')
+              .single()
+            if (custErr) throw custErr
+            customerId = String(created.id)
+            result.customersCreated++
+          }
+          customerCache.set(customerKey, customerId)
         }
-        customerCache.set(customerKey, customerId)
       }
 
       let articleId: string | undefined

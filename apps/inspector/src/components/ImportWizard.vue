@@ -20,19 +20,47 @@
       <h2>{{ $t('settings.import.step2Title') }}</h2>
       <p v-if="profileApplied" class="imp__ok">{{ $t('settings.import.profileApplied') }}</p>
       <p class="imp__hint">{{ $t('settings.import.step2Hint') }}</p>
-      <p class="imp__hint">{{ $t('settings.import.step2IgnoreHint') }}</p>
+      <p class="imp__hint">{{ $t('settings.import.step2RangeHint') }}</p>
+      <p class="imp__selinfo">
+        {{ $t('settings.import.step2Selected', {
+          header: headerRowIndex + 1,
+          last: lastRowIndex === null ? $t('settings.import.toEnd') : (lastRowIndex + 1),
+        }) }}
+        <button v-if="lastRowIndex !== null" type="button" class="imp__linkbtn" @click="lastRowIndex = null">
+          {{ $t('settings.import.clearLastRow') }}
+        </button>
+      </p>
       <div class="imp__tablewrap">
         <table class="imp__table">
           <tbody>
             <tr
               v-for="(row, i) in previewRows"
               :key="i"
-              :class="{ 'imp__row--header': i === headerRowIndex, 'imp__row--ignored': i < headerRowIndex }"
-              @click="headerRowIndex = i"
+              :class="{
+                'imp__row--header': i === headerRowIndex,
+                'imp__row--last': i === lastRowIndex,
+                'imp__row--ignored': i < headerRowIndex || (lastRowIndex !== null && i > lastRowIndex),
+              }"
             >
               <td class="imp__rownum">
-                {{ i + 1 }}
-                <span v-if="i < headerRowIndex" class="imp__rowtag">{{ $t('settings.import.rowIgnored') }}</span>
+                <button
+                  type="button"
+                  class="imp__pickbtn"
+                  :class="{ 'imp__pickbtn--active': i === headerRowIndex }"
+                  :title="$t('settings.import.markHeader')"
+                  @click="setHeaderRow(i)"
+                >{{ i + 1 }}</button>
+                <button
+                  v-if="i > headerRowIndex"
+                  type="button"
+                  class="imp__endbtn"
+                  :class="{ 'imp__endbtn--active': i === lastRowIndex }"
+                  :title="$t('settings.import.markLastRow')"
+                  @click="setLastRow(i)"
+                >⤓</button>
+                <span v-if="i < headerRowIndex || (lastRowIndex !== null && i > lastRowIndex)" class="imp__rowtag">
+                  {{ $t('settings.import.rowIgnored') }}
+                </span>
               </td>
               <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
             </tr>
@@ -48,7 +76,35 @@
 
       <div class="imp__field">
         <label>{{ $t('settings.import.fixedCustomerLabel') }}</label>
-        <input type="text" v-model="fixedCustomerName" :placeholder="$t('settings.import.fixedCustomerPlaceholder')" />
+        <div v-if="selectedCustomer" class="imp__customer-chosen">
+          <span class="imp__ok">{{ $t('settings.import.customerSelected', { name: selectedCustomer.name }) }}</span>
+          <button type="button" class="imp__linkbtn" @click="clearCustomer">{{ $t('settings.import.customerChange') }}</button>
+        </div>
+        <div v-else class="imp__customerpick">
+          <div class="imp__customerbox">
+            <input
+              type="text"
+              v-model="customerSearch"
+              :placeholder="$t('settings.import.fixedCustomerPlaceholder')"
+              @focus="customerListOpen = true"
+              @blur="closeCustomerListSoon"
+            />
+            <div v-if="customerListOpen && filteredCustomers.length" class="imp__customerlist">
+              <button
+                v-for="c in filteredCustomers"
+                :key="c.id"
+                type="button"
+                class="imp__customeritem"
+                @mousedown.prevent="selectCustomer(c)"
+              >
+                {{ c.name }}<span v-if="c.city" class="imp__customeritem-city"> · {{ c.city }}</span>
+              </button>
+            </div>
+          </div>
+          <button type="button" class="imp__btn imp__btn--ghost imp__newcustomer" @click="showNewCustomer = true">
+            ＋ {{ $t('settings.import.newCustomer') }}
+          </button>
+        </div>
         <p class="imp__hint">{{ $t('settings.import.fixedCustomerHint') }}</p>
       </div>
 
@@ -156,11 +212,13 @@
       <button v-if="step > 1 && step < 5" class="imp__btn imp__btn--ghost" @click="step--">{{ $t('settings.import.back') }}</button>
       <button v-if="step < 5" class="imp__btn" :disabled="!canAdvance" @click="advance">{{ $t('settings.import.next') }}</button>
     </div>
+
+    <CustomerFormModal v-if="showNewCustomer" @saved="onCustomerCreated" @cancel="showNewCustomer = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, nextTick } from 'vue'
+import { ref, computed, watch, nextTick, onMounted } from 'vue'
 import * as XLSX from 'xlsx'
 import {
   FIELD_DEFS,
@@ -176,6 +234,8 @@ import {
   saveImportProfile,
   type CommitResult,
 } from '../composables/useImportCommit'
+import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
+import CustomerFormModal from './CustomerFormModal.vue'
 
 const step = ref(1)
 const error = ref('')
@@ -187,15 +247,78 @@ const sheetNames = computed(() => Object.keys(sheets.value))
 const selectedSheet = ref('')
 
 const allRows = computed<RawRow[]>(() => sheets.value[selectedSheet.value] ?? [])
-const previewRows = computed(() => allRows.value.slice(0, 25))
+// In stap 2 mag de keurmeester de laatste rij van de tabel aanwijzen, dus tonen
+// we ruim meer dan een handvol rijen (gecaptureerd certificaat heeft de tabel
+// soms pas na tientallen rijen). Cap voor extreem grote bestanden.
+const previewRows = computed(() => allRows.value.slice(0, 500))
 
 const headerRowIndex = ref(0)
+// null = tot het einde van het blad (gedrag van vóór de tabelselectie). Anders
+// is dit de laatste rij die nog meegaat — alles eronder wordt genegeerd.
+const lastRowIndex = ref<number | null>(null)
 const headerRow = computed<RawRow>(() => allRows.value[headerRowIndex.value] ?? [])
-const dataRows = computed<RawRow[]>(() => allRows.value.slice(headerRowIndex.value + 1))
+const dataRows = computed<RawRow[]>(() =>
+  allRows.value.slice(headerRowIndex.value + 1, lastRowIndex.value === null ? undefined : lastRowIndex.value + 1)
+)
+
+function setHeaderRow(i: number) {
+  headerRowIndex.value = i
+  // Laatste rij die nu boven (of op) de koprij ligt, is niet meer logisch.
+  if (lastRowIndex.value !== null && lastRowIndex.value <= i) lastRowIndex.value = null
+}
+function setLastRow(i: number) {
+  // Klik op dezelfde rij = weer 'tot het einde'.
+  lastRowIndex.value = lastRowIndex.value === i ? null : i
+}
 
 const mapping = ref<Record<number, FieldKey>>({})
 const fixedCustomerName = ref('')
 const fixedInspectionDate = ref('')
+
+// Klant-dropdown (stap 3): kies een bestaande klant voor het hele bestand, of
+// maak er meteen een aan. fixedCustomerId stuurt de import naar precies die klant.
+const customers = ref<CustomerListItem[]>([])
+const customerSearch = ref('')
+const customerListOpen = ref(false)
+const selectedCustomerId = ref<string | null>(null)
+const showNewCustomer = ref(false)
+const selectedCustomer = computed(() => customers.value.find((c) => c.id === selectedCustomerId.value) || null)
+const filteredCustomers = computed(() => {
+  const q = customerSearch.value.trim().toLowerCase()
+  const list = q ? customers.value.filter((c) => c.name.toLowerCase().includes(q)) : customers.value
+  return list.slice(0, 30)
+})
+
+async function loadCustomers() {
+  try {
+    customers.value = await listCustomers()
+  } catch {
+    // geen verbinding: dropdown blijft leeg, "Nieuwe klant" werkt nog wel
+  }
+}
+onMounted(loadCustomers)
+
+function selectCustomer(c: CustomerListItem) {
+  selectedCustomerId.value = c.id
+  fixedCustomerName.value = c.name
+  customerSearch.value = c.name
+  customerListOpen.value = false
+}
+function clearCustomer() {
+  selectedCustomerId.value = null
+  fixedCustomerName.value = ''
+  customerSearch.value = ''
+}
+function closeCustomerListSoon() {
+  // korte vertraging zodat een klik op een item nog telt (mousedown vóór blur)
+  window.setTimeout(() => { customerListOpen.value = false }, 150)
+}
+async function onCustomerCreated(id: string) {
+  showNewCustomer.value = false
+  await loadCustomers()
+  const created = customers.value.find((c) => c.id === id)
+  if (created) selectCustomer(created)
+}
 const skipDuplicateSerials = ref(true)
 const saveProfile = ref(true)
 const committing = ref(false)
@@ -236,7 +359,7 @@ const mappedFields = computed(() =>
 
 const validation = computed(() => {
   const result = validateRows(mapping.value, dataRows.value)
-  if (fixedCustomerName.value.trim()) {
+  if (fixedCustomerName.value.trim() || selectedCustomerId.value) {
     result.missingRequired = result.missingRequired.filter((f) => f !== 'customerName')
     delete result.emptyRequiredCount.customerName
   }
@@ -288,6 +411,7 @@ async function onFileChange(e: Event) {
     }
     sheets.value = parsed
     selectedSheet.value = wb.SheetNames[0]
+    lastRowIndex.value = null
     headerRowIndex.value = guessHeaderRow(parsed[wb.SheetNames[0]] ?? [])
     mapping.value = guessMapping((parsed[wb.SheetNames[0]] ?? [])[headerRowIndex.value] ?? [])
     await applyProfileIfAny()
@@ -303,6 +427,7 @@ async function onFileChange(e: Event) {
 
 watch(selectedSheet, () => {
   if (applying.value) return
+  lastRowIndex.value = null
   headerRowIndex.value = guessHeaderRow(allRows.value)
   mapping.value = guessMapping(headerRow.value)
 })
@@ -321,6 +446,7 @@ async function runCommit() {
       sheetName: selectedSheet.value,
       skipDuplicateSerials: skipDuplicateSerials.value,
       fixedCustomerName: fixedCustomerName.value,
+      fixedCustomerId: selectedCustomerId.value ?? undefined,
       fixedInspectionDate: fixedInspectionDate.value,
     })
   } finally {
@@ -343,13 +469,30 @@ async function runCommit() {
 .imp__table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .imp__table td, .imp__table th { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
 .imp__table th { background: #f9fafb; text-align: left; position: sticky; top: 0; }
-.imp__rownum { color: #9ca3af; }
-.imp__row--header { background: #d1fae5; cursor: pointer; }
+.imp__rownum { color: #9ca3af; white-space: nowrap; }
+.imp__row--header { background: #d1fae5; }
+.imp__row--last { background: #fef3c7; }
 .imp__row--ignored { opacity: 0.45; background: #f9fafb; }
 .imp__row--ignored td { color: #9ca3af; }
 .imp__rowtag { display: inline-block; margin-left: 0.4rem; font-size: 0.65rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.03em; }
-.imp__table tbody tr { cursor: pointer; }
 .imp__table tbody tr:hover { background: #f3f4f6; }
+.imp__pickbtn { background: none; border: 1px solid #d1d5db; border-radius: 5px; padding: 0.1rem 0.4rem; font: inherit; font-size: 0.75rem; color: #6b7280; cursor: pointer; }
+.imp__pickbtn--active { background: #059669; border-color: #059669; color: #fff; font-weight: 700; }
+.imp__endbtn { margin-left: 0.25rem; background: none; border: 1px solid #d1d5db; border-radius: 5px; padding: 0.1rem 0.35rem; cursor: pointer; color: #92400e; }
+.imp__endbtn--active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
+.imp__selinfo { font-size: 0.85rem; color: #374151; margin: 0.25rem 0 0.6rem; }
+.imp__linkbtn { background: none; border: none; color: #1a3a2a; text-decoration: underline; cursor: pointer; font-size: 0.8rem; padding: 0 0 0 0.4rem; }
+
+.imp__customerpick { display: flex; gap: 0.5rem; align-items: flex-start; }
+.imp__customerbox { position: relative; flex: 1; }
+.imp__customerbox input { width: 100%; padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box; }
+.imp__customerlist { position: absolute; z-index: 5; left: 0; right: 0; top: 100%; background: #fff; border: 1px solid #d1d5db; border-radius: 0 0 6px 6px; max-height: 220px; overflow-y: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.08); }
+.imp__customeritem { display: block; width: 100%; text-align: left; background: none; border: none; padding: 0.5rem 0.6rem; cursor: pointer; font-size: 0.9rem; }
+.imp__customeritem:hover { background: #f3f4f6; }
+.imp__customeritem-city { color: #9ca3af; }
+.imp__newcustomer { white-space: nowrap; }
+.imp__customer-chosen { display: flex; align-items: center; gap: 0.5rem; }
+.imp__field input[type="text"], .imp__field input[type="date"] { padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box; }
 
 .imp__mapgrid { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; }
 .imp__mapcol { min-width: 160px; flex: 0 0 auto; }
