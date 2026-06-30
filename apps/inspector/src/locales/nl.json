@@ -504,7 +504,8 @@
         "assignedUserName": "Gebruiker",
         "inspectionDate": "Keuringsdatum",
         "result": "Resultaat",
-        "rejectionComment": "Afkeurcode/opmerking",
+        "rejectionCode": "Afkeurcode",
+        "rejectionComment": "Opmerking",
         "nextDue": "Volgende keuring"
       }
     }

@@ -18,6 +18,7 @@ export type FieldKey =
   | 'assignedUserName'
   | 'inspectionDate'
   | 'result'
+  | 'rejectionCode'
   | 'rejectionComment'
   | 'nextDue'
 
@@ -44,7 +45,8 @@ export const FIELD_DEFS: FieldDef[] = [
   { key: 'assignedUserName', group: 'article', hints: ['gebruiker', 'user', 'toegewezen'] },
   { key: 'inspectionDate', group: 'inspection', hints: ['keurdatum', 'keuringsdatum', 'datum', 'date', 'inspection date'] },
   { key: 'result', group: 'inspection', hints: ['resultaat', 'result', 'goed', 'afgekeurd', 'ok', 'nok'] },
-  { key: 'rejectionComment', group: 'inspection', hints: ['afkeur', 'opmerking', 'comment', 'reject'] },
+  { key: 'rejectionCode', group: 'inspection', hints: ['afkeurcode', 'afkeurreden', 'afkeur', 'wegens', 'reject'] },
+  { key: 'rejectionComment', group: 'inspection', hints: ['opmerking', 'toelichting', 'notitie', 'comment', 'remark'] },
   { key: 'nextDue', group: 'inspection', hints: ['volgende keuring', 'next due', 'vervaldatum'] },
 ]
 

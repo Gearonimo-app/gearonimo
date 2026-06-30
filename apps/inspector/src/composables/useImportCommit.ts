@@ -1,6 +1,29 @@
 import { supabase } from '@gearonimo/core'
-import { ensureInspector } from './useInspections'
+import { ensureInspector, fetchRejectionCodes } from './useInspections'
 import type { FieldKey, RawRow } from './useImportMapping'
+
+/** Zoekt bij een geïmporteerde afkeurcode-cel de juiste rejection_code_id.
+ * Matcht eerst op het nummer vooraan ("6" of "6 Defecte sluiting"), daarna op
+ * de labeltekst. Niet gevonden → null, zodat de aanroeper de ruwe tekst in de
+ * opmerking kan bewaren (niets gaat verloren). */
+function resolveRejectionCodeId(
+  raw: string,
+  codes: { id: string; code: number; label: string | null }[]
+): string | null {
+  const s = raw.trim()
+  if (!s) return null
+  const num = s.match(/^(\d+)/)
+  if (num) {
+    const byCode = codes.find((c) => c.code === parseInt(num[1], 10))
+    if (byCode) return byCode.id
+  }
+  const lower = s.toLowerCase()
+  const byLabel = codes.find((c) => {
+    const l = (c.label ?? '').toLowerCase()
+    return l !== '' && (l === lower || lower.includes(l) || l.includes(lower))
+  })
+  return byLabel ? byLabel.id : null
+}
 
 export function headerSignature(headerRow: RawRow): string {
   return headerRow.map((c) => String(c ?? '').trim().toLowerCase()).join('|')
@@ -104,6 +127,11 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
     .select('id')
     .single()
   if (batchErr) { result.errors.push(batchErr.message); return result }
+
+  // Afkeurcodes alleen ophalen als er een afkeurcode-kolom is gekoppeld, zodat
+  // we de geïmporteerde code naar de juiste rejection_code_id kunnen vertalen.
+  const hasCodeColumn = Object.values(opts.mapping).includes('rejectionCode')
+  const rejectionCodes = hasCodeColumn ? await fetchRejectionCodes(inspector.company_id) : []
 
   const customerCache = new Map<string, string>() // naam (lower) -> id
   const inspectionCache = new Map<string, string>() // customerId|date -> inspection id
@@ -229,12 +257,28 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           result.inspectionsCreated++
         }
 
+        // Afkeurcode en opmerking zijn aparte kolommen. De code proberen we te
+        // koppelen aan een rejection_code_id; lukt dat niet, dan blijft de ruwe
+        // tekst behouden in de opmerking zodat er niets verdwijnt.
+        const rawCode = cellsForField(opts.mapping, 'rejectionCode', row)
+        const rejectionCodeId = rawCode ? resolveRejectionCodeId(rawCode, rejectionCodes) : null
+        const commentParts = [
+          rawCode && !rejectionCodeId ? rawCode : '',
+          cellsForField(opts.mapping, 'rejectionComment', row),
+        ].filter((p) => p && p.trim() !== '')
+
+        // Staat er een afkeurcode maar geen expliciete uitslag, dan was dit een
+        // afgekeurd artikel — anders zou de code niet getoond worden.
+        let itemResult = normalizeResult(cellsForField(opts.mapping, 'result', row))
+        if (rawCode && itemResult === 'not_assessed') itemResult = 'rejected'
+
         const { error: itemErr } = await supabase.from('inspection_items').insert({
           inspection_id: inspectionId,
           article_id: articleId,
-          result: normalizeResult(cellsForField(opts.mapping, 'result', row)),
+          result: itemResult,
           next_due: parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null),
-          comment: cellsForField(opts.mapping, 'rejectionComment', row) || null,
+          rejection_code_id: rejectionCodeId,
+          comment: commentParts.length ? commentParts.join(' — ') : null,
         })
         if (itemErr) throw itemErr
       } else {

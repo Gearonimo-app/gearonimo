@@ -504,7 +504,8 @@
         "assignedUserName": "User",
         "inspectionDate": "Inspection date",
         "result": "Result",
-        "rejectionComment": "Rejection code/comment",
+        "rejectionCode": "Rejection code",
+        "rejectionComment": "Comment",
         "nextDue": "Next inspection"
       }
     }
