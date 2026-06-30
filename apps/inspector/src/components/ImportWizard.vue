@@ -6,6 +6,17 @@
     <section v-if="step === 1" class="imp__step">
       <h2>{{ $t('settings.import.step1Title') }}</h2>
       <input type="file" accept=".xlsx,.xls,.csv" @change="onFileChange" />
+
+      <div class="imp__or">{{ $t('settings.import.or') }}</div>
+
+      <label class="imp__pastelabel">{{ $t('settings.import.pasteLabel') }}</label>
+      <textarea
+        class="imp__pastearea"
+        :placeholder="$t('settings.import.pastePlaceholder')"
+        @paste="onPaste"
+      ></textarea>
+      <p class="imp__hint">{{ $t('settings.import.pasteHint') }}</p>
+
       <p v-if="error" class="imp__error">{{ error }}</p>
       <div v-if="sheetNames.length > 1" class="imp__field">
         <label>{{ $t('settings.import.sheetLabel') }}</label>
@@ -219,6 +230,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, nextTick, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
 import {
   FIELD_DEFS,
@@ -236,6 +248,8 @@ import {
 } from '../composables/useImportCommit'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import CustomerFormModal from './CustomerFormModal.vue'
+
+const { t } = useI18n()
 
 const step = ref(1)
 const error = ref('')
@@ -395,12 +409,32 @@ async function applyProfileIfAny() {
   }
 }
 
+// Gedeelde inlees-stap voor zowel een geüpload bestand als een geplakte tabel:
+// zet de bladen, gok koprij + mapping en pas een eventueel profiel toe. De
+// `applying`-vlag voorkomt dat de watchers het profiel meteen weer overgokken.
+async function ingest(parsed: Record<string, RawRow[]>, theFile: File) {
+  file.value = theFile
+  applying.value = true
+  try {
+    sheets.value = parsed
+    const first = Object.keys(parsed)[0] ?? ''
+    selectedSheet.value = first
+    lastRowIndex.value = null
+    headerRowIndex.value = guessHeaderRow(parsed[first] ?? [])
+    mapping.value = guessMapping((parsed[first] ?? [])[headerRowIndex.value] ?? [])
+    await applyProfileIfAny()
+  } finally {
+    // Wacht tot de onderdrukte watchers hun (overgeslagen) flush hebben gehad
+    // vóór we de vlag weghalen, anders gokken ze het profiel alsnog over.
+    await nextTick()
+    applying.value = false
+  }
+}
+
 async function onFileChange(e: Event) {
   error.value = ''
   const picked = (e.target as HTMLInputElement).files?.[0]
   if (!picked) return
-  file.value = picked
-  applying.value = true
   try {
     const buf = await picked.arrayBuffer()
     const wb = XLSX.read(buf, { type: 'array', cellDates: true })
@@ -409,20 +443,69 @@ async function onFileChange(e: Event) {
       const rows = XLSX.utils.sheet_to_json<RawRow>(wb.Sheets[name], { header: 1, raw: false, defval: null })
       parsed[name] = rows as RawRow[]
     }
-    sheets.value = parsed
-    selectedSheet.value = wb.SheetNames[0]
-    lastRowIndex.value = null
-    headerRowIndex.value = guessHeaderRow(parsed[wb.SheetNames[0]] ?? [])
-    mapping.value = guessMapping((parsed[wb.SheetNames[0]] ?? [])[headerRowIndex.value] ?? [])
-    await applyProfileIfAny()
+    await ingest(parsed, picked)
   } catch (err) {
     error.value = (err as Error).message
-  } finally {
-    // Wacht tot de onderdrukte watchers hun (overgeslagen) flush hebben gehad
-    // vóór we de vlag weghalen, anders gokken ze het profiel alsnog over.
-    await nextTick()
-    applying.value = false
   }
+}
+
+// --- Tabel plakken (uit Word/Excel) ------------------------------------------
+// Word/Excel zetten bij kopiëren een echte HTML-<table> op het klembord; die
+// parsen we kolomgetrouw. Lukt dat niet, dan vallen we terug op de platte tekst
+// (tab-gescheiden, zoals Excel/Word die ook meegeven).
+function parseHtmlTable(html: string): RawRow[] {
+  const doc = new DOMParser().parseFromString(html, 'text/html')
+  const table = doc.querySelector('table')
+  if (!table) return []
+  const rows: RawRow[] = []
+  table.querySelectorAll('tr').forEach((tr) => {
+    const cells: RawRow = []
+    tr.querySelectorAll('th,td').forEach((td) => {
+      const txt = (td.textContent ?? '').replace(/\s+/g, ' ').trim()
+      cells.push(txt === '' ? null : txt)
+    })
+    if (cells.length) rows.push(cells)
+  })
+  return rows
+}
+
+function parsePlainTable(text: string): RawRow[] {
+  return text
+    .replace(/\r\n/g, '\n')
+    .split('\n')
+    .filter((line) => line.trim() !== '')
+    .map((line) => line.split('\t').map((c) => {
+      const v = c.trim()
+      return v === '' ? null : v
+    }))
+}
+
+// Bewaar de geplakte tabel als echt .xlsx zodat de import hetzelfde "origineel
+// bewaren in Storage" gebruikt als bij een geüpload bestand (juridisch anker).
+function rowsToXlsxFile(rows: RawRow[]): File {
+  const ws = XLSX.utils.aoa_to_sheet(rows)
+  const wb = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(wb, ws, 'Geplakt')
+  const out = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer
+  return new File([out], `geplakte-tabel-${Date.now()}.xlsx`, {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  })
+}
+
+async function onPaste(e: ClipboardEvent) {
+  error.value = ''
+  const html = e.clipboardData?.getData('text/html') ?? ''
+  const text = e.clipboardData?.getData('text/plain') ?? ''
+  let rows: RawRow[] = []
+  if (/<table/i.test(html)) rows = parseHtmlTable(html)
+  if (rows.length === 0) rows = parsePlainTable(text)
+  if (rows.length === 0) {
+    error.value = t('settings.import.pasteNoTable')
+    return
+  }
+  e.preventDefault()
+  await ingest({ Geplakt: rows }, rowsToXlsxFile(rows))
+  step.value = 2
 }
 
 watch(selectedSheet, () => {
@@ -464,6 +547,12 @@ async function runCommit() {
 .imp__ok { color: #166534; font-size: 0.85rem; }
 .imp__field { margin-top: 0.75rem; }
 .imp__field label { display: block; font-size: 0.85rem; margin-bottom: 0.25rem; }
+
+.imp__or { display: flex; align-items: center; gap: 0.6rem; color: #9ca3af; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; margin: 1rem 0 0.75rem; }
+.imp__or::before, .imp__or::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
+.imp__pastelabel { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+.imp__pastearea { width: 100%; min-height: 90px; box-sizing: border-box; padding: 0.6rem; border: 1px dashed #9ca3af; border-radius: 8px; font-family: inherit; font-size: 0.85rem; resize: vertical; }
+.imp__pastearea:focus { outline: none; border-color: #1a3a2a; border-style: solid; }
 
 .imp__tablewrap { overflow: auto; max-height: 360px; border: 1px solid #e5e7eb; border-radius: 8px; }
 .imp__table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
