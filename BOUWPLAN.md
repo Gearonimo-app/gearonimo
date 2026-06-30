@@ -416,6 +416,76 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
   > Detailvelden staan in **DATAMODEL.md**, niet in dit bouwplan: het bouwplan
   > is de fasering, het datamodel is de veldenbron.
+
+  ### Offline-first (2026-06-30, op een feature-branch, nog niet naar `main`) {#offline-first}
+  > Gestart op verzoek van Jos, met vooraf een gesprek over privacy/diefstal-
+  > risico van lokaal opgeslagen klant-/bibliotheekdata (zie ontwerpkeuzes
+  > hieronder). Branch: `claude/gearonimo-offline-first-phase2-2w9xpo`.
+
+  **Ontwerpkeuzes (akkoord Jos 2026-06-30), afwijkend/aanvullend op
+  BLAUWDRUK §8.1:**
+  - **"Download per klant" i.p.v. automatisch alles syncen.** De keurmeester
+    kiest expliciet welke klanten offline beschikbaar zijn (Netflix-
+    downloads-model), met een snelkeuze "Vandaag" (klanten met een open
+    concept-keuring) en "Deze week" (klanten met een keuringsitem dat binnen
+    14 dagen vervalt — bewust een ruwe suggestie, geen vervanging van de
+    next_due-berekening). Een download bevat alleen die klant, zijn
+    artikelen en de catalogusproducten die daarbij horen — niet de hele
+    klanten-/productendatabase (dataminimalisatie/AVG + beperkt het
+    "bibliotheek gestolen"-risico bij verlies van een toestel).
+  - **Lokale versleuteling: AES-256-GCM (Web Crypto API) + lokale PIN.** De
+    sleutel wordt met PBKDF2 afgeleid van een PIN die de keurmeester zelf
+    instelt (los van zijn inlogwachtwoord) en nooit opgeslagen — alleen een
+    salt + check-waarde staan onversleuteld lokaal om een foute PIN te
+    herkennen. Bewuste, met Jos gedeelde beperking: wie zowel het toestel als
+    de PIN heeft, kan bij de data (zoals bij elke offline-app). PIN-reset kan
+    alleen online (forceert een Supabase Auth-roundtrip) en wist alle lokale
+    offline-data onherroepelijk (oude sleutel is weg) — expliciet een laatste
+    redmiddel, geen "wachtwoord vergeten"-gemaksknop.
+  - **Forensisch watermerk i.p.v. cryptografisch onvervalsbaar HMAC.** Geen
+    edge-function-infrastructuur beschikbaar (zelfde pragmatische keuze als
+    de client-side certificaat-PDF), dus geen geheime server-sleutel om een
+    HMAC mee te ondertekenen. In plaats daarvan: elke download zet een rij
+    in een nieuwe server-side logtabel `offline_downloads` (keurbedrijf,
+    keurmeester, klant, tijdstip) — niet door de keurmeester zelf te
+    vervalsen, en blijft bestaan ook als de lokale kopie verwijderd/gelekt
+    is. Geen kopieerbeveiliging, wel een audit-spoor.
+  - **Opruimen losgekoppeld van uploaden.** Uploaden van mutaties blijft
+    altijd eager zodra er verbinding is (werkt prima met schommelend wifi).
+    Een download wordt pas automatisch verwijderd als er geen openstaande
+    mutaties meer zijn én een tijdje geen activiteit was — een korte
+    wifi-flits trekt dus niet meteen de download weg terwijl de keurmeester
+    nog met die klant bezig is. Nooit automatisch verwijderen van
+    niet-gesynchroniseerde data; na 14 dagen alleen een waarschuwing +
+    handmatige verwijderknop (slice 4).
+  - **Nieuw product tijdens een offline keuring:** geen brede catalogus-
+    download nodig — valt terug op het bestaande "vrij artikel"-mechanisme
+    (`free_*`-velden), zoals nu al voor onbekende producten gebeurt.
+
+  **Slice 1 — PWA + offline app-shell (af, 2026-06-30):** `vite-plugin-pwa`
+  toegevoegd aan `apps/inspector`; service worker precachet de hele
+  app-shell zodat de app ook zonder netwerk opent, met navigatie-fallback
+  naar `index.html` voor elke route (zelfde idee als de bestaande
+  404→index.html-truc van GitHub Pages, nu voor de service worker). Eerste
+  manifest-icoon hergebruikt het bestaande Gearonimo-merk
+  (`composables/gearonimoMark.ts`). Geverifieerd met een headless
+  Playwright-run (production build + `vite preview`, browsercontext echt
+  offline gezet): app-shell laadt en navigeert offline.
+
+  **Slice 2 — Download-per-klant + versleutelde cache + watermerk (af,
+  2026-06-30):** nieuwe offline-laag in `packages/core/src/offline/`
+  (`db.ts` met `idb`, `crypto.ts`, `pinSession.ts`, `cache.ts`,
+  `download.ts`) + nieuwe app-laag `apps/inspector/src/composables/useOffline.ts`
+  en pagina `pages/OfflineDownloads.vue` (tegel "Offline downloads" op het
+  hoofdmenu, route `/offline`) met PIN-dialoog
+  (`components/OfflinePinDialog.vue`). Migratie
+  `supabase/migrations/20260705_offline_downloads.sql` (**nog door Jos in
+  Supabase uit te voeren**) voor het watermerk-logboek. Unit-tests voor de
+  crypto-laag (round-trip, foute PIN, unieke IV per versleuteling) en de
+  cache-laag (versleuteld-op-schijf-check, per-klant isolatie, product-
+  opruiming) — `packages/core` test-suite groen. i18n nl/en onder `offline.*`.
+  Lezen-uit-cache-koppeling in de bestaande klant-/keuringsschermen en de
+  mutatiewachtrij/sync-engine volgen in slices 3-4.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.

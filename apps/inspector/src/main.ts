@@ -34,6 +34,11 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: "/offline",
+      component: () => import("./pages/OfflineDownloads.vue"),
+      meta: { requiresAuth: true },
+    },
+    {
       path: "/customers/:id",
       component: () => import("./pages/CustomerDetail.vue"),
       meta: { requiresAuth: true },

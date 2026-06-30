@@ -16,7 +16,8 @@
       "customers": "Klanten",
       "serialSearch": "SN zoeken / Recall",
       "settings": "Instellingen",
-      "reserved": ""
+      "reserved": "",
+      "offline": "Offline downloads"
     }
   },
   "serialSearch": {
@@ -508,6 +509,44 @@
         "rejectionComment": "Opmerking",
         "nextDue": "Volgende keuring"
       }
+    }
+  },
+  "offline": {
+    "title": "Offline downloads",
+    "downloadedTitle": "Gedownload",
+    "addTitle": "Klant toevoegen",
+    "empty": "Nog geen klanten gedownload voor offline gebruik.",
+    "noMoreToAdd": "Geen klanten meer om toe te voegen.",
+    "download": "Download",
+    "downloading": "Bezig...",
+    "removeDownload": "Verwijder download",
+    "cannotLoadCustomers": "Kan klantenlijst niet ophalen -- ben je online?",
+    "downloadedOn": "Gedownload op {date}, nog niet gesynchroniseerd",
+    "syncedOn": "Gedownload op {date}, gesynchroniseerd",
+    "quick": {
+      "today": "Vandaag",
+      "week": "Deze week"
+    },
+    "locked": {
+      "setupHint": "Stel een PIN in om klantgegevens versleuteld offline op te slaan.",
+      "setupButton": "PIN instellen",
+      "unlockHint": "Voer je PIN in om de offline-opslag te ontgrendelen.",
+      "unlockButton": "Ontgrendelen"
+    },
+    "pin": {
+      "setupTitle": "Offline-PIN instellen",
+      "setupHint": "Deze PIN versleutelt klantgegevens die je offline opslaat. Kies een PIN die je elke keurdag makkelijk onthoudt.",
+      "unlockTitle": "Offline-opslag ontgrendelen",
+      "resetTitle": "Nieuwe PIN instellen",
+      "resetWarning": "Let op: hiermee verlies je toegang tot eventuele nog niet gesynchroniseerde offline-gegevens van vóór deze reset. Alleen mogelijk met internetverbinding.",
+      "pinPlaceholder": "PIN",
+      "newPinPlaceholder": "Nieuwe PIN",
+      "pinConfirmPlaceholder": "Herhaal PIN",
+      "deviceWarning": "Let op: wie zowel dit toestel als je PIN heeft, kan bij de offline-gegevens -- net als bij elke andere offline-app. Bescherm je toestel met een schermvergrendeling.",
+      "forgot": "PIN vergeten?",
+      "wrongPin": "Onjuiste PIN.",
+      "tooShort": "PIN moet minimaal 4 tekens zijn.",
+      "mismatch": "PIN's komen niet overeen."
     }
   }
 }

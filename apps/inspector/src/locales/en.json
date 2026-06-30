@@ -16,7 +16,8 @@
       "customers": "Customers",
       "serialSearch": "SN search / Recall",
       "settings": "Settings",
-      "reserved": ""
+      "reserved": "",
+      "offline": "Offline downloads"
     }
   },
   "serialSearch": {
@@ -508,6 +509,44 @@
         "rejectionComment": "Comment",
         "nextDue": "Next inspection"
       }
+    }
+  },
+  "offline": {
+    "title": "Offline downloads",
+    "downloadedTitle": "Downloaded",
+    "addTitle": "Add customer",
+    "empty": "No customers downloaded for offline use yet.",
+    "noMoreToAdd": "No more customers to add.",
+    "download": "Download",
+    "downloading": "Working...",
+    "removeDownload": "Remove download",
+    "cannotLoadCustomers": "Could not load the customer list -- are you online?",
+    "downloadedOn": "Downloaded on {date}, not yet synced",
+    "syncedOn": "Downloaded on {date}, synced",
+    "quick": {
+      "today": "Today",
+      "week": "This week"
+    },
+    "locked": {
+      "setupHint": "Set up a PIN to store customer data encrypted offline.",
+      "setupButton": "Set up PIN",
+      "unlockHint": "Enter your PIN to unlock offline storage.",
+      "unlockButton": "Unlock"
+    },
+    "pin": {
+      "setupTitle": "Set up offline PIN",
+      "setupHint": "This PIN encrypts customer data you store offline. Choose a PIN you'll easily remember on inspection day.",
+      "unlockTitle": "Unlock offline storage",
+      "resetTitle": "Set a new PIN",
+      "resetWarning": "Note: this will lose access to any offline data from before this reset that hasn't synced yet. Only possible with an internet connection.",
+      "pinPlaceholder": "PIN",
+      "newPinPlaceholder": "New PIN",
+      "pinConfirmPlaceholder": "Repeat PIN",
+      "deviceWarning": "Note: anyone with both this device and your PIN can access the offline data -- same as any other offline app. Protect your device with a screen lock.",
+      "forgot": "Forgot PIN?",
+      "wrongPin": "Incorrect PIN.",
+      "tooShort": "PIN must be at least 4 characters.",
+      "mismatch": "PINs do not match."
     }
   }
 }

@@ -46,6 +46,7 @@ const searchQuery = ref('')
 const tiles = [
   { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'green'  },
   { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers',        color: 'orange' },
+  { key: 'offline',          icon: '⬇️', label: 'home.tiles.offline',          route: '/offline',          color: 'blue'   },
   { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search',    color: 'purple' },
   { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings',         color: 'gray'   },
 ]
