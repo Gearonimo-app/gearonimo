@@ -537,6 +537,52 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   "vorige keuring"-hint, verzamelen van lokaal beoordeelde artikel-id's) —
   `packages/core` test-suite groen (29 tests). `vue-tsc`- en
   productiebuild van `apps/inspector` slagen.
+
+  **Slice 4 — Sync-engine + opruimlogica (af, 2026-06-30):**
+  `packages/core/src/offline/syncEngine.ts` speelt de hele mutatiewachtrij
+  sequentieel af zodra er verbinding is (nooit parallel: een keuring-insert
+  moet vóór de inserts van zijn eigen keuringsitems landen, de
+  FK-afhankelijkheid die de wachtrij-volgorde al garandeert). Inserts gaan
+  via `upsert` op de client-gegenereerde id (idempotent bij een afgebroken
+  eerdere poging); updates via `update().eq()`, met de match-kolom uit de
+  payload gehaald. Een mislukte mutatie wordt `failed` gezet (blijft in de
+  wachtrij voor een volgende poging, met foutmelding) zonder de rest van de
+  wachtrij — andere klanten — te blokkeren.
+
+  **Opruimen, zoals besloten met Jos (2026-06-30):** losgekoppeld van
+  uploaden. Een download wordt pas automatisch verwijderd
+  (`cleanupSyncedDownloads`) als die klant **geen openstaande mutaties meer
+  heeft** én **minimaal 4 uur niet actief gebruikt is** (`lastActivityAt`,
+  bijgewerkt bij starten/hervatten/invullen van een keuring) — een korte
+  wifi-flits halverwege de dag trekt zo niet de download weg terwijl de
+  keurmeester nog bezig is. Nooit data verwijderen die nog niet
+  gesynchroniseerd is: na 14 dagen zonder sync toont de downloadlijst een
+  waarschuwing (`isDownloadStale`) met alleen een **handmatige**
+  verwijderknop. Handmatig verwijderen is zelf ook beveiligd: `removeDownload`
+  weigert (tenzij `force`) als er nog openstaande mutaties voor die klant
+  zijn, zodat de "verwijder download"-knop in de UI nooit per ongeluk
+  niet-gesynchroniseerd werk weggooit.
+
+  **UI:** `apps/inspector/src/composables/useOffline.ts` houdt
+  `pendingTotal` (som van openstaande mutaties), `syncing` en
+  `lastSyncSummary`/`lastSyncError` bij, en triggert automatisch
+  `syncAll()` zodra de browser `online` wordt (`useOnline`). Nieuwe globale
+  `components/SyncStatusBar.vue` (in `App.vue`, dus op elk scherm
+  zichtbaar) toont een vaste balk onderaan zodra er iets te melden is
+  (offline, of nog wijzigingen in de wachtrij) met een **"Nu
+  synchroniseren"-knop** (voor 's avonds thuis). De downloadlijst
+  (`OfflineDownloads.vue`) toont per klant het aantal openstaande mutaties
+  en de 14-dagen-waarschuwing.
+
+  Nieuwe unit-tests voor `syncEngine.ts` (volgorde, upsert/update-onderscheid,
+  falen+doorgaan-met-andere-klant, "gesynchroniseerd op"-markering, opruimen
+  na inactiviteit, **niet** opruimen bij recente activiteit) met een
+  gemockte Supabase-client (geen echte backend nodig) — `packages/core`
+  test-suite groen (40 tests). `vue-tsc` en productiebuild van
+  `apps/inspector` slagen; offline-app-shell-smoketest (Playwright,
+  productiebuild + browser echt offline) blijft foutloos met de nieuwe
+  syncbalk erin. Terloops gefixt: ontbrekende favicon (404 in de
+  browserconsole, losstaand defect, geen regressie).
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.

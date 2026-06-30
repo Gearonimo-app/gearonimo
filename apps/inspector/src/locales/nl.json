@@ -548,6 +548,16 @@
       "tooShort": "PIN moet minimaal 4 tekens zijn.",
       "mismatch": "PIN's komen niet overeen."
     },
-    "notCachedInspection": "Deze keuring staat niet lokaal -- ga online om hem op te halen."
+    "notCachedInspection": "Deze keuring staat niet lokaal -- ga online om hem op te halen.",
+    "staleWarning": "Al 14 dagen niet gesynchroniseerd -- controleer je verbinding of verwijder de download.",
+    "pendingOn": "Gedownload op {date}, {count} wijziging(en) wachten op synchronisatie"
+  },
+  "sync": {
+    "syncNow": "Nu synchroniseren",
+    "syncing": "Bezig...",
+    "offline": "Offline -- wijzigingen worden lokaal bewaard",
+    "pendingCount": "{count} wijziging(en) wachten op synchronisatie",
+    "upToDate": "Alles gesynchroniseerd",
+    "errorShort": "Synchroniseren mislukt, probeer het later opnieuw"
   }
 }

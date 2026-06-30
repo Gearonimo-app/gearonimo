@@ -29,6 +29,7 @@
 
       <!-- Gedownloade klanten -->
       <div class="od__section-title">{{ $t('offline.downloadedTitle') }}</div>
+      <p v-if="removeError" class="od__state od__state--error">{{ removeError }}</p>
       <div v-if="loadingDownloads" class="od__state">{{ $t('common.loading') }}</div>
       <div v-else-if="downloads.length === 0" class="od__state">{{ $t('offline.empty') }}</div>
       <ul v-else class="od__list">
@@ -36,6 +37,7 @@
           <div class="od__item-body">
             <div class="od__item-name">{{ d.customerName }}</div>
             <div class="od__item-meta">{{ downloadMeta(d) }}</div>
+            <div v-if="isDownloadStale(d)" class="od__stale">{{ $t('offline.staleWarning') }}</div>
           </div>
           <button
             class="od__remove"
@@ -90,8 +92,17 @@ import OfflinePinDialog from '../components/OfflinePinDialog.vue'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 
 const { t } = useI18n()
-const { session, downloads, loadingDownloads, busyCustomerId, refreshDownloads, download, remove, quickSelect } =
-  useOffline()
+const {
+  session,
+  downloads,
+  loadingDownloads,
+  busyCustomerId,
+  refreshDownloads,
+  download,
+  remove: removeDownload,
+  quickSelect,
+  isDownloadStale,
+} = useOffline()
 
 const showPinDialog = ref(false)
 const query = ref('')
@@ -100,6 +111,16 @@ const loadingCustomers = ref(false)
 const customerLoadError = ref('')
 const quickBusy = ref(false)
 const quickSelectedIds = ref<Set<string> | null>(null)
+const removeError = ref('')
+
+async function remove(customerId: string) {
+  removeError.value = ''
+  try {
+    await removeDownload(customerId)
+  } catch (e) {
+    removeError.value = errorMessage(e)
+  }
+}
 
 const downloadedIds = computed(() => new Set(downloads.value.map((d) => d.customerId)))
 
@@ -115,12 +136,15 @@ const pickableCustomers = computed(() => {
   return list
 })
 
-function downloadMeta(entry: { downloadedAt: string; lastSyncedAt: string | null }) {
+function downloadMeta(entry: { downloadedAt: string; lastSyncedAt: string | null; pendingMutations: number }) {
   const downloadedAt = new Date(entry.downloadedAt).toLocaleDateString('nl-NL', {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   })
+  if (entry.pendingMutations > 0) {
+    return t('offline.pendingOn', { date: downloadedAt, count: entry.pendingMutations })
+  }
   return entry.lastSyncedAt
     ? t('offline.syncedOn', { date: downloadedAt })
     : t('offline.downloadedOn', { date: downloadedAt })
@@ -211,6 +235,7 @@ onMounted(async () => {
 .od__item-body { flex: 1; min-width: 0; }
 .od__item-name { font-weight: 600; }
 .od__item-meta { font-size: 0.8rem; color: #6b7280; margin-top: 0.1rem; }
+.od__stale { font-size: 0.78rem; color: #92400e; background: #fffbeb; border-radius: 6px; padding: 0.2rem 0.5rem; margin-top: 0.3rem; display: inline-block; }
 
 .od__add, .od__remove {
   padding: 0.5rem 0.9rem; border-radius: 8px; border: none; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap;

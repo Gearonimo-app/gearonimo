@@ -73,6 +73,23 @@ export async function patchInspectionItem(
   await db.put("inspectionItems", { ...row, enc });
 }
 
+/** Verwijdert alle lokaal gecachete keuringen + keuringsitems van één klant
+ * (gebruikt door removeDownload). Alleen veilig als er geen openstaande
+ * mutaties meer zijn voor deze klant -- dat checkt de aanroeper. */
+export async function deleteInspectionsForCustomer(customerId: string): Promise<void> {
+  const db = await getOfflineDb();
+  const inspections = await db.getAllFromIndex("inspections", "customerId", customerId);
+  const itemIds: string[] = [];
+  for (const insp of inspections) {
+    const items = await db.getAllFromIndex("inspectionItems", "inspectionId", insp.id);
+    itemIds.push(...items.map((i) => i.id));
+  }
+  const tx = db.transaction(["inspections", "inspectionItems"], "readwrite");
+  for (const insp of inspections) void tx.objectStore("inspections").delete(insp.id);
+  for (const itemId of itemIds) void tx.objectStore("inspectionItems").delete(itemId);
+  await tx.done;
+}
+
 /** Alle artikel-id's waar lokaal al minstens één keuringsitem voor bestaat
  * (op dit toestel, ongeacht welke keuring) -- gebruikt om offline te bepalen
  * welke artikelen "nieuw" zijn voor de scope-keuze bij het starten/hervatten

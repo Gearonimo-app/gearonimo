@@ -74,7 +74,11 @@ describe("offline inspection cache", () => {
       { id: "item-new", article_id: "art-x", result: "not_assessed", inspection_id: "insp-new" },
     ]);
 
-    const prev = await findLocalPreviousResult<{ result: string; inspection_id: string }>(key, "art-x", "insp-new");
+    const prev = await findLocalPreviousResult<{ result: string; inspection_id: string; article_id: string }>(
+      key,
+      "art-x",
+      "insp-new"
+    );
     expect(prev?.inspection_id).toBe("insp-old");
   });
 

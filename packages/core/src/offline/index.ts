@@ -5,3 +5,4 @@ export * from "./cache";
 export * from "./download";
 export * from "./mutationQueue";
 export * from "./inspectionCache";
+export * from "./syncEngine";

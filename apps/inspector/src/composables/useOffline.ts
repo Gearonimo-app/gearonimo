@@ -1,14 +1,19 @@
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import {
   useOfflineSession,
+  useOnline,
   downloadCustomer,
   removeDownload as removeDownloadCache,
   listDownloads,
   fetchQuickSelectCustomers,
   isCustomerDownloaded,
   touchDownloadActivity,
+  syncAll,
+  isDownloadStale,
+  errorMessage,
   type DownloadSummary,
   type QuickSelectCustomer,
+  type SyncSummary,
 } from '@gearonimo/core'
 import { ensureInspector } from './useInspections'
 
@@ -18,9 +23,43 @@ import { ensureInspector } from './useInspections'
 const downloads = ref<DownloadSummary[]>([])
 const loadingDownloads = ref(false)
 const busyCustomerId = ref<string | null>(null)
+const syncing = ref(false)
+const lastSyncSummary = ref<SyncSummary | null>(null)
+const lastSyncError = ref('')
+
+let autoSyncWired = false
 
 export function useOffline() {
   const session = useOfflineSession()
+  const { isOnline } = useOnline()
+
+  const pendingTotal = computed(() => downloads.value.reduce((sum, d) => sum + d.pendingMutations, 0))
+
+  async function runSync() {
+    if (syncing.value || !isOnline.value) return
+    syncing.value = true
+    lastSyncError.value = ''
+    try {
+      lastSyncSummary.value = await syncAll()
+      if (session.isUnlocked.value) await refreshDownloads()
+    } catch (e) {
+      lastSyncError.value = errorMessage(e)
+    } finally {
+      syncing.value = false
+    }
+  }
+
+  // Automatisch synchroniseren zodra er verbinding is (besloten: eager
+  // uploaden, los van het wel/niet opruimen van een download -- zie
+  // syncEngine.ts). Eenmalig bedraad, ongeacht hoe vaak useOffline()
+  // aangeroepen wordt.
+  if (!autoSyncWired) {
+    autoSyncWired = true
+    watch(isOnline, (online) => {
+      if (online) void runSync()
+    })
+    if (isOnline.value) void runSync()
+  }
 
   async function refreshDownloads() {
     if (!session.isUnlocked.value) {
@@ -67,14 +106,21 @@ export function useOffline() {
 
   return {
     session,
+    isOnline,
     downloads,
     loadingDownloads,
     busyCustomerId,
+    pendingTotal,
+    syncing,
+    lastSyncSummary,
+    lastSyncError,
+    runSync,
     refreshDownloads,
     download,
     remove,
     quickSelect,
     isCustomerDownloaded,
+    isDownloadStale,
     touchDownloadActivity,
   }
 }

@@ -9,7 +9,8 @@ import {
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
-import { putInspection, putInspectionItems } from "./inspectionCache";
+import { putInspection, putInspectionItems, deleteInspectionsForCustomer } from "./inspectionCache";
+import { countPendingForCustomer } from "./mutationQueue";
 import { encryptJson, decryptJson } from "./crypto";
 
 export interface InspectorContext {
@@ -37,6 +38,7 @@ export interface DownloadSummary {
   customerName: string;
   downloadedAt: string;
   lastSyncedAt: string | null;
+  pendingMutations: number;
 }
 
 /** Legt server-side vast dat deze keurmeester deze klant offline heeft
@@ -145,9 +147,19 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
 /** Handmatig een download verwijderen (Netflix-stijl "verwijder download").
  * Catalogusproducten blijven staan als een andere gedownloade klant ze ook
  * gebruikt; anders worden ze ook opgeruimd. */
-export async function removeDownload(customerId: string): Promise<void> {
+export async function removeDownload(customerId: string, opts: { force?: boolean } = {}): Promise<void> {
+  if (!opts.force) {
+    const pending = await countPendingForCustomer(customerId);
+    if (pending > 0) {
+      throw new Error(
+        `Deze klant heeft nog ${pending} niet-gesynchroniseerde wijziging(en). Synchroniseer eerst voordat je de download verwijdert.`
+      );
+    }
+  }
+
   const db = await getOfflineDb();
   await deleteCustomerCache(customerId);
+  await deleteInspectionsForCustomer(customerId);
   await db.delete("downloads", customerId);
 
   const remaining = await db.getAll("downloads");
@@ -166,6 +178,7 @@ export async function listDownloads(key: CryptoKey): Promise<DownloadSummary[]> 
       customerName: name,
       downloadedAt: entry.downloadedAt,
       lastSyncedAt: entry.lastSyncedAt,
+      pendingMutations: await countPendingForCustomer(entry.customerId),
     });
   }
   return out.sort((a, b) => a.customerName.localeCompare(b.customerName));
@@ -184,6 +197,16 @@ export async function touchDownloadActivity(customerId: string): Promise<void> {
   const entry = await db.get("downloads", customerId);
   if (!entry) return;
   entry.lastActivityAt = new Date().toISOString();
+  await db.put("downloads", entry);
+}
+
+/** Gebruikt door de sync-engine (slice 4) zodra alle mutaties van deze klant
+ * zijn geüpload, zodat de downloadlijst "gesynchroniseerd op ..." kan tonen. */
+export async function markDownloadSynced(customerId: string): Promise<void> {
+  const db = await getOfflineDb();
+  const entry = await db.get("downloads", customerId);
+  if (!entry) return;
+  entry.lastSyncedAt = new Date().toISOString();
   await db.put("downloads", entry);
 }
 
