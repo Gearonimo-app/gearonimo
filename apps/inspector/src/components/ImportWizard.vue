@@ -20,16 +20,20 @@
       <h2>{{ $t('settings.import.step2Title') }}</h2>
       <p v-if="profileApplied" class="imp__ok">{{ $t('settings.import.profileApplied') }}</p>
       <p class="imp__hint">{{ $t('settings.import.step2Hint') }}</p>
+      <p class="imp__hint">{{ $t('settings.import.step2IgnoreHint') }}</p>
       <div class="imp__tablewrap">
         <table class="imp__table">
           <tbody>
             <tr
               v-for="(row, i) in previewRows"
               :key="i"
-              :class="{ 'imp__row--header': i === headerRowIndex }"
+              :class="{ 'imp__row--header': i === headerRowIndex, 'imp__row--ignored': i < headerRowIndex }"
               @click="headerRowIndex = i"
             >
-              <td class="imp__rownum">{{ i + 1 }}</td>
+              <td class="imp__rownum">
+                {{ i + 1 }}
+                <span v-if="i < headerRowIndex" class="imp__rowtag">{{ $t('settings.import.rowIgnored') }}</span>
+              </td>
               <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
             </tr>
           </tbody>
@@ -137,6 +141,12 @@
           <li>{{ $t('settings.import.sumArticlesSkipped', { count: commitResult.articlesSkipped }) }}</li>
           <li>{{ $t('settings.import.sumInspections', { count: commitResult.inspectionsCreated }) }}</li>
           <li>{{ $t('settings.import.sumRowsSkipped', { count: commitResult.rowsSkipped }) }}</li>
+          <li v-if="commitResult.rowsSkippedNoCustomer" class="imp__warn">
+            {{ $t('settings.import.sumSkippedNoCustomer', { count: commitResult.rowsSkippedNoCustomer }) }}
+          </li>
+          <li v-if="commitResult.rowsSkippedNoDescription" class="imp__warn">
+            {{ $t('settings.import.sumSkippedNoDescription', { count: commitResult.rowsSkippedNoDescription }) }}
+          </li>
         </ul>
         <p v-for="(e, i) in commitResult.errors.slice(0, 5)" :key="i" class="imp__warn">{{ e }}</p>
       </div>
@@ -150,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, nextTick } from 'vue'
 import * as XLSX from 'xlsx'
 import {
   FIELD_DEFS,
@@ -191,7 +201,15 @@ const saveProfile = ref(true)
 const committing = ref(false)
 const commitResult = ref<CommitResult | null>(null)
 
+// Tijdens het laden van een bestand zetten we koprij/mapping eerst op een gok en
+// daarna mogelijk op een opgeslagen profiel. De onderstaande watchers her-gokken
+// de mapping bij elke koprij-/bladwissel — wat we precies NIET willen tijdens dat
+// laden, want dan overschrijven ze het zojuist toegepaste profiel. Deze vlag
+// onderdrukt dat heratschen totdat het laden klaar is.
+const applying = ref(false)
+
 watch(headerRowIndex, () => {
+  if (applying.value) return
   mapping.value = guessMapping(headerRow.value)
 })
 
@@ -259,6 +277,7 @@ async function onFileChange(e: Event) {
   const picked = (e.target as HTMLInputElement).files?.[0]
   if (!picked) return
   file.value = picked
+  applying.value = true
   try {
     const buf = await picked.arrayBuffer()
     const wb = XLSX.read(buf, { type: 'array', cellDates: true })
@@ -274,10 +293,16 @@ async function onFileChange(e: Event) {
     await applyProfileIfAny()
   } catch (err) {
     error.value = (err as Error).message
+  } finally {
+    // Wacht tot de onderdrukte watchers hun (overgeslagen) flush hebben gehad
+    // vóór we de vlag weghalen, anders gokken ze het profiel alsnog over.
+    await nextTick()
+    applying.value = false
   }
 }
 
 watch(selectedSheet, () => {
+  if (applying.value) return
   headerRowIndex.value = guessHeaderRow(allRows.value)
   mapping.value = guessMapping(headerRow.value)
 })
@@ -320,6 +345,9 @@ async function runCommit() {
 .imp__table th { background: #f9fafb; text-align: left; position: sticky; top: 0; }
 .imp__rownum { color: #9ca3af; }
 .imp__row--header { background: #d1fae5; cursor: pointer; }
+.imp__row--ignored { opacity: 0.45; background: #f9fafb; }
+.imp__row--ignored td { color: #9ca3af; }
+.imp__rowtag { display: inline-block; margin-left: 0.4rem; font-size: 0.65rem; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.03em; }
 .imp__table tbody tr { cursor: pointer; }
 .imp__table tbody tr:hover { background: #f3f4f6; }
 

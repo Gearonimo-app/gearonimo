@@ -58,6 +58,10 @@ export interface CommitResult {
   articlesSkipped: number
   inspectionsCreated: number
   rowsSkipped: number
+  /** Subset van rowsSkipped: rij had geen klantnaam (kolom niet gekoppeld én geen vaste klantnaam). */
+  rowsSkippedNoCustomer: number
+  /** Subset van rowsSkipped: rij had wel een klant, maar geen omschrijving/artikel. */
+  rowsSkippedNoDescription: number
   errors: string[]
 }
 
@@ -74,6 +78,8 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
     articlesSkipped: 0,
     inspectionsCreated: 0,
     rowsSkipped: 0,
+    rowsSkippedNoCustomer: 0,
+    rowsSkippedNoDescription: 0,
     errors: [],
   }
 
@@ -111,6 +117,11 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
 
       if (!customerName || !description) {
         skipped++
+        // Splits de reden uit zodat het eindscherm kan zeggen wélk veld ontbrak
+        // (bij een bestand zonder klantkolom is dat bijna altijd de klantnaam —
+        // dan moet de "vaste klantnaam" in stap 3 ingevuld worden).
+        if (!customerName) result.rowsSkippedNoCustomer++
+        else result.rowsSkippedNoDescription++
         continue
       }
 
