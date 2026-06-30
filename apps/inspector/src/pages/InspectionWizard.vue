@@ -112,6 +112,11 @@
             <option :value="null">{{ $t('inspections.noCode') }}</option>
             <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
+          <input
+            v-model="newComment"
+            class="iw__input iw__input--sm iw__comment-input"
+            :placeholder="$t('inspections.commentPlaceholder')"
+          />
           <button class="iw__btn iw__btn--save" :disabled="!canAdd" @click="addRow">{{ $t('inspections.table.add') }}</button>
           <button
             v-if="lastArticle"
@@ -627,6 +632,7 @@ const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
 const newNorm = ref('')
 const newMbs = ref('')
+const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
 const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
@@ -1010,6 +1016,7 @@ function resetAddRow() {
   newRejectionCodeId.value = null
   newNorm.value = ''
   newMbs.value = ''
+  newComment.value = ''
   dayHint.value = null
   weekHint.value = null
 }
@@ -1048,6 +1055,7 @@ async function addRow() {
         result: newResult.value,
         next_due: initialNextDue,
         rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
+        comment: newComment.value.trim() || null,
       })
       .select('id, article_id, result, next_due, rejection_code_id, comment')
       .single()
