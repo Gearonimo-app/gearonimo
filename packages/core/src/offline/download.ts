@@ -9,7 +9,7 @@ import {
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
-import { putInspection, putInspectionItems, deleteInspectionsForCustomer } from "./inspectionCache";
+import { putInspection, putInspectionItems, deleteInspectionsForCustomer, getInspection } from "./inspectionCache";
 import { countPendingForCustomer } from "./mutationQueue";
 import { encryptJson, decryptJson } from "./crypto";
 
@@ -124,7 +124,16 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   if (products.length) await putProducts(key, products);
   await putRejectionCodes(key, ctx.companyId, (rejectionCodes ?? []) as { id: string; code: number; label: string | null }[]);
   await putCompanySettings(key, ctx.companyId, company);
-  if (draftInspection) {
+  // Niet overschrijven als deze keuring lokaal al "pending_completion" is
+  // (offline afgerond, certificaat wacht nog op sync, zie BOUWPLAN slice 5):
+  // op de server staat hij dan nog gewoon op "draft" totdat de sync-engine
+  // 'm afrondt, en een her-download zou anders die lokale status -- en
+  // daarmee het feit dat het certificaat nog gegenereerd moet worden -- stil
+  // wissen.
+  const localInspection = draftInspection
+    ? await getInspection<{ status: string }>(key, draftInspection.id)
+    : null;
+  if (draftInspection && localInspection?.status !== "pending_completion") {
     await putInspection(key, draftInspection);
     if (draftItems.length) await putInspectionItems(key, draftInspection.id, draftItems);
   }

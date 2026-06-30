@@ -14,7 +14,8 @@
 
     <template v-else-if="finished">
       <div class="iw__body iw__cert-done">
-        <p class="iw__cert-ok">✅ {{ $t('inspections.certificateReady') }}</p>
+        <p v-if="awaitingSync" class="iw__cert-pending">⏳ {{ $t('inspections.certificateAwaitingSync') }}</p>
+        <p v-else class="iw__cert-ok">✅ {{ $t('inspections.certificateReady') }}</p>
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
         </a>
@@ -392,6 +393,7 @@ import {
   patchInspectionItem,
   enqueueMutation,
   touchDownloadActivity,
+  markInspectionPendingCompletion,
 } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
@@ -467,6 +469,8 @@ const completing = ref(false)
 const completeError = ref('')
 const finished = ref(false)
 const certificateUrl = ref('')
+// Offline afgerond, certificaat volgt pas na synchronisatie (zie finish()).
+const awaitingSync = ref(false)
 const addError = ref('')
 
 const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
@@ -1106,6 +1110,10 @@ async function loadOffline() {
     }))
 
     if (insp.status === 'completed') finished.value = true
+    if (insp.status === 'pending_completion') {
+      finished.value = true
+      awaitingSync.value = true
+    }
     loading.value = false
   } catch (e) {
     error.value = errorMessage(e)
@@ -1309,6 +1317,22 @@ async function finish() {
   completing.value = true
   completeError.value = ''
   try {
+    if (!isOnline.value) {
+      // Het certificaat-PDF heeft sowieso een netwerk-roundtrip nodig (Storage-
+      // upload + DB-record), dus die blijft uitgesteld tot synchronisatie (zie
+      // BOUWPLAN, slice 5 -- geaccepteerde consequentie, akkoord Jos). De
+      // keuring krijgt een aparte lokale status "pending_completion" zodat hij
+      // niet meer als hervatbaar concept verschijnt, maar ook nog niet als
+      // "afgerond" telt totdat het certificaat er écht is. De sync-engine
+      // (useOffline.ts → runSync) genereert het certificaat alsnog zodra er
+      // weer verbinding is.
+      const key = useOfflineSession().getKey()
+      await markInspectionPendingCompletion(key, id)
+      awaitingSync.value = true
+      finished.value = true
+      return
+    }
+
     // Eerst het certificaat genereren en opslaan; pas als dat lukt, markeren we
     // de keuring als afgerond. Zo blijft een mislukte PDF-upload een hervatbaar
     // concept i.p.v. een "afgeronde" keuring zonder certificaat.
@@ -1500,6 +1524,7 @@ onMounted(load)
 
 .iw__cert-done { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 .iw__cert-ok { font-weight: 600; color: #16a34a; margin: 0; }
+.iw__cert-pending { font-weight: 600; color: #92400e; background: #fffbeb; border-radius: 8px; padding: 0.75rem; margin: 0; }
 .iw__cert-link { text-align: center; text-decoration: none; display: block; }
 
 /* ── Telefoon & tablet: keurtabel als kaartjes ────────────────────────────

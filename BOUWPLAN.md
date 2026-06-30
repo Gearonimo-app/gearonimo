@@ -583,6 +583,71 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   productiebuild + browser echt offline) blijft foutloos met de nieuwe
   syncbalk erin. Terloops gefixt: ontbrekende favicon (404 in de
   browserconsole, losstaand defect, geen regressie).
+
+  **Slice 5 — Certificaat-flow afgestemd op offline (af, 2026-06-30,
+  laatste slice van deze ronde):**
+
+  - **Certificaatnummering geverifieerd** (gevraagd in de oorspronkelijke
+    opdracht): `useCertificate.ts` bouwt het nummer als
+    `JJJJMMDD-KLANTNAAM` (datum + klantnaam), **geen oplopend volgnummer**.
+    Vooraf-reservering van nummers (zoals BLAUWDRUK §8.1 vanuit een
+    sequentieel scenario noemt) is met dit schema dus niet nodig —
+    toegelicht met een code-comment op de plek zelf, zodat dit niet
+    opnieuw uitgezocht hoeft te worden.
+  - **PDF blijft client-side, upload + record uitgesteld tot sync** (de
+    geaccepteerde consequentie uit BLAUWDRUK §8.1): `finish()` in
+    `InspectionWizard.vue` krijgt een offline-tak die **geen**
+    certificaat probeert te genereren (dat heeft sowieso een
+    Storage-upload nodig) maar de keuring lokaal markeert met een nieuwe,
+    **lokale-only** status `pending_completion` (bestaat nooit in de
+    database, alleen in de cache — zie `inspectionCache.ts`). Dit houdt
+    "Hervat" op de klantpagina correct (een afgeronde-maar-niet-gesynchroniseerde
+    keuring hoort niet meer als concept aangeboden te worden) zonder al
+    "completed" te beweren vóórdat het certificaat er echt is. De wizard
+    toont in dat geval een duidelijke "wacht op synchronisatie"-melding
+    i.p.v. de downloadlink.
+  - **Nieuwe app-laag `composables/useOfflineSync.ts`**:
+    `completePendingInspections()` wordt ná elke generieke sync-ronde
+    aangeroepen (`useOffline.ts` → `runSync()`, dus zowel bij automatische
+    reconnect-sync als de handmatige knop) en genereert dan alsnog het
+    certificaat via de **ongewijzigde**, bestaande `generateCertificate()`
+    — er is nu wél weer netwerk, dus die kan gewoon zijn normale werk doen
+    — en zet de keuring pas dáárna echt op `completed`. Mislukt dit
+    (bv. nog geen verbinding voor de Storage-upload), dan blijft de
+    keuring op `pending_completion` staan voor een volgende synchronisatie.
+    Bewust een app-laag-functie, niet in `packages/core`: de PDF-generator
+    (`pdf-lib`) hoort bij de app, niet bij de generieke offline-kern.
+  - **Bundle-grootte-regressie gevonden en gefixt tijdens het bouwen:**
+    `useOffline.ts` wordt al bij het opstarten geladen (de globale
+    `SyncStatusBar`); een statische import van `useOfflineSync.ts` trok
+    daardoor `pdf-lib` (~470 kB) mee de hoofdbundel in (911 kB i.p.v. de
+    eerdere ~440 kB). Opgelost met een dynamische `import()` binnen
+    `runSync()`, zodat `pdf-lib` pas geladen wordt op het moment dat er
+    daadwerkelijk gesynchroniseerd wordt — niet als onderdeel van de
+    offline-app-shell zelf (zie slice 1: die moet juist licht blijven).
+  - **Edge case afgedicht:** her-downloaden van een klant met een lokaal
+    nog niet gesynchroniseerde `pending_completion`-keuring overschreef
+    eerst per ongeluk die lokale status met de (nog steeds "draft")
+    serverversie — `downloadCustomer` in `download.ts` slaat die
+    overschrijving nu over als de lokale keuring al `pending_completion` is.
+  - Nieuwe unit-tests voor `markInspectionPendingCompletion`/
+    `listInspectionsPendingCompletion` (status-overgang, uitsluiting uit
+    "hervatbaar concept", verzamelen van keuringen die nog op een
+    certificaat wachten) — `packages/core` test-suite groen (42 tests,
+    49 met `packages/ui` erbij). `vue-tsc` en productiebuild van
+    `apps/inspector` slagen; offline-app-shell-smoketest blijft foutloos.
+
+  **Hiermee zijn alle 5 geplande slices van offline-first af** (zie de
+  ontwerpkeuzes bovenaan deze sectie). **Bewust nog niet meegenomen in
+  deze ronde** (gedocumenteerd bij slice 3, blijven online-only): nieuw
+  vrij artikel toevoegen tijdens een offline keuring, artikelgegevens
+  corrigeren/afvoeren vanuit de wizard, de handleiding-link bewerken, en
+  het volledig offline doorzoeken van de globale catalogus (buiten wat
+  voor de gedownloade klant is meegenomen). **Nog te doen vóór dit naar
+  `main` kan:** de migratie `20260705_offline_downloads.sql` door Jos
+  laten uitvoeren in Supabase, en een echte test op een toestel (incl.
+  vliegtuigstand) — zie de samenvatting die bij het afronden van deze
+  sessie is meegegeven.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.

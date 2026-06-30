@@ -226,6 +226,7 @@
     "totalAssessed": "Beoordeeld",
     "saveFinish": "OK – OPSLAAN",
     "certificateReady": "Certificaat gegenereerd en gearchiveerd",
+    "certificateAwaitingSync": "Keuring afgerond, offline opgeslagen. Het certificaat wordt gegenereerd zodra er weer verbinding is.",
     "downloadCertificate": "Certificaat downloaden",
     "backToCustomer": "Terug naar klant",
     "table": {

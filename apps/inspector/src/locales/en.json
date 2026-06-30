@@ -226,6 +226,7 @@
     "totalAssessed": "Assessed",
     "saveFinish": "OK – SAVE",
     "certificateReady": "Certificate generated and archived",
+    "certificateAwaitingSync": "Inspection completed, saved offline. The certificate will be generated once you're back online.",
     "downloadCertificate": "Download certificate",
     "backToCustomer": "Back to customer",
     "table": {

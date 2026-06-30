@@ -16,6 +16,12 @@ import {
   type SyncSummary,
 } from '@gearonimo/core'
 import { ensureInspector } from './useInspections'
+// Dynamisch geïmporteerd in runSync() i.p.v. hier bovenaan: useOfflineSync
+// trekt via useCertificate.ts ook pdf-lib mee (~470 kB), en useOffline.ts
+// wordt al bij het opstarten geladen (SyncStatusBar in App.vue). Statisch
+// importeren zou pdf-lib in de hoofdbundel duwen en de offline-app-shell
+// onnodig zwaar maken (zie BOUWPLAN slice 1) -- terwijl het alleen nodig is
+// op het moment dat er daadwerkelijk gesynchroniseerd wordt.
 
 // Verbindt de generieke offline-laag uit packages/core met de app-specifieke
 // "wie is de ingelogde keurmeester"-context (ensureInspector).
@@ -41,6 +47,11 @@ export function useOffline() {
     lastSyncError.value = ''
     try {
       lastSyncSummary.value = await syncAll()
+      // Pas ná de generieke wachtrij (klant/artikel/keuringsitem-mutaties):
+      // een certificaat heeft de bijbehorende keuringsitems nodig, die net
+      // hierboven geüpload zijn. Dynamische import: zie toelichting bovenaan.
+      const { completePendingInspections } = await import('./useOfflineSync')
+      await completePendingInspections()
       if (session.isUnlocked.value) await refreshDownloads()
     } catch (e) {
       lastSyncError.value = errorMessage(e)

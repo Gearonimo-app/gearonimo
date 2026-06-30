@@ -30,6 +30,30 @@ export async function getDraftInspectionForCustomer<T>(key: CryptoKey, customerI
   return decryptJson<T>(key, draftRow.enc);
 }
 
+// Lokale, derde status (bestaat alleen in de cache, nooit in de database):
+// "pending_completion" = de keurmeester heeft offline op Afronden gedrukt,
+// maar het certificaat kan pas gegenereerd/geüpload worden zodra er weer
+// verbinding is (besloten: PDF blijft client-side, maar uitgesteld tot sync —
+// zie BOUWPLAN slice 5). Een aparte status i.p.v. meteen "completed" houdt
+// "Hervat" op de klantpagina correct: een keuring die nog op synchronisatie
+// wacht hoort niet meer als hervatbaar concept te tonen, maar is ook nog niet
+// écht afgerond (dat gebeurt pas ná de certificaatgeneratie bij sync).
+export async function markInspectionPendingCompletion(key: CryptoKey, inspectionId: string): Promise<void> {
+  const inspection = await getInspection<{ id: string; customer_id: string; status: string } & Record<string, unknown>>(
+    key,
+    inspectionId
+  );
+  if (!inspection) return;
+  await putInspection(key, { ...inspection, status: "pending_completion" });
+}
+
+export async function listInspectionsPendingCompletion<T extends { id: string }>(key: CryptoKey): Promise<T[]> {
+  const db = await getOfflineDb();
+  const rows = await db.getAll("inspections");
+  const pending = rows.filter((r) => r.status === "pending_completion");
+  return Promise.all(pending.map((row) => decryptJson<T>(key, row.enc)));
+}
+
 export async function putInspectionItems(
   key: CryptoKey,
   inspectionId: string,

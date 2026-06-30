@@ -795,6 +795,14 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   })
 
   const verifyToken = crypto.randomUUID()
+  // Geverifieerd voor offline-first (BOUWPLAN slice 5): dit nummer is volledig
+  // deterministisch (datum + klantnaam), geen oplopend volgnummer. Twee
+  // keurmeesters die dezelfde dag bij dezelfde klant onafhankelijk offline een
+  // certificaat genereren, krijgen dus toch hetzelfde nummer (zoals het ook nu
+  // al zou gebeuren als dat online tweemaal op één dag gebeurde) -- maar dat
+  // is een bestaand edge-case-gedrag, geen nieuw offline-risico. Een
+  // vooraf-reservering van nummers (zoals BLAUWDRUK §8.1 noemt voor een
+  // sequentieel schema) is met dit schema niet nodig.
   const number = `${inspection.inspection_date.replace(/-/g, '')}-${slugify(inspection.customer.name)}`
   const verifyUrl = `${window.location.origin}/verify/${verifyToken}`
 

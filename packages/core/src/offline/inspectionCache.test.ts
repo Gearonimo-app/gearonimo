@@ -10,6 +10,8 @@ import {
   patchInspectionItem,
   findLocalPreviousResult,
   getLocallyInspectedArticleIds,
+  markInspectionPendingCompletion,
+  listInspectionsPendingCompletion,
 } from "./inspectionCache";
 import { getOfflineDb } from "./db";
 
@@ -91,5 +93,26 @@ describe("offline inspection cache", () => {
     expect(ids.has("art-d")).toBe(true);
     expect(ids.has("art-e")).toBe(true);
     expect(ids.has("art-unknown")).toBe(false);
+  });
+
+  it("marks a draft inspection as pending_completion and excludes it from the resumable draft", async () => {
+    const key = await testKey();
+    await putInspection(key, { id: "insp-7", customer_id: "cust-7", status: "draft" });
+
+    await markInspectionPendingCompletion(key, "insp-7");
+
+    const updated = await getInspection<{ status: string }>(key, "insp-7");
+    expect(updated?.status).toBe("pending_completion");
+    expect(await getDraftInspectionForCustomer(key, "cust-7")).toBeNull();
+  });
+
+  it("lists inspections awaiting certificate generation after sync", async () => {
+    const key = await testKey();
+    await putInspection(key, { id: "insp-8", customer_id: "cust-8", status: "draft" });
+    await putInspection(key, { id: "insp-9", customer_id: "cust-9", status: "draft" });
+    await markInspectionPendingCompletion(key, "insp-8");
+
+    const pending = await listInspectionsPendingCompletion<{ id: string }>(key);
+    expect(pending.map((p) => p.id)).toEqual(["insp-8"]);
   });
 });
