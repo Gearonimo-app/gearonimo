@@ -73,7 +73,7 @@
                   {{ $t('settings.import.rowIgnored') }}
                 </span>
               </td>
-              <td v-for="(cell, j) in row" :key="j">{{ cell }}</td>
+              <td v-for="(cell, j) in row" :key="j" class="imp__cell" :title="cell == null ? '' : String(cell)">{{ cell }}</td>
             </tr>
           </tbody>
         </table>
@@ -175,7 +175,7 @@
           </thead>
           <tbody>
             <tr v-for="(row, i) in dataRows.slice(0, 10)" :key="i">
-              <td v-for="f in mappedFields" :key="f.colIndex">{{ row[f.colIndex] }}</td>
+              <td v-for="f in mappedFields" :key="f.colIndex" class="imp__cell" :title="row[f.colIndex] == null ? '' : String(row[f.colIndex])">{{ row[f.colIndex] }}</td>
             </tr>
           </tbody>
         </table>
@@ -557,6 +557,10 @@ async function runCommit() {
 .imp__tablewrap { overflow: auto; max-height: 360px; border: 1px solid #e5e7eb; border-radius: 8px; }
 .imp__table { width: 100%; border-collapse: collapse; font-size: 0.8rem; }
 .imp__table td, .imp__table th { padding: 0.35rem 0.5rem; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+/* Lange celtekst (bijv. juridische regels boven de tabel) afkappen met "…",
+   anders wordt één kolom zó breed dat de rest buiten beeld valt. Hele tekst
+   blijft beschikbaar via de tooltip (title) bij hover. */
+.imp__cell { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
 .imp__table th { background: #f9fafb; text-align: left; position: sticky; top: 0; }
 .imp__rownum { color: #9ca3af; white-space: nowrap; }
 .imp__row--header { background: #d1fae5; }
