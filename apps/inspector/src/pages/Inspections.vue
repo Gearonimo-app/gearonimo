@@ -63,7 +63,7 @@
                ("Terug naar klant"), andersom was het certificaat onvindbaar. -->
           <li v-for="i in completed" :key="i.id" class="il__item" @click="$router.push(`/inspections/${i.id}`)">
             <div class="il__name">{{ i.customer?.name }}</div>
-            <div class="il__meta">{{ formatDate(i.inspection_date) }}</div>
+            <div class="il__meta">{{ formatDate(i.completed_at ?? i.inspection_date) }}</div>
             <span class="il__arrow">›</span>
           </li>
         </ul>
@@ -85,6 +85,7 @@ interface InspectionRow {
   id: string
   customer_id: string
   inspection_date: string
+  completed_at: string | null
   status: string
   customer: { name: string } | null
 }
@@ -102,12 +103,20 @@ const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
   if (!q) return inspections.value
   return inspections.value.filter(i =>
-    [i.customer?.name, formatDate(i.inspection_date)].some(v => v?.toLowerCase().includes(q))
+    [i.customer?.name, formatDate(i.inspection_date), i.completed_at ? formatDate(i.completed_at) : '']
+      .some(v => v?.toLowerCase().includes(q))
   )
 })
 
 const drafts = computed(() => filtered.value.filter(i => i.status === 'draft'))
-const completed = computed(() => filtered.value.filter(i => i.status === 'completed'))
+// Afgerond toont en sorteert op de afronddatum, niet de startdatum van het
+// concept: een keuring die vandaag (offline) is afgerond maar dagen eerder
+// als concept begon, leek anders spoorloos -- hij stond onder de oude datum
+// halverwege de lijst (live gevonden door Jos, nacht van 1 op 2 juli).
+const completed = computed(() =>
+  [...filtered.value.filter(i => i.status === 'completed')]
+    .sort((a, b) => (b.completed_at ?? b.inspection_date).localeCompare(a.completed_at ?? a.inspection_date))
+)
 
 const deletingId = ref<string | null>(null)
 const deleteError = ref('')
@@ -133,7 +142,7 @@ async function load() {
     const inspector = await ensureInspector()
     const { data, error: err } = await supabase
       .from('inspections')
-      .select('id, customer_id, inspection_date, status, customer:customers(name)')
+      .select('id, customer_id, inspection_date, completed_at, status, customer:customers(name)')
       .eq('company_id', inspector.company_id)
       .order('inspection_date', { ascending: false })
     if (err) throw err
