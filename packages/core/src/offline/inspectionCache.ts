@@ -116,6 +116,30 @@ export async function patchInspectionItem(
   await db.put("inspectionItems", { ...row, enc });
 }
 
+/** Sleutelloos de lokale status van één keuring opvragen (plaintext-kolom).
+ * Gebruikt door het verwijderen van een concept om een pending_completion-
+ * keuring (offline afgerond, certificaat wacht op sync) nooit weg te gooien. */
+export async function getLocalInspectionStatus(inspectionId: string): Promise<string | null> {
+  const db = await getOfflineDb();
+  const row = await db.get("inspections", inspectionId);
+  return row?.status ?? null;
+}
+
+/** Verwijdert één keuring + haar items uit de lokale cache (bv. nadat een
+ * concept online is weggegooid, zodat een gedownloade kopie niet blijft
+ * spoken of offline weer opduikt). Geeft de item-id's terug zodat de
+ * aanroeper ook wachtrij-mutaties op die items kan opruimen. */
+export async function deleteInspectionCache(inspectionId: string): Promise<string[]> {
+  const db = await getOfflineDb();
+  const items = await db.getAllFromIndex("inspectionItems", "inspectionId", inspectionId);
+  const itemIds = items.map((i) => i.id);
+  const tx = db.transaction(["inspections", "inspectionItems"], "readwrite");
+  void tx.objectStore("inspections").delete(inspectionId);
+  for (const itemId of itemIds) void tx.objectStore("inspectionItems").delete(itemId);
+  await tx.done;
+  return itemIds;
+}
+
 /** Verwijdert alle lokaal gecachete keuringen + keuringsitems van één klant
  * (gebruikt door removeDownload). Alleen veilig als er geen openstaande
  * mutaties meer zijn voor deze klant -- dat checkt de aanroeper. */

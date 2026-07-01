@@ -281,7 +281,9 @@
       "norm": "Norm (bijv. EN 361)",
       "mbs": "MBS / breeksterkte",
       "noMatchesFiltered": "Geen artikel matcht je zoekvelden -- vul aan en klik + Toevoegen om het als nieuw artikel toe te voegen."
-    }
+    },
+    "deleteDraft": "Concept verwijderen",
+    "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan."
   },
   "verify": {
     "authentic": "Echt certificaat",

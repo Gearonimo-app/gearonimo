@@ -32,10 +32,21 @@
     <template v-else>
       <section v-if="drafts.length" class="il__section">
         <h2>{{ $t('inspections.drafts') }}</h2>
+        <p v-if="deleteError" class="il__state il__state--error">{{ deleteError }}</p>
         <ul class="il__list">
           <li v-for="i in drafts" :key="i.id" class="il__item" @click="$router.push(`/inspections/${i.id}`)">
             <div class="il__name">{{ i.customer?.name }}</div>
             <div class="il__meta">{{ formatDate(i.inspection_date) }}</div>
+            <!-- Concept weggooien (testresten, dubbel gestart). Alleen online:
+                 het serverrecord is de bron; lokale kopie + wachtrij worden
+                 mee opgeruimd (zie deleteDraftInspection). -->
+            <button
+              v-if="isOnline"
+              class="il__delete"
+              :disabled="deletingId === i.id"
+              :title="$t('inspections.deleteDraft')"
+              @click.stop="removeDraft(i)"
+            >🗑</button>
             <span class="il__arrow">›</span>
           </li>
         </ul>
@@ -63,8 +74,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { supabase, errorMessage } from '@gearonimo/core'
-import { ensureInspector } from '../composables/useInspections'
+import { useI18n } from 'vue-i18n'
+import { supabase, errorMessage, useOnline } from '@gearonimo/core'
+import { ensureInspector, deleteDraftInspection } from '../composables/useInspections'
+
+const { t } = useI18n()
+const { isOnline } = useOnline()
 
 interface InspectionRow {
   id: string
@@ -93,6 +108,23 @@ const filtered = computed(() => {
 
 const drafts = computed(() => filtered.value.filter(i => i.status === 'draft'))
 const completed = computed(() => filtered.value.filter(i => i.status === 'completed'))
+
+const deletingId = ref<string | null>(null)
+const deleteError = ref('')
+
+async function removeDraft(i: InspectionRow) {
+  if (!confirm(t('inspections.deleteDraftConfirm', { name: i.customer?.name ?? '', date: formatDate(i.inspection_date) }))) return
+  deletingId.value = i.id
+  deleteError.value = ''
+  try {
+    await deleteDraftInspection(i.id)
+    inspections.value = inspections.value.filter((x) => x.id !== i.id)
+  } catch (e) {
+    deleteError.value = errorMessage(e)
+  } finally {
+    deletingId.value = null
+  }
+}
 
 async function load() {
   loading.value = true
@@ -152,4 +184,10 @@ onMounted(load)
 .il__name { font-weight: 600; flex: 1; }
 .il__meta { font-size: 0.85rem; color: #666; flex: 1; }
 .il__arrow { color: #999; font-size: 1.4rem; margin-left: 0.5rem; }
+.il__delete {
+  border: none; background: transparent; cursor: pointer;
+  font-size: 1rem; opacity: 0.55; padding: 0.35rem 0.5rem;
+}
+.il__delete:hover { opacity: 1; }
+.il__delete:disabled { opacity: 0.3; }
 </style>

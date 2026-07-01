@@ -6,6 +6,7 @@ import {
   countPendingForCustomer,
   markMutationStatus,
   deleteMutation,
+  deleteMutationsForInspection,
   listAllPendingMutations,
 } from "./mutationQueue";
 import { getOfflineDb } from "./db";
@@ -81,5 +82,29 @@ describe("mutation queue", () => {
     await enqueueMutation({ customerId: "c2", table: "inspections", op: "insert", payload: { id: "b" } });
     const all = await listAllPendingMutations();
     expect(all.map((m) => m.payload.id)).toEqual(["a", "b"]);
+  });
+
+  it("removes every mutation belonging to one inspection (insert, item inserts, item updates)", async () => {
+    await enqueueMutation({ customerId: "c9", table: "inspections", op: "insert", payload: { id: "insp-x" } });
+    await enqueueMutation({
+      customerId: "c9",
+      table: "inspection_items",
+      op: "insert",
+      payload: { id: "item-x", inspection_id: "insp-x" },
+    });
+    // Update-payloads dragen alleen het item-id, geen inspection_id.
+    await enqueueMutation({
+      customerId: "c9",
+      table: "inspection_items",
+      op: "update",
+      payload: { id: "item-x", result: "passed" },
+    });
+    // Los artikel van dezelfde klant: hoort niet bij de keuring, blijft staan.
+    await enqueueMutation({ customerId: "c9", table: "articles", op: "insert", payload: { id: "art-x" } });
+
+    await deleteMutationsForInspection("insp-x", ["item-x"]);
+
+    const remaining = await listPendingMutationsForCustomer("c9");
+    expect(remaining.map((m) => m.table)).toEqual(["articles"]);
   });
 });

@@ -16,6 +16,9 @@ import {
   findLocalPreviousResult,
   findLocalPreviousResults,
   getLocallyInspectedArticleIds,
+  getLocalInspectionStatus,
+  deleteInspectionCache,
+  deleteMutationsForInspection,
   touchDownloadActivity,
 } from '@gearonimo/core'
 
@@ -278,6 +281,44 @@ export async function findDraftInspection(customerId: string): Promise<{ id: str
   }
   const key = requireOfflineKey()
   return getDraftInspectionForCustomer<{ id: string; inspection_date: string }>(key, customerId)
+}
+
+// Een concept-keuring definitief weggooien (testresten, dubbel gestart, per
+// ongeluk aangemaakt). Alleen concepten: afgeronde keuringen zijn historie,
+// en een lokaal als pending_completion gemarkeerde keuring (offline afgerond,
+// certificaat wacht op sync) is geen concept meer -- die weigeren we hier,
+// ook al staat hij op de server nog als draft. Artikelen van de klant blijven
+// gewoon bestaan; alleen de keuring en haar (resultaat)items gaan weg.
+// Online-only (de knop is offline verborgen): het serverrecord is de bron.
+export async function deleteDraftInspection(inspectionId: string): Promise<void> {
+  const { isOnline } = useOnline()
+  if (!isOnline.value) throw new Error('Concepten verwijderen kan alleen online.')
+
+  if ((await getLocalInspectionStatus(inspectionId)) === 'pending_completion') {
+    throw new Error('Deze keuring is offline afgerond en wacht op haar certificaat -- synchroniseer eerst.')
+  }
+
+  const { data: insp, error: checkErr } = await supabase
+    .from('inspections')
+    .select('id, status')
+    .eq('id', inspectionId)
+    .maybeSingle()
+  if (checkErr) throw checkErr
+  if (insp && insp.status !== 'draft') {
+    throw new Error('Alleen concepten kunnen verwijderd worden.')
+  }
+  if (insp) {
+    const { error: itemsErr } = await supabase.from('inspection_items').delete().eq('inspection_id', inspectionId)
+    if (itemsErr) throw itemsErr
+    const { error: insErr } = await supabase.from('inspections').delete().eq('id', inspectionId)
+    if (insErr) throw insErr
+  }
+
+  // Lokale sporen ook opruimen: de gecachete kopie (anders duikt het concept
+  // offline weer op) en de wachtrij-mutaties (anders zet de eerstvolgende
+  // sync het net verwijderde concept gewoon terug op de server).
+  const itemIds = await deleteInspectionCache(inspectionId)
+  await deleteMutationsForInspection(inspectionId, itemIds)
 }
 
 // Resultaat (en datum) van de meest recente afgeronde keuring van dit artikel,

@@ -87,3 +87,21 @@ export async function deleteMutation(id: number): Promise<void> {
   const db = await getOfflineDb();
   await db.delete("mutations", id);
 }
+
+/** Ruimt alle wachtrij-mutaties op die bij één keuring horen (de keuring
+ * zelf, inserts van haar items, en updates op die items -- die laatste dragen
+ * alleen het item-id, vandaar de meegegeven lijst). Gebruikt bij het
+ * verwijderen van een concept: zonder dit zou de eerstvolgende sync het net
+ * verwijderde concept gewoon opnieuw op de server zetten. */
+export async function deleteMutationsForInspection(inspectionId: string, itemIds: string[]): Promise<void> {
+  const itemIdSet = new Set(itemIds);
+  const db = await getOfflineDb();
+  const all = await db.getAll("mutations");
+  for (const m of all) {
+    const p = m.payload as { id?: unknown; inspection_id?: unknown };
+    const hit =
+      (m.table === "inspections" && p.id === inspectionId) ||
+      (m.table === "inspection_items" && (p.inspection_id === inspectionId || itemIdSet.has(String(p.id))));
+    if (hit && m.id != null) await db.delete("mutations", m.id);
+  }
+}

@@ -281,7 +281,9 @@
       "norm": "Standard (e.g. EN 361)",
       "mbs": "MBS / breaking strength",
       "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article."
-    }
+    },
+    "deleteDraft": "Delete draft",
+    "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."
   },
   "verify": {
     "authentic": "Authentic certificate",

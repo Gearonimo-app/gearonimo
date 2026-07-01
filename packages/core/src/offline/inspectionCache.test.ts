@@ -15,6 +15,8 @@ import {
   listInspectionsPendingCompletion,
   hasInspectionsPendingCompletionForCustomer,
   countInspectionsPendingCompletion,
+  getLocalInspectionStatus,
+  deleteInspectionCache,
 } from "./inspectionCache";
 import { getOfflineDb } from "./db";
 
@@ -128,6 +130,26 @@ describe("offline inspection cache", () => {
     expect(await hasInspectionsPendingCompletionForCustomer("cust-10")).toBe(true);
     expect(await hasInspectionsPendingCompletionForCustomer("cust-11")).toBe(false);
     expect(await countInspectionsPendingCompletion()).toBe(1);
+  });
+
+  it("deletes one inspection with its items and reports the item ids", async () => {
+    const key = await testKey();
+    await putInspection(key, { id: "insp-del", customer_id: "cust-del", status: "draft" });
+    await putInspectionItems(key, "insp-del", [
+      { id: "item-del-1", article_id: "art-1" },
+      { id: "item-del-2", article_id: "art-2" },
+    ]);
+    await putInspection(key, { id: "insp-keep", customer_id: "cust-del", status: "draft" });
+    await putInspectionItems(key, "insp-keep", [{ id: "item-keep", article_id: "art-3" }]);
+
+    const itemIds = await deleteInspectionCache("insp-del");
+
+    expect(itemIds.sort()).toEqual(["item-del-1", "item-del-2"]);
+    expect(await getInspection(key, "insp-del")).toBeNull();
+    expect(await getInspectionItems(key, "insp-del")).toEqual([]);
+    expect(await getInspectionItems(key, "insp-keep")).toHaveLength(1);
+    expect(await getLocalInspectionStatus("insp-keep")).toBe("draft");
+    expect(await getLocalInspectionStatus("insp-del")).toBeNull();
   });
 
   it("finds previous results for many articles in one decryption pass (bulk variant)", async () => {
