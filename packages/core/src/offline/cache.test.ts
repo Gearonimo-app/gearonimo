@@ -9,6 +9,12 @@ import {
   getArticle,
   putProducts,
   getProducts,
+  putCustomerMembers,
+  getCustomerMembersForCustomer,
+  putArticleSets,
+  getArticleSetsForCustomer,
+  getArticleSet,
+  pruneArticlesForCustomer,
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
@@ -79,5 +85,46 @@ describe("offline cache", () => {
     const found = await getArticle<{ id: string; serial_number: string }>(key, "art-6a");
     expect(found?.serial_number).toBe("SN-6");
     expect(await getArticle(key, "does-not-exist")).toBeNull();
+  });
+
+  it("replaces members and sets wholesale on re-download (no stale leftovers)", async () => {
+    const key = await testKey();
+    await putCustomerMembers(key, "cust-7", [{ id: "mem-1", name: "Jan" }, { id: "mem-2", name: "Piet" }]);
+    await putArticleSets(key, "cust-7", [{ id: "set-1", name: "Klimset A" }]);
+
+    // Her-download: Piet is server-side verwijderd, set-1 hernoemd, set-2 nieuw.
+    await putCustomerMembers(key, "cust-7", [{ id: "mem-1", name: "Jan" }]);
+    await putArticleSets(key, "cust-7", [
+      { id: "set-1", name: "Klimset A2" },
+      { id: "set-2", name: "Klimset B" },
+    ]);
+
+    const members = await getCustomerMembersForCustomer<{ id: string }>(key, "cust-7");
+    expect(members.map((m) => m.id)).toEqual(["mem-1"]);
+    const sets = await getArticleSetsForCustomer<{ id: string; name: string }>(key, "cust-7");
+    expect(sets.map((s) => s.id).sort()).toEqual(["set-1", "set-2"]);
+    expect((await getArticleSet<{ name: string }>(key, "set-1"))?.name).toBe("Klimset A2");
+  });
+
+  it("cleans up members and sets with the rest of the customer cache", async () => {
+    const key = await testKey();
+    await putCustomerMembers(key, "cust-8", [{ id: "mem-8" }]);
+    await putArticleSets(key, "cust-8", [{ id: "set-8" }]);
+
+    await deleteCustomerCache("cust-8");
+
+    expect(await getCustomerMembersForCustomer(key, "cust-8")).toEqual([]);
+    expect(await getArticleSetsForCustomer(key, "cust-8")).toEqual([]);
+  });
+
+  it("prunes cached articles that vanished server-side, keeping the fresh ones", async () => {
+    const key = await testKey();
+    await putArticles(key, "cust-9", [{ id: "art-9a" }, { id: "art-9b" }]);
+
+    // Her-download: alleen art-9a bestaat nog op de server.
+    await pruneArticlesForCustomer("cust-9", new Set(["art-9a"]));
+
+    const remaining = await getArticlesForCustomer<{ id: string }>(key, "cust-9");
+    expect(remaining.map((a) => a.id)).toEqual(["art-9a"]);
   });
 });

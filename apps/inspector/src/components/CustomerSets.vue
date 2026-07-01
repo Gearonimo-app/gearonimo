@@ -2,7 +2,7 @@
   <section class="cs">
     <div class="cs__head">
       <h2>{{ $t('sets.title') }}</h2>
-      <button v-if="!showAdd" class="cs__add" @click="openAdd">+ {{ $t('sets.add') }}</button>
+      <button v-if="!showAdd && isOnline" class="cs__add" @click="openAdd">+ {{ $t('sets.add') }}</button>
     </div>
 
     <div v-if="loading" class="cs__state">{{ $t('common.loading') }}</div>
@@ -45,10 +45,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getArticleSetsForCustomer, errorMessage } from '@gearonimo/core'
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
+const { isOnline } = useOnline()
 
 interface ProductMatch { id: string; brand: string | null; name: string | null }
 interface Article {
@@ -85,6 +86,29 @@ function articleLabel(a: Article) {
 async function load() {
   loading.value = true
   error.value = ''
+
+  // Offline: sets uit de versleutelde cache (met ingebedde leden, zie
+  // downloadCustomer). De artikellijst voor het toevoegformulier is offline
+  // niet nodig -- toevoegen is online-only (knop verborgen).
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const cached = await getArticleSetsForCustomer<{
+        id: string
+        name: string
+        article_set_members?: { id: string; article_id: string }[]
+      }>(key, props.customerId)
+      sets.value = cached.map((s) => ({
+        id: s.id,
+        name: s.name,
+        memberCount: s.article_set_members?.length ?? 0,
+      }))
+    } catch (e) {
+      error.value = errorMessage(e)
+    }
+    loading.value = false
+    return
+  }
 
   const [setsRes, articlesRes] = await Promise.all([
     supabase

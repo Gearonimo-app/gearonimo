@@ -16,6 +16,10 @@ export interface ArticleRecord extends EncryptedRecord {
   customerId: string;
 }
 
+export interface CustomerScopedRecord extends EncryptedRecord {
+  customerId: string;
+}
+
 export interface InspectionRecordRow extends EncryptedRecord {
   customerId: string;
   status: string;
@@ -62,6 +66,16 @@ interface OfflineSchema extends DBSchema {
   products: { key: string; value: EncryptedRecord };
   rejectionCodes: { key: string; value: EncryptedRecord };
   companySettings: { key: string; value: EncryptedRecord };
+  customerMembers: {
+    key: string;
+    value: CustomerScopedRecord;
+    indexes: { customerId: string };
+  };
+  articleSets: {
+    key: string;
+    value: CustomerScopedRecord;
+    indexes: { customerId: string };
+  };
   inspections: {
     key: string;
     value: InspectionRecordRow;
@@ -83,26 +97,36 @@ let dbPromise: Promise<IDBPDatabase<OfflineSchema>> | null = null;
 
 export function getOfflineDb(): Promise<IDBPDatabase<OfflineSchema>> {
   if (!dbPromise) {
-    dbPromise = openDB<OfflineSchema>("gearonimo-offline", 1, {
-      upgrade(db) {
-        db.createObjectStore("meta");
-        db.createObjectStore("downloads", { keyPath: "customerId" });
-        db.createObjectStore("customers", { keyPath: "id" });
-        const articles = db.createObjectStore("articles", { keyPath: "id" });
-        articles.createIndex("customerId", "customerId");
-        db.createObjectStore("products", { keyPath: "id" });
-        db.createObjectStore("rejectionCodes", { keyPath: "id" });
-        db.createObjectStore("companySettings", { keyPath: "id" });
-        const inspections = db.createObjectStore("inspections", { keyPath: "id" });
-        inspections.createIndex("customerId", "customerId");
-        const inspectionItems = db.createObjectStore("inspectionItems", { keyPath: "id" });
-        inspectionItems.createIndex("inspectionId", "inspectionId");
-        const mutations = db.createObjectStore("mutations", {
-          keyPath: "id",
-          autoIncrement: true,
-        });
-        mutations.createIndex("customerId", "customerId");
-        mutations.createIndex("status", "status");
+    dbPromise = openDB<OfflineSchema>("gearonimo-offline", 2, {
+      upgrade(db, oldVersion) {
+        if (oldVersion < 1) {
+          db.createObjectStore("meta");
+          db.createObjectStore("downloads", { keyPath: "customerId" });
+          db.createObjectStore("customers", { keyPath: "id" });
+          const articles = db.createObjectStore("articles", { keyPath: "id" });
+          articles.createIndex("customerId", "customerId");
+          db.createObjectStore("products", { keyPath: "id" });
+          db.createObjectStore("rejectionCodes", { keyPath: "id" });
+          db.createObjectStore("companySettings", { keyPath: "id" });
+          const inspections = db.createObjectStore("inspections", { keyPath: "id" });
+          inspections.createIndex("customerId", "customerId");
+          const inspectionItems = db.createObjectStore("inspectionItems", { keyPath: "id" });
+          inspectionItems.createIndex("inspectionId", "inspectionId");
+          const mutations = db.createObjectStore("mutations", {
+            keyPath: "id",
+            autoIncrement: true,
+          });
+          mutations.createIndex("customerId", "customerId");
+          mutations.createIndex("status", "status");
+        }
+        if (oldVersion < 2) {
+          // v2: medewerkers en sets van de klant horen ook bij een download
+          // (het klantdetailscherm toonde er offline een kale fetch-fout voor).
+          const members = db.createObjectStore("customerMembers", { keyPath: "id" });
+          members.createIndex("customerId", "customerId");
+          const sets = db.createObjectStore("articleSets", { keyPath: "id" });
+          sets.createIndex("customerId", "customerId");
+        }
       },
     });
   }
@@ -130,6 +154,8 @@ export async function wipeAllOfflineData(): Promise<void> {
     db.clear("products"),
     db.clear("rejectionCodes"),
     db.clear("companySettings"),
+    db.clear("customerMembers"),
+    db.clear("articleSets"),
     db.clear("inspections"),
     db.clear("inspectionItems"),
     db.clear("mutations"),

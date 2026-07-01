@@ -6,6 +6,9 @@ import {
   putProducts,
   putRejectionCodes,
   putCompanySettings,
+  putCustomerMembers,
+  putArticleSets,
+  pruneArticlesForCustomer,
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
@@ -80,6 +83,22 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
     .eq("retired", false);
   if (artErr) throw artErr;
 
+  // Medewerkers en sets horen bij het klantdetailscherm (toonden offline
+  // eerst een kale fetch-fout). Sets krijgen hun leden (article_id's)
+  // ingebed, zodat het setdetailscherm offline de artikelen uit de eigen
+  // artikelcache kan resolven.
+  const { data: members, error: memErr } = await supabase
+    .from("customer_members")
+    .select("*")
+    .eq("customer_id", customerId);
+  if (memErr) throw memErr;
+
+  const { data: sets, error: setsErr } = await supabase
+    .from("article_sets")
+    .select("*, article_set_members(id, article_id)")
+    .eq("customer_id", customerId);
+  if (setsErr) throw setsErr;
+
   const productIds = [...new Set((articles ?? []).map((a) => a.product_id).filter((id): id is string => !!id))];
   let products: ({ id: string } & Record<string, unknown>)[] = [];
   if (productIds.length) {
@@ -127,6 +146,15 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
 
   await putCustomer(key, customer);
   await putArticles(key, customerId, articles ?? []);
+  // Server-side verwijderde/afgevoerde artikelen ook lokaal opruimen bij een
+  // her-download -- maar alleen als er niets meer in de wachtrij staat:
+  // offline aangemaakte artikelen staan nog niet op de server en zouden
+  // anders onterecht sneuvelen.
+  if ((await countPendingForCustomer(customerId)) === 0) {
+    await pruneArticlesForCustomer(customerId, new Set((articles ?? []).map((a) => a.id as string)));
+  }
+  await putCustomerMembers(key, customerId, members ?? []);
+  await putArticleSets(key, customerId, sets ?? []);
   if (products.length) await putProducts(key, products);
   await putRejectionCodes(key, ctx.companyId, (rejectionCodes ?? []) as { id: string; code: number; label: string | null }[]);
   await putCompanySettings(key, ctx.companyId, company);

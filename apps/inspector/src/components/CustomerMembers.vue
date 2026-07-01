@@ -2,7 +2,7 @@
   <section class="cm">
     <div class="cm__head">
       <h2>{{ $t('members.title') }}</h2>
-      <button v-if="!showForm" class="cm__add" @click="openAdd">+ {{ $t('members.add') }}</button>
+      <button v-if="!showForm && isOnline" class="cm__add" @click="openAdd">+ {{ $t('members.add') }}</button>
     </div>
 
     <div v-if="loading" class="cm__state">{{ $t('common.loading') }}</div>
@@ -10,7 +10,7 @@
     <p v-else-if="members.length === 0 && !showForm" class="cm__state">{{ $t('members.empty') }}</p>
 
     <ul v-else-if="members.length && !showForm" class="cm__list">
-      <li v-for="m in members" :key="m.id" class="cm__item" @click="openEdit(m)">
+      <li v-for="m in members" :key="m.id" class="cm__item" @click="isOnline && openEdit(m)">
         <div class="cm__name">
           {{ m.name }}
           <span v-if="!m.active" class="cm__badge">{{ $t('members.inactiveBadge') }}</span>
@@ -58,10 +58,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getCustomerMembersForCustomer, errorMessage } from '@gearonimo/core'
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
+const { isOnline } = useOnline()
 
 interface Member {
   id: string
@@ -92,6 +93,20 @@ const form = ref(emptyForm())
 async function load() {
   loading.value = true
   error.value = ''
+
+  // Offline: uit de versleutelde cache (meegenomen in de klant-download);
+  // bewerken blijft online-only, dus alleen lezen hier.
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      members.value = await getCustomerMembersForCustomer<Member>(key, props.customerId)
+    } catch (e) {
+      error.value = errorMessage(e)
+    }
+    loading.value = false
+    return
+  }
+
   const { data, error: err } = await supabase
     .from('customer_members')
     .select('*')

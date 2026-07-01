@@ -6,7 +6,7 @@
         <button class="sd__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
       </div>
       <h1>{{ set?.name || $t('sets.title') }}</h1>
-      <button v-if="set && !editMode" class="sd__icon" @click="startEdit">✎</button>
+      <button v-if="set && !editMode && isOnline" class="sd__icon" @click="startEdit">✎</button>
     </header>
 
     <div v-if="loading" class="sd__state">{{ $t('common.loading') }}</div>
@@ -28,13 +28,14 @@
       <ul class="sd__list">
         <li v-for="m in members" :key="m.id" class="sd__item">
           <div class="sd__desc" @click="$router.push(`/articles/${m.article_id}`)">{{ m.label }}</div>
-          <button class="sd__remove" @click="removeMember(m.id)">×</button>
+          <button v-if="isOnline" class="sd__remove" @click="removeMember(m.id)">×</button>
         </li>
         <li v-if="members.length === 0" class="sd__state">{{ $t('sets.detail.noMembers') }}</li>
       </ul>
 
-      <!-- Artikel toevoegen aan set -->
-      <div v-if="!showAddArticle" class="sd__add-row">
+      <!-- Artikel toevoegen aan set (online-only, net als de andere
+           set-bewerkingen: offline is de set alleen-lezen) -->
+      <div v-if="!showAddArticle && isOnline" class="sd__add-row">
         <button class="sd__add" @click="openAddArticle">+ {{ $t('sets.detail.addArticle') }}</button>
       </div>
       <div v-else class="sd__form">
@@ -48,7 +49,7 @@
       </div>
 
       <p v-if="formError" class="sd__error">{{ formError }}</p>
-      <button class="sd__delete" @click="showDelete = true">{{ $t('sets.detail.deleteSet') }}</button>
+      <button v-if="isOnline" class="sd__delete" @click="showDelete = true">{{ $t('sets.detail.deleteSet') }}</button>
     </div>
 
     <div v-if="showDelete" class="sd__overlay" @click.self="showDelete = false">
@@ -68,12 +69,21 @@
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import {
+  supabase,
+  useOnline,
+  useOfflineSession,
+  getArticleSet,
+  getArticlesForCustomer,
+  getProducts,
+  errorMessage,
+} from '@gearonimo/core'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const id = route.params.id as string
+const { isOnline } = useOnline()
 
 interface ProductMatch { id: string; brand: string | null; name: string | null }
 interface ArticleRow {
@@ -112,6 +122,46 @@ function articleLabel(a: ArticleRow) {
 async function load() {
   loading.value = true
   error.value = ''
+
+  // Offline: set + leden uit de versleutelde cache; de artikel-labels worden
+  // uit de eigen artikel-/productcache van de klant geresolved. Alleen-lezen
+  // (alle bewerkknoppen zijn offline verborgen).
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const cachedSet = await getArticleSet<{
+        id: string
+        name: string | null
+        customer_id: string
+        article_set_members?: { id: string; article_id: string }[]
+      }>(key, id)
+      set.value = cachedSet ? { name: cachedSet.name, customer_id: cachedSet.customer_id } : null
+      if (cachedSet) {
+        const articles = await getArticlesForCustomer<ArticleRow & { product_id: string | null }>(
+          key,
+          cachedSet.customer_id
+        )
+        const productIds = [...new Set(articles.map((a) => a.product_id).filter((p): p is string => !!p))]
+        const products = await getProducts<ProductMatch>(key, productIds)
+        const productById = new Map(products.map((p) => [p.id, p]))
+        const articleById = new Map(
+          articles.map((a) => [a.id, { ...a, product: a.product_id ? productById.get(a.product_id) ?? null : null }])
+        )
+        members.value = (cachedSet.article_set_members ?? []).map((m) => {
+          const article = articleById.get(m.article_id)
+          return {
+            id: m.id,
+            article_id: m.article_id,
+            label: article ? articleLabel(article) : t('articles.untitled'),
+          }
+        })
+      }
+    } catch (e) {
+      error.value = errorMessage(e)
+    }
+    loading.value = false
+    return
+  }
 
   const { data: setData, error: setErr } = await supabase
     .from('article_sets')
