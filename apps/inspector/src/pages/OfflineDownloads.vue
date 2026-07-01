@@ -51,6 +51,7 @@
 
       <!-- Klant toevoegen -->
       <div class="od__section-title">{{ $t('offline.addTitle') }}</div>
+      <p v-if="downloadError" class="od__state od__state--error">{{ downloadError }}</p>
       <div class="od__search">
         <input
           v-model="query"
@@ -99,6 +100,7 @@ const {
   busyCustomerId,
   refreshDownloads,
   download,
+  downloadError,
   remove: removeDownload,
   quickSelect,
   isDownloadStale,

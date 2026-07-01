@@ -32,6 +32,7 @@ const busyCustomerId = ref<string | null>(null)
 const syncing = ref(false)
 const lastSyncSummary = ref<SyncSummary | null>(null)
 const lastSyncError = ref('')
+const downloadError = ref('')
 
 let autoSyncWired = false
 
@@ -86,15 +87,22 @@ export function useOffline() {
   }
 
   async function download(customerId: string) {
-    const inspector = await ensureInspector()
+    downloadError.value = ''
     busyCustomerId.value = customerId
     try {
+      const inspector = await ensureInspector()
       await downloadCustomer(
         session.getKey(),
         { companyId: inspector.company_id, inspectorId: inspector.id },
         customerId
       )
       await refreshDownloads()
+    } catch (e) {
+      // Was hiervoor niet afgevangen: de knop sprong terug naar "Download"
+      // zonder enige melding, dus je kon niet zien wát er misging (gemeld
+      // door Jos tijdens het testen). Nu blijft de fout zichtbaar totdat een
+      // volgende download-poging start.
+      downloadError.value = errorMessage(e)
     } finally {
       busyCustomerId.value = null
     }
@@ -125,6 +133,7 @@ export function useOffline() {
     syncing,
     lastSyncSummary,
     lastSyncError,
+    downloadError,
     runSync,
     refreshDownloads,
     download,
