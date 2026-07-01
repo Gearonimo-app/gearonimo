@@ -6,6 +6,7 @@ import {
   getCustomer,
   putArticles,
   getArticlesForCustomer,
+  getArticle,
   putProducts,
   getProducts,
   deleteCustomerCache,
@@ -69,5 +70,14 @@ describe("offline cache", () => {
 
     const remaining = await getProducts<{ id: string }>(key, ["prod-shared", "prod-orphan"]);
     expect(remaining.map((p) => p.id)).toEqual(["prod-shared"]);
+  });
+
+  it("looks up a single article by id, independent of customer scoping", async () => {
+    const key = await testKey();
+    await putArticles(key, "cust-6", [{ id: "art-6a", serial_number: "SN-6" }]);
+
+    const found = await getArticle<{ id: string; serial_number: string }>(key, "art-6a");
+    expect(found?.serial_number).toBe("SN-6");
+    expect(await getArticle(key, "does-not-exist")).toBeNull();
   });
 });

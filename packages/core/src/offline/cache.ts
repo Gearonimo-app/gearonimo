@@ -44,6 +44,13 @@ export async function getArticlesForCustomer<T>(key: CryptoKey, customerId: stri
   return Promise.all(rows.map((row) => decryptJson<T>(key, row.enc)));
 }
 
+export async function getArticle<T>(key: CryptoKey, id: string): Promise<T | null> {
+  const db = await getOfflineDb();
+  const row = await db.get("articles", id);
+  if (!row) return null;
+  return decryptJson<T>(key, row.enc);
+}
+
 export async function putProducts(key: CryptoKey, products: ({ id: string } & Record<string, unknown>)[]): Promise<void> {
   const encrypted = await Promise.all(
     products.map(async (product) => ({ id: product.id, enc: await encryptJson(key, product) }))

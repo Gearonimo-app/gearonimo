@@ -389,8 +389,11 @@ import {
   getCompanySettings,
   getInspectionItems,
   getArticlesForCustomer,
+  getArticle,
   getProducts,
   patchInspectionItem,
+  putArticles,
+  putInspectionItems,
   enqueueMutation,
   touchDownloadActivity,
   markInspectionPendingCompletion,
@@ -737,6 +740,10 @@ function revealItem(itemId: string) {
 // nog onbeoordeeld item — geen nieuw/duplicaat artikel.
 async function addCustomerArticle(articleId: string) {
   addError.value = ''
+  if (!isOnline.value) {
+    await addCustomerArticleOffline(articleId)
+    return
+  }
   const { data: article, error: artErr } = await supabase
     .from('articles').select('*, product:products(*)').eq('id', articleId).single()
   if (artErr || !article) { addError.value = artErr?.message ?? ''; return }
@@ -750,6 +757,55 @@ async function addCustomerArticle(articleId: string) {
   items.value.push(newItem)
   previousResults.value[articleId] = await findPreviousResult(articleId, id)
   revealItem(newItem.id)
+}
+
+async function addCustomerArticleOffline(articleId: string) {
+  try {
+    const key = useOfflineSession().getKey()
+    const customerId = inspection.value!.customer_id
+    const articleRow = await getArticle<Record<string, unknown> & { id: string; product_id: string | null }>(
+      key,
+      articleId
+    )
+    if (!articleRow) {
+      addError.value = t('offline.notCachedInspection')
+      return
+    }
+    const product = articleRow.product_id
+      ? (await getProducts<Product>(key, [articleRow.product_id]))[0] ?? null
+      : null
+    const article = { ...articleRow, product } as unknown as Article
+
+    const itemId = crypto.randomUUID()
+    const itemRow = {
+      id: itemId,
+      inspection_id: id,
+      article_id: articleId,
+      article_snapshot: articleRow,
+      result: 'not_assessed',
+      next_due: null,
+      rejection_code_id: null,
+      comment: null,
+    }
+    await putInspectionItems(key, id, [itemRow])
+    await enqueueMutation({ customerId, table: 'inspection_items', op: 'insert', payload: itemRow })
+
+    const newItem: Item = {
+      id: itemId,
+      article_id: articleId,
+      result: itemRow.result,
+      next_due: itemRow.next_due,
+      rejection_code_id: itemRow.rejection_code_id,
+      comment: itemRow.comment,
+      article,
+    }
+    items.value.push(newItem)
+    previousResults.value[articleId] = await findPreviousResult(articleId, id)
+    await touchDownloadActivity(customerId)
+    revealItem(newItem.id)
+  } catch (e) {
+    addError.value = errorMessage(e)
+  }
 }
 
 // Klik op een SN-zoekresultaat: zit het al in de keuring → erheen springen;
@@ -1156,6 +1212,10 @@ function resetAddRow() {
 async function addRow() {
   addError.value = ''
   try {
+    if (!isOnline.value) {
+      await addRowOffline()
+      return
+    }
     const product = matchProduct()
     const { data: article, error: artErr } = await supabase
       .from('articles')
@@ -1217,6 +1277,83 @@ async function addRow() {
   } catch (e) {
     addError.value = errorMessage(e)
   }
+}
+
+// Offline-tak van addRow(): was in slice 3 bewust nog online-only (secundaire
+// actie) -- alsnog toegevoegd na live testen (2026-07-01): zonder dit bleef
+// een mislukte offline-poging de toevoegvelden gevuld staan, en omdat
+// diezelfde velden ook de tabel filteren (zie hasFilter/matchesFilters)
+// leek de hele artikellijst dan te "verdwijnen". Zelfde opzet als de rest
+// van de offline-schrijfacties: client-side id's, lokale cache bijwerken,
+// mutatie in de wachtrij (artikel vóór item, i.v.m. de foreign key).
+async function addRowOffline() {
+  const key = useOfflineSession().getKey()
+  const customerId = inspection.value!.customer_id
+  const product = matchProduct()
+  const articleId = crypto.randomUUID()
+  const articleRow = {
+    id: articleId,
+    customer_id: customerId,
+    product_id: product?.id ?? null,
+    free_brand: product ? null : (newBrand.value.trim() || null),
+    free_category: product ? null : (newCategory.value.trim() || null),
+    free_description: product ? null : (newDescription.value.trim() || null),
+    free_norm: product ? null : (newNorm.value.trim() || null),
+    free_mbs: product ? null : (newMbs.value.trim() || null),
+    serial_number: newSerial.value.trim() || null,
+    manufacture_year: newYear.value || null,
+    manufacture_month: newMonth.value || null,
+    suggest_for_catalog: false,
+    retired: false,
+  }
+  await putArticles(key, customerId, [articleRow])
+  await enqueueMutation({ customerId, table: 'articles', op: 'insert', payload: articleRow })
+
+  const articleWithProduct = { ...articleRow, product: product ?? null } as unknown as Article
+  const initialNextDue =
+    newResult.value === 'passed' ? toIsoDate(suggestedNextDue({ article: articleWithProduct } as Item)) : null
+  const itemId = crypto.randomUUID()
+  const itemRow = {
+    id: itemId,
+    inspection_id: id,
+    article_id: articleId,
+    article_snapshot: articleRow,
+    result: newResult.value,
+    next_due: initialNextDue,
+    rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
+    comment: newComment.value.trim() || null,
+  }
+  await putInspectionItems(key, id, [itemRow])
+  await enqueueMutation({ customerId, table: 'inspection_items', op: 'insert', payload: itemRow })
+
+  items.value.push({
+    id: itemId,
+    article_id: articleId,
+    result: itemRow.result,
+    next_due: itemRow.next_due,
+    rejection_code_id: itemRow.rejection_code_id,
+    comment: itemRow.comment,
+    article: articleWithProduct,
+  })
+  previousResults.value[articleId] = null
+  customerArticles.value.push({
+    id: articleId,
+    serial: articleRow.serial_number ?? '',
+    brand: (product?.brand ?? articleRow.free_brand) ?? '',
+    name: (product?.name ?? articleRow.free_description) ?? '',
+    category: (product?.category ?? articleRow.free_category) ?? '',
+  })
+
+  lastArticle.value = {
+    description: newDescription.value.trim(),
+    brand: newBrand.value.trim(),
+    category: newCategory.value.trim(),
+    year: newYear.value,
+    month: newMonth.value,
+  }
+
+  await touchDownloadActivity(customerId)
+  resetAddRow()
 }
 
 // Klik op een al actief resultaat zet 'm terug naar niet-beoordeeld (herstel
