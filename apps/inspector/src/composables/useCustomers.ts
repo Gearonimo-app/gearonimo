@@ -1,8 +1,16 @@
-import { supabase } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getCustomer, listDownloads } from '@gearonimo/core'
 
 // Eén plek voor alle klant-tabeltoegang, zodat de queries niet verspreid in de
 // componenten staan (lijst, detail, aanmaken, bijwerken, verwijderen). De
 // componenten doen alleen nog UI + foutweergave.
+//
+// listCustomers/fetchCustomer zijn offline-bewust (lezen): dit was het gat dat
+// Jos tijdens het testen raakte (2026-07-01) -- een gedownloade klant openen
+// terwijl je offline was gaf een kale "failed to fetch", want deze twee
+// functies praatten nog altijd rechtstreeks met Supabase, ook al was de klant
+// al lokaal gedownload (slice 2/3 dekte alleen het keuring-startproces, niet
+// het klantscherm zelf). Schrijven (aanmaken/bijwerken/verwijderen) blijft
+// bewust online-only, zoals de rest van de secundaire acties.
 
 export interface CustomerListItem {
   id: string
@@ -13,18 +21,45 @@ export interface CustomerListItem {
 }
 
 export async function listCustomers(): Promise<CustomerListItem[]> {
-  const { data, error } = await supabase
-    .from('customers')
-    .select('id, name, city, phone, email')
-    .order('name')
-  if (error) throw error
-  return (data ?? []) as CustomerListItem[]
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('id, name, city, phone, email')
+      .order('name')
+    if (error) throw error
+    return (data ?? []) as CustomerListItem[]
+  }
+
+  const session = useOfflineSession()
+  if (!session.isUnlocked.value) return []
+  const key = session.getKey()
+  const downloads = await listDownloads(key)
+  return Promise.all(
+    downloads.map(async (d) => {
+      const full = await getCustomer<Record<string, unknown>>(key, d.customerId)
+      return {
+        id: d.customerId,
+        name: d.customerName,
+        city: (full?.city as string | null) ?? null,
+        phone: (full?.phone as string | null) ?? null,
+        email: (full?.email as string | null) ?? null,
+      }
+    })
+  )
 }
 
 export async function fetchCustomer(id: string): Promise<Record<string, unknown> | null> {
-  const { data, error } = await supabase.from('customers').select('*').eq('id', id).maybeSingle()
-  if (error) throw error
-  return data
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const { data, error } = await supabase.from('customers').select('*').eq('id', id).maybeSingle()
+    if (error) throw error
+    return data
+  }
+
+  const session = useOfflineSession()
+  if (!session.isUnlocked.value) return null
+  return getCustomer<Record<string, unknown>>(session.getKey(), id)
 }
 
 /** Maakt een klant aan en geeft het nieuwe id terug. */

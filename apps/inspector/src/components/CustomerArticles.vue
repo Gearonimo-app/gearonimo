@@ -123,9 +123,11 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
+
+const { isOnline } = useOnline()
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
@@ -270,6 +272,34 @@ function articleLabel(a: Article) {
 async function load() {
   loading.value = true
   error.value = ''
+
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const cached = await getArticlesForCustomer<
+        { id: string; serial_number: string | null; free_brand: string | null; free_description: string | null; product_id: string | null; suggest_for_catalog: boolean; retired: boolean }
+      >(key, props.customerId)
+      const productIds = [...new Set(cached.map((a) => a.product_id).filter((v): v is string => !!v))]
+      const cachedProducts = productIds.length ? await getProducts<ProductMatch>(key, productIds) : []
+      const productById = new Map(cachedProducts.map((p) => [p.id, p]))
+      articles.value = cached
+        .filter((a) => !a.retired)
+        .map((a) => ({
+          id: a.id,
+          serial_number: a.serial_number,
+          free_brand: a.free_brand,
+          free_description: a.free_description,
+          product_id: a.product_id,
+          suggest_for_catalog: a.suggest_for_catalog,
+          product: a.product_id ? productById.get(a.product_id) ?? null : null,
+        }))
+    } catch (e) {
+      error.value = e instanceof Error ? e.message : String(e)
+    }
+    loading.value = false
+    return
+  }
+
   const { data, error: err } = await supabase
     .from('articles')
     .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
@@ -325,10 +355,16 @@ async function save() {
 
 onMounted(async () => {
   fetchFreeInputFields().then((f) => { freeFields.value = f })
-  const { data: prods } = await supabase
-    .from('products')
-    .select('id, brand, name, category')
-  products.value = (prods ?? []) as Product[]
+  // Offline: geen volledige catalogusaanroep (die is sowieso te groot om
+  // mee te downloaden, zie slice 2) -- de typeaheads voor een nieuw artikel
+  // blijven dan leeg (toevoegen is al online-only), maar de bestaande
+  // artikellijst (load() hieronder) blijft wel gewoon werken uit de cache.
+  if (isOnline.value) {
+    const { data: prods } = await supabase
+      .from('products')
+      .select('id, brand, name, category')
+    products.value = (prods ?? []) as Product[]
+  }
   await load()
 })
 </script>
