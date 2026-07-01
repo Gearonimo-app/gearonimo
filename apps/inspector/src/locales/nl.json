@@ -5,7 +5,8 @@
     "save": "Opslaan",
     "saving": "Bezig...",
     "delete": "Verwijderen",
-    "home": "Home"
+    "home": "Home",
+    "copy": "Kopieer"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -84,7 +85,8 @@
     "detail": {
       "notFound": "Klant niet gevonden",
       "deleteTitle": "Klant verwijderen?",
-      "deleteBody": "Dit kan niet ongedaan gemaakt worden."
+      "deleteBody": "Dit kan niet ongedaan gemaakt worden.",
+      "inviteCode": "Uitnodigingscode klant-app"
     }
   },
   "members": {

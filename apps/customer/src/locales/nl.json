@@ -1,13 +1,55 @@
 {
-  "home": {
-    "title": "Gearonimo",
-    "subtitle": "Jouw materiaal, altijd in orde"
+  "common": {
+    "loading": "Laden...",
+    "busy": "Bezig...",
+    "signOut": "Uitloggen"
   },
   "login": {
     "title": "Inloggen",
+    "subtitle": "Jouw materiaal, altijd in orde",
     "email": "E-mailadres",
     "submit": "Stuur inloglink",
     "busy": "Bezig...",
-    "check_email": "Check je e-mail — we hebben je een inloglink gestuurd."
+    "check_email": "Check je e-mail — we hebben je een inloglink gestuurd.",
+    "again": "Ander e-mailadres gebruiken",
+    "hint": "Geen wachtwoord nodig: je krijgt een link per e-mail."
+  },
+  "join": {
+    "title": "Koppel je bedrijf",
+    "subtitle": "Vul de uitnodigingscode in die je van je keurmeester hebt gekregen.",
+    "code": "Uitnodigingscode",
+    "name": "Je naam",
+    "namePlaceholder": "bv. Jan Jansen",
+    "submit": "Koppelen"
+  },
+  "home": {
+    "title": "Gearonimo",
+    "subtitle": "Jouw materiaal, altijd in orde",
+    "verdict": {
+      "good": "Alles in orde",
+      "warn": "Binnenkort keuring nodig",
+      "bad": "Actie nodig: materiaal afgekeurd of keuring verlopen"
+    },
+    "counts": {
+      "ok": "in orde",
+      "dueSoon": "binnenkort keuren",
+      "action": "actie nodig",
+      "never": "nog nooit gekeurd"
+    },
+    "articles": "Materiaal",
+    "noArticles": "Nog geen materiaal geregistreerd.",
+    "untitled": "(zonder omschrijving)",
+    "manual": "Handleiding",
+    "recall": "Terugroepactie",
+    "nextDue": "volgende keuring",
+    "status": {
+      "ok": "In orde",
+      "due_soon": "Binnenkort",
+      "overdue": "Verlopen",
+      "rejected": "Afgekeurd",
+      "never_inspected": "Nog niet gekeurd"
+    },
+    "certificates": "Certificaten",
+    "noCertificates": "Nog geen certificaten."
   }
 }

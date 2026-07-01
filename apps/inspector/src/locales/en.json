@@ -5,7 +5,8 @@
     "save": "Save",
     "saving": "Saving...",
     "delete": "Delete",
-    "home": "Home"
+    "home": "Home",
+    "copy": "Copy"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -84,7 +85,8 @@
     "detail": {
       "notFound": "Customer not found",
       "deleteTitle": "Delete customer?",
-      "deleteBody": "This cannot be undone."
+      "deleteBody": "This cannot be undone.",
+      "inviteCode": "Customer app invite code"
     }
   },
   "members": {

@@ -21,8 +21,10 @@ export default defineConfig({
       workbox: {
         navigateFallback: "/index.html",
         // De publieke verificatiepagina werkt altijd online (RPC-call) en
-        // hoort niet op de SPA-shell-fallback terug te vallen.
-        navigateFallbackDenylist: [/^\/verify\//],
+        // hoort niet op de SPA-shell-fallback terug te vallen. De klant-app
+        // onder /klant/ is een eigen app (fase 3) -- zonder deze uitzondering
+        // zou de inspector-service-worker daar zijn eigen index.html serveren.
+        navigateFallbackDenylist: [/^\/verify\//, /^\/klant/],
       },
       manifest: {
         name: "Gearonimo Pro",

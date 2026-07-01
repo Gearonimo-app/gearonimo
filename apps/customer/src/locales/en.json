@@ -1,13 +1,55 @@
 {
-  "home": {
-    "title": "Gearonimo",
-    "subtitle": "Your gear, always ready"
+  "common": {
+    "loading": "Loading...",
+    "busy": "Working...",
+    "signOut": "Sign out"
   },
   "login": {
-    "title": "Log in",
+    "title": "Sign in",
+    "subtitle": "Your gear, always in order",
     "email": "Email address",
-    "submit": "Send login link",
+    "submit": "Send sign-in link",
     "busy": "Please wait...",
-    "check_email": "Check your email — we sent you a login link."
+    "check_email": "Check your email — we sent you a sign-in link.",
+    "again": "Use a different email address",
+    "hint": "No password needed: you'll receive a link by email."
+  },
+  "join": {
+    "title": "Link your company",
+    "subtitle": "Enter the invite code you received from your inspector.",
+    "code": "Invite code",
+    "name": "Your name",
+    "namePlaceholder": "e.g. John Smith",
+    "submit": "Link"
+  },
+  "home": {
+    "title": "Gearonimo",
+    "subtitle": "Your gear, always in order",
+    "verdict": {
+      "good": "All in order",
+      "warn": "Inspection due soon",
+      "bad": "Action needed: gear rejected or inspection overdue"
+    },
+    "counts": {
+      "ok": "in order",
+      "dueSoon": "due soon",
+      "action": "action needed",
+      "never": "never inspected"
+    },
+    "articles": "Gear",
+    "noArticles": "No gear registered yet.",
+    "untitled": "(no description)",
+    "manual": "Manual",
+    "recall": "Recall",
+    "nextDue": "next inspection",
+    "status": {
+      "ok": "In order",
+      "due_soon": "Due soon",
+      "overdue": "Overdue",
+      "rejected": "Rejected",
+      "never_inspected": "Not inspected yet"
+    },
+    "certificates": "Certificates",
+    "noCertificates": "No certificates yet."
   }
 }

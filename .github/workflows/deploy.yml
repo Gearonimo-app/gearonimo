@@ -1,4 +1,4 @@
-name: Deploy inspector to GitHub Pages
+name: Deploy apps to GitHub Pages
 
 on:
   push:
@@ -24,6 +24,12 @@ jobs:
           node-version: 20
       - run: npm install
       - run: cd apps/inspector && npx vite build
+      # Klant-app (fase 3) op hetzelfde domein onder /klant/ (hash-router,
+      # dus geen eigen 404-fallback nodig). Ná de inspector-build kopiëren,
+      # zodat de klant-app niet in de precache van de inspector-service-
+      # worker belandt (die shell moet licht blijven, zie vite.config).
+      - run: cd apps/customer && npx vite build
+      - run: mkdir -p apps/inspector/dist/klant && cp -r apps/customer/dist/. apps/inspector/dist/klant/
       # SPA-fallback: deeplinks (bv. /customers) terug naar index.html
       - run: cp apps/inspector/dist/index.html apps/inspector/dist/404.html
       # Eigen domein vasthouden

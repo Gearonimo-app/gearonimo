@@ -26,8 +26,15 @@ export function useAuth() {
     if (error) throw error;
   }
 
-  async function signInWithMagicLink(email: string) {
-    const { error } = await supabase.auth.signInWithOtp({ email });
+  // redirectTo: waar de inloglink moet landen (bv. de klant-app op /klant/).
+  // Zonder dit valt Supabase terug op de Site URL -- de inspector-app -- en
+  // komt een klant na het klikken op de link op de verkeerde app uit. De URL
+  // moet wel in de Supabase Auth-allowlist staan (Redirect URLs).
+  async function signInWithMagicLink(email: string, redirectTo?: string) {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    });
     if (error) throw error;
   }
 

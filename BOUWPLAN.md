@@ -780,6 +780,39 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 
 ## Fase 3 — De klant-app (±2–3 bouwsessies)
 
+> **Slice 3.1 gebouwd (2026-07-02, branch
+> `claude/offline-mode-code-review-g6haan`):** de klant-app leeft op
+> **gearonimo.net/klant/** (zelfde Pages-deploy, hash-router; de
+> inspector-service-worker heeft een denylist voor /klant zodat hij daar
+> niet zijn eigen shell serveert). Magic-link-login (wachtwoordloos, zoals
+> besloten 2026-06-14), koppelen via **uitnodigingscode** per klantbedrijf
+> (`customers.invite_code`, zichtbaar + kopieerbaar op het klantdetail in
+> de inspector-app), dashboard **"ben ik in orde"** (stoplicht + tellers,
+> statuslogica = de geteste `calcStatus` uit packages/core; afgekeurd bij
+> laatste keuring telt als actie-nodig), artikellijst met status/
+> handleiding/recall/volgende-keuringsdatum, en **certificaten downloaden**.
+>
+> **Vertrouwensmodel:** RLS staat nog uit, dus de klant-app leest álles via
+> security-definer-RPC's die zelf op `auth.uid()` scopen (`my_customer`,
+> `my_articles`, `my_certificates`, `join_customer_by_invite`) — geen
+> directe tabel-toegang nodig. `ensure_inspector` is dichtgetimmerd:
+> klant-accounts worden niet langer automatisch keurmeester als ze de
+> inspector-app openen. **Maar let op:** zolang de brede GRANTs aan
+> `authenticated` bestaan kan een technisch onderlegde klant nog steeds
+> rechtstreeks de REST-API bevragen. **Daarom: nog géén uitnodigingscodes
+> aan echte klanten geven vóór de RLS-ronde** — die is nu de eerstvolgende
+> geplande slice (3.2).
+>
+> **Acties Jos vóór het testen:**
+> 1. Migratie `supabase/migrations/20260708_customer_app_join_and_reads.sql`
+>    uitvoeren in Supabase (idempotent).
+> 2. In Supabase → Authentication → URL Configuration:
+>    `https://gearonimo.net/klant/*` toevoegen aan **Redirect URLs**
+>    (anders landt de magic-link op de inspector-app).
+> 3. Testen: /klant/ openen, inloggen met een e-mailadres, koppelen met de
+>    uitnodigingscode van een testklant (staat op het klantdetail in de
+>    inspector-app), dashboard controleren.
+
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
 - Keuring aanvragen: uitnodigingscode/QR, openbare lijst met

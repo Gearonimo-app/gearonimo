@@ -27,6 +27,13 @@
           </div>
         </template>
       </dl>
+      <!-- Uitnodigingscode voor de klant-app (fase 3): hiermee koppelt een
+           medewerker van deze klant zijn account op gearonimo.net/klant/. -->
+      <div v-if="customer.invite_code" class="cd__invite">
+        <span class="cd__invite-label">{{ $t('customers.detail.inviteCode') }}</span>
+        <code class="cd__invite-code">{{ customer.invite_code }}</code>
+        <button class="cd__invite-copy" :title="$t('common.copy')" @click="copyInvite">{{ inviteCopied ? '✓' : '⧉' }}</button>
+      </div>
       <CustomerMembers :customer-id="id" />
       <CustomerArticles :customer-id="id" />
       <CustomerSets :customer-id="id" />
@@ -229,6 +236,13 @@ function label(key: string) {
   return t(key).replace(' *', '')
 }
 
+const inviteCopied = ref(false)
+async function copyInvite() {
+  await navigator.clipboard.writeText(String(customer.value?.invite_code ?? ''))
+  inviteCopied.value = true
+  window.setTimeout(() => { inviteCopied.value = false }, 1500)
+}
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -320,6 +334,14 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .cd__view-row:last-child { border-bottom: none; }
 .cd__view-row dt { color: #6b7280; font-size: 0.85rem; }
 .cd__view-row dd { margin: 0; font-weight: 600; text-align: right; word-break: break-word; }
+.cd__invite {
+  display: flex; align-items: center; gap: 0.6rem;
+  background: #fff; border-radius: 12px; padding: 0.85rem 1rem; margin-top: 0.85rem;
+}
+.cd__invite-label { color: #6b7280; font-size: 0.85rem; flex: 1; }
+.cd__invite-code { font-weight: 700; letter-spacing: 0.12em; font-size: 1rem; }
+.cd__invite-copy { border: none; background: #f3f4f6; border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; }
+
 .cd__delete {
   margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;
   border: 1px solid #fecaca; background: #fff; color: #dc2626;
