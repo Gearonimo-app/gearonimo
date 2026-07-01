@@ -1075,7 +1075,21 @@ async function load() {
     brand: a.brand || null, name: a.name || null, category: a.category || null,
   }))
 
-  if (insp.status === 'completed') finished.value = true
+  if (insp.status === 'completed') {
+    finished.value = true
+    // De downloadlink ook bij het heropenen tonen, niet alleen direct na het
+    // afronden. Voor offline afgeronde keuringen is dit de enige route: het
+    // certificaat wordt daar pas tijdens de sync op de achtergrond
+    // gegenereerd, dus de keurmeester heeft de link nooit gezien.
+    const { data: cert } = await supabase
+      .from('certificates')
+      .select('storage_path')
+      .eq('inspection_id', id)
+      .maybeSingle()
+    if (cert?.storage_path) {
+      certificateUrl.value = supabase.storage.from('certificates').getPublicUrl(cert.storage_path).data.publicUrl
+    }
+  }
   loading.value = false
 }
 

@@ -47,7 +47,10 @@
           {{ query ? $t('inspections.noMatches') : $t('inspections.empty') }}
         </p>
         <ul v-else class="il__list">
-          <li v-for="i in completed" :key="i.id" class="il__item" @click="$router.push(`/customers/${i.customer_id}`)">
+          <!-- Naar de keuring zelf (afgerond-scherm met certificaat-download),
+               niet naar de klantpagina: daarvandaan is de klant alsnog één tik
+               ("Terug naar klant"), andersom was het certificaat onvindbaar. -->
+          <li v-for="i in completed" :key="i.id" class="il__item" @click="$router.push(`/inspections/${i.id}`)">
             <div class="il__name">{{ i.customer?.name }}</div>
             <div class="il__meta">{{ formatDate(i.inspection_date) }}</div>
             <span class="il__arrow">›</span>
