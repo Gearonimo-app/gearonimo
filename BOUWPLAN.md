@@ -648,6 +648,69 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   laten uitvoeren in Supabase, en een echte test op een toestel (incl.
   vliegtuigstand) — zie de samenvatting die bij het afronden van deze
   sessie is meegegeven.
+
+  **Hardening-ronde na code review (2026-07-01, n.a.v. de live test van
+  Jos, screenshots klantdetail + wizard):** volledige review van het
+  offline-hoofdstuk hierboven plus alle offline-code; de gevonden punten
+  zijn direct gefixt. Branch van deze ronde:
+  `claude/offline-mode-code-review-g6haan`.
+
+  - **Drie dataverlies-scenario's in de sync/opruimlaag gedicht** (de
+    belangrijkste vondsten, alle drie met unit-tests):
+    1. een update op een rij die nooit geland was (insert eerder in de
+       keten gefaald) "slaagde" met 0 geraakte rijen en verdween stil uit
+       de wachtrij — telt nu als fout en blijft staan;
+    2. de opruimlogica kon een offline afgeronde keuring
+       (`pending_completion`) wegtrekken vóórdat het certificaat bestond
+       (die status telt niet als mutatie, en resultaten invullen/afronden
+       registreerde geen activiteit voor de 4-uur-regel) — cleanup én
+       `removeDownload` weigeren nu zolang zo'n keuring er staat, en
+       `saveRow`/`finish` tellen als activiteit;
+    3. `completePendingInspections` genereerde het certificaat ook als er
+       nog gefaalde mutaties voor die klant openstonden (certificaat over
+       onvolledige serverdata) — wacht nu tot de wachtrij leeg is.
+    Plus: na een gefaalde mutatie slaat de sync de rest van diezelfde
+    klant die ronde over (het comment beloofde dat al, de code deed het
+    niet).
+  - **Medewerkers en sets mee in de download** (de "TypeError: Failed to
+    fetch" van de screenshots): IndexedDB-versie 2 met twee nieuwe stores;
+    klantdetail, setslijst en setdetail lezen offline uit de cache,
+    bewerken blijft online-only met verborgen knoppen. Her-downloads
+    ruimen nu ook server-side verwijderde artikelen/leden/sets lokaal op
+    (alleen bij een lege wachtrij, zodat offline aangemaakt werk nooit
+    sneuvelt).
+  - **Stille fouten in de wizard weg:** `saveArticle` (serienummer/
+    bouwjaar/gebruiker/ingebruikname in de keurtabel) werkt nu ook offline
+    via cache + wachtrij (faalde eerst volledig stil, wijziging weg na
+    herladen); afvoeren/handleiding/catalogus-match blijven online-only
+    maar zeggen dat netjes. De "Geen artikelen gevonden"-verwarring uit de
+    tweede screenshot is een eigen tekst geworden ("geen match — vul aan
+    en klik + Toevoegen"): de zoekvelden filteren de tabel, dat was geen
+    bug maar zag eruit als één.
+  - **Ontgrendelen vanaf elk scherm:** de PIN-dialoog zat alleen op de
+    pagina Offline downloads; wie de app offline heropende zag overal
+    "vergrendeld"-fouten zonder uitweg. De sync-statusbalk heeft nu een
+    ontgrendelknop, de offline-schermen herladen na het ontgrendelen
+    vanzelf (bewust geen pagina-reload: de sleutel leeft alleen in het
+    geheugen), en offline afgeronde keuringen die op hun certificaat
+    wachten tellen sleutelloos mee in de balk. Ontgrendelen triggert
+    (online) meteen een sync, zodat zo'n certificaat niet tot een
+    toevallige volgende sync blijft hangen.
+  - **Artikeldetail offline leesbaar** (laatste doodlopende klik vanuit de
+    artikellijst) en de "vorige keuring"-hints laden offline in één
+    decryptie-ronde i.p.v. O(n²) (merkbaar op een tablet bij grote sets).
+  - **Bekende, geaccepteerde beperking (bewust zo gelaten):** de
+    payloads in de mutatiewachtrij staan onversleuteld in IndexedDB
+    (inclusief resultaten/serienummers uit `article_snapshot`). Versleutelen
+    zou betekenen dat synchroniseren een ontgrendelde PIN-sessie vereist,
+    terwijl de wachtrij juist ook vergrendeld moet kunnen uploaden (eager
+    sync bij reconnect). De wachtrij is normaal kort(stondig); de
+    AES-GCM-laag beschermt de langlevende cache. Expliciet hier vastgelegd
+    zodat dit niet als vergeten gat wordt aangezien.
+  - `packages/core`-tests: 52 groen (was 42). `vue-tsc` + productiebuild
+    slagen; hoofdbundel blijft ~440 kB (pdf-lib blijft lazy); offline-
+    app-shell-smoketest (Playwright, productiebuild + browser echt
+    offline) opnieuw gedraaid en groen.
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.
