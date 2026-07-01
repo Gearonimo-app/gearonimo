@@ -54,6 +54,25 @@ export async function listInspectionsPendingCompletion<T extends { id: string }>
   return Promise.all(pending.map((row) => decryptJson<T>(key, row.enc)));
 }
 
+/** Sleutelloos (status staat als plaintext-kolom op de rij): heeft deze klant
+ * nog een offline afgeronde keuring waarvan het certificaat op synchronisatie
+ * wacht? Gebruikt door de opruimlogica en removeDownload, die ook zonder
+ * ontgrendelde PIN-sessie draaien en zo'n keuring nooit mogen weggooien. */
+export async function hasInspectionsPendingCompletionForCustomer(customerId: string): Promise<boolean> {
+  const db = await getOfflineDb();
+  const rows = await db.getAllFromIndex("inspections", "customerId", customerId);
+  return rows.some((r) => r.status === "pending_completion");
+}
+
+/** Sleutelloos totaal over alle klanten, voor de sync-statusbalk: "er wacht
+ * nog werk" hoort ook zichtbaar te zijn als de wachtrij leeg is maar er nog
+ * certificaten gegenereerd moeten worden. */
+export async function countInspectionsPendingCompletion(): Promise<number> {
+  const db = await getOfflineDb();
+  const rows = await db.getAll("inspections");
+  return rows.filter((r) => r.status === "pending_completion").length;
+}
+
 export async function putInspectionItems(
   key: CryptoKey,
   inspectionId: string,

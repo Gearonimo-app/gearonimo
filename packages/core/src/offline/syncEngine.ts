@@ -7,6 +7,7 @@ import {
   deleteMutation,
 } from "./mutationQueue";
 import { markDownloadSynced, removeDownload } from "./download";
+import { hasInspectionsPendingCompletionForCustomer } from "./inspectionCache";
 import { getOfflineDb, type MutationRecord } from "./db";
 
 export interface SyncSummary {
@@ -27,8 +28,20 @@ async function applyMutation(m: MutationRecord): Promise<void> {
   const matchValue = m.payload[m.matchColumn];
   const rest: Record<string, unknown> = { ...m.payload };
   delete rest[m.matchColumn];
-  const { error } = await supabase.from(m.table).update(rest).eq(m.matchColumn, matchValue);
+  // Met .select(): een update op een rij die (nog) niet bestaat -- bv. omdat
+  // de insert eerder in de keten faalde -- matcht 0 rijen ZONDER fout. Zonder
+  // deze check verdween zo'n mutatie stil uit de wachtrij, en zette de
+  // eerstvolgende geslaagde insert de oorspronkelijke payload neer: alle
+  // offline ingevulde resultaten van dat record kwijt.
+  const { data, error } = await supabase
+    .from(m.table)
+    .update(rest)
+    .eq(m.matchColumn, matchValue)
+    .select(m.matchColumn);
   if (error) throw error;
+  if (!data || data.length === 0) {
+    throw new Error(`Update op ${m.table} raakte geen bestaande rij (${m.matchColumn}=${String(matchValue)})`);
+  }
 }
 
 /** Speelt de hele mutatiewachtrij af, in volgorde -- belangrijk: niet
@@ -40,9 +53,16 @@ export async function syncAll(): Promise<SyncSummary> {
   const pending = await listAllPendingMutations();
   const summary: SyncSummary = { synced: 0, failed: 0, errors: [] };
   const touchedCustomers = new Set<string>();
+  const failedCustomers = new Set<string>();
 
   for (const mutation of pending) {
     touchedCustomers.add(mutation.customerId);
+    // Na een fout de rest van dezelfde klant deze ronde overslaan: een
+    // mislukte insert (bv. keuring) laat de items erna toch stranden op de
+    // FK, en een update op een nooit-geland record zou 0 rijen raken. De
+    // overgeslagen mutaties blijven gewoon pending voor de volgende ronde;
+    // andere klanten in de wachtrij gaan door (geen totale stop).
+    if (failedCustomers.has(mutation.customerId)) continue;
     await markMutationStatus(mutation.id!, "syncing");
     try {
       await applyMutation(mutation);
@@ -53,9 +73,7 @@ export async function syncAll(): Promise<SyncSummary> {
       await markMutationStatus(mutation.id!, "failed", message);
       summary.failed += 1;
       summary.errors.push(message);
-      // Niet doorgaan na een fout voor dezelfde keten: een mislukte insert
-      // (bv. keuring) zou de items die erop volgen toch laten falen op de FK.
-      // Andere klanten in de wachtrij gaan gewoon door (geen totale stop).
+      failedCustomers.add(mutation.customerId);
     }
   }
 
@@ -80,6 +98,12 @@ export async function cleanupSyncedDownloads(inactivityHours = 4): Promise<void>
   for (const entry of downloads) {
     const pending = await countPendingForCustomer(entry.customerId);
     if (pending > 0) continue;
+    // Een offline afgeronde keuring waarvan het certificaat nog op
+    // synchronisatie wacht (pending_completion) telt niet als mutatie, maar
+    // is wél niet-gesynchroniseerd werk: de lokale status is de enige plek
+    // die vastlegt dat er nog een certificaat gegenereerd moet worden.
+    // Opruimen zou de keuring voorgoed als concept op de server achterlaten.
+    if (await hasInspectionsPendingCompletionForCustomer(entry.customerId)) continue;
     const idleMs = now - new Date(entry.lastActivityAt).getTime();
     if (idleMs < inactivityHours * 60 * 60 * 1000) continue;
     await removeDownload(entry.customerId, { force: true });

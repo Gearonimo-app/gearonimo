@@ -7,6 +7,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 // controleerbare fake-client krijgt i.p.v. een echte HTTP-client.
 const calls: { table: string; method: string; arg: unknown }[] = [];
 let failTables = new Set<string>();
+// Tabellen waar een update "slaagt" maar 0 rijen raakt (rij bestaat niet op
+// de server, bv. omdat de insert eerder in de keten faalde).
+let zeroRowTables = new Set<string>();
 
 vi.mock("../supabase", () => {
   function makeQuery(table: string) {
@@ -20,8 +23,14 @@ vi.mock("../supabase", () => {
         calls.push({ table, method: "update", arg: payload });
         return {
           eq() {
-            if (failTables.has(table)) return Promise.resolve({ error: new Error(`update faalde voor ${table}`) });
-            return Promise.resolve({ error: null });
+            return {
+              select() {
+                if (failTables.has(table))
+                  return Promise.resolve({ data: null, error: new Error(`update faalde voor ${table}`) });
+                if (zeroRowTables.has(table)) return Promise.resolve({ data: [], error: null });
+                return Promise.resolve({ data: [{ id: "geraakt" }], error: null });
+              },
+            };
           },
         };
       },
@@ -36,15 +45,34 @@ vi.mock("../supabase", () => {
 
 import { enqueueMutation, listPendingMutationsForCustomer, listAllPendingMutations } from "./mutationQueue";
 import { syncAll, isDownloadStale, STALE_WARNING_DAYS } from "./syncEngine";
+import { removeDownload } from "./download";
 import { getOfflineDb } from "./db";
 
 beforeEach(async () => {
   calls.length = 0;
   failTables = new Set();
+  zeroRowTables = new Set();
   const db = await getOfflineDb();
   await db.clear("mutations");
   await db.clear("downloads");
+  await db.clear("inspections");
 });
+
+function downloadEntry(customerId: string, lastActivityAt: string) {
+  return {
+    customerId,
+    customerNameEnc: { iv: new Uint8Array(), ciphertext: new ArrayBuffer(0) },
+    watermarkId: "w",
+    downloadedAt: lastActivityAt,
+    lastSyncedAt: null,
+    lastActivityAt,
+    productIds: [],
+  };
+}
+
+function inspectionRow(id: string, customerId: string, status: string) {
+  return { id, customerId, status, enc: { iv: new Uint8Array(), ciphertext: new ArrayBuffer(0) } };
+}
 
 describe("syncAll", () => {
   it("uploads pending mutations in order and clears them on success", async () => {
@@ -161,12 +189,82 @@ describe("syncAll", () => {
     expect(await db.get("downloads", "c8")).toBeDefined();
   });
 
+  it("treats an update that matches zero rows as a failure (row never landed -- keep for retry)", async () => {
+    zeroRowTables.add("inspection_items");
+    await enqueueMutation({
+      customerId: "c11",
+      table: "inspection_items",
+      op: "update",
+      payload: { id: "item-11", result: "passed" },
+    });
+
+    const summary = await syncAll();
+
+    expect(summary.failed).toBe(1);
+    const remaining = await listPendingMutationsForCustomer("c11");
+    expect(remaining).toHaveLength(1);
+    expect(remaining[0].status).toBe("failed");
+    expect(remaining[0].lastError).toContain("geen bestaande rij");
+  });
+
+  it("skips the rest of a customer's chain after a failure (no FK spam, no lost updates)", async () => {
+    failTables.add("inspections");
+    await enqueueMutation({ customerId: "c12", table: "inspections", op: "insert", payload: { id: "insp-12" } });
+    await enqueueMutation({
+      customerId: "c12",
+      table: "inspection_items",
+      op: "insert",
+      payload: { id: "item-12", inspection_id: "insp-12" },
+    });
+    await enqueueMutation({
+      customerId: "c12",
+      table: "inspection_items",
+      op: "update",
+      payload: { id: "item-12", result: "passed" },
+    });
+
+    const summary = await syncAll();
+
+    // Alleen de keuring-insert is geprobeerd; de rest van de keten is niet
+    // aangeraakt en blijft gewoon pending voor de volgende ronde.
+    expect(calls.map((c) => c.table)).toEqual(["inspections"]);
+    expect(summary.failed).toBe(1);
+    const remaining = await listPendingMutationsForCustomer("c12");
+    expect(remaining).toHaveLength(3);
+    expect(remaining.map((m) => m.status)).toEqual(["failed", "pending", "pending"]);
+  });
+
+  it("does not clean up an idle download that still has an inspection awaiting its certificate", async () => {
+    const db = await getOfflineDb();
+    const longAgo = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+    await db.put("downloads", downloadEntry("c13", longAgo));
+    await db.put("inspections", inspectionRow("insp-13", "c13", "pending_completion"));
+
+    await syncAll();
+
+    // Geen mutaties, wel >4h idle -- maar de pending_completion-keuring is de
+    // enige plek die vastlegt dat er nog een certificaat gegenereerd moet
+    // worden, dus de download moet blijven staan.
+    expect(await db.get("downloads", "c13")).toBeDefined();
+  });
+
   it("processes the full queue across customers (sanity check on listAllPendingMutations)", async () => {
     await enqueueMutation({ customerId: "c9", table: "inspections", op: "insert", payload: { id: "a" } });
     await enqueueMutation({ customerId: "c10", table: "inspections", op: "insert", payload: { id: "b" } });
     expect(await listAllPendingMutations()).toHaveLength(2);
     await syncAll();
     expect(await listAllPendingMutations()).toHaveLength(0);
+  });
+});
+
+describe("removeDownload", () => {
+  it("refuses (without force) while an inspection still awaits its certificate", async () => {
+    const db = await getOfflineDb();
+    await db.put("downloads", downloadEntry("c14", new Date().toISOString()));
+    await db.put("inspections", inspectionRow("insp-14", "c14", "pending_completion"));
+
+    await expect(removeDownload("c14")).rejects.toThrow(/certificaat/);
+    expect(await db.get("downloads", "c14")).toBeDefined();
   });
 });
 

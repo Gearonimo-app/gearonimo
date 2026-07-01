@@ -9,7 +9,13 @@ import {
   deleteCustomerCache,
   pruneUnusedProducts,
 } from "./cache";
-import { putInspection, putInspectionItems, deleteInspectionsForCustomer, getInspection } from "./inspectionCache";
+import {
+  putInspection,
+  putInspectionItems,
+  deleteInspectionsForCustomer,
+  getInspection,
+  hasInspectionsPendingCompletionForCustomer,
+} from "./inspectionCache";
 import { countPendingForCustomer } from "./mutationQueue";
 import { encryptJson, decryptJson } from "./crypto";
 
@@ -162,6 +168,11 @@ export async function removeDownload(customerId: string, opts: { force?: boolean
     if (pending > 0) {
       throw new Error(
         `Deze klant heeft nog ${pending} niet-gesynchroniseerde wijziging(en). Synchroniseer eerst voordat je de download verwijdert.`
+      );
+    }
+    if (await hasInspectionsPendingCompletionForCustomer(customerId)) {
+      throw new Error(
+        "Deze klant heeft nog een offline afgeronde keuring waarvan het certificaat op synchronisatie wacht. Synchroniseer eerst voordat je de download verwijdert."
       );
     }
   }

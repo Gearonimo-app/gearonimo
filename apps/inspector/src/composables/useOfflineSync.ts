@@ -2,6 +2,7 @@ import {
   supabase,
   useOfflineSession,
   listInspectionsPendingCompletion,
+  countPendingForCustomer,
   getInspection,
   putInspection,
 } from '@gearonimo/core'
@@ -31,6 +32,15 @@ export async function completePendingInspections(): Promise<{ completed: number;
   let failed = 0
   for (const insp of pending) {
     try {
+      // Niet afronden zolang er nog niet-gesynchroniseerde mutaties voor deze
+      // klant zijn: generateCertificate leest van de server, en een mislukte
+      // item-upload zou anders een certificaat opleveren waar artikelen of
+      // resultaten op ontbreken. Liever een sync-ronde later dan een
+      // onvolledig veiligheidsdocument.
+      if ((await countPendingForCustomer(insp.customer_id)) > 0) {
+        failed += 1
+        continue
+      }
       await generateCertificate(insp.id)
       const { error } = await supabase
         .from('inspections')

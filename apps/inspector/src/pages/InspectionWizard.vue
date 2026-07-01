@@ -1436,6 +1436,10 @@ async function saveRow(it: Item) {
         op: 'update',
         payload: { id: it.id, ...patch },
       })
+      // Elk ingevuld resultaat telt als activiteit: zonder dit zag de
+      // opruimlogica (4-uur-inactiviteitsregel) een hele middag keuren aan
+      // voor stilte, omdat alleen het openen van de wizard geregistreerd werd.
+      await touchDownloadActivity(inspection.value!.customer_id)
     } catch (e) {
       error.value = errorMessage(e)
     }
@@ -1465,6 +1469,7 @@ async function finish() {
       // weer verbinding is.
       const key = useOfflineSession().getKey()
       await markInspectionPendingCompletion(key, id)
+      await touchDownloadActivity(inspection.value!.customer_id)
       awaitingSync.value = true
       finished.value = true
       return
