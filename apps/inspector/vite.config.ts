@@ -7,6 +7,14 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: "autoUpdate",
+      // Registratie doen we zelf in main.ts via virtual:pwa-register
+      // (registerSW({ immediate: true })), zodat een nieuwe versie na een
+      // deploy ook echt automatisch geladen wordt i.p.v. alleen de kale
+      // navigator.serviceWorker.register() die de standaard auto-injectie
+      // toevoegt (die controleert niet actief op updates -- ontdekt tijdens
+      // live testen: Jos zag na een fix geen verschil omdat de al-open PWA
+      // gewoon de oude, gecachete versie bleef draaien).
+      injectRegister: false,
       // Precache dekt de hele app-shell, dus elke route laadt zelf vanuit
       // cache (zelfde idee als de 404->index.html-truc van GitHub Pages,
       // maar dan voor de service worker i.p.v. de Pages-server).

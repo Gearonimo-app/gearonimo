@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { createI18n } from "vue-i18n";
 import { createRouter, createWebHistory } from "vue-router";
+import { registerSW } from "virtual:pwa-register";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
@@ -11,6 +12,19 @@ import { useAuth, supabase } from "@gearonimo/core";
 if (import.meta.env.DEV) {
   (window as Window & { supabase?: typeof supabase }).supabase = supabase;
 }
+
+// Zelf registreren i.p.v. de kale auto-injectie: die controleert niet actief
+// op een nieuwe versie, waardoor een al geopende (geïnstalleerde) PWA na een
+// deploy stil op de oude, gecachete versie kan blijven hangen totdat iemand
+//'m toevallig een keer volledig afsluit en heropent. `immediate: true` +
+// automatisch herladen bij een gevonden update lost dat op: de gebruiker
+// hoeft niets te doen, de app haalt zichzelf in.
+registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    window.location.reload();
+  },
+});
 
 const i18n = createI18n({
   legacy: false,
