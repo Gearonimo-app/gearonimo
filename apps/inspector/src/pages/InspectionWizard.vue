@@ -358,7 +358,10 @@
                 </tr>
               </template>
               <tr v-if="!sortedRows.length">
-                <td colspan="12" class="iw__empty">{{ $t('inspections.table.noMatches') }}</td>
+                <!-- Met actieve zoekvelden is "geen match" iets anders dan "geen
+                     artikelen": de lijst is er nog, alleen verborgen door het
+                     filter. Zeg dat, en wijs meteen de weg naar + Toevoegen. -->
+                <td colspan="12" class="iw__empty">{{ hasFilter ? $t('inspections.table.noMatchesFiltered') : $t('inspections.table.noMatches') }}</td>
               </tr>
             </tbody>
           </table>
@@ -401,6 +404,7 @@ import {
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
+import { useOffline } from '../composables/useOffline'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -569,6 +573,10 @@ async function applyRowMatch(it: Item, name: string) {
   matchingRowId.value = null
   activeField.value = null
   if (!p) return
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
   const { error: err } = await supabase
     .from('articles')
     .update({
@@ -839,6 +847,10 @@ function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.a
 
 async function editManualUrl(it: Item) {
   if (it.article.product) return
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
   const url = window.prompt(t('inspections.table.manualUrlPrompt'), it.article.free_manual_url ?? '')
   if (url === null) return
   const value = url.trim() || null
@@ -1376,6 +1388,13 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
 // certificaten zouden "veranderen" door alleen zacht af te voeren (retired):
 // het artikel blijft bestaan, telt niet meer mee voor nieuwe keuringen.
 async function retireArticle(it: Item) {
+  // Bewust (nog) online-only: of een artikel echt weg mag hangt af van de
+  // volledige servergeschiedenis (stond het ooit op een certificaat?), en die
+  // is offline niet te zien. Nette melding i.p.v. stil niets doen.
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
   const { data: certified, error: checkErr } = await supabase
     .from('inspection_items')
     .select('id, inspections!inner(status)')
@@ -1402,17 +1421,39 @@ async function retireArticle(it: Item) {
 }
 
 // Bestaande artikelgegevens corrigeren vanuit de tabel (verkeerd serienummer,
-// vergeten datum/bouwjaar). Slaat direct op in de articles-tabel.
+// vergeten datum/bouwjaar). Online direct naar de articles-tabel; offline via
+// de lokale cache + mutatiewachtrij -- dit faalde eerst volledig stil: het
+// veld leek gewijzigd maar er werd niets opgeslagen, ook lokaal niet, en na
+// herladen was de correctie weg (code review 2026-07-01).
 async function saveArticle(it: Item) {
   const a = it.article
-  await supabase.from('articles').update({
+  const patch = {
     serial_number: a.serial_number?.toString().trim() || null,
     manufacture_year: a.manufacture_year || null,
     manufacture_month: a.manufacture_month || null,
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
-  }).eq('id', a.id)
+  }
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const customerId = inspection.value!.customer_id
+      const current = await getArticle<Record<string, unknown> & { id: string }>(key, a.id)
+      if (!current) {
+        addError.value = t('offline.notCachedInspection')
+        return
+      }
+      await putArticles(key, customerId, [{ ...current, ...patch }])
+      await enqueueMutation({ customerId, table: 'articles', op: 'update', payload: { id: a.id, ...patch } })
+      await touchDownloadActivity(customerId)
+    } catch (e) {
+      addError.value = errorMessage(e)
+    }
+    return
+  }
+  const { error: err } = await supabase.from('articles').update(patch).eq('id', a.id)
+  if (err) addError.value = err.message
 }
 
 async function saveRow(it: Item) {
@@ -1470,6 +1511,8 @@ async function finish() {
       const key = useOfflineSession().getKey()
       await markInspectionPendingCompletion(key, id)
       await touchDownloadActivity(inspection.value!.customer_id)
+      // Statusbalk meteen laten zien dat er een certificaat op sync wacht.
+      await useOffline().refreshPendingCompletions()
       awaitingSync.value = true
       finished.value = true
       return
@@ -1496,6 +1539,11 @@ async function finish() {
 }
 
 onMounted(load)
+
+// Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
+watch(useOfflineSession().isUnlocked, (unlocked) => {
+  if (unlocked && loading.value === false && error.value) void load()
+})
 </script>
 
 <style scoped>

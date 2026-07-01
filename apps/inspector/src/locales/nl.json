@@ -279,7 +279,8 @@
       "manualUrlPrompt": "Handleiding-link:",
       "suggestForCatalog": "Toevoegen aan productendatabase",
       "norm": "Norm (bijv. EN 361)",
-      "mbs": "MBS / breeksterkte"
+      "mbs": "MBS / breeksterkte",
+      "noMatchesFiltered": "Geen artikel matcht je zoekvelden -- vul aan en klik + Toevoegen om het als nieuw artikel toe te voegen."
     }
   },
   "verify": {
@@ -551,7 +552,8 @@
     },
     "notCachedInspection": "Deze keuring staat niet lokaal -- ga online om hem op te halen.",
     "staleWarning": "Al 14 dagen niet gesynchroniseerd -- controleer je verbinding of verwijder de download.",
-    "pendingOn": "Gedownload op {date}, {count} wijziging(en) wachten op synchronisatie"
+    "pendingOn": "Gedownload op {date}, {count} wijziging(en) wachten op synchronisatie",
+    "onlineOnlyAction": "Deze actie kan alleen online -- probeer het opnieuw zodra je verbinding hebt."
   },
   "sync": {
     "syncNow": "Nu synchroniseren",
@@ -559,6 +561,7 @@
     "offline": "Offline -- wijzigingen worden lokaal bewaard",
     "pendingCount": "{count} wijziging(en) wachten op synchronisatie",
     "upToDate": "Alles gesynchroniseerd",
-    "errorShort": "Synchroniseren mislukt, probeer het later opnieuw"
+    "errorShort": "Synchroniseren mislukt, probeer het later opnieuw",
+    "certificatesPending": "{count} certifica(a)t(en) wachten op synchronisatie"
   }
 }

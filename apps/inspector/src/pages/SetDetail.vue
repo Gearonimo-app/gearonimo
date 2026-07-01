@@ -66,7 +66,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -247,6 +247,11 @@ function back() {
 }
 
 onMounted(load)
+
+// Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
+watch(useOfflineSession().isUnlocked, (unlocked) => {
+  if (unlocked) void load()
+})
 </script>
 
 <style scoped>

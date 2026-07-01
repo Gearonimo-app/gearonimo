@@ -38,10 +38,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { errorMessage } from '@gearonimo/core'
+import { ref, computed, onMounted, watch } from 'vue'
+import { errorMessage, useOfflineSession } from '@gearonimo/core'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import CustomerFormModal from '../components/CustomerFormModal.vue'
+
+// Offline met vergrendelde PIN toont de lijst niets; zodra de gebruiker via
+// de statusbalk ontgrendelt, alsnog uit de cache laden (de sleutel leeft
+// alleen in het geheugen, dus een pagina-herlaad zou juist wéér vergrendelen).
+const offlineSession = useOfflineSession()
+watch(offlineSession.isUnlocked, (unlocked) => {
+  if (unlocked) void load()
+})
 
 const customers = ref<CustomerListItem[]>([])
 const loading = ref(true)

@@ -2,34 +2,59 @@
   <div v-if="visible" class="ssb">
     <span class="ssb__icon">{{ isOnline ? '🔄' : '📴' }}</span>
     <span class="ssb__text">{{ statusText }}</span>
+    <!-- Vergrendelde PIN-sessie: de offline-schermen kunnen de cache dan niet
+         lezen, en de certificaat-stap van de sync kan niet draaien. Zonder
+         deze knop was ontgrendelen alleen mogelijk via de pagina Offline
+         downloads -- niet vindbaar als je gewoon een klant opent. -->
     <button
-      v-if="isOnline && pendingTotal > 0"
+      v-if="needsUnlock"
+      class="ssb__btn"
+      @click="showPinDialog = true"
+    >
+      {{ $t('offline.locked.unlockButton') }}
+    </button>
+    <button
+      v-if="isOnline && (pendingTotal > 0 || pendingCompletions > 0)"
       class="ssb__btn"
       :disabled="syncing"
       @click="runSync"
     >
       {{ syncing ? $t('sync.syncing') : $t('sync.syncNow') }}
     </button>
+
+    <OfflinePinDialog v-if="showPinDialog" @unlocked="showPinDialog = false" @cancel="showPinDialog = false" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useOffline } from '../composables/useOffline'
+import OfflinePinDialog from './OfflinePinDialog.vue'
 
 const { t } = useI18n()
-const { isOnline, pendingTotal, syncing, lastSyncError, session, runSync } = useOffline()
+const { isOnline, pendingTotal, pendingCompletions, syncing, lastSyncError, session, runSync } = useOffline()
+
+const showPinDialog = ref(false)
+
+const needsUnlock = computed(() => session.pinConfigured.value && !session.isUnlocked.value)
 
 // Alleen tonen als er iets te melden is: offline (en offline-opslag in
-// gebruik) of nog openstaande mutaties -- geen permanente balk die online,
+// gebruik), nog openstaande mutaties, of een offline afgeronde keuring die
+// op haar certificaat wacht -- geen permanente balk die online,
 // niets-te-doen gebruikers in de weg zit.
-const visible = computed(() => (!isOnline.value && session.pinConfigured.value) || pendingTotal.value > 0)
+const visible = computed(
+  () =>
+    (!isOnline.value && session.pinConfigured.value) ||
+    pendingTotal.value > 0 ||
+    pendingCompletions.value > 0
+)
 
 const statusText = computed(() => {
   if (lastSyncError.value) return t('sync.errorShort')
   if (!isOnline.value) return t('sync.offline')
   if (pendingTotal.value > 0) return t('sync.pendingCount', { count: pendingTotal.value })
+  if (pendingCompletions.value > 0) return t('sync.certificatesPending', { count: pendingCompletions.value })
   return t('sync.upToDate')
 })
 </script>

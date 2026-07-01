@@ -10,6 +10,7 @@ import {
   touchDownloadActivity,
   syncAll,
   isDownloadStale,
+  countInspectionsPendingCompletion,
   errorMessage,
   type DownloadSummary,
   type QuickSelectCustomer,
@@ -33,6 +34,15 @@ const syncing = ref(false)
 const lastSyncSummary = ref<SyncSummary | null>(null)
 const lastSyncError = ref('')
 const downloadError = ref('')
+// Offline afgeronde keuringen die nog op hun certificaat wachten
+// (pending_completion). Telt sleutelloos (status is een plaintext-kolom),
+// zodat de statusbalk ook bij een vergrendelde PIN-sessie kan tonen dat er
+// nog werk wacht -- anders bleef zo'n keuring onzichtbaar hangen.
+const pendingCompletions = ref(0)
+
+async function refreshPendingCompletions() {
+  pendingCompletions.value = await countInspectionsPendingCompletion()
+}
 
 let autoSyncWired = false
 
@@ -57,6 +67,7 @@ export function useOffline() {
     } catch (e) {
       lastSyncError.value = errorMessage(e)
     } finally {
+      await refreshPendingCompletions()
       syncing.value = false
     }
   }
@@ -70,7 +81,16 @@ export function useOffline() {
     watch(isOnline, (online) => {
       if (online) void runSync()
     })
+    // Ook na het ontgrendelen van de PIN-sessie synchroniseren: de
+    // certificaat-stap (completePendingInspections) heeft de sleutel nodig en
+    // kon bij de reconnect-sync stil overgeslagen zijn. Zonder deze trigger
+    // bleef een offline afgeronde keuring wachten tot een toevallige
+    // volgende sync.
+    watch(session.isUnlocked, (unlocked) => {
+      if (unlocked && isOnline.value) void runSync()
+    })
     if (isOnline.value) void runSync()
+    else void refreshPendingCompletions()
   }
 
   async function refreshDownloads() {
@@ -130,12 +150,14 @@ export function useOffline() {
     loadingDownloads,
     busyCustomerId,
     pendingTotal,
+    pendingCompletions,
     syncing,
     lastSyncSummary,
     lastSyncError,
     downloadError,
     runSync,
     refreshDownloads,
+    refreshPendingCompletions,
     download,
     remove,
     quickSelect,

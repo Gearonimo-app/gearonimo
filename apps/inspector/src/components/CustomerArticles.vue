@@ -367,6 +367,11 @@ onMounted(async () => {
   }
   await load()
 })
+
+// Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
+watch(useOfflineSession().isUnlocked, (unlocked) => {
+  if (unlocked) void load()
+})
 </script>
 
 <style scoped>

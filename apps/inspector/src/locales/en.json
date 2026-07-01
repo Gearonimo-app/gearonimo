@@ -279,7 +279,8 @@
       "manualUrlPrompt": "Manual link:",
       "suggestForCatalog": "Suggest for product database",
       "norm": "Standard (e.g. EN 361)",
-      "mbs": "MBS / breaking strength"
+      "mbs": "MBS / breaking strength",
+      "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article."
     }
   },
   "verify": {
@@ -551,7 +552,8 @@
     },
     "notCachedInspection": "This inspection is not cached locally -- go online to fetch it.",
     "staleWarning": "Not synced for 14 days -- check your connection or remove the download.",
-    "pendingOn": "Downloaded on {date}, {count} change(s) waiting to sync"
+    "pendingOn": "Downloaded on {date}, {count} change(s) waiting to sync",
+    "onlineOnlyAction": "This action requires a connection -- try again once you're back online."
   },
   "sync": {
     "syncNow": "Sync now",
@@ -559,6 +561,7 @@
     "offline": "Offline -- changes are saved locally",
     "pendingCount": "{count} change(s) waiting to sync",
     "upToDate": "Everything synced",
-    "errorShort": "Sync failed, try again later"
+    "errorShort": "Sync failed, try again later",
+    "certificatesPending": "{count} certificate(s) waiting to sync"
   }
 }
