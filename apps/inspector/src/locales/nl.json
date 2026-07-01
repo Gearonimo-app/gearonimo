@@ -562,6 +562,7 @@
     "pendingCount": "{count} wijziging(en) wachten op synchronisatie",
     "upToDate": "Alles gesynchroniseerd",
     "errorShort": "Synchroniseren mislukt, probeer het later opnieuw",
-    "certificatesPending": "{count} certifica(a)t(en) wachten op synchronisatie"
+    "certificatesPending": "{count} certifica(a)t(en) wachten op synchronisatie",
+    "failedCount": "{count} wijziging(en) niet gesynchroniseerd: {error}"
   }
 }

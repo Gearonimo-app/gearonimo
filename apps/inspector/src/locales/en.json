@@ -562,6 +562,7 @@
     "pendingCount": "{count} change(s) waiting to sync",
     "upToDate": "Everything synced",
     "errorShort": "Sync failed, try again later",
-    "certificatesPending": "{count} certificate(s) waiting to sync"
+    "certificatesPending": "{count} certificate(s) waiting to sync",
+    "failedCount": "{count} change(s) failed to sync: {error}"
   }
 }

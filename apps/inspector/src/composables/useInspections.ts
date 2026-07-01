@@ -260,12 +260,18 @@ export async function findDraftInspection(customerId: string): Promise<{ id: str
   const inspector = await ensureInspector()
   const { isOnline } = useOnline()
   if (isOnline.value) {
+    // Er kunnen meerdere concepten naast elkaar bestaan (bv. offline gestart
+    // terwijl er op de server al één stond -- de lokale cache ziet die niet
+    // altijd). maybeSingle() zonder limit gooit dan een "multiple rows"-fout
+    // en blokkeert de hele Start/Hervat-knop; pak gewoon de nieuwste.
     const { data, error } = await supabase
       .from('inspections')
       .select('id, inspection_date')
       .eq('customer_id', customerId)
       .eq('company_id', inspector.company_id)
       .eq('status', 'draft')
+      .order('created_at', { ascending: false })
+      .limit(1)
       .maybeSingle()
     if (error) throw error
     return data

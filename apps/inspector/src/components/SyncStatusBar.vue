@@ -33,7 +33,7 @@ import { useOffline } from '../composables/useOffline'
 import OfflinePinDialog from './OfflinePinDialog.vue'
 
 const { t } = useI18n()
-const { isOnline, pendingTotal, pendingCompletions, syncing, lastSyncError, session, runSync } = useOffline()
+const { isOnline, pendingTotal, pendingCompletions, syncing, lastSyncError, lastSyncSummary, session, runSync } = useOffline()
 
 const showPinDialog = ref(false)
 
@@ -53,6 +53,16 @@ const visible = computed(
 const statusText = computed(() => {
   if (lastSyncError.value) return t('sync.errorShort')
   if (!isOnline.value) return t('sync.offline')
+  // Gefaalde mutaties gooien geen exception (syncAll gaat door met andere
+  // klanten) en waren daardoor onzichtbaar: de balk bleef "X wijzigingen
+  // wachten" tonen zonder ooit te zeggen wáárom. Toon de eerste foutmelding,
+  // anders is dit op een toestel in het veld niet te debuggen.
+  if (lastSyncSummary.value?.failed) {
+    return t('sync.failedCount', {
+      count: lastSyncSummary.value.failed,
+      error: lastSyncSummary.value.errors[0] ?? '',
+    })
+  }
   if (pendingTotal.value > 0) return t('sync.pendingCount', { count: pendingTotal.value })
   if (pendingCompletions.value > 0) return t('sync.certificatesPending', { count: pendingCompletions.value })
   return t('sync.upToDate')

@@ -123,13 +123,18 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   if (companyErr) throw companyErr;
 
   // Een al lopend concept van deze klant ook meenemen, zodat hervatten
-  // offline werkt (niet alleen nieuw starten).
+  // offline werkt (niet alleen nieuw starten). Nieuwste eerst: er kunnen
+  // meerdere concepten naast elkaar bestaan (offline gestart naast een
+  // bestaand server-concept) en maybeSingle() zonder limit gooit dan een
+  // "multiple rows"-fout die de hele download blokkeert.
   const { data: draftInspection, error: draftErr } = await supabase
     .from("inspections")
     .select("*")
     .eq("customer_id", customerId)
     .eq("company_id", ctx.companyId)
     .eq("status", "draft")
+    .order("created_at", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (draftErr) throw draftErr;
   let draftItems: ({ id: string } & Record<string, unknown>)[] = [];
