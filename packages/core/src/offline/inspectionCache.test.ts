@@ -9,9 +9,12 @@ import {
   getInspectionItems,
   patchInspectionItem,
   findLocalPreviousResult,
+  findLocalPreviousResults,
   getLocallyInspectedArticleIds,
   markInspectionPendingCompletion,
   listInspectionsPendingCompletion,
+  hasInspectionsPendingCompletionForCustomer,
+  countInspectionsPendingCompletion,
 } from "./inspectionCache";
 import { getOfflineDb } from "./db";
 
@@ -114,5 +117,36 @@ describe("offline inspection cache", () => {
 
     const pending = await listInspectionsPendingCompletion<{ id: string }>(key);
     expect(pending.map((p) => p.id)).toEqual(["insp-8"]);
+  });
+
+  it("answers pending_completion questions without the key (plaintext status column)", async () => {
+    const key = await testKey();
+    await putInspection(key, { id: "insp-10", customer_id: "cust-10", status: "draft" });
+    await putInspection(key, { id: "insp-11", customer_id: "cust-11", status: "draft" });
+    await markInspectionPendingCompletion(key, "insp-10");
+
+    expect(await hasInspectionsPendingCompletionForCustomer("cust-10")).toBe(true);
+    expect(await hasInspectionsPendingCompletionForCustomer("cust-11")).toBe(false);
+    expect(await countInspectionsPendingCompletion()).toBe(1);
+  });
+
+  it("finds previous results for many articles in one decryption pass (bulk variant)", async () => {
+    const key = await testKey();
+    await putInspectionItems(key, "insp-old", [
+      { id: "item-p", article_id: "art-p", result: "passed", inspection_id: "insp-old" },
+      { id: "item-q", article_id: "art-q", result: "rejected", inspection_id: "insp-old" },
+    ]);
+    await putInspectionItems(key, "insp-new", [
+      { id: "item-p2", article_id: "art-p", result: "not_assessed", inspection_id: "insp-new" },
+    ]);
+
+    const hits = await findLocalPreviousResults<{ result: string; inspection_id: string; article_id: string }>(
+      key,
+      ["art-p", "art-q", "art-onbekend"],
+      "insp-new"
+    );
+    expect(hits.get("art-p")?.inspection_id).toBe("insp-old");
+    expect(hits.get("art-q")?.result).toBe("rejected");
+    expect(hits.has("art-onbekend")).toBe(false);
   });
 });

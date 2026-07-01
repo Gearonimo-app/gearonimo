@@ -6,7 +6,7 @@
         <button class="ad__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
       </div>
       <h1>{{ articleLabel || $t('articles.title') }}</h1>
-      <button v-if="article && !editMode" class="ad__icon" @click="startEdit">✎</button>
+      <button v-if="article && !editMode && isOnline" class="ad__icon" @click="startEdit">✎</button>
     </header>
 
     <div v-if="loading" class="ad__state">{{ $t('common.loading') }}</div>
@@ -28,7 +28,7 @@
           </div>
         </template>
       </dl>
-      <button v-if="!article.retired" class="ad__retire" @click="openRetire">
+      <button v-if="!article.retired && isOnline" class="ad__retire" @click="openRetire">
         {{ $t('articles.detail.retire') }}
       </button>
     </div>
@@ -73,15 +73,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase } from '@gearonimo/core'
+import {
+  supabase,
+  useOnline,
+  useOfflineSession,
+  getArticle,
+  getProducts,
+  errorMessage,
+} from '@gearonimo/core'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
 const id = route.params.id as string
+const { isOnline } = useOnline()
 
 interface FieldDef { col: string; label: string; textarea?: boolean; type?: string }
 
@@ -141,6 +149,30 @@ function displayValue(f: FieldDef, v: unknown) {
 async function load() {
   loading.value = true
   error.value = ''
+
+  // Offline: uit de versleutelde cache (alleen-lezen; bewerken/afvoeren zijn
+  // offline verborgen). Dit was het laatste doodlopende pad vanuit de
+  // klant-artikellijst: die werkte al offline, maar doorklikken gaf een
+  // kale fetch-fout.
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const cached = await getArticle<ArticleRecord & { product_id: string | null }>(key, id)
+      if (cached) {
+        const product = cached.product_id
+          ? ((await getProducts<{ id: string; brand: string | null; name: string | null }>(key, [cached.product_id]))[0] ?? null)
+          : null
+        article.value = { ...cached, product }
+      } else {
+        article.value = null
+      }
+    } catch (e) {
+      error.value = errorMessage(e)
+    }
+    loading.value = false
+    return
+  }
+
   const { data, error: err } = await supabase
     .from('articles')
     .select('*, product:products(id, brand, name)')
@@ -227,6 +259,11 @@ function back() {
 }
 
 onMounted(load)
+
+// Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
+watch(useOfflineSession().isUnlocked, (unlocked) => {
+  if (unlocked) void load()
+})
 </script>
 
 <style scoped>

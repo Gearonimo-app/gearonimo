@@ -402,7 +402,7 @@ import {
   markInspectionPendingCompletion,
 } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
-import { fetchRejectionCodes, findPreviousResult, fetchFreeInputFields } from '../composables/useInspections'
+import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 
@@ -1037,10 +1037,7 @@ async function load() {
   rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
   freeFields.value = await fetchFreeInputFields()
 
-  const prevEntries = await Promise.all(
-    items.value.map(async (it) => [it.article_id, await findPreviousResult(it.article_id, id)] as const)
-  )
-  previousResults.value = Object.fromEntries(prevEntries)
+  previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
 
   // Hele catalogus laden in pagina's van 1000: PostgREST kapt een query
   // standaard op 1000 rijen, en de catalogus is groter. Zonder paginering zou
@@ -1156,10 +1153,7 @@ async function loadOffline() {
     rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
     freeFields.value = await fetchFreeInputFields()
 
-    const prevEntries = await Promise.all(
-      items.value.map(async (it) => [it.article_id, await findPreviousResult(it.article_id, id)] as const)
-    )
-    previousResults.value = Object.fromEntries(prevEntries)
+    previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
 
     // Offline beperkt tot wat voor déze klant gedownload is, i.p.v. de hele
     // globale catalogus (die wordt online sowieso al per 1000 gepagineerd

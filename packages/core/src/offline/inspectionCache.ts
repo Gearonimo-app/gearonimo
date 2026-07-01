@@ -174,3 +174,26 @@ export async function findLocalPreviousResult<T extends { article_id: string; in
   // genoeg voor een hint).
   return candidates[candidates.length - 1];
 }
+
+/** Bulk-variant van findLocalPreviousResult voor de wizard: die riep 'm per
+ * keuringsitem aan, wat álle lokale items per rij opnieuw ontsleutelde --
+ * O(n^2) Web Crypto-aanroepen, merkbaar traag op een tablet bij een klant
+ * met honderden artikelen. Dit ontsleutelt alles precies één keer en geeft
+ * per artikel dezelfde "laatst toegevoegde kandidaat"-hint terug. */
+export async function findLocalPreviousResults<T extends { article_id: string; inspection_id: string }>(
+  key: CryptoKey,
+  articleIds: string[],
+  excludeInspectionId: string
+): Promise<Map<string, T>> {
+  const wanted = new Set(articleIds);
+  const db = await getOfflineDb();
+  const allItems = await db.getAll("inspectionItems");
+  const hits = new Map<string, T>();
+  for (const row of allItems) {
+    const item = await decryptJson<T>(key, row.enc);
+    if (wanted.has(item.article_id) && item.inspection_id !== excludeInspectionId) {
+      hits.set(item.article_id, item);
+    }
+  }
+  return hits;
+}

@@ -14,6 +14,7 @@ import {
   getDraftInspectionForCustomer,
   getInspectionItems,
   findLocalPreviousResult,
+  findLocalPreviousResults,
   getLocallyInspectedArticleIds,
   touchDownloadActivity,
 } from '@gearonimo/core'
@@ -316,6 +317,46 @@ export async function findPreviousResult(
   const inspection = await getInspection<{ status: string; inspection_date: string }>(key, item.inspection_id)
   if (!inspection || inspection.status !== 'completed') return null
   return { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date }
+}
+
+export type PreviousResult = { result: string; comment: string | null; inspection_date: string } | null
+
+// Bulk-variant van findPreviousResult voor het laden van de wizard: online
+// gewoon de bestaande per-artikel-aanroepen parallel (gedrag ongewijzigd),
+// offline één decryptie-ronde over de lokale cache i.p.v. per item opnieuw
+// alles ontsleutelen (O(n^2), merkbaar traag op een tablet bij grote sets).
+export async function findPreviousResults(
+  articleIds: string[],
+  excludeInspectionId: string
+): Promise<Record<string, PreviousResult>> {
+  const { isOnline } = useOnline()
+  if (isOnline.value) {
+    const entries = await Promise.all(
+      articleIds.map(async (id) => [id, await findPreviousResult(id, excludeInspectionId)] as const)
+    )
+    return Object.fromEntries(entries)
+  }
+
+  const key = requireOfflineKey()
+  const hits = await findLocalPreviousResults<{
+    result: string
+    comment: string | null
+    inspection_id: string
+    article_id: string
+  }>(key, articleIds, excludeInspectionId)
+  const out: Record<string, PreviousResult> = Object.fromEntries(articleIds.map((id) => [id, null]))
+  const inspectionById = new Map<string, { status: string; inspection_date: string } | null>()
+  for (const [articleId, item] of hits) {
+    let inspection = inspectionById.get(item.inspection_id)
+    if (inspection === undefined) {
+      inspection = await getInspection<{ status: string; inspection_date: string }>(key, item.inspection_id)
+      inspectionById.set(item.inspection_id, inspection)
+    }
+    if (inspection && inspection.status === 'completed') {
+      out[articleId] = { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date }
+    }
+  }
+  return out
 }
 
 // Afkeurcodes zijn per keurbedrijf instelbaar (besluit Jos 2026-06-25). Heeft
