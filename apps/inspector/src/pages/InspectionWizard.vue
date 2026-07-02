@@ -88,8 +88,8 @@
           <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--field iw__sn-list">
             <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
               <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
-              <span class="iw__sn-meta">{{ [r.name, r.brand].filter(Boolean).join(' · ') }}</span>
-              <span class="iw__sn-badge" :class="r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add'">{{ r.inKeuring ? $t('inspections.table.snInInspection') : $t('inspections.table.snAdd') }}</span>
+              <span class="iw__sn-meta">{{ snMeta(r) }}</span>
+              <span class="iw__sn-badge" :class="r.retired ? 'iw__sn-badge--retired' : (r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add')">{{ snBadgeText(r) }}</span>
             </button>
           </div>
           <input v-model="newYear" ref="yearRef" type="number" class="iw__input iw__input--xs iw__input--nospin" :placeholder="$t('inspections.table.year')" />
@@ -160,8 +160,8 @@
         <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--main iw__sn-list">
           <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
             <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
-            <span class="iw__sn-meta">{{ [r.name, r.brand].filter(Boolean).join(' · ') }}</span>
-            <span class="iw__sn-badge" :class="r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add'">{{ r.inKeuring ? $t('inspections.table.snInInspection') : $t('inspections.table.snAdd') }}</span>
+            <span class="iw__sn-meta">{{ snMeta(r) }}</span>
+            <span class="iw__sn-badge" :class="r.retired ? 'iw__sn-badge--retired' : (r.inKeuring ? 'iw__sn-badge--in' : 'iw__sn-badge--add')">{{ snBadgeText(r) }}</span>
           </button>
         </div>
 
@@ -501,10 +501,22 @@ const catalogEntries = computed<CatalogEntry[]>(() => [
   ...customerEntries.value,
 ])
 
-// Alle (niet-afgevoerde) artikelen van de klant — de bron voor de SN-zoek-
-// dropdown. Bevat ook artikelen die (nog) niet in deze keuring zitten, zodat we
-// ze kunnen terugvinden en toevoegen i.p.v. een duplicaat aan te maken.
-interface CustArticle { id: string; serial: string; brand: string; name: string; category: string }
+// Alle artikelen van de klant — de bron voor de SN-zoekdropdown. Bevat ook
+// artikelen die (nog) niet in deze keuring zitten, zodat we ze kunnen
+// terugvinden en toevoegen i.p.v. een duplicaat aan te maken. Afgevoerde
+// artikelen doen bewust mee (verzoek Jos 2026-07-02): wie een SN intypt van
+// een verloren/gestolen/vervangen artikel moet "Afgevoerd (reden)" zien —
+// plus het laatste keuringsresultaat — i.p.v. een spoorloos artikel.
+interface CustArticle {
+  id: string
+  serial: string
+  brand: string
+  name: string
+  category: string
+  retired: boolean
+  retiredReason: string | null
+  last: { result: string; date: string } | null
+}
 const customerArticles = ref<CustArticle[]>([])
 
 // Artikel, Merk en Categorie filteren elkaar wederzijds: wat al is ingevuld
@@ -715,7 +727,17 @@ const weekHintMonth = computed<number | null>(() => {
 // vooraan" als "de laatste 3 cijfers"), en sorteren exact → eindigt-op → bevat.
 // Doorzoekt álle artikelen van de klant, zodat een artikel dat nog niet in de
 // keuring zit teruggevonden en toegevoegd kan worden i.p.v. gedupliceerd.
-interface SnResult { id: string; serial: string; name: string; brand: string; inKeuring: boolean; rank: number }
+interface SnResult {
+  id: string
+  serial: string
+  name: string
+  brand: string
+  inKeuring: boolean
+  retired: boolean
+  retiredReason: string | null
+  last: { result: string; date: string } | null
+  rank: number
+}
 const snResults = computed<SnResult[]>(() => {
   const q = newSerial.value.trim().toLowerCase()
   if (!q) return []
@@ -726,12 +748,36 @@ const snResults = computed<SnResult[]>(() => {
       const sn = a.serial.toLowerCase()
       return {
         id: a.id, serial: a.serial, name: a.name, brand: a.brand,
-        inKeuring: inSet.has(a.id), rank: sn === q ? 0 : sn.endsWith(q) ? 1 : 2,
+        inKeuring: inSet.has(a.id),
+        retired: a.retired,
+        retiredReason: a.retiredReason,
+        last: a.last,
+        // Afgevoerde artikelen achteraan (rank +10): wel vindbaar, niet in de weg.
+        rank: (sn === q ? 0 : sn.endsWith(q) ? 1 : 2) + (a.retired ? 10 : 0),
       }
     })
     .sort((x, y) => x.rank - y.rank || x.serial.localeCompare(y.serial))
     .slice(0, 30)
 })
+
+// Metaregel in de SN-dropdown: artikel/merk + laatste keuringsresultaat, zodat
+// "vorig jaar afgekeurd" direct zichtbaar is bij het intypen van een SN.
+function snMeta(r: SnResult): string {
+  const parts = [r.name, r.brand].filter(Boolean)
+  if (r.last) {
+    parts.push(
+      r.last.result === 'rejected'
+        ? '❌ ' + t('inspections.table.snLastRejected', { date: formatDate(r.last.date) })
+        : '✅ ' + t('inspections.table.snLastPassed', { date: formatDate(r.last.date) })
+    )
+  }
+  return parts.join(' · ')
+}
+
+function snBadgeText(r: SnResult): string {
+  if (r.retired) return t('inspections.table.snRetired') + (r.retiredReason ? ` (${r.retiredReason})` : '')
+  return r.inKeuring ? t('inspections.table.snInInspection') : t('inspections.table.snAdd')
+}
 
 // Korte oplichting van de rij waar we naartoe springen, zodat duidelijk is welk
 // artikel bedoeld wordt nadat het zoekveld is leeggemaakt.
@@ -817,13 +863,39 @@ async function addCustomerArticleOffline(articleId: string) {
 }
 
 // Klik op een SN-zoekresultaat: zit het al in de keuring → erheen springen;
-// staat het er nog niet in → toevoegen. Daarna de zoekvelden leegmaken.
+// staat het er nog niet in → toevoegen. Afgevoerd artikel → eerst vragen of
+// het weer in gebruik genomen moet worden (klant vond het terug / afvoer was
+// een vergissing); zo ja: retired-vlag eraf en toevoegen. Daarna de
+// zoekvelden leegmaken.
 function pickSnResult(r: SnResult) {
   activeField.value = null
+  if (r.retired) {
+    void reinstateAndAdd(r)
+    return
+  }
   const existing = r.inKeuring ? items.value.find((i) => i.article.id === r.id) : null
   resetAddRow()
   if (existing) revealItem(existing.id)
   else if (!r.inKeuring) void addCustomerArticle(r.id)
+}
+
+async function reinstateAndAdd(r: SnResult) {
+  addError.value = ''
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const info = r.retiredReason ? ` (${r.retiredReason})` : ''
+  if (!confirm(t('inspections.table.snReinstateConfirm', { name: [r.name, r.brand].filter(Boolean).join(' '), info }))) return
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ retired: false, retired_at: null, retired_reason: null })
+    .eq('id', r.id)
+  if (err) { addError.value = err.message; return }
+  const art = customerArticles.value.find((a) => a.id === r.id)
+  if (art) { art.retired = false; art.retiredReason = null }
+  resetAddRow()
+  await addCustomerArticle(r.id)
 }
 
 // Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
@@ -1061,17 +1133,39 @@ async function load() {
   // catalogus nog (vrijwel) leeg is.
   const { data: custArts } = await supabase
     .from('articles')
-    .select('id, serial_number, free_brand, free_category, free_description, product:products(brand, name, category)')
+    .select('id, serial_number, free_brand, free_category, free_description, retired, retired_reason, product:products(brand, name, category)')
     .eq('customer_id', insp.customer_id)
-    .eq('retired', false)
   customerArticles.value = (custArts ?? []).map((a: any) => ({
     id: a.id,
     serial: a.serial_number ?? '',
     brand: (a.product?.brand ?? a.free_brand) ?? '',
     name: (a.product?.name ?? a.free_description) ?? '',
     category: (a.product?.category ?? a.free_category) ?? '',
+    retired: !!a.retired,
+    retiredReason: a.retired_reason ?? null,
+    last: null,
   }))
-  customerEntries.value = customerArticles.value.map((a) => ({
+  // Laatste afgeronde keuringsresultaat per klant-artikel, voor de
+  // SN-dropdown ("afgekeurd 26 jun 2026"). Eén query voor alle artikelen.
+  const custIds = customerArticles.value.map((a) => a.id)
+  if (custIds.length) {
+    const { data: lastRows } = await supabase
+      .from('inspection_items')
+      .select('article_id, result, inspection:inspections!inner(inspection_date, status)')
+      .in('article_id', custIds)
+      .eq('inspection.status', 'completed')
+      .in('result', ['passed', 'rejected'])
+    const latest = new Map<string, { result: string; date: string }>()
+    for (const r of (lastRows ?? []) as any[]) {
+      const date = r.inspection?.inspection_date
+      if (!date) continue
+      const cur = latest.get(r.article_id)
+      if (!cur || date > cur.date) latest.set(r.article_id, { result: r.result, date })
+    }
+    for (const a of customerArticles.value) a.last = latest.get(a.id) ?? null
+  }
+  // Suggestiebron (merk/artikel/categorie) alleen uit actief materiaal.
+  customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
     brand: a.brand || null, name: a.name || null, category: a.category || null,
   }))
 
@@ -1174,12 +1268,18 @@ async function loadOffline() {
     // geladen en is voor offline gebruik te groot om in zijn geheel mee te
     // nemen -- zie de "download per klant"-keuze in slice 2).
     products.value = cachedProducts
+    // Offline bevat de cache alleen niet-afgevoerde artikelen (de download
+    // filtert op retired=false), dus geen afgevoerd-badge/laatste-resultaat
+    // hier -- dat is online-verrijking.
     customerArticles.value = cachedArticles.map((a) => ({
       id: a.id,
       serial: a.serial_number ?? '',
       brand: (productById.get(a.product_id ?? '')?.brand ?? a.free_brand) ?? '',
       name: (productById.get(a.product_id ?? '')?.name ?? a.free_description) ?? '',
       category: (productById.get(a.product_id ?? '')?.category ?? a.free_category) ?? '',
+      retired: false,
+      retiredReason: null,
+      last: null,
     }))
     customerEntries.value = customerArticles.value.map((a) => ({
       brand: a.brand || null, name: a.name || null, category: a.category || null,
@@ -1283,6 +1383,9 @@ async function addRow() {
       brand: (article.product?.brand ?? article.free_brand) ?? '',
       name: (article.product?.name ?? article.free_description) ?? '',
       category: (article.product?.category ?? article.free_category) ?? '',
+      retired: false,
+      retiredReason: null,
+      last: null,
     })
 
     lastArticle.value = {
@@ -1362,6 +1465,9 @@ async function addRowOffline() {
     brand: (product?.brand ?? articleRow.free_brand) ?? '',
     name: (product?.name ?? articleRow.free_description) ?? '',
     category: (product?.category ?? articleRow.free_category) ?? '',
+    retired: false,
+    retiredReason: null,
+    last: null,
   })
 
   lastArticle.value = {
@@ -1605,6 +1711,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__sn-badge { font-size: 0.7rem; font-weight: 600; padding: 0.1rem 0.45rem; border-radius: 999px; white-space: nowrap; }
 .iw__sn-badge--in { background: #e0e7ff; color: #3730a3; }
 .iw__sn-badge--add { background: #dcfce7; color: #166534; }
+.iw__sn-badge--retired { background: #f3f4f6; color: #6b7280; }
 
 /* Maand naast het bouwjaar in de tabel/kaart. */
 .iw__month-select {

@@ -52,6 +52,9 @@
     "certificates": "Certificates",
     "noCertificates": "No certificates yet.",
     "retire": "Replaced? Retire",
-    "retireConfirm": "Retire \"{name}\"? It disappears from this overview and from future inspections. Inspection history and certificates are kept."
+    "retireConfirm": "Retire \"{name}\"? It disappears from this overview and from future inspections. Inspection history and certificates are kept.",
+    "retireOther": "Retire",
+    "retirePrompt": "Retire \"{name}\"? It disappears from this overview and from future inspections; history and certificates are kept.\n\nReason (optional, e.g. replaced / lost / stolen):",
+    "retireReasonReplaced": "replaced after rejection"
   }
 }

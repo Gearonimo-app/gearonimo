@@ -44,16 +44,17 @@
                 <span v-if="a.assigned_user_name">· {{ a.assigned_user_name }}</span>
                 <span v-if="a.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(a.next_due) }}</span>
               </div>
-              <!-- Afgekeurd en vervangen? Dan mag de klant het zelf afvoeren:
-                   verdwijnt uit dit overzicht en uit volgende keuringen,
-                   historie en certificaten blijven bewaard (retired-vlag,
-                   zelfde mechanisme als de keurmeester-app). -->
+              <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
+                   ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
+                   de keurmeester ziet die terug bij het SN-zoeken. Verdwijnt
+                   uit dit overzicht en uit volgende keuringen; historie en
+                   certificaten blijven bewaard (retired-vlag, zelfde
+                   mechanisme als de keurmeester-app). -->
               <button
-                v-if="a.uiStatus === 'rejected'"
                 class="hm__retire"
                 :disabled="retiringId === a.id"
                 @click="retireArticle(a)"
-              >{{ retiringId === a.id ? $t('common.busy') : $t('home.retire') }}</button>
+              >{{ retiringId === a.id ? $t('common.busy') : (a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')) }}</button>
             </div>
             <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`">{{ $t(`home.status.${a.uiStatus}`) }}</span>
           </li>
@@ -191,11 +192,21 @@ const retiringId = ref<string | null>(null);
 const retireError = ref("");
 
 async function retireArticle(a: UiArticle) {
-  if (!confirm(t("home.retireConfirm", { name: [a.brand, a.name].filter(Boolean).join(" ") }))) return;
+  const name = [a.brand, a.name].filter(Boolean).join(" ") || t("home.untitled");
+  // prompt doet dubbel dienst als bevestiging (Annuleren = afbreken) en als
+  // reden-invoer; de reden komt bij de keurmeester in beeld bij SN-zoeken.
+  const reason = window.prompt(
+    t("home.retirePrompt", { name }),
+    a.uiStatus === "rejected" ? t("home.retireReasonReplaced") : ""
+  );
+  if (reason === null) return;
   retiringId.value = a.id;
   retireError.value = "";
   try {
-    const { error: err } = await supabase.rpc("retire_my_article", { p_article_id: a.id });
+    const { error: err } = await supabase.rpc("retire_my_article", {
+      p_article_id: a.id,
+      p_reason: reason.trim() || null,
+    });
     if (err) throw err;
     articles.value = articles.value.filter((x) => x.id !== a.id);
   } catch (e) {

@@ -282,7 +282,11 @@
       "suggestForCatalog": "Suggest for product database",
       "norm": "Standard (e.g. EN 361)",
       "mbs": "MBS / breaking strength",
-      "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article."
+      "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article.",
+      "snRetired": "Retired",
+      "snReinstateConfirm": "\"{name}\" has been retired{info}. Reinstate it and add it to this inspection?",
+      "snLastPassed": "passed {date}",
+      "snLastRejected": "rejected {date}"
     },
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."

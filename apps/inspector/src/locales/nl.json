@@ -282,7 +282,11 @@
       "suggestForCatalog": "Toevoegen aan productendatabase",
       "norm": "Norm (bijv. EN 361)",
       "mbs": "MBS / breeksterkte",
-      "noMatchesFiltered": "Geen artikel matcht je zoekvelden -- vul aan en klik + Toevoegen om het als nieuw artikel toe te voegen."
+      "noMatchesFiltered": "Geen artikel matcht je zoekvelden -- vul aan en klik + Toevoegen om het als nieuw artikel toe te voegen.",
+      "snRetired": "Afgevoerd",
+      "snReinstateConfirm": "\"{name}\" is afgevoerd{info}. Weer in gebruik nemen en toevoegen aan deze keuring?",
+      "snLastPassed": "goedgekeurd {date}",
+      "snLastRejected": "afgekeurd {date}"
     },
     "deleteDraft": "Concept verwijderen",
     "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan."
