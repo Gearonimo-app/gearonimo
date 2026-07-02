@@ -97,6 +97,22 @@
             <option :value="null">{{ $t('inspections.table.month') }}</option>
             <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
           </select>
+          <!-- Gebruiker meteen bij het toevoegen invullen (wens Jos 2026-07-02),
+               met suggesties uit eerder gebruikte namen bij deze klant: een
+               paar letters typen volstaat. -->
+          <input
+            v-model="newUser"
+            class="iw__input iw__input--sm"
+            :placeholder="$t('articles.fields.user')"
+            @focus="activeField = 'user'"
+            @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
+          />
+          <div v-if="activeField === 'user' && fieldSuggestions.length" class="iw__suggest iw__suggest--field">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" class="iw__suggest-item"
+              :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+              @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
           <div class="iw__result-buttons">
             <button
               class="iw__result-btn iw__result-btn--pass"
@@ -513,10 +529,18 @@ interface CustArticle {
   brand: string
   name: string
   category: string
+  user: string
   retired: boolean
   retiredReason: string | null
   last: { result: string; date: string } | null
 }
+
+// Suggestiebron voor het Gebruiker-veld: alle eerder ingevulde gebruikers bij
+// deze klant ("onthoud de vorige"), plus wat er in deze keuring al staat.
+const knownUsers = computed(() => unique([
+  ...customerArticles.value.map((a) => a.user || null),
+  ...items.value.map((i) => i.article.assigned_user_name),
+]))
 const customerArticles = ref<CustArticle[]>([])
 
 // Artikel, Merk en Categorie filteren elkaar wederzijds: wat al is ingevuld
@@ -547,7 +571,7 @@ function unique(arr: (string | null)[]): string[] {
 // de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Artikel/
 // Merk/Categorie zoeken in de catalogus; Serienummer heeft een eigen, rijkere
 // dropdown (snResults) die in álle artikelen van de klant zoekt.
-type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'rowMatch'
+type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'user' | 'rowMatch'
 
 // Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
 // (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
@@ -561,6 +585,7 @@ function setFieldValue(field: string | null, val: string) {
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
     case 'serial': newSerial.value = val; break
+    case 'user': newUser.value = val; break
   }
 }
 
@@ -642,6 +667,7 @@ const {
       case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
+      case 'user': return suggestFilter(knownUsers.value, newUser.value)
       case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
       default: return []
     }
@@ -670,6 +696,7 @@ const newDescription = ref('')
 const newSerial = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
+const newUser = ref('')
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
 const newNorm = ref('')
@@ -685,7 +712,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 // Onthoudt het laatst toegevoegde artikel zodat een serie identieke
 // exemplaren (bv. 10 karabiners) snel achter elkaar in te voeren is: alles
 // kopiëren behalve het serienummer.
-const lastArticle = ref<{ description: string; brand: string; category: string; year: number | null; month: number | null } | null>(null)
+const lastArticle = ref<{ description: string; brand: string; category: string; year: number | null; month: number | null; user: string } | null>(null)
 function copyLastArticle() {
   if (!lastArticle.value) return
   newDescription.value = lastArticle.value.description
@@ -693,6 +720,7 @@ function copyLastArticle() {
   newCategory.value = lastArticle.value.category
   newYear.value = lastArticle.value.year
   newMonth.value = lastArticle.value.month
+  newUser.value = lastArticle.value.user
   newSerial.value = ''
 }
 
@@ -1133,7 +1161,7 @@ async function load() {
   // catalogus nog (vrijwel) leeg is.
   const { data: custArts } = await supabase
     .from('articles')
-    .select('id, serial_number, free_brand, free_category, free_description, retired, retired_reason, product:products(brand, name, category)')
+    .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
     .eq('customer_id', insp.customer_id)
   customerArticles.value = (custArts ?? []).map((a: any) => ({
     id: a.id,
@@ -1141,6 +1169,7 @@ async function load() {
     brand: (a.product?.brand ?? a.free_brand) ?? '',
     name: (a.product?.name ?? a.free_description) ?? '',
     category: (a.product?.category ?? a.free_category) ?? '',
+    user: a.assigned_user_name ?? '',
     retired: !!a.retired,
     retiredReason: a.retired_reason ?? null,
     last: null,
@@ -1181,7 +1210,11 @@ async function load() {
       .eq('inspection_id', id)
       .maybeSingle()
     if (cert?.storage_path) {
-      certificateUrl.value = supabase.storage.from('certificates').getPublicUrl(cert.storage_path).data.publicUrl
+      // download-optie: attachment-header zodat de PDF echt in Downloads
+      // belandt i.p.v. alleen in een browsertab te openen.
+      certificateUrl.value = supabase.storage
+        .from('certificates')
+        .getPublicUrl(cert.storage_path, { download: true }).data.publicUrl
     }
   }
   loading.value = false
@@ -1277,6 +1310,7 @@ async function loadOffline() {
       brand: (productById.get(a.product_id ?? '')?.brand ?? a.free_brand) ?? '',
       name: (productById.get(a.product_id ?? '')?.name ?? a.free_description) ?? '',
       category: (productById.get(a.product_id ?? '')?.category ?? a.free_category) ?? '',
+      user: a.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
       last: null,
@@ -1320,6 +1354,7 @@ function resetAddRow() {
   newSerial.value = ''
   newYear.value = null
   newMonth.value = null
+  newUser.value = ''
   newResult.value = 'not_assessed'
   newRejectionCodeId.value = null
   newNorm.value = ''
@@ -1350,6 +1385,7 @@ async function addRow() {
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
+        assigned_user_name: newUser.value.trim() || null,
         suggest_for_catalog: false,
         retired: false,
       })
@@ -1383,6 +1419,7 @@ async function addRow() {
       brand: (article.product?.brand ?? article.free_brand) ?? '',
       name: (article.product?.name ?? article.free_description) ?? '',
       category: (article.product?.category ?? article.free_category) ?? '',
+      user: article.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
       last: null,
@@ -1394,6 +1431,7 @@ async function addRow() {
       category: newCategory.value.trim(),
       year: newYear.value,
       month: newMonth.value,
+      user: newUser.value.trim(),
     }
 
     resetAddRow()
@@ -1426,6 +1464,7 @@ async function addRowOffline() {
     serial_number: newSerial.value.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,
+    assigned_user_name: newUser.value.trim() || null,
     suggest_for_catalog: false,
     retired: false,
   }
@@ -1465,6 +1504,7 @@ async function addRowOffline() {
     brand: (product?.brand ?? articleRow.free_brand) ?? '',
     name: (product?.name ?? articleRow.free_description) ?? '',
     category: (product?.category ?? articleRow.free_category) ?? '',
+    user: articleRow.assigned_user_name ?? '',
     retired: false,
     retiredReason: null,
     last: null,
@@ -1476,6 +1516,7 @@ async function addRowOffline() {
     category: newCategory.value.trim(),
     year: newYear.value,
     month: newMonth.value,
+    user: newUser.value.trim(),
   }
 
   await touchDownloadActivity(customerId)
@@ -1643,7 +1684,9 @@ async function finish() {
       .eq('id', id)
     if (err) throw err
 
-    certificateUrl.value = supabase.storage.from('certificates').getPublicUrl(storagePath).data.publicUrl
+    certificateUrl.value = supabase.storage
+      .from('certificates')
+      .getPublicUrl(storagePath, { download: true }).data.publicUrl
     finished.value = true
   } catch (e) {
     completeError.value = errorMessage(e)

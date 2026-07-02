@@ -163,7 +163,11 @@ function formatDate(d: string) {
 }
 
 function certificateUrl(c: CertificateRow) {
-  return supabase.storage.from("certificates").getPublicUrl(c.storage_path).data.publicUrl;
+  // download-optie: Supabase serveert de PDF dan met een attachment-header,
+  // zodat de telefoon 'm echt in Downloads zet i.p.v. alleen in de browser
+  // te tonen (gemeld door Jos: "ik kan hem in downloads niet vinden").
+  return supabase.storage.from("certificates").getPublicUrl(c.storage_path, { download: `${c.number}.pdf` }).data
+    .publicUrl;
 }
 
 async function load() {
