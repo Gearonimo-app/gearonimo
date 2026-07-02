@@ -812,6 +812,37 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > 3. Testen: /klant/ openen, inloggen met een e-mailadres, koppelen met de
 >    uitnodigingscode van een testklant (staat op het klantdetail in de
 >    inspector-app), dashboard controleren.
+>
+> **Live getest door Jos (nacht 1→2 juli): werkt end-to-end** (login,
+> koppelen, dashboard, certificaat-downloads). Onderweg gevonden en gefixt:
+> live miste `customer_members.email` e.a. kolommen én de user_id-FK wees
+> naar public.users i.p.v. auth.users (migraties 20260709/20260710 —
+> hetzelfde "tabel was ouder dan de migratie"-patroon als eerder bij
+> inspectors; zie de schema-diff hieronder bij slice 3.2). Direct daarna
+> op verzoek van Jos gebouwd: **afvoeren door de klant** (elk eigen
+> artikel, met reden — vervangen/verloren/gestolen; migraties
+> 20260711/20260712, RPC `retire_my_article`), subtiel prullenbakje +
+> ✓/✗-statuschips, en in de **wizard-SN-zoeker** blijven afgevoerde
+> artikelen vindbaar ("Afgevoerd (reden)", laatste keuringsresultaat
+> erbij, klik = weer in gebruik nemen + toevoegen aan de keuring).
+>
+> **Slice 3.2 — RLS-ronde (volgende):** de database echt op slot nu er
+> externe accounts bestaan. Plan:
+> 1. **Schema-diff live ↔ repo-migraties** (introspectie-dump door Jos,
+>    diff door Claude) zodat alle "tabel ouder dan migratie"-verrassingen
+>    in één keer boven water komen vóór er policies op gebouwd worden.
+> 2. `customer_links`-backfill (elke klant gekoppeld aan het keurbedrijf)
+>    — de policies scopen inspectors via die tabel.
+> 3. RLS aan op alle tabellen: inspectors zien/schrijven alles van hun
+>    eigen keurbedrijf (via `customer_links`); klant-accounts hebben géén
+>    directe tabel-toegang (alles loopt al via security-definer-RPC's);
+>    `products` leesbaar voor alle ingelogden (catalogus).
+> 4. `ensure_inspector` stopt met auto-provisioning: bestaande
+>    keurmeesters blijven werken, nieuwe komen er alleen via het
+>    beheerscherm/een uitnodiging (het huidige gedrag maakt elk
+>    zelf-geregistreerd account keurmeester — onhoudbaar met een publieke
+>    klant-login).
+> 5. Pas daarna: uitnodigingscodes naar echte klanten.
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
