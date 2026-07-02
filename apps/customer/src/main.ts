@@ -4,7 +4,7 @@ import { createRouter, createWebHashHistory } from "vue-router";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
-import { useAuth } from "@gearonimo/core";
+import { useAuth, supabase } from "@gearonimo/core";
 
 const i18n = createI18n({
   legacy: false,
@@ -23,6 +23,9 @@ const router = createRouter({
     { path: "/", component: () => import("./pages/Home.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
     { path: "/koppelen", component: () => import("./pages/Join.vue") },
+    // Vangnet: een onbekende hash (bv. restanten van een auth-redirect)
+    // hoort nooit een leeg scherm op te leveren.
+    { path: "/:pathMatch(.*)*", redirect: "/" },
   ],
 });
 
@@ -45,4 +48,20 @@ router.beforeEach(async (to) => {
   if (isLoggedIn.value && to.path === "/login") return "/";
 });
 
-createApp(App).use(i18n).use(router).mount("#app");
+// De magic-link komt terug met de tokens in de hash
+// (/klant/#access_token=...). De hash-router zou die als (onbestaande)
+// route lezen -> wit scherm (gemeld door Jos, 2026-07-02). getSession()
+// wacht tot supabase-js de tokens uit de URL heeft verwerkt en de hash
+// heeft schoongemaakt; pas daarna mag de router de hash interpreteren.
+async function bootstrap() {
+  if (window.location.hash.includes("access_token=")) {
+    await supabase.auth.getSession();
+    // Voor de zekerheid: alles wat er nog aan auth-restanten in de hash
+    // staat weghalen, zodat de router op een schone '/' start.
+    if (window.location.hash.includes("access_token=")) {
+      window.history.replaceState(null, "", window.location.pathname);
+    }
+  }
+  createApp(App).use(i18n).use(router).mount("#app");
+}
+void bootstrap();
