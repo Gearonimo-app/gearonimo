@@ -5,7 +5,7 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Voortgang (bijgewerkt 2026-06-27)
+## Voortgang (bijgewerkt 2026-07-02)
 
 - **GitHub:** github.com/Gearonimo-app/gearonimo · **Supabase:**
   buitfeiclivzzldfdelp.supabase.co (EU).
@@ -714,11 +714,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 - **Live:** de inspector-app draait op **https://gearonimo.net** (GitHub
   Pages; auto-deploy bij elke push naar `main`, zie
   `.github/workflows/deploy.yml`). De repo is daarvoor **openbaar** gemaakt.
-- **Let op — beveiliging:** RLS staat momenteel **UIT** op `customers`
-  (tijdelijk, voor testen); tabelrechten zijn toegekend aan de rol
-  `authenticated`. RLS moet later aan, met scope op `customer_id` (zie
-  BLAUWDRUK). Dit was ook de "permission denied" die deze sessie is opgelost:
-  een GRANT-kwestie, geen sessie-/RLS-probleem.
+- **Beveiliging (bijgewerkt 2026-07-02):** RLS staat sinds slice 3.2 **AAN**
+  op alle public-tabellen (migratie `20260713_rls_enable.sql`, zie fase 3
+  hieronder). De eerdere bouwfase-situatie (RLS uit + brede GRANTs aan
+  `authenticated`) is daarmee afgesloten. Noodrem: `supabase/rls-rollback.sql`
+  zet alles in één keer terug als er midden op een keurdag iets blokkeert.
 
 Uitgangspunten:
 
@@ -843,6 +843,31 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 >    zelf-geregistreerd account keurmeester — onhoudbaar met een publieke
 >    klant-login).
 > 5. Pas daarna: uitnodigingscodes naar echte klanten.
+>
+> **Slice 3.2 gebouwd + live getest (2026-07-02):** de RLS-migratie
+> (`supabase/migrations/20260713_rls_enable.sql`) is gebouwd op de
+> introspectie-dump van Jos — niet op aannames — en draait live. Kern:
+> RLS aan op alle public-tabellen; keurmeesters (actieve `inspectors`-rij)
+> zien/bewerken alles van hun eigen bedrijf via `customer_links` (met
+> definer-helpers tegen policy-recursie); klant-accounts hebben géén
+> directe tabel-toegang (alles via de security-definer-RPC's); catalogus
+> leesbaar voor ingelogden; TRUNCATE/REFERENCES/TRIGGER ingetrokken;
+> Storage schrijven alleen nog voor keurmeesters (een klant-account kon
+> eerst certificaat-PDF's overschrijven); `ensure_inspector` provisioneert
+> niet langer elk nieuw account tot keurmeester. De schema-diff bracht ook
+> drie losse live-gebreken boven water die meteen zijn rechtgezet
+> (`customer_members.user_id` onterecht NOT NULL; ontbrekende
+> DELETE-grants op `articles` en `certificates`). Noodrem:
+> `supabase/rls-rollback.sql` (bewust géén migratie) zet alles in één keer
+> terug. Jos' testronde leverde nog vier fixes/wensen op, alle gebouwd:
+> uitlogknop + duidelijke klant-account-melding in de Pro-app (de sessie
+> wordt sinds de klant-app op hetzelfde domein gedeeld), router-guard die
+> op de sessie-load wacht (hoofdmenu verscheen eerst zonder login), het
+> witte scherm na de magic-link (auth-tokens in de URL-hash botsten met de
+> hash-router), en in de wizard het Gebruiker-veld in de toevoegrij +
+> certificaat-PDF's die echt als download in de Downloads-map landen.
+> Daarmee is stap 5 vrijgegeven: **uitnodigingscodes kunnen naar echte
+> klanten** (actie Jos, het fase-3-mijlpaalmoment).
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
