@@ -2,12 +2,23 @@
   <div class="home">
     <!-- Header -->
     <header class="home__header">
-      <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
+      <div class="home__header-row">
+        <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
+        <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
+      </div>
       <div class="home__status">
         <span class="home__status-dot" :class="statusClass"></span>
         {{ statusText }}
       </div>
     </header>
+
+    <!-- Klant-account in de Pro-app beland (zelfde domein, gedeelde sessie):
+         duidelijk zeggen wat er aan de hand is i.p.v. lege lijsten en vage
+         fouten -- met de weg naar de juiste app en een uitlogknop. -->
+    <div v-if="notInspector" class="home__wrong-app">
+      <p>{{ $t('home.notInspector') }}</p>
+      <a class="home__wrong-app-link" href="/klant/">{{ $t('home.goToCustomerApp') }}</a>
+    </div>
 
     <!-- Zoekbalk -->
     <div class="home__search">
@@ -37,11 +48,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuth } from '@gearonimo/core'
+import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
+const { signOut } = useAuth()
 const searchQuery = ref('')
+
+const notInspector = ref(false)
+
+async function onSignOut() {
+  await signOut()
+  router.push('/login')
+}
+
+// Stil checken of dit account wel een keurmeester is: sinds de klant-app
+// (zelfde domein, gedeelde sessie) kan een klant-account hier belanden en
+// zag dan alleen lege lijsten. ensureInspector werpt dan een fout.
+onMounted(async () => {
+  try {
+    await ensureInspector()
+  } catch {
+    notInspector.value = true
+  }
+})
 
 const tiles = [
   { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'green'  },
@@ -90,12 +122,35 @@ function onSearch() {
   color: #fff;
   padding: 1.25rem 1.5rem 1rem;
 }
+.home__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+}
 .home__app-name {
   font-size: 1.4rem;
   font-weight: 700;
-  margin: 0 0 0.4rem;
+  margin: 0;
   letter-spacing: 0.01em;
 }
+.home__signout {
+  background: none;
+  border: none;
+  color: #a7c4b0;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+.home__wrong-app {
+  margin: 1.25rem 1.25rem 0;
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  color: #92400e;
+}
+.home__wrong-app p { margin: 0 0 0.5rem; }
+.home__wrong-app-link { color: #16a34a; font-weight: 700; }
 .home__status {
   font-size: 0.9rem;
   opacity: 0.85;

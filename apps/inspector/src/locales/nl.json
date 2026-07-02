@@ -19,7 +19,10 @@
       "settings": "Instellingen",
       "reserved": "",
       "offline": "Offline downloads"
-    }
+    },
+    "signOut": "Uitloggen",
+    "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
+    "goToCustomerApp": "Ga naar de klantomgeving →"
   },
   "serialSearch": {
     "title": "SN zoeken / Recall",

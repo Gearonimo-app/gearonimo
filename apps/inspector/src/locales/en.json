@@ -19,7 +19,10 @@
       "settings": "Settings",
       "reserved": "",
       "offline": "Offline downloads"
-    }
+    },
+    "signOut": "Sign out",
+    "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
+    "goToCustomerApp": "Go to the customer app →"
   },
   "serialSearch": {
     "title": "SN search / Recall",
