@@ -50,6 +50,8 @@
       "never_inspected": "Not inspected yet"
     },
     "certificates": "Certificates",
-    "noCertificates": "No certificates yet."
+    "noCertificates": "No certificates yet.",
+    "retire": "Replaced? Retire",
+    "retireConfirm": "Retire \"{name}\"? It disappears from this overview and from future inspections. Inspection history and certificates are kept."
   }
 }

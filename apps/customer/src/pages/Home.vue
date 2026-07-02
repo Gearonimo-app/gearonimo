@@ -27,13 +27,16 @@
       <!-- Artikelen -->
       <section class="hm__section">
         <h2>{{ $t('home.articles') }}</h2>
+        <p v-if="retireError" class="hm__state hm__state--error">{{ retireError }}</p>
         <p v-if="!articles.length" class="hm__state">{{ $t('home.noArticles') }}</p>
         <ul v-else class="hm__list">
           <li v-for="a in sortedArticles" :key="a.id" class="hm__item">
             <div class="hm__item-main">
               <div class="hm__item-name">
                 {{ [a.brand, a.name].filter(Boolean).join(' ') || $t('home.untitled') }}
-                <a v-if="a.manual_url" :href="a.manual_url" target="_blank" :title="$t('home.manual')">📖</a>
+                <!-- Tekstlink i.p.v. het boek-emoji: dat rendert op sommige
+                     desktopfonts als een leeg vierkantje. -->
+                <a v-if="a.manual_url" :href="a.manual_url" target="_blank" class="hm__manual">{{ $t('home.manual') }}</a>
                 <a v-if="a.recall_url" :href="a.recall_url" target="_blank" class="hm__recall" :title="$t('home.recall')">🚩 {{ $t('home.recall') }}</a>
               </div>
               <div class="hm__item-meta">
@@ -41,6 +44,16 @@
                 <span v-if="a.assigned_user_name">· {{ a.assigned_user_name }}</span>
                 <span v-if="a.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(a.next_due) }}</span>
               </div>
+              <!-- Afgekeurd en vervangen? Dan mag de klant het zelf afvoeren:
+                   verdwijnt uit dit overzicht en uit volgende keuringen,
+                   historie en certificaten blijven bewaard (retired-vlag,
+                   zelfde mechanisme als de keurmeester-app). -->
+              <button
+                v-if="a.uiStatus === 'rejected'"
+                class="hm__retire"
+                :disabled="retiringId === a.id"
+                @click="retireArticle(a)"
+              >{{ retiringId === a.id ? $t('common.busy') : $t('home.retire') }}</button>
             </div>
             <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`">{{ $t(`home.status.${a.uiStatus}`) }}</span>
           </li>
@@ -68,9 +81,11 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { supabase, useAuth, errorMessage, calcStatus } from "@gearonimo/core";
 
 const router = useRouter();
+const { t } = useI18n();
 const { signOut } = useAuth();
 
 interface ArticleRow {
@@ -172,6 +187,24 @@ async function load() {
   }
 }
 
+const retiringId = ref<string | null>(null);
+const retireError = ref("");
+
+async function retireArticle(a: UiArticle) {
+  if (!confirm(t("home.retireConfirm", { name: [a.brand, a.name].filter(Boolean).join(" ") }))) return;
+  retiringId.value = a.id;
+  retireError.value = "";
+  try {
+    const { error: err } = await supabase.rpc("retire_my_article", { p_article_id: a.id });
+    if (err) throw err;
+    articles.value = articles.value.filter((x) => x.id !== a.id);
+  } catch (e) {
+    retireError.value = errorMessage(e);
+  } finally {
+    retiringId.value = null;
+  }
+}
+
 async function onSignOut() {
   await signOut();
   router.push("/login");
@@ -225,6 +258,12 @@ onMounted(load);
 .hm__item-name { font-weight: 600; }
 .hm__item-name a { text-decoration: none; margin-left: 0.35rem; }
 .hm__recall { color: #dc2626; font-size: 0.8rem; font-weight: 700; }
+.hm__manual { color: #16a34a; font-size: 0.8rem; font-weight: 600; margin-left: 0.35rem; }
+.hm__retire {
+  margin-top: 0.4rem; border: 1px solid #fecaca; background: #fff; color: #dc2626;
+  border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+}
+.hm__retire:disabled { opacity: 0.6; }
 .hm__item-meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
 
 .hm__chip {

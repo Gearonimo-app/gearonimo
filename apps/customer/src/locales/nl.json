@@ -50,6 +50,8 @@
       "never_inspected": "Nog niet gekeurd"
     },
     "certificates": "Certificaten",
-    "noCertificates": "Nog geen certificaten."
+    "noCertificates": "Nog geen certificaten.",
+    "retire": "Vervangen? Afvoeren",
+    "retireConfirm": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen. De keuringshistorie en certificaten blijven bewaard."
   }
 }
