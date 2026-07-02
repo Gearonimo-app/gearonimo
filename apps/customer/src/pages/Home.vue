@@ -44,19 +44,20 @@
                 <span v-if="a.assigned_user_name">· {{ a.assigned_user_name }}</span>
                 <span v-if="a.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(a.next_due) }}</span>
               </div>
-              <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
-                   ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
-                   de keurmeester ziet die terug bij het SN-zoeken. Verdwijnt
-                   uit dit overzicht en uit volgende keuringen; historie en
-                   certificaten blijven bewaard (retired-vlag, zelfde
-                   mechanisme als de keurmeester-app). -->
-              <button
-                class="hm__retire"
-                :disabled="retiringId === a.id"
-                @click="retireArticle(a)"
-              >{{ retiringId === a.id ? $t('common.busy') : (a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')) }}</button>
             </div>
-            <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`">{{ $t(`home.status.${a.uiStatus}`) }}</span>
+            <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
+                 chip draagt de betekenis, net als in de keurtabel. -->
+            <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`" :title="$t(`home.status.${a.uiStatus}`)">{{ statusIcon(a.uiStatus) }}</span>
+            <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
+                 ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
+                 de keurmeester ziet die terug bij het SN-zoeken. Bewust een
+                 onopvallend prullenbakje: het is een uitzonderingsactie. -->
+            <button
+              class="hm__trash"
+              :title="a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
+              :disabled="retiringId === a.id"
+              @click="retireArticle(a)"
+            >🗑</button>
           </li>
         </ul>
       </section>
@@ -150,6 +151,12 @@ const verdict = computed<"good" | "warn" | "bad">(() => {
   return "good";
 });
 const verdictIcon = computed(() => ({ good: "✅", warn: "⚠️", bad: "❌" })[verdict.value]);
+
+// Vinkjes/kruisjes i.p.v. tekst in de statuschips (wens Jos 2026-07-02);
+// de volledige tekst blijft als tooltip beschikbaar.
+function statusIcon(s: UiStatus): string {
+  return { ok: "✓", due_soon: "!", overdue: "✗", rejected: "✗", never_inspected: "—" }[s];
+}
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
@@ -270,16 +277,17 @@ onMounted(load);
 .hm__item-name a { text-decoration: none; margin-left: 0.35rem; }
 .hm__recall { color: #dc2626; font-size: 0.8rem; font-weight: 700; }
 .hm__manual { color: #16a34a; font-size: 0.8rem; font-weight: 600; margin-left: 0.35rem; }
-.hm__retire {
-  margin-top: 0.4rem; border: 1px solid #fecaca; background: #fff; color: #dc2626;
-  border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+.hm__trash {
+  flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+  font-size: 1rem; opacity: 0.45; padding: 0.25rem;
 }
-.hm__retire:disabled { opacity: 0.6; }
+.hm__trash:hover { opacity: 1; }
+.hm__trash:disabled { opacity: 0.25; }
 .hm__item-meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
 
 .hm__chip {
-  flex: 0 0 auto; font-size: 0.75rem; font-weight: 700;
-  border-radius: 999px; padding: 0.25rem 0.6rem; white-space: nowrap;
+  flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; line-height: 1;
+  border-radius: 999px; padding: 0.35rem 0; width: 1.9rem; text-align: center;
 }
 .hm__chip--ok { background: #dcfce7; color: #166534; }
 .hm__chip--due_soon { background: #fef9c3; color: #854d0e; }
