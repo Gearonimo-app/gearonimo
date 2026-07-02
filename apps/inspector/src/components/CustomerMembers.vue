@@ -13,6 +13,7 @@
       <li v-for="m in members" :key="m.id" class="cm__item" @click="isOnline && openEdit(m)">
         <div class="cm__name">
           {{ m.name }}
+          <span v-if="m.is_admin" class="cm__badge cm__badge--admin">{{ $t('members.adminBadge') }}</span>
           <span v-if="!m.active" class="cm__badge">{{ $t('members.inactiveBadge') }}</span>
         </div>
         <div v-if="m.role" class="cm__meta">{{ m.role }}</div>
@@ -29,6 +30,13 @@
       <label class="cm__checkbox">
         <input type="checkbox" v-model="form.active" />
         {{ $t('members.fields.active') }}
+      </label>
+      <!-- Beheerder in de klant-app: mag daar medewerkers beheren. Zo kan de
+           keurmeester de contactpersoon aanwijzen; anders wordt het eerste
+           account dat met de uitnodigingscode koppelt automatisch beheerder. -->
+      <label class="cm__checkbox">
+        <input type="checkbox" v-model="form.is_admin" />
+        {{ $t('members.fields.admin') }}
       </label>
 
       <p v-if="formError" class="cm__error">{{ formError }}</p>
@@ -72,6 +80,7 @@ interface Member {
   email: string | null
   notes: string | null
   active: boolean
+  is_admin: boolean
 }
 
 const members = ref<Member[]>([])
@@ -86,7 +95,7 @@ const showDelete = ref(false)
 const deleting = ref(false)
 
 function emptyForm() {
-  return { name: '', role: '', phone: '', email: '', notes: '', active: true }
+  return { name: '', role: '', phone: '', email: '', notes: '', active: true, is_admin: false }
 }
 const form = ref(emptyForm())
 
@@ -129,6 +138,7 @@ function openEdit(m: Member) {
   form.value = {
     name: m.name, role: m.role ?? '', phone: m.phone ?? '',
     email: m.email ?? '', notes: m.notes ?? '', active: m.active,
+    is_admin: m.is_admin ?? false,
   }
   formError.value = ''
   showForm.value = true
@@ -153,6 +163,7 @@ async function save() {
     email: form.value.email.trim() || null,
     notes: form.value.notes.trim() || null,
     active: form.value.active,
+    is_admin: form.value.is_admin,
   }
 
   const { error: err } = editingId.value
@@ -200,6 +211,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   display: inline-block; margin-left: 0.5rem; background: #f3f4f6; color: #6b7280;
   border-radius: 6px; padding: 0.1rem 0.5rem; font-size: 0.75rem; font-weight: 600;
 }
+.cm__badge--admin { background: #dcfce7; color: #166534; }
 
 .cm__form { background: #fff; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
 .cm__form h3 { margin: 0 0 0.25rem; font-size: 1rem; }

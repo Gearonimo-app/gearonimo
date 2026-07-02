@@ -104,7 +104,8 @@
       "phone": "Phone",
       "email": "Email",
       "notes": "Notes",
-      "active": "Active"
+      "active": "Active",
+      "admin": "Admin in the client app (can manage members there)"
     },
     "errors": {
       "nameRequired": "Name is required"
@@ -112,7 +113,8 @@
     "detail": {
       "deleteTitle": "Delete member?",
       "deleteBody": "This cannot be undone."
-    }
+    },
+    "adminBadge": "Client app admin"
   },
   "articles": {
     "title": "Articles",

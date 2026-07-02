@@ -23,6 +23,7 @@ const router = createRouter({
     { path: "/", component: () => import("./pages/Home.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
     { path: "/koppelen", component: () => import("./pages/Join.vue") },
+    { path: "/medewerkers", component: () => import("./pages/Members.vue") },
     // Vangnet: een onbekende hash (bv. restanten van een auth-redirect)
     // hoort nooit een leeg scherm op te leveren.
     { path: "/:pathMatch(.*)*", redirect: "/" },

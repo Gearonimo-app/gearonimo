@@ -2,7 +2,10 @@
   <div class="hm">
     <header class="hm__header">
       <h1>{{ customerName || 'Gearonimo' }}</h1>
-      <button class="hm__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
+      <nav class="hm__nav">
+        <router-link v-if="isAdmin" to="/medewerkers" class="hm__navlink">{{ $t('members.title') }}</router-link>
+        <button class="hm__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
+      </nav>
     </header>
 
     <div v-if="loading" class="hm__state">{{ $t('common.loading') }}</div>
@@ -26,7 +29,17 @@
 
       <!-- Artikelen -->
       <section class="hm__section">
-        <h2>{{ $t('home.articles') }}</h2>
+        <div class="hm__section-head">
+          <h2>{{ $t('home.articles') }}</h2>
+          <!-- Zelf materiaal aanmelden mag elk actief lid (zelfde lijn als
+               afvoeren); de keurmeester ziet het terug met source='customer'. -->
+          <button v-if="!addingArticle" class="hm__addbtn" @click="addingArticle = true">{{ $t('home.addArticle.button') }}</button>
+        </div>
+        <AddArticleForm
+          v-if="addingArticle"
+          @close="addingArticle = false"
+          @added="onArticleAdded"
+        />
         <p v-if="retireError" class="hm__state hm__state--error">{{ retireError }}</p>
         <p v-if="!articles.length" class="hm__state">{{ $t('home.noArticles') }}</p>
         <ul v-else class="hm__list">
@@ -85,6 +98,7 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { supabase, useAuth, errorMessage, calcStatus } from "@gearonimo/core";
+import AddArticleForm from "../components/AddArticleForm.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -118,6 +132,8 @@ interface CertificateRow {
 }
 
 const customerName = ref("");
+const isAdmin = ref(false);
+const addingArticle = ref(false);
 const articles = ref<UiArticle[]>([]);
 const certificates = ref<CertificateRow[]>([]);
 const loading = ref(true);
@@ -183,6 +199,7 @@ async function load() {
       return;
     }
     customerName.value = row.customer_name;
+    isAdmin.value = !!row.is_admin;
 
     const [arts, certs] = await Promise.all([
       supabase.rpc("my_articles"),
@@ -227,6 +244,11 @@ async function retireArticle(a: UiArticle) {
   }
 }
 
+async function onArticleAdded() {
+  addingArticle.value = false;
+  await load();
+}
+
 async function onSignOut() {
   await signOut();
   router.push("/login");
@@ -243,7 +265,15 @@ onMounted(load);
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
 .hm__header h1 { font-size: 1.2rem; margin: 0; }
+.hm__nav { display: flex; align-items: center; gap: 0.85rem; }
+.hm__navlink { color: #a7c4b0; text-decoration: none; font-size: 0.9rem; }
 .hm__signout { background: none; border: none; color: #a7c4b0; cursor: pointer; font-size: 0.9rem; }
+.hm__section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.hm__section-head h2 { margin: 0; }
+.hm__addbtn {
+  background: #16a34a; color: #fff; border: none; border-radius: 8px;
+  padding: 0.4rem 0.8rem; font-weight: 700; cursor: pointer; font-size: 0.85rem;
+}
 .hm__state { text-align: center; padding: 2rem 1rem; color: #666; }
 .hm__state--error { color: #dc2626; }
 .hm__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }

@@ -868,6 +868,42 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > certificaat-PDF's die echt als download in de Downloads-map landen.
 > Daarmee is stap 5 vrijgegeven: **uitnodigingscodes kunnen naar echte
 > klanten** (actie Jos, het fase-3-mijlpaalmoment).
+>
+> **Slice 3.3 gebouwd (2026-07-02): klantbedrijf-admin.** De twee
+> resterende fase-3-bouwblokken voor de klant-app, volledig via nieuwe
+> security-definer-RPC's (klant-accounts houden géén directe tabel-toegang;
+> migratie `supabase/migrations/20260714_customer_admin.sql` — **nog door
+> Jos uit te voeren in Supabase**, idempotent):
+> - **Medewerkers beheren** (pagina `/medewerkers` in de klant-app, link in
+>   de kopbalk): lijst met badges (beheerder/inactief/nog geen account),
+>   toevoegen/bewerken (naam, functie, telefoon, e-mail, actief). Beheer is
+>   voorbehouden aan **beheerders**: nieuwe boolean
+>   `customer_members.is_admin` (zelfde patroon als `inspectors.is_admin`;
+>   dit overrulet het `role='manager'`-idee uit DATAMODEL — `role` is in de
+>   praktijk al vrije tekst voor de functie). Het **eerste account dat met
+>   de uitnodigingscode koppelt wordt automatisch beheerder** (backfill
+>   regelt dit ook voor bestaande koppelingen), en de keurmeester kan de
+>   beheerder aanwijzen via een nieuw vinkje in het medewerkersscherm van
+>   de inspector-app. Vergrendel-vangnet: je kunt jezelf niet inactief of
+>   niet-beheerder maken. De beheerder ziet op de medewerkers-pagina ook de
+>   **uitnodigingscode** van het bedrijf (kopieerbaar) met uitleg — collega
+>   koppelt zelf, e-mail-hereniging plakt account en medewerker-rij aan
+>   elkaar. Lijst is leesbaar voor elk actief lid (zichtbaarheid per
+>   bedrijf, DATAMODEL-besluit 2026-06-14); alleen bewerken is
+>   beheerder-werk.
+> - **Artikelen toevoegen door de klant** ("+ Toevoegen" bij Materiaal op
+>   het dashboard, mag elk actief lid — zelfde lijn als afvoeren): zoeken
+>   in de catalogus via de bestaande fuzzy `search_products` (werkt voor
+>   klant-accounts dankzij de products-leespolicy uit 20260713), of vrije
+>   invoer als het product er niet tussen staat — die gaat dan automatisch
+>   de **catalogus-wachtrij** in (`suggest_for_catalog`, "onbekend product
+>   → wachtrij" uit het faseplan). Velden: serienummer, gebruiker,
+>   bouwjaar/-maand, in-gebruik-sinds. Nieuwe artikelen krijgen
+>   `source='customer'` (check-constraint verruimd) zodat de keurmeester
+>   ziet waar het vandaan komt.
+> Beide apps bouwen groen (vue-tsc + vite), 54 core-tests groen. Nog te
+> doen: live-test door Jos (migratie uitvoeren → medewerker toevoegen,
+> collega laten koppelen, artikel toevoegen mét en zónder catalogusmatch).
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.

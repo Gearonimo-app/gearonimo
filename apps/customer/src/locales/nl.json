@@ -55,6 +55,49 @@
     "retireConfirm": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen. De keuringshistorie en certificaten blijven bewaard.",
     "retireOther": "Afvoeren",
     "retirePrompt": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen; historie en certificaten blijven bewaard.\n\nReden (optioneel, bv. vervangen / verloren / gestolen):",
-    "retireReasonReplaced": "vervangen na afkeur"
+    "retireReasonReplaced": "vervangen na afkeur",
+    "addArticle": {
+      "button": "+ Toevoegen",
+      "search": "Zoek in de catalogus (merk of naam)",
+      "freeToggle": "Staat het er niet tussen? Zelf invullen",
+      "backToSearch": "‹ Toch in de catalogus zoeken",
+      "description": "Omschrijving *",
+      "brand": "Merk",
+      "category": "Categorie (bv. helm, lijn)",
+      "serial": "Serienummer",
+      "user": "Gebruiker (wie draagt het)",
+      "year": "Bouwjaar",
+      "month": "Maand",
+      "firstUse": "In gebruik sinds (optioneel)",
+      "queueNote": "Onbekende producten bieden we automatisch aan voor de Gearonimo-catalogus.",
+      "save": "Toevoegen",
+      "cancel": "Annuleren",
+      "needProductOrDescription": "Kies een product uit de catalogus of vul een omschrijving in."
+    }
+  },
+  "members": {
+    "title": "Medewerkers",
+    "back": "Terug",
+    "add": "+ Medewerker",
+    "edit": "Bewerken",
+    "empty": "Nog geen medewerkers.",
+    "badgeAdmin": "Beheerder",
+    "badgeInactive": "Inactief",
+    "badgeNoAccount": "nog geen account",
+    "you": "jij",
+    "fields": {
+      "name": "Naam *",
+      "role": "Functie",
+      "phone": "Telefoon",
+      "email": "E-mailadres",
+      "active": "Actief",
+      "admin": "Beheerder (mag medewerkers beheren)"
+    },
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "inviteTitle": "Collega's uitnodigen",
+    "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de medewerker staat, dan worden account en medewerker automatisch samengevoegd.",
+    "copy": "Kopiëren",
+    "readOnly": "Alleen een beheerder kan medewerkers bewerken."
   }
 }

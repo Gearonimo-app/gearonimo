@@ -104,7 +104,8 @@
       "phone": "Telefoon",
       "email": "E-mail",
       "notes": "Opmerkingen",
-      "active": "In dienst"
+      "active": "In dienst",
+      "admin": "Beheerder in de klant-app (mag daar medewerkers beheren)"
     },
     "errors": {
       "nameRequired": "Naam is verplicht"
@@ -112,7 +113,8 @@
     "detail": {
       "deleteTitle": "Medewerker verwijderen?",
       "deleteBody": "Dit kan niet ongedaan gemaakt worden."
-    }
+    },
+    "adminBadge": "Beheerder klant-app"
   },
   "articles": {
     "title": "Artikelen",

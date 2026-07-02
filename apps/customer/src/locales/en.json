@@ -55,6 +55,49 @@
     "retireConfirm": "Retire \"{name}\"? It disappears from this overview and from future inspections. Inspection history and certificates are kept.",
     "retireOther": "Retire",
     "retirePrompt": "Retire \"{name}\"? It disappears from this overview and from future inspections; history and certificates are kept.\n\nReason (optional, e.g. replaced / lost / stolen):",
-    "retireReasonReplaced": "replaced after rejection"
+    "retireReasonReplaced": "replaced after rejection",
+    "addArticle": {
+      "button": "+ Add",
+      "search": "Search the catalogue (brand or name)",
+      "freeToggle": "Not listed? Enter it yourself",
+      "backToSearch": "‹ Search the catalogue instead",
+      "description": "Description *",
+      "brand": "Brand",
+      "category": "Category (e.g. helmet, lanyard)",
+      "serial": "Serial number",
+      "user": "User (who wears it)",
+      "year": "Year of manufacture",
+      "month": "Month",
+      "firstUse": "In use since (optional)",
+      "queueNote": "Unknown products are automatically suggested for the Gearonimo catalogue.",
+      "save": "Add",
+      "cancel": "Cancel",
+      "needProductOrDescription": "Pick a product from the catalogue or enter a description."
+    }
+  },
+  "members": {
+    "title": "Team members",
+    "back": "Back",
+    "add": "+ Member",
+    "edit": "Edit",
+    "empty": "No team members yet.",
+    "badgeAdmin": "Admin",
+    "badgeInactive": "Inactive",
+    "badgeNoAccount": "no account yet",
+    "you": "you",
+    "fields": {
+      "name": "Name *",
+      "role": "Job title",
+      "phone": "Phone",
+      "email": "Email address",
+      "active": "Active",
+      "admin": "Admin (can manage team members)"
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "inviteTitle": "Invite colleagues",
+    "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the member here, and the account and member record are merged automatically.",
+    "copy": "Copy",
+    "readOnly": "Only an admin can edit team members."
   }
 }
