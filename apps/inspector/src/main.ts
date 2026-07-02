@@ -1,4 +1,4 @@
-import { createApp } from "vue";
+import { createApp, watch } from "vue";
 import { createI18n } from "vue-i18n";
 import { createRouter, createWebHistory } from "vue-router";
 import { registerSW } from "virtual:pwa-register";
@@ -108,9 +108,22 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to) => {
+// Wacht op de initiële sessie-load: de oude "if (loading) return true" liet
+// tijdens het laden ELKE navigatie door, waardoor het hoofdmenu altijd eerst
+// zonder login verscheen en het inlogscherm pas bij de volgende klik kwam
+// (gemeld door Jos, 2026-07-02). Zelfde patroon als de klant-app.
+router.beforeEach(async (to) => {
   const { isLoggedIn, loading } = useAuth();
-  if (loading.value) return true;
+  if (loading.value) {
+    await new Promise<void>((resolve) => {
+      const stop = watch(loading, (l) => {
+        if (!l) {
+          stop();
+          resolve();
+        }
+      });
+    });
+  }
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return "/login";
   }
