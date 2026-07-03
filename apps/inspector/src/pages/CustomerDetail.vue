@@ -28,7 +28,7 @@
         </template>
       </dl>
       <!-- Uitnodigingscode voor de klant-app (fase 3): hiermee koppelt een
-           medewerker van deze klant zijn account op gearonimo.net/klant/. -->
+           medewerker van deze klant zijn account op gearonimo.net/portal/. -->
       <div v-if="customer.invite_code" class="cd__invite">
         <span class="cd__invite-label">{{ $t('customers.detail.inviteCode') }}</span>
         <code class="cd__invite-code">{{ customer.invite_code }}</code>

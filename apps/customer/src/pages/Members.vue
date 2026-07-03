@@ -116,7 +116,7 @@ async function load() {
     if (custErr) throw custErr;
     const row = Array.isArray(cust) ? cust[0] : cust;
     if (!row) {
-      router.replace("/koppelen");
+      router.replace("/join");
       return;
     }
     customerName.value = row.customer_name;

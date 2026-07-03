@@ -3,7 +3,7 @@
     <header class="hm__header">
       <h1>{{ customerName || 'Gearonimo' }}</h1>
       <nav class="hm__nav">
-        <router-link v-if="isAdmin" to="/medewerkers" class="hm__navlink">{{ $t('members.title') }}</router-link>
+        <router-link v-if="isAdmin" to="/members" class="hm__navlink">{{ $t('members.title') }}</router-link>
         <button class="hm__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
       </nav>
     </header>
@@ -195,7 +195,7 @@ async function load() {
     const row = Array.isArray(cust) ? cust[0] : cust;
     if (!row) {
       // Nog niet gekoppeld aan een klantbedrijf: eerst de uitnodigingscode.
-      router.replace("/koppelen");
+      router.replace("/join");
       return;
     }
     customerName.value = row.customer_name;

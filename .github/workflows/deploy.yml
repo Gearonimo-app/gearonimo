@@ -24,12 +24,23 @@ jobs:
           node-version: 20
       - run: npm install
       - run: cd apps/inspector && npx vite build
-      # Klant-app (fase 3) op hetzelfde domein onder /klant/ (hash-router,
+      # Klant-app (fase 3) op hetzelfde domein onder /portal/ (hash-router,
       # dus geen eigen 404-fallback nodig). Ná de inspector-build kopiëren,
       # zodat de klant-app niet in de precache van de inspector-service-
       # worker belandt (die shell moet licht blijven, zie vite.config).
       - run: cd apps/customer && npx vite build
-      - run: mkdir -p apps/inspector/dist/klant && cp -r apps/customer/dist/. apps/inspector/dist/klant/
+      - run: mkdir -p apps/inspector/dist/portal && cp -r apps/customer/dist/. apps/inspector/dist/portal/
+      # Oude pad /klant/ (vóór de Engelstalige hernoeming 2026-07-03) blijft
+      # doorverwijzen; location.replace behoudt de #-hash, zodat ook een oude
+      # magic-link met auth-tokens nog goed landt.
+      - run: |
+          mkdir -p apps/inspector/dist/klant
+          cat > apps/inspector/dist/klant/index.html <<'HTML'
+          <!doctype html>
+          <meta charset="utf-8">
+          <title>Gearonimo</title>
+          <script>location.replace('/portal/' + location.hash);</script>
+          HTML
       # SPA-fallback: deeplinks (bv. /customers) terug naar index.html
       - run: cp apps/inspector/dist/index.html apps/inspector/dist/404.html
       # Eigen domein vasthouden

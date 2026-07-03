@@ -17,7 +17,7 @@
          fouten -- met de weg naar de juiste app en een uitlogknop. -->
     <div v-if="notInspector" class="home__wrong-app">
       <p>{{ $t('home.notInspector') }}</p>
-      <a class="home__wrong-app-link" href="/klant/">{{ $t('home.goToCustomerApp') }}</a>
+      <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
     </div>
 
     <!-- Zoekbalk -->

@@ -904,6 +904,25 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > Beide apps bouwen groen (vue-tsc + vite), 54 core-tests groen. Nog te
 > doen: live-test door Jos (migratie uitvoeren → medewerker toevoegen,
 > collega laten koppelen, artikel toevoegen mét en zónder catalogusmatch).
+> Migratie 20260714 is door Jos uitgevoerd (2026-07-03) en de slice is naar
+> `main` gemerged (live).
+>
+> **URL's naar het Engels (2026-07-03, op verzoek Jos):** de klant-app is
+> verhuisd van `gearonimo.net/klant/` naar **`gearonimo.net/portal/`** —
+> conform de afspraak "code/naamgeving in het Engels" (BLAUWDRUK §3), en
+> `portal` i.p.v. `customer` omdat dat één letter scheelt met `/customers`
+> (klantbeheer in de Pro-app) en een typfout dan in de verkeerde app landt.
+> Hash-routes mee hernoemd: `#/koppelen` → `#/join`, `#/medewerkers` →
+> `#/members`. Oude paden blijven werken: `/klant/` krijgt bij de deploy een
+> doorverwijspagina die de `#`-hash behoudt (dus ook oude magic-links landen
+> goed), en de oude hash-routes zijn router-redirects. In dezelfde ronde
+> `/inspection/new` → `/inspections/new` (enkelvoud/meervoud-consistentie in
+> de Pro-app, met redirect). Alle overige paden waren al Engels
+> (gecontroleerd overzicht: /customers, /articles, /sets, /inspections,
+> /serial-search, /settings, /import, /offline, /verify).
+> **Actie Jos:** in Supabase → Authentication → URL Configuration
+> `https://gearonimo.net/portal/*` toevoegen aan de Redirect URLs (en
+> `/klant/*` mag daarna weg).
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.

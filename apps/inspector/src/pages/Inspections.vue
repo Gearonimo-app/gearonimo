@@ -9,7 +9,7 @@
     <!-- Primaire actie: nieuwe keuring starten (los van de lijst zodat je
          nooit per ongeluk een oude keuring opent) -->
     <div class="il__actions">
-      <button class="il__primary" @click="$router.push('/inspection/new')">
+      <button class="il__primary" @click="$router.push('/inspections/new')">
         ➕ {{ $t('inspections.startNew') }}
       </button>
       <button class="il__secondary" @click="$router.push('/import')">

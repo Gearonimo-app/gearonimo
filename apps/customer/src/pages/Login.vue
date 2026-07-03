@@ -41,9 +41,9 @@ async function handleLogin() {
   busy.value = true;
   error.value = "";
   try {
-    // Terug naar de klant-app (/klant/), niet naar de Site URL (de
+    // Terug naar de klant-app (/portal/), niet naar de Site URL (de
     // inspector-app). Pathname i.p.v. hardcoded, zodat lokaal testen
-    // (vite dev, base /klant/) hetzelfde werkt.
+    // (vite dev, base /portal/) hetzelfde werkt.
     await signInWithMagicLink(email.value, window.location.origin + window.location.pathname);
     sent.value = true;
   } catch (e) {

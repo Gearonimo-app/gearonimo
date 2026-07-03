@@ -63,10 +63,14 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: "/inspection/new",
+      // Vóór /inspections/:id declareren zou niet eens hoeven (vue-router
+      // matcht statisch boven params), maar zo staat het er duidelijk.
+      path: "/inspections/new",
       component: () => import("./pages/InspectionNew.vue"),
       meta: { requiresAuth: true },
     },
+    // Oude enkelvoud-route (vóór de URL-consistentieronde 2026-07-03).
+    { path: "/inspection/new", redirect: "/inspections/new" },
     {
       path: "/inspections",
       component: () => import("./pages/Inspections.vue"),

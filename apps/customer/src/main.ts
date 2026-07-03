@@ -14,7 +14,7 @@ const i18n = createI18n({
   messages: { nl, en },
 });
 
-// Hash-history: de app staat onder /klant/ op GitHub Pages, en met
+// Hash-history: de app staat onder /portal/ op GitHub Pages, en met
 // hash-routes werken deeplinks zonder 404-truc en zonder dat de
 // service worker van de inspector-app (scope /) ertussen kan komen.
 const router = createRouter({
@@ -22,8 +22,11 @@ const router = createRouter({
   routes: [
     { path: "/", component: () => import("./pages/Home.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
-    { path: "/koppelen", component: () => import("./pages/Join.vue") },
-    { path: "/medewerkers", component: () => import("./pages/Members.vue") },
+    { path: "/join", component: () => import("./pages/Join.vue") },
+    { path: "/members", component: () => import("./pages/Members.vue") },
+    // Oude Nederlandstalige routes (vóór de hernoeming 2026-07-03).
+    { path: "/koppelen", redirect: "/join" },
+    { path: "/medewerkers", redirect: "/members" },
     // Vangnet: een onbekende hash (bv. restanten van een auth-redirect)
     // hoort nooit een leeg scherm op te leveren.
     { path: "/:pathMatch(.*)*", redirect: "/" },
@@ -50,7 +53,7 @@ router.beforeEach(async (to) => {
 });
 
 // De magic-link komt terug met de tokens in de hash
-// (/klant/#access_token=...). De hash-router zou die als (onbestaande)
+// (/portal/#access_token=...). De hash-router zou die als (onbestaande)
 // route lezen -> wit scherm (gemeld door Jos, 2026-07-02). getSession()
 // wacht tot supabase-js de tokens uit de URL heeft verwerkt en de hash
 // heeft schoongemaakt; pas daarna mag de router de hash interpreteren.
