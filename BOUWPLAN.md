@@ -922,7 +922,53 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > /serial-search, /settings, /import, /offline, /verify).
 > **Actie Jos:** in Supabase → Authentication → URL Configuration
 > `https://gearonimo.net/portal/*` toevoegen aan de Redirect URLs (en
-> `/klant/*` mag daarna weg).
+> `/klant/*` mag daarna weg). **Gedaan (2026-07-03).**
+>
+> **Rollenoverzicht opgesteld + catalogus-curator-rol gebouwd (2026-07-03,
+> vooruitgetrokken uit fase 4).** Op verzoek van Jos eerst een audit van
+> alle rollen in de code (niet uit het geheugen): keurmeester (klanten +
+> keuringen) en klant-admin/end-user waren al volledig gebouwd en
+> afgedwongen; **keurbedrijf-admin** (`inspectors.is_admin`) bleek alleen
+> een kolom + badge zonder enige afdwinging — elke keurmeester kon al
+> alles. **Besluit Jos: dat mag zo blijven** (bedrijfsadmin en keurmeester
+> gelijk; afkeurcodes/certificaat-template zijn al per keurbedrijf
+> ingesteld, niet per keurmeester — dat klopte dus al). De vijfde rol,
+> **"keurmeester die brondata aanvult"**, bleek niet te bestaan: RLS liet
+> niemand in `products` schrijven (bewust, sinds de RLS-ronde). Besluit
+> Jos: een **aparte curator-rol** — hij vertrouwt niet elke keurmeester om
+> de catalogus zelf compleet/correct in te vullen, dus alleen een paar door
+> hem aangewezen keurmeesters mogen rechtstreeks schrijven; de rest kan
+> alleen een artikel op de wachtrij zetten (het bestaande
+> `suggest_for_catalog`-vinkje) zodat Jos controleert vóór het de
+> bibliotheek in gaat — plus zelf makkelijk in Excel kunnen bijwerken.
+>
+> Gebouwd (migratie `supabase/migrations/20260715_catalog_curator.sql` —
+> **nog door Jos uit te voeren in Supabase**, idempotent): nieuwe
+> `inspectors.can_curate_catalog` (losstaand van `is_admin`; de oudste
+> inspector — vrijwel zeker Jos — wordt als enige automatisch curator via
+> backfill), RLS-schrijfbeleid op `products` voor curators
+> (`is_catalog_curator()`-helper). Nieuwe Instellingen-tegel **Catalogus**
+> (alleen zichtbaar voor een curator) met twee onderdelen:
+> - **Wachtrij** (`CatalogQueue.vue`) — alle `suggest_for_catalog`-artikelen,
+>   per stuk voorgevuld met de vrije velden (merk/omschrijving/
+>   categorie/materiaal/norm/MBS): curator vult de rest aan (type, leeftijds-
+>   termijnen, handleiding-/recall-/veiligheidsbulletin-links) en maakt er
+>   een echt `products`-record van (artikel wordt gekoppeld, vrije velden
+>   blijven staan — onschadelijk, overal wint het gekoppelde product al via
+>   coalesce), of wijst af (vinkje uit, geen product).
+> - **Catalogus** (`CatalogManager.vue`) — volledige productenlijst met
+>   zoeken, handmatig toevoegen/bewerken, **Excel-export** (`.xlsx`, alle
+>   kolommen) en **Excel-import** met dryrun-preview (nieuw/bijgewerkt/
+>   overgeslagen-met-reden vóór commit; matcht op `id`, ontbrekend `id` =
+>   nieuw product) — zodat Jos de catalogus ook gewoon in Excel kan
+>   bijwerken en terug importeren.
+> Gedeeld veldenformulier `ProductForm.vue` (+ `productForm.ts` voor de
+> types/defaults, buiten `<script setup>` omdat dat geen losse
+> runtime-exports mag hebben) voorkomt dat wachtrij en catalogusbeheer twee
+> keer dezelfde ~15 velden definiëren. Beide apps bouwen groen (vue-tsc +
+> vite), 54 core-tests groen. Nog te doen: migratie door Jos uitvoeren,
+> daarna live testen (wachtrij-item omzetten, handmatig product toevoegen,
+> export/import-rondje).
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.

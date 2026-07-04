@@ -524,6 +524,59 @@
         "rejectionComment": "Opmerking",
         "nextDue": "Volgende keuring"
       }
+    },
+    "catalog": {
+      "menuTitle": "Catalogus",
+      "menuDesc": "Productcatalogus beheren en de aanmeld-wachtrij controleren",
+      "tabs": {
+        "queue": "Wachtrij",
+        "manage": "Catalogus"
+      },
+      "queue": {
+        "intro": "Vrije artikelen die een keurmeester heeft aangemeld voor de catalogus. Vul de ontbrekende velden aan en zet ze om in een echt catalogusproduct, of wijs af.",
+        "empty": "Niets in de wachtrij.",
+        "reject": "Afwijzen",
+        "add": "Toevoegen aan catalogus",
+        "addTitle": "Nieuw catalogusproduct",
+        "addSubmit": "Product aanmaken"
+      },
+      "manager": {
+        "search": "Zoeken op merk, naam of categorie",
+        "add": "Product toevoegen",
+        "edit": "Product bewerken",
+        "empty": "Geen producten gevonden.",
+        "export": "Exporteren naar Excel",
+        "import": "Importeren uit Excel",
+        "previewSummary": "{create} nieuw, {update} bijgewerkt, {skip} overgeslagen (fout). Controleer en bevestig.",
+        "importConfirm": "Importeren bevestigen",
+        "errorMissing": "Rij {line}: merk en naam zijn verplicht.",
+        "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
+        "readError": "Bestand kon niet gelezen worden."
+      },
+      "fields": {
+        "brand": "Merk",
+        "name": "Naam/omschrijving",
+        "productType": "Type",
+        "category": "Categorie",
+        "material": "Materiaal",
+        "standard": "Norm",
+        "maxAgeYears": "Max. leeftijd (jaar)",
+        "maxAgeUseYears": "Max. leeftijd vanaf ingebruikname (jaar)",
+        "maxAgeMfrYears": "Max. leeftijd fabrikant (jaar)",
+        "breakingStrength": "Breuksterkte (MBS)",
+        "intervalOverride": "Afwijkend keuringsinterval (maanden)",
+        "manualUrl": "Handleiding (link)",
+        "recallUrl": "Recall-bericht (link)",
+        "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
+        "notes": "Opmerkingen"
+      },
+      "productTypes": {
+        "ppe": "PBM",
+        "rigging": "Rigging",
+        "aerial_platform": "Hoogwerker",
+        "machine": "Machine",
+        "other": "Overig"
+      }
     }
   },
   "offline": {

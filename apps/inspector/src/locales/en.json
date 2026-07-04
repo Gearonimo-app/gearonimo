@@ -524,6 +524,59 @@
         "rejectionComment": "Comment",
         "nextDue": "Next inspection"
       }
+    },
+    "catalog": {
+      "menuTitle": "Catalogue",
+      "menuDesc": "Manage the product catalogue and review the submission queue",
+      "tabs": {
+        "queue": "Queue",
+        "manage": "Catalogue"
+      },
+      "queue": {
+        "intro": "Free-text articles an inspector has submitted for the catalogue. Complete the missing fields and turn them into a real catalogue product, or reject.",
+        "empty": "Nothing in the queue.",
+        "reject": "Reject",
+        "add": "Add to catalogue",
+        "addTitle": "New catalogue product",
+        "addSubmit": "Create product"
+      },
+      "manager": {
+        "search": "Search by brand, name or category",
+        "add": "Add product",
+        "edit": "Edit product",
+        "empty": "No products found.",
+        "export": "Export to Excel",
+        "import": "Import from Excel",
+        "previewSummary": "{create} new, {update} updated, {skip} skipped (error). Review and confirm.",
+        "importConfirm": "Confirm import",
+        "errorMissing": "Row {line}: brand and name are required.",
+        "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",
+        "readError": "Could not read the file."
+      },
+      "fields": {
+        "brand": "Brand",
+        "name": "Name/description",
+        "productType": "Type",
+        "category": "Category",
+        "material": "Material",
+        "standard": "Standard",
+        "maxAgeYears": "Max age (years)",
+        "maxAgeUseYears": "Max age from first use (years)",
+        "maxAgeMfrYears": "Max age manufacturer (years)",
+        "breakingStrength": "Breaking strength (MBS)",
+        "intervalOverride": "Interval override (months)",
+        "manualUrl": "Manual (link)",
+        "recallUrl": "Recall notice (link)",
+        "inspectionNoticeUrl": "Safety bulletin (link)",
+        "notes": "Notes"
+      },
+      "productTypes": {
+        "ppe": "PPE",
+        "rigging": "Rigging",
+        "aerial_platform": "Aerial platform",
+        "machine": "Machine",
+        "other": "Other"
+      }
     }
   },
   "offline": {

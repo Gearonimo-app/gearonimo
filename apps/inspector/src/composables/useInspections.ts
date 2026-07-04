@@ -25,6 +25,7 @@ import {
 export interface Inspector {
   id: string
   company_id: string
+  can_curate_catalog?: boolean
 }
 
 let cached: Inspector | null = null

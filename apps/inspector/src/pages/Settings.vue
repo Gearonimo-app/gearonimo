@@ -31,23 +31,26 @@
       <CertificateSettings v-else-if="section === 'certificate'" />
       <InspectorsSettings v-else-if="section === 'inspectors'" />
       <ImportWizard v-else-if="section === 'import'" />
+      <CatalogSettings v-else-if="section === 'catalog'" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import RejectionCodes from '../components/RejectionCodes.vue'
 import CertificateSettings from '../components/CertificateSettings.vue'
 import InspectorsSettings from '../components/InspectorsSettings.vue'
 import ImportWizard from '../components/ImportWizard.vue'
+import CatalogSettings from '../components/CatalogSettings.vue'
+import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import'
+type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'catalog'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -56,12 +59,24 @@ interface SectionDef {
   ready: boolean
 }
 
-const sections: SectionDef[] = [
-  { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true  },
-  { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true  },
-  { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true  },
-  { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true  },
-]
+// De Catalogus-tegel verschijnt alleen voor een aangewezen curator
+// (inspectors.can_curate_catalog) -- Jos vertrouwt niet elke keurmeester om
+// de productcatalogus zelf compleet en correct in te vullen (besluit
+// 2026-07-03).
+const canCurateCatalog = ref(false)
+
+const sections = computed<SectionDef[]>(() => {
+  const base: SectionDef[] = [
+    { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
+    { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
+    { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
+    { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true },
+  ]
+  if (canCurateCatalog.value) {
+    base.push({ key: 'catalog', icon: '📚', title: 'settings.catalog.menuTitle', desc: 'settings.catalog.menuDesc', ready: true })
+  }
+  return base
+})
 
 const section = ref<SectionKey | null>(null)
 
@@ -70,12 +85,18 @@ const headerTitle = computed(() => {
   if (section.value === 'certificate') return t('settings.certificate.menuTitle')
   if (section.value === 'inspectors') return t('settings.inspectors.menuTitle')
   if (section.value === 'import') return t('settings.import.menuTitle')
+  if (section.value === 'catalog') return t('settings.catalog.menuTitle')
   return t('settings.title')
 })
 
 function open(s: SectionDef) {
   if (s.ready) section.value = s.key
 }
+
+onMounted(async () => {
+  const inspector = await ensureInspector()
+  canCurateCatalog.value = !!inspector.can_curate_catalog
+})
 
 function back() {
   if (section.value !== null) section.value = null
