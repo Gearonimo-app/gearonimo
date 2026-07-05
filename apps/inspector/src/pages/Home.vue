@@ -20,30 +20,35 @@
       <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
     </div>
 
-    <!-- Zoekbalk -->
-    <div class="home__search">
-      <input
-        v-model="searchQuery"
-        type="search"
-        :placeholder="$t('home.searchPlaceholder')"
-        class="home__search-input"
-        @input="onSearch"
-      />
-    </div>
+    <!-- Zoekbalk + tegelmenu: alleen voor een echt keurmeester-account.
+         Een klant-account krijgt hierboven al de melding + link naar
+         /portal/ -- de rest van de Pro-app hoeft dan niet zichtbaar te
+         zijn (RLS blokkeerde de dáta al, maar de schermen zelf bleven
+         klikbaar, wat een klant-account de indruk gaf hier iets te kunnen). -->
+    <template v-if="!notInspector">
+      <div class="home__search">
+        <input
+          v-model="searchQuery"
+          type="search"
+          :placeholder="$t('home.searchPlaceholder')"
+          class="home__search-input"
+          @input="onSearch"
+        />
+      </div>
 
-    <!-- Tegelmenu -->
-    <nav class="home__grid">
-      <button
-        v-for="tile in tiles"
-        :key="tile.key"
-        class="home__tile"
-        :class="`home__tile--${tile.color}`"
-        @click="navigate(tile.route)"
-      >
-        <span class="home__tile-icon">{{ tile.icon }}</span>
-        <span class="home__tile-label">{{ $t(tile.label) }}</span>
-      </button>
-    </nav>
+      <nav class="home__grid">
+        <button
+          v-for="tile in tiles"
+          :key="tile.key"
+          class="home__tile"
+          :class="`home__tile--${tile.color}`"
+          @click="navigate(tile.route)"
+        >
+          <span class="home__tile-icon">{{ tile.icon }}</span>
+          <span class="home__tile-label">{{ $t(tile.label) }}</span>
+        </button>
+      </nav>
+    </template>
   </div>
 </template>
 

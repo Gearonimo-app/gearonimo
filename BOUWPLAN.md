@@ -966,9 +966,52 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > types/defaults, buiten `<script setup>` omdat dat geen losse
 > runtime-exports mag hebben) voorkomt dat wachtrij en catalogusbeheer twee
 > keer dezelfde ~15 velden definiëren. Beide apps bouwen groen (vue-tsc +
-> vite), 54 core-tests groen. Nog te doen: migratie door Jos uitvoeren,
-> daarna live testen (wachtrij-item omzetten, handmatig product toevoegen,
-> export/import-rondje).
+> vite), 54 core-tests groen. Migratie door Jos uitgevoerd (2026-07-05).
+>
+> **Klant-account kon toch alle Pro-app-schermen openen (bug, gevonden door
+> Jos 2026-07-05).** Bij het testen bleek: een klant-account dat op
+> gearonimo.net (i.p.v. /portal/) inlogt zag na de "dit is geen
+> keurmeester-account"-melding gewoon het volledige tegelmenu ernaast staan
+> — Klanten, Keuringen, Instellingen (incl. de Excel-import) waren allemaal
+> aan te klikken. RLS blokkeerde al écht lezen/schrijven (leeg/geweigerd,
+> geen datalek), maar de schermen zelf hoorden niet bereikbaar te zijn.
+> Gefixt: het hoofdmenu verbergt de zoekbalk + tegels volledig zodra het
+> account geen keurmeester is (`apps/inspector/src/pages/Home.vue`), én de
+> router zelf controleert dit nu ook (`ensureInspector()` in
+> `router.beforeEach`) zodat een directe URL of de terug-knop niet meer
+> alsnog bij `/customers`, `/settings`, `/import` etc. uitkomt — alleen het
+> hoofdmenu (met de melding + link naar `/portal/`) blijft toegankelijk.
+>
+> **"Wachtwoord vergeten" toegevoegd aan de Pro-app (2026-07-05, op verzoek
+> Jos).** Er was geen enkele weg terug als je het wachtwoord van een
+> keurmeester-account kwijt was — geen zelfregistratie, dus ook geen
+> "wachtwoord vergeten"-link. Nu: een link op het inlogscherm stuurt via
+> `resetPasswordForEmail` (nieuw in `useAuth`, `packages/core`) een
+> reset-mail; die landt op de nieuwe pagina
+> `apps/inspector/src/pages/ResetPassword.vue` (route `/reset-password`,
+> bewust buiten de keurmeester-gate) waar een nieuw wachtwoord ingesteld
+> wordt via `updatePassword`. **Actie Jos:** `https://gearonimo.net/reset-password`
+> toevoegen aan Supabase → Authentication → Redirect URLs (zelfde plek als
+> `/portal/*`), anders landt de reset-link niet goed.
+>
+> **Afgesproken met Jos: volgende sessie alle test-accounts opschonen.**
+> Te veel losse e-mails/wachtwoorden uit eerdere test-rondes, overzicht
+> kwijt. Plan: alle bestaande auth-accounts verwijderen (Supabase →
+> Authentication → Users) en vervangen door één vast, opgeschreven setje —
+> één per rol, zodat elke rol apart en herhaalbaar te testen is:
+> 1. **Keurmeester** (gewoon account, `is_admin=false`, `can_curate_catalog=false`)
+> 2. **Keurbedrijf-admin/keurmeester** (`is_admin=true`) — bewust geen apart
+>    rechtenniveau (besluit Jos 2026-07-03), dus dit test-account bevestigt
+>    vooral dat het vinkje zichtbaar is, niet dat er iets afwijkt
+> 3. **Catalogus-curator** (`can_curate_catalog=true`) — ziet de
+>    Catalogus-tegel in Instellingen
+> 4. **Klant-admin** (eerste account dat met een uitnodigingscode koppelt,
+>    `customer_members.is_admin=true`) — ziet Medewerkers in `/portal/`
+> 5. **Klant end-user** (koppelt met dezelfde code, geen beheerrechten)
+> Nieuwe accounts via **Add user** in Supabase (Auto Confirm User aan,
+> zelf een wachtwoord kiezen) voor de keurmeester-rollen; klant-rollen
+> loggen zelf in via de magic-link op `/portal/` en koppelen met de
+> uitnodigingscode van een testklant.
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.

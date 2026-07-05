@@ -42,5 +42,33 @@ export function useAuth() {
     await supabase.auth.signOut();
   }
 
-  return { user, loading, isLoggedIn, signInWithEmail, signInWithMagicLink, signOut };
+  // redirectTo: de reset-pagina van de app (bv. .../reset-password) waar de
+  // link in de e-mail naartoe wijst; moet in de Supabase Auth Redirect URLs
+  // staan, zelfde eis als bij de magic-link.
+  async function resetPasswordForEmail(email: string, redirectTo?: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo ? { redirectTo } : undefined
+    );
+    if (error) throw error;
+  }
+
+  // Alleen bruikbaar met de tijdelijke sessie die Supabase opzet nadat de
+  // reset-link in de e-mail is aangeklikt (detectSessionInUrl verwerkt de
+  // tokens uit de URL vanzelf).
+  async function updatePassword(newPassword: string) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw error;
+  }
+
+  return {
+    user,
+    loading,
+    isLoggedIn,
+    signInWithEmail,
+    signInWithMagicLink,
+    signOut,
+    resetPasswordForEmail,
+    updatePassword,
+  };
 }

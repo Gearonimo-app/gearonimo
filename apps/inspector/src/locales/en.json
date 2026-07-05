@@ -185,7 +185,12 @@
     "email": "Email address",
     "password": "Password",
     "submit": "Log in",
-    "busy": "Please wait..."
+    "busy": "Please wait...",
+    "forgotPassword": "Forgot password?",
+    "forgotHint": "Enter your email address and we'll send you a link to set a new password.",
+    "sendReset": "Send reset link",
+    "backToLogin": "Back to sign in",
+    "resetSent": "Check your email — we sent you a link to set a new password."
   },
   "inspections": {
     "newTitle": "New inspection",
@@ -630,5 +635,14 @@
     "errorShort": "Sync failed, try again later",
     "certificatesPending": "{count} certificate(s) waiting to sync",
     "failedCount": "{count} change(s) failed to sync: {error}"
+  },
+  "resetPassword": {
+    "title": "Set a new password",
+    "newPassword": "New password",
+    "confirmPassword": "Repeat password",
+    "submit": "Set password",
+    "success": "Your password has been updated.",
+    "toHome": "Go to the home screen",
+    "mismatch": "The passwords do not match."
   }
 }

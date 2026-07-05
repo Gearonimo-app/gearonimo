@@ -6,6 +6,7 @@ import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
 import { useAuth, supabase } from "@gearonimo/core";
+import { ensureInspector } from "./composables/useInspections";
 
 // Dev-only: maak de client bereikbaar in de DevTools-console om de sessie te
 // inspecteren (await supabase.auth.getSession()). Wordt nooit meegebouwd in prod.
@@ -109,6 +110,13 @@ const router = createRouter({
       path: "/login",
       component: () => import("./pages/Login.vue"),
     },
+    {
+      // Landt hier vanuit de reset-wachtwoord-e-mail; geen requiresAuth
+      // (de tijdelijke recovery-sessie is er al door detectSessionInUrl,
+      // maar dit is bewust los van de normale keurmeester-gate).
+      path: "/reset-password",
+      component: () => import("./pages/ResetPassword.vue"),
+    },
   ],
 });
 
@@ -130,6 +138,19 @@ router.beforeEach(async (to) => {
   }
   if (to.meta.requiresAuth && !isLoggedIn.value) {
     return "/login";
+  }
+  // Klant-account op dit domein (gedeelde sessie met /portal/): alleen het
+  // hoofdmenu mag getoond worden (die toont zelf de melding + link naar
+  // /portal/). Zonder deze check kon een klant-account via een directe URL
+  // of de terug-knop toch bij /customers, /settings, /import etc. komen --
+  // RLS blokkeerde de dáta al, maar de schermen zelf bleven bereikbaar
+  // (gemeld door Jos, 2026-07-05).
+  if (to.meta.requiresAuth && to.path !== "/" && isLoggedIn.value) {
+    try {
+      await ensureInspector();
+    } catch {
+      return "/";
+    }
   }
 });
 
