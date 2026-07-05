@@ -22,7 +22,9 @@ const router = createRouter({
   routes: [
     { path: "/", component: () => import("./pages/Home.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
+    { path: "/start", component: () => import("./pages/Start.vue") },
     { path: "/join", component: () => import("./pages/Join.vue") },
+    { path: "/request", component: () => import("./pages/Request.vue") },
     { path: "/members", component: () => import("./pages/Members.vue") },
     // Oude Nederlandstalige routes (vóór de hernoeming 2026-07-03).
     { path: "/koppelen", redirect: "/join" },

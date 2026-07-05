@@ -2,7 +2,9 @@
   "common": {
     "loading": "Laden...",
     "busy": "Bezig...",
-    "signOut": "Uitloggen"
+    "signOut": "Uitloggen",
+    "cancel": "Annuleren",
+    "back": "Terug"
   },
   "login": {
     "title": "Inloggen",
@@ -99,5 +101,43 @@
     "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de medewerker staat, dan worden account en medewerker automatisch samengevoegd.",
     "copy": "Kopiëren",
     "readOnly": "Alleen een beheerder kan medewerkers bewerken."
+  },
+  "start": {
+    "title": "Welkom bij Gearonimo",
+    "subtitle": "Hoe wil je beginnen?",
+    "haveCode": {
+      "title": "Ik heb een uitnodigingscode",
+      "desc": "Je keurbedrijf heeft je een code gegeven."
+    },
+    "self": {
+      "title": "Zelf beginnen",
+      "desc": "Voer je eigen materiaal in en vraag later een keuring aan.",
+      "nameLabel": "Jouw naam of bedrijfsnaam",
+      "namePlaceholder": "bv. Jansen Klimtechniek",
+      "submit": "Beginnen"
+    }
+  },
+  "request": {
+    "title": "Keuring aanvragen",
+    "navLink": "Keuring aanvragen",
+    "intro": "Kies een keurbedrijf op de kaart of zoek op naam, en stuur een aanvraag.",
+    "mine": "Mijn aanvragen",
+    "searchPlaceholder": "Zoek een keurbedrijf op naam",
+    "mapUnavailable": "De kaart kon niet geladen worden — gebruik de lijst hieronder.",
+    "noneFound": "Geen keurbedrijf gevonden.",
+    "confirmTitle": "Aanvraag sturen naar {company}?",
+    "messagePlaceholder": "Bericht (optioneel)",
+    "send": "Aanvraag sturen",
+    "withdraw": "Intrekken",
+    "view": "Bekijken",
+    "leadBanner": "Je materiaal is nog niet gekoppeld aan een keurbedrijf. Vraag een keuring aan wanneer je wilt.",
+    "pendingBanner": "Je aanvraag bij {company} wacht op goedkeuring.",
+    "linkedTo": "Gekoppeld aan {company}",
+    "status": {
+      "pending": "In behandeling",
+      "accepted": "Goedgekeurd",
+      "declined": "Afgewezen",
+      "withdrawn": "Ingetrokken"
+    }
   }
 }

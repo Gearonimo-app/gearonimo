@@ -2,7 +2,9 @@
   "common": {
     "loading": "Loading...",
     "busy": "Working...",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "cancel": "Cancel",
+    "back": "Back"
   },
   "login": {
     "title": "Sign in",
@@ -99,5 +101,43 @@
     "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the member here, and the account and member record are merged automatically.",
     "copy": "Copy",
     "readOnly": "Only an admin can edit team members."
+  },
+  "start": {
+    "title": "Welcome to Gearonimo",
+    "subtitle": "How would you like to start?",
+    "haveCode": {
+      "title": "I have an invitation code",
+      "desc": "Your inspection company gave you a code."
+    },
+    "self": {
+      "title": "Start on my own",
+      "desc": "Add your own equipment and request an inspection later.",
+      "nameLabel": "Your name or company name",
+      "namePlaceholder": "e.g. Jansen Climbing",
+      "submit": "Start"
+    }
+  },
+  "request": {
+    "title": "Request an inspection",
+    "navLink": "Request inspection",
+    "intro": "Pick an inspection company on the map or search by name, and send a request.",
+    "mine": "My requests",
+    "searchPlaceholder": "Search an inspection company by name",
+    "mapUnavailable": "The map could not be loaded — use the list below.",
+    "noneFound": "No inspection company found.",
+    "confirmTitle": "Send a request to {company}?",
+    "messagePlaceholder": "Message (optional)",
+    "send": "Send request",
+    "withdraw": "Withdraw",
+    "view": "View",
+    "leadBanner": "Your equipment is not linked to an inspection company yet. Request an inspection whenever you like.",
+    "pendingBanner": "Your request to {company} is awaiting approval.",
+    "linkedTo": "Linked to {company}",
+    "status": {
+      "pending": "Pending",
+      "accepted": "Accepted",
+      "declined": "Declined",
+      "withdrawn": "Withdrawn"
+    }
   }
 }

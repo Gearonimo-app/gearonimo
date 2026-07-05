@@ -44,6 +44,7 @@
           :class="`home__tile--${tile.color}`"
           @click="navigate(tile.route)"
         >
+          <span v-if="tile.key === 'requests' && pendingRequests > 0" class="home__tile-badge">{{ pendingRequests }}</span>
           <span class="home__tile-icon">{{ tile.icon }}</span>
           <span class="home__tile-label">{{ $t(tile.label) }}</span>
         </button>
@@ -55,7 +56,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuth } from '@gearonimo/core'
+import { useAuth, supabase } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
@@ -63,6 +64,7 @@ const { signOut } = useAuth()
 const searchQuery = ref('')
 
 const notInspector = ref(false)
+const pendingRequests = ref(0)
 
 async function onSignOut() {
   await signOut()
@@ -77,12 +79,17 @@ onMounted(async () => {
     await ensureInspector()
   } catch {
     notInspector.value = true
+    return
   }
+  // Openstaande keuring-aanvragen (leadmotor): tel ze voor de badge op de tegel.
+  const { data } = await supabase.rpc('company_inspection_requests')
+  pendingRequests.value = (data ?? []).length
 })
 
 const tiles = [
   { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'green'  },
   { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers',        color: 'orange' },
+  { key: 'requests',         icon: '📨', label: 'home.tiles.requests',         route: '/requests',         color: 'blue'   },
   { key: 'offline',          icon: '⬇️', label: 'home.tiles.offline',          route: '/offline',          color: 'blue'   },
   { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search',    color: 'purple' },
   { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings',         color: 'gray'   },
@@ -226,6 +233,14 @@ function onSearch() {
 .home__tile:active {
   transform: scale(0.97);
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+}
+.home__tile { position: relative; }
+.home__tile-badge {
+  position: absolute; top: 0.6rem; right: 0.6rem;
+  min-width: 1.4rem; height: 1.4rem; padding: 0 0.35rem;
+  background: #dc2626; color: #fff; border-radius: 999px;
+  font-size: 0.8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
 }
 
 .home__tile-icon { font-size: 2rem; line-height: 1; }

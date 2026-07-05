@@ -6,7 +6,8 @@
     "saving": "Saving...",
     "delete": "Delete",
     "home": "Home",
-    "copy": "Copy"
+    "copy": "Copy",
+    "back": "Back"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -18,7 +19,8 @@
       "serialSearch": "SN search / Recall",
       "settings": "Settings",
       "reserved": "",
-      "offline": "Offline downloads"
+      "offline": "Offline downloads",
+      "requests": "Requests"
     },
     "signOut": "Sign out",
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
@@ -582,6 +584,16 @@
         "machine": "Machine",
         "other": "Other"
       }
+    },
+    "listing": {
+      "menuTitle": "Discoverability",
+      "menuDesc": "Open for new customers + your place on the map",
+      "intro": "Set your company \"open for new customers\" to appear on the public map in the customer app. When off, you stay findable only by name search.",
+      "listedLabel": "Open for new customers",
+      "latitude": "Latitude",
+      "longitude": "Longitude",
+      "coordsHint": "The coordinates set your pin on the map. Look up your address on e.g. openstreetmap.org and copy the latitude/longitude.",
+      "saved": "Saved."
     }
   },
   "offline": {
@@ -652,5 +664,18 @@
     "saveChanges": "Update suggestion",
     "withdraw": "Withdraw suggestion",
     "offline": "Suggesting for the catalogue is only available online."
+  },
+  "requests": {
+    "title": "Inspection requests",
+    "empty": "No open requests.",
+    "decline": "Decline",
+    "accept": "Approve",
+    "acceptConfirm": "Link {customer} to your inspection company? Any link with another company will be ended.",
+    "source": {
+      "public_list": "Via the public map",
+      "invite_code": "Via an invitation code",
+      "name_search": "Via name search",
+      "switch": "Switch"
+    }
   }
 }

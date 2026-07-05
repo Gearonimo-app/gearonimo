@@ -3,6 +3,7 @@
     <header class="hm__header">
       <h1>{{ customerName || 'Gearonimo' }}</h1>
       <nav class="hm__nav">
+        <router-link v-if="isAdmin" to="/request" class="hm__navlink">{{ $t('request.navLink') }}</router-link>
         <router-link v-if="isAdmin" to="/members" class="hm__navlink">{{ $t('members.title') }}</router-link>
         <button class="hm__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
       </nav>
@@ -12,6 +13,20 @@
     <div v-else-if="error" class="hm__state hm__state--error">{{ error }}</div>
 
     <div v-else class="hm__body">
+      <!-- Leadmotor: een klant zonder gekoppeld keurbedrijf ziet geen alarm maar
+           een uitnodiging om een keuring aan te vragen (BLAUWDRUK §7). Een
+           lopende aanvraag toont zijn status; een gekoppeld keurbedrijf staat
+           subtiel in beeld. -->
+      <section v-if="pendingRequest" class="hm__banner hm__banner--pending">
+        <span>{{ $t('request.pendingBanner', { company: pendingRequest.company_name }) }}</span>
+        <router-link v-if="isAdmin" to="/request" class="hm__banner-link">{{ $t('request.view') }}</router-link>
+      </section>
+      <section v-else-if="!companyName" class="hm__banner hm__banner--lead">
+        <span>{{ $t('request.leadBanner') }}</span>
+        <router-link v-if="isAdmin" to="/request" class="hm__banner-link">{{ $t('request.navLink') }}</router-link>
+      </section>
+      <p v-else class="hm__linked">{{ $t('request.linkedTo', { company: companyName }) }}</p>
+
       <!-- Het stoplicht: "ben ik in orde?" in één oogopslag. Nooit-gekeurde
            artikelen maken het oordeel bewust niet rood (zie packages/core
            status.ts) -- die krijgen hun eigen regel. -->
@@ -132,6 +147,8 @@ interface CertificateRow {
 }
 
 const customerName = ref("");
+const companyName = ref("");
+const pendingRequest = ref<{ status: string; company_name: string } | null>(null);
 const isAdmin = ref(false);
 const addingArticle = ref(false);
 const articles = ref<UiArticle[]>([]);
@@ -194,21 +211,27 @@ async function load() {
     if (custErr) throw custErr;
     const row = Array.isArray(cust) ? cust[0] : cust;
     if (!row) {
-      // Nog niet gekoppeld aan een klantbedrijf: eerst de uitnodigingscode.
-      router.replace("/join");
+      // Nog geen klant: naar de startkeuze (uitnodigingscode of zelf beginnen).
+      router.replace("/start");
       return;
     }
     customerName.value = row.customer_name;
     isAdmin.value = !!row.is_admin;
 
-    const [arts, certs] = await Promise.all([
+    const [arts, certs, link, reqs] = await Promise.all([
       supabase.rpc("my_articles"),
       supabase.rpc("my_certificates"),
+      supabase.rpc("my_link_status"),
+      supabase.rpc("my_inspection_requests"),
     ]);
     if (arts.error) throw arts.error;
     if (certs.error) throw certs.error;
     articles.value = ((arts.data ?? []) as ArticleRow[]).map((a) => ({ ...a, uiStatus: uiStatus(a) }));
     certificates.value = (certs.data ?? []) as CertificateRow[];
+    const linkRow = Array.isArray(link.data) ? link.data[0] : link.data;
+    companyName.value = linkRow?.company_name ?? "";
+    pendingRequest.value = ((reqs.data ?? []) as { status: string; company_name: string }[])
+      .find((r) => r.status === "pending") ?? null;
   } catch (e) {
     error.value = errorMessage(e);
   } finally {
@@ -277,6 +300,19 @@ onMounted(load);
 .hm__state { text-align: center; padding: 2rem 1rem; color: #666; }
 .hm__state--error { color: #dc2626; }
 .hm__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
+
+.hm__banner {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  border-radius: 14px; padding: 0.9rem 1.1rem; margin-bottom: 0.85rem;
+  font-size: 0.95rem; font-weight: 600;
+}
+.hm__banner--lead { background: #dbeafe; color: #1e40af; }
+.hm__banner--pending { background: #fef9c3; color: #854d0e; }
+.hm__banner-link {
+  flex: 0 0 auto; background: #fff; border-radius: 8px; padding: 0.4rem 0.8rem;
+  text-decoration: none; color: #1a3a2a; font-weight: 700; font-size: 0.85rem;
+}
+.hm__linked { font-size: 0.85rem; color: #6b7280; margin: 0 0 0.85rem; }
 
 .hm__verdict {
   display: flex; align-items: center; gap: 0.75rem;

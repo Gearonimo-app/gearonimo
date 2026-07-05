@@ -6,7 +6,8 @@
     "saving": "Bezig...",
     "delete": "Verwijderen",
     "home": "Home",
-    "copy": "Kopieer"
+    "copy": "Kopieer",
+    "back": "Terug"
   },
   "home": {
     "appName": "Gearonimo Pro",
@@ -18,7 +19,8 @@
       "serialSearch": "SN zoeken / Recall",
       "settings": "Instellingen",
       "reserved": "",
-      "offline": "Offline downloads"
+      "offline": "Offline downloads",
+      "requests": "Aanvragen"
     },
     "signOut": "Uitloggen",
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
@@ -582,6 +584,16 @@
         "machine": "Machine",
         "other": "Overig"
       }
+    },
+    "listing": {
+      "menuTitle": "Vindbaarheid",
+      "menuDesc": "Open voor nieuwe klanten + je plek op de kaart",
+      "intro": "Zet je bedrijf \"open voor nieuwe klanten\" om op de openbare kaart in de klant-app te verschijnen. Staat de schakelaar uit, dan blijf je alleen via naam-zoeken vindbaar.",
+      "listedLabel": "Open voor nieuwe klanten",
+      "latitude": "Breedtegraad (latitude)",
+      "longitude": "Lengtegraad (longitude)",
+      "coordsHint": "De coördinaten bepalen je pin op de kaart. Zoek je adres op bijv. openstreetmap.org en neem de latitude/longitude over.",
+      "saved": "Opgeslagen."
     }
   },
   "offline": {
@@ -652,5 +664,18 @@
     "saveChanges": "Aanmelding bijwerken",
     "withdraw": "Aanmelding intrekken",
     "offline": "Aanmelden voor de catalogus kan alleen online."
+  },
+  "requests": {
+    "title": "Keuring-aanvragen",
+    "empty": "Geen openstaande aanvragen.",
+    "decline": "Afwijzen",
+    "accept": "Goedkeuren",
+    "acceptConfirm": "{customer} koppelen aan jouw keurbedrijf? Een eventuele koppeling met een ander keurbedrijf wordt beëindigd.",
+    "source": {
+      "public_list": "Via de openbare kaart",
+      "invite_code": "Via een uitnodigingscode",
+      "name_search": "Via naam-zoeken",
+      "switch": "Overstap"
+    }
   }
 }

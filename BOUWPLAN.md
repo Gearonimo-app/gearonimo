@@ -1042,6 +1042,58 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > zelf een wachtwoord kiezen) voor de keurmeester-rollen; klant-rollen
 > loggen zelf in via de magic-link op `/portal/` en koppelen met de
 > uitnodigingscode van een testklant.
+>
+> **Keuring aanvragen / de leadmotor gebouwd (2026-07-05, laatste openstaande
+> stuk van fase 3).** Tot nu toe kon een klant zich alleen via een
+> uitnodigingscode koppelen. Nu ook het bredere onboardingpad uit BLAUWDRUK §7
+> / DATAMODEL §5 (`inspection_requests`). **Ontwerpbesluiten met Jos
+> (gespard, niet uit de code):**
+> - **Gearonimo is puur het platform/de matchmaker — géén keurbedrijf-rij die
+>   klanten "bezit".** Dat zou het platform tot concurrent van zijn eigen
+>   keurbedrijven maken (Jos keurt zelf bij Safety Green). Een zelf-aangemelde
+>   klant staat daarom **op zichzelf, zonder koppeling**, tot hij zelf een
+>   keurbedrijf kiest. Dashboard toont dan "nog niet gekeurd — vraag een
+>   keuring aan" (geen rood alarm, BLAUWDRUK §7).
+> - **Ontdekking = wereldkaart** (Leaflet/OpenStreetMap, geen API-sleutel) met
+>   alle keurbedrijven die `listed=true` hebben, **plus naam-zoeken** (vindt
+>   ook niet-gelijste bedrijven, BLAUWDRUK §7.3). **Geen landfilter** — een
+>   NL-bedrijf mag Belgische klanten, buitenlanders in NL moeten hier terecht
+>   kunnen (Jos); de klant kiest zelf op de kaart waar hij naartoe wil.
+> - **Overstap = één keurbedrijf tegelijk** (`source='switch'`): bij
+>   goedkeuring wordt de nieuwe koppeling actief en andere actieve koppelingen
+>   beëindigd. **De historie reist mee met de klant**: het actueel gekoppelde
+>   keurbedrijf mag de vólledige keuringshistorie/certificaten van die klant
+>   inzien (alleen-lezen), ook wat een vórig keurbedrijf uitvoerde — klant is
+>   eigenaar van de data (nieuwe SELECT-policies naast de bestaande
+>   company-scope; bewerken blijft van het uitvoerende bedrijf, afgeronde
+>   keuringen zijn sowieso onveranderlijk).
+>
+> **Ook opgeruimd:** de tijdelijke hack uit de een-bedrijf-fase — een trigger
+> die élke nieuwe klant aan "het oudste bedrijf" koppelde — is herzien: een
+> door een keurmeester aangemaakte klant koppelt nu aan *diens eigen* bedrijf;
+> een zelf-aangemelde klant krijgt géén automatische koppeling.
+>
+> **Gebouwd (migratie `supabase/migrations/20260717_inspection_requests_leadmotor.sql`
+> — nog door Jos in Supabase uit te voeren, idempotent):** `inspection_requests`
+> + `inspection_companies.listed/latitude/longitude`; security-definer-RPC's
+> `self_register_customer`, `list/search_inspection_companies`,
+> `request_inspection`, `my_inspection_requests`, `withdraw_inspection_request`,
+> `my_link_status` (klant-app) en `company_inspection_requests`,
+> `accept/decline_inspection_request`, `set_company_listing`,
+> `my_company_listing` (Pro-app). Safety Green is meteen `listed=true` gezet met
+> de coördinaten van Elst (Gld) zodat het aanvraagpad te testen is (uit te
+> zetten via Instellingen → Vindbaarheid).
+> - **Klant-app:** startkeuze `Start.vue` (uitnodigingscode óf zelf beginnen),
+>   `Request.vue` (wereldkaart + naam-zoeken + aanvraag + status/intrekken),
+>   dashboard-banner voor een niet-gekoppelde klant / lopende aanvraag. Nieuwe
+>   dep `leaflet` (lazy in de Request-chunk).
+> - **Pro-app:** tegel **Aanvragen** (met badge) + `Requests.vue`
+>   (goedkeuren/afwijzen), en Instellingen → **Vindbaarheid**
+>   (`CompanyListing.vue`: listed-schakelaar + locatie).
+> i18n nl+en. vue-tsc + vite (beide apps) + 54 core-tests groen. **Actie Jos:**
+> migratie 20260717 uitvoeren; daarna testen: zelf-aanmelden → materiaal
+> invoeren → keuring aanvragen (kaart/naam) → in de Pro-app goedkeuren →
+> koppeling actief + historie zichtbaar.
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
