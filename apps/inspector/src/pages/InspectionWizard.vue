@@ -360,15 +360,18 @@
                     <span v-else>—</span>
                   </td>
                   <td class="iw__actions-cell">
-                    <!-- Alleen bij vrije artikelen (geen catalogusmatch): aanbieden
-                         voor de catalogus-wachtlijst. Bewust hier rechts per rij i.p.v.
-                         bij de invoervelden, zodat het artikel eerst toegevoegd wordt. -->
-                    <label v-if="!row.it.article.product" class="iw__catalog-toggle"
-                           :title="$t('inspections.table.suggestForCatalog')">
-                      <input type="checkbox" v-model="row.it.article.suggest_for_catalog"
-                             @change="saveArticle(row.it)" />
+                    <!-- Alleen bij vrije artikelen (geen catalogusmatch): aanmelden
+                         voor de catalogus-wachtrij. Geen kaal vinkje meer: de knop
+                         opent een productformulier dat de keurmeester zelf invult
+                         vóór het op de wachtrij komt (besluit Jos 2026-07-05).
+                         Actief = al aangemeld. -->
+                    <button v-if="!row.it.article.product" type="button"
+                            class="iw__catalog-toggle"
+                            :class="{ 'iw__catalog-toggle--on': row.it.article.suggest_for_catalog }"
+                            :title="$t('inspections.table.suggestForCatalog')"
+                            @click="suggestFor = row.it.article">
                       📚
-                    </label>
+                    </button>
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
@@ -391,6 +394,14 @@
         </button>
       </div>
     </template>
+
+    <CatalogSuggestDialog
+      v-if="suggestFor"
+      :article-id="suggestFor.id"
+      :label="suggestLabel"
+      @saved="onSuggestSaved"
+      @close="suggestFor = null"
+    />
   </div>
 </template>
 
@@ -421,6 +432,7 @@ import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
+import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 
 const route = useRoute()
 const { t } = useI18n()
@@ -484,6 +496,19 @@ const inspection = ref<InspectionRecord | null>(null)
 const items = ref<Item[]>([])
 const loading = ref(true)
 const error = ref('')
+
+// Aanmelden voor de catalogus via het gedeelde formulier-dialoog. De dialoog
+// schrijft zelf weg; hier alleen de lokale rij-status bijwerken zodat het
+// 📚-icoon meteen klopt.
+const suggestFor = ref<Article | null>(null)
+const suggestLabel = computed(() => {
+  const a = suggestFor.value
+  if (!a) return ''
+  return [a.free_brand, a.free_description].filter(Boolean).join(' ') || t('articles.untitled')
+})
+function onSuggestSaved(suggested: boolean) {
+  if (suggestFor.value) suggestFor.value.suggest_for_catalog = suggested
+}
 
 const previousResults = ref<Record<string, { result: string; comment: string | null; inspection_date: string } | null>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
@@ -1721,16 +1746,16 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
-/* Per-rij "aanbieden voor catalogus"-vinkje, rechts in de actiekolom. Het
-   boek-icoon kleurt op zodra het vinkje aanstaat, zodat in één oogopslag te
-   zien is welke vrije artikelen op de wachtlijst staan. */
+/* Per-rij "aanmelden voor catalogus"-knop, rechts in de actiekolom. Het
+   boek-icoon kleurt op zodra het artikel is aangemeld, zodat in één oogopslag
+   te zien is welke vrije artikelen op de wachtrij staan. */
 .iw__catalog-toggle {
-  display: inline-flex; align-items: center; gap: 0.2rem;
+  display: inline-flex; align-items: center;
+  border: none; background: none;
   cursor: pointer; opacity: 0.4; filter: grayscale(1);
   font-size: 0.95rem; margin-right: 0.35rem; vertical-align: middle;
 }
-.iw__catalog-toggle:has(input:checked) { opacity: 1; filter: none; }
-.iw__catalog-toggle input { cursor: pointer; }
+.iw__catalog-toggle--on { opacity: 1; filter: none; }
 .iw__suggest {
   background: #fff; border: 1px solid #ddd; border-radius: 8px;
   margin: -0.35rem 0 0.85rem; padding: 0.3rem;

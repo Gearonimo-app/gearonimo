@@ -968,6 +968,36 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > keer dezelfde ~15 velden definiëren. Beide apps bouwen groen (vue-tsc +
 > vite), 54 core-tests groen. Migratie door Jos uitgevoerd (2026-07-05).
 >
+> **Catalogus-aanmelding: van kaal vinkje naar ingevuld voorstel
+> (2026-07-05, besluit Jos).** Het "aanbieden voor de catalogus" was een kaal
+> boolean-vinkje (📚 per rij in `CustomerArticles.vue` en `InspectionWizard.vue`):
+> de keurmeester zette het aan en liet merk/type/categorie/materiaal/norm/
+> leeftijdstermijnen/MBS/handleiding-/recall-/veiligheidsbulletin-links volledig
+> aan de curator over. Jos wil dat wie iets voorstelt zelf zijn best doet die
+> velden in te vullen. Omgebouwd: het 📚-icoon is nu een **knop** die een
+> **productformulier** opent (hergebruik van het bestaande `ProductForm.vue` via
+> de nieuwe wrapper `CatalogSuggestDialog.vue`), voorgevuld met wat de
+> keurmeester al in de vrije velden typte; pas na invullen + verzenden komt de
+> aanmelding op de wachtrij. Brand + naam zijn verplicht (uit `ProductForm`);
+> de rest presenteert het formulier, zodat de curator vooral controleert.
+>
+> **Schema:** de ingevulde velden gaan NIET meteen een `products`-rij in (die is
+> leesbaar voor elke ingelogde zodra hij bestaat, RLS-leesbeleid 20260713 — een
+> niet-goedgekeurd voorstel hoort nog niet in de echte catalogus). In plaats
+> daarvan een nieuwe jsonb-kolom `articles.catalog_suggestion` naast het
+> bestaande `suggest_for_catalog`-vinkje (migratie
+> `supabase/migrations/20260716_catalog_suggestion.sql` — **nog door Jos in
+> Supabase uit te voeren**, idempotent). Geen apart RLS-/grant-werk nodig: de
+> eigenaar-keurmeester mag de articles-rij van zijn klant al muteren
+> (`articles inspector all` + grant update uit 20260713; RLS is rij-, niet
+> kolomgebaseerd). `CatalogQueue.vue` prefilled nu uit `catalog_suggestion`
+> (i.p.v. alleen de schamele vrije velden) en valt daarop terug voor oudere/
+> klant-app-aanmeldingen zonder voorstel; accepteren/afwijzen wist het
+> voorstel weer. i18n nl+en onder `catalogSuggest`. Beide apps bouwen groen
+> (vue-tsc + vite), 54 core-tests groen. Nog te doen: migratie uitvoeren +
+> live-test door Jos (aanmelden vanuit klantpagina én keuring-wizard, curator
+> ziet het voorgevulde voorstel in de wachtrij).
+>
 > **Klant-account kon toch alle Pro-app-schermen openen (bug, gevonden door
 > Jos 2026-07-05).** Bij het testen bleek: een klant-account dat op
 > gearonimo.net (i.p.v. /portal/) inlogt zag na de "dit is geen

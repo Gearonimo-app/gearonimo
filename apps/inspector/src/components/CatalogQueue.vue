@@ -54,6 +54,7 @@ interface QueueArticle {
   free_material: string | null
   free_norm: string | null
   free_mbs: string | null
+  catalog_suggestion: ProductFormModel | null
   serial_number: string | null
   customer: { name: string } | null
 }
@@ -76,7 +77,7 @@ async function load() {
     const { data, error: err } = await supabase
       .from('articles')
       .select(
-        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, serial_number, customer:customers(name)'
+        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, catalog_suggestion, serial_number, customer:customers(name)'
       )
       .eq('suggest_for_catalog', true)
       .is('product_id', null)
@@ -93,18 +94,22 @@ async function load() {
 function openAdd(a: QueueArticle) {
   addingFor.value = a
   formError.value = ''
-  // Voorinvullen uit de vrije velden; de curator vult het overige aan
-  // (product_type, normen, leeftijdstermijnen, links -- die kent een
-  // keurmeester meestal niet uit het hoofd).
-  prefill.value = {
-    ...emptyProductForm(),
-    brand: a.free_brand ?? '',
-    name: a.free_description ?? '',
-    category: a.free_category ?? '',
-    material: a.free_material ?? '',
-    standard: a.free_norm ?? '',
-    breaking_strength: a.free_mbs ?? '',
-  }
+  // De keurmeester vult sinds 2026-07-05 zelf het productformulier in bij het
+  // aanmelden; dat voorstel staat in `catalog_suggestion`. De curator
+  // controleert/corrigeert dat i.p.v. alles zelf uit te zoeken. Valt terug op
+  // de schamele vrije velden voor artikelen die vóór die wijziging (of door de
+  // klant-app) op de wachtrij kwamen zonder ingevuld voorstel.
+  prefill.value = a.catalog_suggestion
+    ? { ...emptyProductForm(), ...a.catalog_suggestion }
+    : {
+        ...emptyProductForm(),
+        brand: a.free_brand ?? '',
+        name: a.free_description ?? '',
+        category: a.free_category ?? '',
+        material: a.free_material ?? '',
+        standard: a.free_norm ?? '',
+        breaking_strength: a.free_mbs ?? '',
+      }
 }
 
 async function createProduct(form: ProductFormModel) {
@@ -140,7 +145,7 @@ async function createProduct(form: ProductFormModel) {
     // gekoppelde product al via coalesce(product, vrij-veld)).
     const { error: linkErr } = await supabase
       .from('articles')
-      .update({ product_id: data.id, suggest_for_catalog: false })
+      .update({ product_id: data.id, suggest_for_catalog: false, catalog_suggestion: null })
       .eq('id', addingFor.value.id)
     if (linkErr) throw linkErr
 
@@ -158,7 +163,7 @@ async function reject(a: QueueArticle) {
   try {
     const { error: err } = await supabase
       .from('articles')
-      .update({ suggest_for_catalog: false })
+      .update({ suggest_for_catalog: false, catalog_suggestion: null })
       .eq('id', a.id)
     if (err) throw err
     items.value = items.value.filter((x) => x.id !== a.id)

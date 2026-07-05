@@ -644,5 +644,13 @@
     "success": "Your password has been updated.",
     "toHome": "Go to the home screen",
     "mismatch": "The passwords do not match."
+  },
+  "catalogSuggest": {
+    "title": "Suggest for the catalogue",
+    "intro": "Fill in the product details as completely as you can. After you submit, the catalogue curator reviews them and turns them into a real catalogue product.",
+    "submit": "Submit to the catalogue",
+    "saveChanges": "Update suggestion",
+    "withdraw": "Withdraw suggestion",
+    "offline": "Suggesting for the catalogue is only available online."
   }
 }

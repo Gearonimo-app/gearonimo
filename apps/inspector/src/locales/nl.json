@@ -644,5 +644,13 @@
     "success": "Je wachtwoord is bijgewerkt.",
     "toHome": "Naar het hoofdmenu",
     "mismatch": "De wachtwoorden komen niet overeen."
+  },
+  "catalogSuggest": {
+    "title": "Aanmelden voor de catalogus",
+    "intro": "Vul de productgegevens zo compleet mogelijk in. Na jouw aanmelding controleert de catalogusbeheerder ze en zet ze om in een echt catalogusproduct.",
+    "submit": "Aanmelden bij de catalogus",
+    "saveChanges": "Aanmelding bijwerken",
+    "withdraw": "Aanmelding intrekken",
+    "offline": "Aanmelden voor de catalogus kan alleen online."
   }
 }

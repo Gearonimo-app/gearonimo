@@ -18,15 +18,17 @@
             <span v-if="!a.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
           </div>
         </div>
-        <!-- Alleen bij vrije artikelen: aanbieden voor de catalogus-wachtlijst.
-             Rechts in de rij (niet in het invoerformulier), gelijk aan de
-             keuringstabel. @click.stop zodat het vinkje niet doorklikt naar
-             het artikeldetail. -->
-        <label v-if="!a.product_id" class="ca__catalog-toggle"
-               :title="$t('articles.suggestForCatalog')" @click.stop>
-          <input type="checkbox" v-model="a.suggest_for_catalog" @change="toggleCatalog(a)" />
+        <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
+             Geen kaal vinkje meer: de knop opent een productformulier dat de
+             keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
+             2026-07-05). @click.stop zodat het niet doorklikt naar het
+             artikeldetail. Actief = al aangemeld. -->
+        <button v-if="!a.product_id" type="button" class="ca__catalog-toggle"
+                :class="{ 'ca__catalog-toggle--on': a.suggest_for_catalog }"
+                :title="$t('articles.suggestForCatalog')"
+                @click.stop="suggestFor = a">
           📚
-        </label>
+        </button>
       </li>
     </ul>
 
@@ -117,6 +119,14 @@
         </button>
       </div>
     </div>
+
+    <CatalogSuggestDialog
+      v-if="suggestFor"
+      :article-id="suggestFor.id"
+      :label="articleLabel(suggestFor)"
+      @saved="onSuggestSaved"
+      @close="suggestFor = null"
+    />
   </section>
 </template>
 
@@ -126,6 +136,7 @@ import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
+import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
 
 const { isOnline } = useOnline()
 
@@ -249,13 +260,12 @@ function emptyForm() {
   }
 }
 
-// Per-rij wachtlijst-toggle in de artikellijst (zie ook InspectionWizard).
-async function toggleCatalog(a: Article) {
-  const { error: err } = await supabase
-    .from('articles')
-    .update({ suggest_for_catalog: a.suggest_for_catalog })
-    .eq('id', a.id)
-  if (err) { error.value = err.message; a.suggest_for_catalog = !a.suggest_for_catalog }
+// Aanmelden voor de catalogus via het gedeelde formulier-dialoog (zie ook
+// InspectionWizard). De dialoog schrijft zelf weg; hier alleen de lokale
+// rij-status bijwerken zodat het 📚-icoon meteen klopt.
+const suggestFor = ref<Article | null>(null)
+function onSuggestSaved(suggested: boolean) {
+  if (suggestFor.value) suggestFor.value.suggest_for_catalog = suggested
 }
 const form = ref(emptyForm())
 
@@ -387,10 +397,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
 .ca__catalog-toggle {
   display: inline-flex; align-items: center; cursor: pointer;
-  opacity: 0.4; filter: grayscale(1); font-size: 1.05rem; padding: 0.2rem;
+  border: none; background: none; font-size: 1.05rem; padding: 0.2rem;
+  opacity: 0.4; filter: grayscale(1);
 }
-.ca__catalog-toggle:has(input:checked) { opacity: 1; filter: none; }
-.ca__catalog-toggle input { cursor: pointer; }
+.ca__catalog-toggle--on { opacity: 1; filter: none; }
 .ca__desc { font-weight: 600; }
 .ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; }
 .ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
