@@ -1094,6 +1094,23 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > migratie 20260717 uitvoeren; daarna testen: zelf-aanmelden → materiaal
 > invoeren → keuring aanvragen (kaart/naam) → in de Pro-app goedkeuren →
 > koppeling actief + historie zichtbaar.
+>
+> **Migraties uitgevoerd (2026-07-06):** Jos heeft `20260716_catalog_suggestion.sql`
+> én `20260717_inspection_requests_leadmotor.sql` in Supabase gedraaid (beide
+> "Success"). Safety Green staat daarmee live `listed=true` met de coördinaten
+> van Elst. TAAK 1 (catalogus-aanmelding) en TAAK 2 (leadmotor) zijn hiermee
+> volledig live op gearonimo.net.
+>
+> **A-Z testplan opgesteld (2026-07-06): `TESTPLAN.md` + `supabase/testdata-reset.sql`.**
+> Op verzoek van Jos een volledige, stap-voor-stap doorloop (100 stappen, fases
+> A–Q) vanaf een schone lei: testdata wissen → keurmeester aanmaken →
+> bedrijfsinstellingen → klant + artikelen → catalogus-aanmelding →
+> keuring+certificaat → SN/recall → sets → curator-wachtrij → Excel-import →
+> klant-app (uitnodigingscode én zelf-aanmelden/leadmotor) → aanvraag
+> goedkeuren → rollen-afscherming → wachtwoord-reset → offline → (optioneel)
+> overstap met historie-meereizen. Elke stap heeft een "Verwacht:"-regel zodat
+> Jos per stap ✅/❌ kan terugkoppelen. `testdata-reset.sql` wist de
+> transactionele data + auth-accounts maar behoudt catalogus/bedrijf/afkeurcodes.
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
