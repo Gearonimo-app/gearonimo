@@ -106,16 +106,17 @@
         </select>
       </div>
       <input v-model="form.assigned_user_name" :placeholder="$t('articles.fields.user')"   class="ca__input" />
-      <label class="ca__date-label">
-        {{ $t('articles.fields.firstUse') }}
-        <input v-model="form.first_use_date" type="date" class="ca__input" />
-      </label>
-      <!-- Aankoopdatum: bij toevoegen buiten een keuring om is de ingebruikname
-           meestal ook de aankoop-/verkoopdatum. Vult daarom automatisch mee met
-           de ingebruikname, zolang de keurmeester 'm niet zelf aanpast. -->
+      <!-- Aankoop-/verkoopdatum is leidend: dat is wat de winkel/keurmeester bij
+           verkoop invult. De ingebruikname (wanneer de klant 'm echt gaat
+           gebruiken) weet de keurmeester meestal niet, dus die spiegelt
+           standaard de aankoopdatum en blijft daarna aanpasbaar. -->
       <label class="ca__date-label">
         {{ $t('articles.detail.fields.purchaseDate') }}
-        <input v-model="form.purchase_date" type="date" class="ca__input" @input="purchaseTouched = true" />
+        <input v-model="form.purchase_date" type="date" class="ca__input" />
+      </label>
+      <label class="ca__date-label">
+        {{ $t('articles.fields.firstUse') }}
+        <input v-model="form.first_use_date" type="date" class="ca__input" @input="firstUseTouched = true" />
       </label>
       <input v-model="form.set_label" :placeholder="$t('articles.fields.set')" class="ca__input" />
       <textarea v-model="form.notes" :placeholder="$t('articles.fields.notes')" class="ca__input" rows="2"></textarea>
@@ -269,9 +270,9 @@ function emptyForm() {
   }
 }
 
-// Aankoopdatum spiegelt de ingebruikname zolang de keurmeester 'm niet zelf
+// Ingebruikname spiegelt de aankoopdatum zolang de keurmeester 'm niet zelf
 // heeft aangepast (zie de toelichting in de template).
-const purchaseTouched = ref(false)
+const firstUseTouched = ref(false)
 
 // Aanmelden voor de catalogus via het gedeelde formulier-dialoog (zie ook
 // InspectionWizard). De dialoog schrijft zelf weg; hier alleen de lokale
@@ -282,8 +283,8 @@ function onSuggestSaved(suggested: boolean) {
 }
 const form = ref(emptyForm())
 
-watch(() => form.value.first_use_date, (v) => {
-  if (!purchaseTouched.value) form.value.purchase_date = v
+watch(() => form.value.purchase_date, (v) => {
+  if (!firstUseTouched.value) form.value.first_use_date = v
 })
 
 // Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
@@ -345,7 +346,7 @@ function closeAdd() {
   newYear.value = null; newMonth.value = null
   activeField.value = null; suggestIndex.value = -1
   formError.value = ''
-  purchaseTouched.value = false
+  firstUseTouched.value = false
   form.value = emptyForm()
 }
 
