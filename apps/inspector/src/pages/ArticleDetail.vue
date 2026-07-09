@@ -39,11 +39,13 @@
         <label class="ad__field-label">{{ label(f.label) }}</label>
         <textarea v-if="f.textarea" v-model="form[f.col]" class="ad__input" rows="3"></textarea>
         <input v-else-if="f.type === 'checkbox'" type="checkbox" v-model="form[f.col]" class="ad__checkbox" />
+        <!-- Geen veld op slot: de keurmeester mag alles (ook de ingebruikname)
+             altijd corrigeren -- typefouten/misklikken moeten herstelbaar
+             blijven. (Een eventuele beperking hoort in de klant-app, niet hier.) -->
         <input
           v-else
           v-model="form[f.col]"
           :type="f.type || 'text'"
-          :disabled="f.col === 'first_use_date' && !!article.first_use_date"
           class="ad__input"
         />
       </div>
