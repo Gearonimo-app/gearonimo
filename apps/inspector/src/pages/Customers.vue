@@ -1,7 +1,10 @@
 <template>
   <div class="customers">
     <header class="customers__header">
-      <button class="customers__back" @click="$router.push('/')">← Terug</button>
+      <div class="customers__nav">
+        <button class="customers__back" @click="$router.push('/')">← Terug</button>
+        <button class="customers__back" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
+      </div>
       <h1>{{ $t('customers.title') }}</h1>
       <button class="customers__add" @click="showAdd = true">+</button>
     </header>
@@ -93,6 +96,7 @@ onMounted(load)
   padding: 1rem 1.25rem;
 }
 .customers__header h1 { font-size: 1.2rem; margin: 0; }
+.customers__nav { display: flex; align-items: center; gap: 0.25rem; }
 .customers__back, .customers__add {
   background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; padding: 0.25rem 0.5rem;
 }
