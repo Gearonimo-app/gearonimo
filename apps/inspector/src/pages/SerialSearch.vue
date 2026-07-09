@@ -3,7 +3,7 @@
     <header class="ss__header">
       <button class="ss__icon" @click="$router.push('/')">←</button>
       <h1>{{ $t('serialSearch.title') }}</h1>
-      <span class="ss__icon"></span>
+      <button class="ss__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
     </header>
 
     <!-- Modus-schakelaar: serienummer zoeken vs. recall zoeken -->

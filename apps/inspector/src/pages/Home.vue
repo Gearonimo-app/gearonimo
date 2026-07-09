@@ -3,7 +3,12 @@
     <!-- Header -->
     <header class="home__header">
       <div class="home__header-row">
-        <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
+        <div class="home__identity">
+          <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
+          <!-- Ingelogd account tonen: Jos miste tijdens het testen (stap 14)
+               waar hij kon zien met welk account hij was ingelogd. -->
+          <span v-if="user?.email" class="home__account" :title="user.email">👤 {{ user.email }}</span>
+        </div>
         <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
       </div>
       <div class="home__status">
@@ -60,7 +65,7 @@ import { useAuth, supabase } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
-const { signOut } = useAuth()
+const { signOut, user } = useAuth()
 const searchQuery = ref('')
 
 const notInspector = ref(false)
@@ -138,7 +143,14 @@ function onSearch() {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.75rem;
   margin-bottom: 0.4rem;
+}
+.home__identity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 }
 .home__app-name {
   font-size: 1.4rem;
@@ -146,12 +158,21 @@ function onSearch() {
   margin: 0;
   letter-spacing: 0.01em;
 }
+.home__account {
+  font-size: 0.82rem;
+  color: #a7c4b0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .home__signout {
   background: none;
   border: none;
   color: #a7c4b0;
   cursor: pointer;
   font-size: 0.9rem;
+  flex-shrink: 0;
+  align-self: flex-start;
 }
 .home__wrong-app {
   margin: 1.25rem 1.25rem 0;

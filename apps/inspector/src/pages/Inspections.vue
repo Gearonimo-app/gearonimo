@@ -3,7 +3,7 @@
     <header class="il__header">
       <button class="il__icon" @click="$router.push('/')">←</button>
       <h1>{{ $t('inspections.listTitle') }}</h1>
-      <span class="il__icon"></span>
+      <button class="il__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
     </header>
 
     <!-- Primaire actie: nieuwe keuring starten (los van de lijst zodat je

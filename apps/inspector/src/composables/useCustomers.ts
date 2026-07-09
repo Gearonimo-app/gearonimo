@@ -62,11 +62,37 @@ export async function fetchCustomer(id: string): Promise<Record<string, unknown>
   return getCustomer<Record<string, unknown>>(session.getKey(), id)
 }
 
-/** Maakt een klant aan en geeft het nieuwe id terug. */
+/** Maakt een klant aan en geeft het nieuwe id terug.
+ *
+ * Gaat via de security definer-RPC `create_customer` i.p.v. een rechtstreekse
+ * insert: die insert liep op de RLS-policy van customers stuk ("new row
+ * violates row-level security policy", Jos-test 16). De RPC autoriseert zelf
+ * op een actieve keurmeester en omzeilt RLS -- zelfde patroon als alle andere
+ * klant-schrijfacties (save_my_member/add_my_article/...). */
 export async function createCustomer(values: Record<string, unknown>): Promise<string> {
-  const { data, error } = await supabase.from('customers').insert(values).select('id').single()
+  const str = (k: string) => {
+    const v = values[k]
+    return v == null ? null : String(v)
+  }
+  const { data, error } = await supabase.rpc('create_customer', {
+    p_name: str('name'),
+    p_email: str('email'),
+    p_customer_number: str('customer_number'),
+    p_kvk_number: str('kvk_number'),
+    p_vat_number: str('vat_number'),
+    p_contact_person: str('contact_person'),
+    p_phone: str('phone'),
+    p_street: str('street'),
+    p_house_number: str('house_number'),
+    p_house_number_addition: str('house_number_addition'),
+    p_postal_code: str('postal_code'),
+    p_city: str('city'),
+    p_province: str('province'),
+    p_country: str('country'),
+    p_notes: str('notes'),
+  })
   if (error) throw error
-  return String(data.id)
+  return String(data)
 }
 
 export async function updateCustomer(

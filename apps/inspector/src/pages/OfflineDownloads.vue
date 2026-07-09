@@ -3,7 +3,7 @@
     <header class="od__header">
       <button class="od__icon" @click="$router.push('/')">←</button>
       <h1>{{ $t('offline.title') }}</h1>
-      <span class="od__icon"></span>
+      <button class="od__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
     </header>
 
     <!-- Vergrendeld: eerst PIN instellen of invoeren -->

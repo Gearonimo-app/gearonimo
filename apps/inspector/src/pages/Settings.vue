@@ -3,7 +3,7 @@
     <header class="set__header">
       <button class="set__icon" @click="back">←</button>
       <h1>{{ headerTitle }}</h1>
-      <span class="set__icon"></span>
+      <button class="set__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
     </header>
 
     <!-- Overzicht van instellingen-onderdelen -->
