@@ -155,7 +155,7 @@ const { isOnline } = useOnline()
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
 
-interface Product { id: string; brand: string | null; name: string | null; category: string | null }
+interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
 interface Article {
   id: string
@@ -181,24 +181,36 @@ const formError = ref('')
 const products = ref<Product[]>([])
 const allBrands = computed(() => unique(products.value.map(p => p.brand)))
 const allCategories = computed(() => unique(products.value.map(p => p.category)))
-const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
-const matchingArticleNames = computed(() => {
-  const b = newBrand.value.trim().toLowerCase()
-  const c = newCategory.value.trim().toLowerCase()
-  if (!b && !c) return allArticleNames.value
-  const filtered = products.value.filter(p =>
-    (!b || (p.brand ?? '').toLowerCase() === b) &&
-    (!c || (p.category ?? '').toLowerCase() === c)
+// Producten die binnen de gekozen trechter (merk + categorie) vallen.
+const matchingProducts = computed(() =>
+  products.value.filter(p =>
+    p.name &&
+    (!newBrand.value.trim()    || (p.brand ?? '').toLowerCase() === newBrand.value.trim().toLowerCase()) &&
+    (!newCategory.value.trim() || (p.category ?? '').toLowerCase() === newCategory.value.trim().toLowerCase())
   )
-  return unique(filtered.map(p => p.name))
-})
-// Categorie-suggesties beperken tot het gekozen merk (trechter-flow): typ je
-// eerst een merk, dan zie je alleen de categorieën die bij dat merk bestaan.
+)
+
+// De artikel-suggestie toont naam én (indien aanwezig) de fabrikant-artikelcode.
+// De code staat in het label, zodat op code zoeken vanzelf meelift in dezelfde
+// fuzzy-filter (typ je "M33", dan matcht de code). Bij het kiezen knippen we de
+// code er weer af, zodat alleen de nette naam in het omschrijvingsveld komt.
+const CODE_SEP = '  ·  '
+function productLabel(p: Product): string {
+  return p.manufacturer_code ? `${p.name}${CODE_SEP}${p.manufacturer_code}` : (p.name ?? '')
+}
+function stripCode(label: string): string {
+  return label.split(CODE_SEP)[0].trim()
+}
+const matchingArticleLabels = computed(() => unique(matchingProducts.value.map(productLabel)))
+
+// Categorie-suggesties: beperkt tot het gekozen merk (trechter-flow). Heeft dat
+// merk in de catalogus geen enkele categorie, dan tonen we toch de volledige
+// lijst i.p.v. een lege dropdown -- de catalogus vult `category` niet overal.
 const matchingCategories = computed(() => {
   const b = newBrand.value.trim().toLowerCase()
   if (!b) return allCategories.value
-  const filtered = products.value.filter(p => (p.brand ?? '').toLowerCase() === b)
-  return unique(filtered.map(p => p.category))
+  const forBrand = unique(products.value.filter(p => (p.brand ?? '').toLowerCase() === b).map(p => p.category))
+  return forBrand.length ? forBrand : allCategories.value
 })
 
 function unique(arr: (string | null)[]): string[] {
@@ -220,7 +232,7 @@ function suggestFilter(list: string[], typed: string): string[] {
 }
 function setFieldValue(field: SuggestField, val: string) {
   switch (field) {
-    case 'article': newDescription.value = val; break
+    case 'article': newDescription.value = stripCode(val); break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
   }
@@ -240,7 +252,7 @@ const {
   scrollToActive: true,
   resolve: (field) => {
     switch (field) {
-      case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+      case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
       case 'brand': return suggestFilter(allBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       default: return []
@@ -404,7 +416,7 @@ onMounted(async () => {
   if (isOnline.value) {
     const { data: prods } = await supabase
       .from('products')
-      .select('id, brand, name, category')
+      .select('id, brand, name, category, manufacturer_code')
     products.value = (prods ?? []) as Product[]
   }
   await load()
