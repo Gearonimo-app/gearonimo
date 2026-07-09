@@ -95,6 +95,9 @@
       </template>
 
       <hr class="ca__sep" />
+      <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
+           serienummer (staat op het artikel), dán bouwjaar/-maand. -->
+      <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
       <div class="ca__row">
         <input v-model="newYear" type="number" class="ca__input ca__input--sm" :placeholder="$t('inspections.table.year')" />
         <select v-model="newMonth" class="ca__input ca__input--sm">
@@ -102,11 +105,17 @@
           <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
-      <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
       <input v-model="form.assigned_user_name" :placeholder="$t('articles.fields.user')"   class="ca__input" />
       <label class="ca__date-label">
         {{ $t('articles.fields.firstUse') }}
         <input v-model="form.first_use_date" type="date" class="ca__input" />
+      </label>
+      <!-- Aankoopdatum: bij toevoegen buiten een keuring om is de ingebruikname
+           meestal ook de aankoop-/verkoopdatum. Vult daarom automatisch mee met
+           de ingebruikname, zolang de keurmeester 'm niet zelf aanpast. -->
+      <label class="ca__date-label">
+        {{ $t('articles.detail.fields.purchaseDate') }}
+        <input v-model="form.purchase_date" type="date" class="ca__input" @input="purchaseTouched = true" />
       </label>
       <input v-model="form.set_label" :placeholder="$t('articles.fields.set')" class="ca__input" />
       <textarea v-model="form.notes" :placeholder="$t('articles.fields.notes')" class="ca__input" rows="2"></textarea>
@@ -256,9 +265,13 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 function emptyForm() {
   return {
     free_norm: '', free_mbs: '',
-    serial_number: '', assigned_user_name: '', first_use_date: '', set_label: '', notes: '',
+    serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', set_label: '', notes: '',
   }
 }
+
+// Aankoopdatum spiegelt de ingebruikname zolang de keurmeester 'm niet zelf
+// heeft aangepast (zie de toelichting in de template).
+const purchaseTouched = ref(false)
 
 // Aanmelden voor de catalogus via het gedeelde formulier-dialoog (zie ook
 // InspectionWizard). De dialoog schrijft zelf weg; hier alleen de lokale
@@ -268,6 +281,10 @@ function onSuggestSaved(suggested: boolean) {
   if (suggestFor.value) suggestFor.value.suggest_for_catalog = suggested
 }
 const form = ref(emptyForm())
+
+watch(() => form.value.first_use_date, (v) => {
+  if (!purchaseTouched.value) form.value.purchase_date = v
+})
 
 // Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
 const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
@@ -328,6 +345,7 @@ function closeAdd() {
   newYear.value = null; newMonth.value = null
   activeField.value = null; suggestIndex.value = -1
   formError.value = ''
+  purchaseTouched.value = false
   form.value = emptyForm()
 }
 
@@ -349,6 +367,7 @@ async function save() {
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
+    purchase_date: form.value.purchase_date || null,
     set_label: form.value.set_label.trim() || null,
     notes: form.value.notes.trim() || null,
     manufacture_year: newYear.value || null,
