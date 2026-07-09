@@ -36,25 +36,12 @@
     <div v-if="showAdd" class="ca__form">
       <h3>{{ $t('articles.add') }}</h3>
 
-      <!-- Zelfde invoerflow als bij een keuring: Artikel/Merk/Categorie hebben
-           ieder hun eigen typeahead op de catalogus; matcht het getypte
-           artikel exact een catalogusproduct, dan vullen merk/categorie zich
-           vanzelf. Geen match = vrij artikel. -->
-      <div class="ca__field">
-        <input
-          v-model="newDescription"
-          class="ca__input"
-          :placeholder="$t('inspections.table.article')"
-          @focus="activeField = 'article'"
-          @blur="closeSuggest"
-          @keydown="onSuggestKeydown"
-        />
-        <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
-          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
-                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
-                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
-        </div>
-      </div>
+      <!-- Trechter-flow: eerst Merk, dan Categorie (gefilterd op het gekozen
+           merk), dan het Artikel zelf (gefilterd op merk + categorie). Elk veld
+           heeft z'n eigen typeahead op de catalogus; matcht het getypte artikel
+           exact een catalogusproduct, dan bevestigen merk/categorie zich
+           vanzelf. Geen match = vrij artikel. `ref="itemRefs"` +
+           scrollToActive laten de gemarkeerde suggestie meescrollen bij ↑/↓. -->
       <div class="ca__field">
         <input
           v-model="newBrand"
@@ -65,7 +52,7 @@
           @keydown="onSuggestKeydown"
         />
         <div v-if="activeField === 'brand' && fieldSuggestions.length" class="ca__suggest">
-          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
                   class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
                   @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
         </div>
@@ -80,7 +67,22 @@
           @keydown="onSuggestKeydown"
         />
         <div v-if="activeField === 'category' && fieldSuggestions.length" class="ca__suggest">
-          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button"
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+        </div>
+      </div>
+      <div class="ca__field">
+        <input
+          v-model="newDescription"
+          class="ca__input"
+          :placeholder="$t('inspections.table.article')"
+          @focus="activeField = 'article'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
                   class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
                   @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
         </div>
@@ -190,6 +192,14 @@ const matchingArticleNames = computed(() => {
   )
   return unique(filtered.map(p => p.name))
 })
+// Categorie-suggesties beperken tot het gekozen merk (trechter-flow): typ je
+// eerst een merk, dan zie je alleen de categorieën die bij dat merk bestaan.
+const matchingCategories = computed(() => {
+  const b = newBrand.value.trim().toLowerCase()
+  if (!b) return allCategories.value
+  const filtered = products.value.filter(p => (p.brand ?? '').toLowerCase() === b)
+  return unique(filtered.map(p => p.category))
+})
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
@@ -222,15 +232,17 @@ const {
   activeField,
   suggestIndex,
   suggestions: fieldSuggestions,
+  itemRefs,
   pick: pickSuggestion,
   close: closeSuggest,
   onKeydown: onSuggestKeydown,
 } = useFieldSuggest<SuggestField>({
+  scrollToActive: true,
   resolve: (field) => {
     switch (field) {
       case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
       case 'brand': return suggestFilter(allBrands.value, newBrand.value)
-      case 'category': return suggestFilter(allCategories.value, newCategory.value)
+      case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       default: return []
     }
   },
