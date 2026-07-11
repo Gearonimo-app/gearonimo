@@ -172,7 +172,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="r in recallResults" :key="r.id" class="ss__trow" @click="$router.push(`/articles/${r.id}`)">
+              <tr v-for="r in recallResults" :key="r.id" class="ss__trow" @click="openArticleTab(r.id)">
                 <td class="ss__td-name">{{ name(r) || '—' }}</td>
                 <td>{{ brand(r) || '—' }}</td>
                 <td class="ss__td-sn">{{ r.serial_number || '—' }}</td>
@@ -453,6 +453,15 @@ async function doRecall() {
   } finally {
     loading.value = false
   }
+}
+
+// Opent in een NIEUW tabblad i.p.v. binnen de app te navigeren: bij een
+// recall wil je juist alle treffers één voor één langslopen (afkeuren/
+// controleren), en dan is de resultatenlijst hier in het originele tabblad
+// intact -- geen heen-en-weer-navigeren, gewoon per tabblad afronden en
+// sluiten (Jos, fase G).
+function openArticleTab(articleId: string) {
+  window.open(`/articles/${articleId}`, '_blank')
 }
 
 function exportRecallCsv() {
