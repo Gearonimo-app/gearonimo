@@ -175,6 +175,7 @@
       :customer-id="props.customerId"
       :main-article-id="partFor.id"
       :main-label="articleLabel(partFor)"
+      :products="products"
       @saved="onPartSaved"
       @close="partFor = null"
     />

@@ -18,8 +18,36 @@
 
       <div v-if="!isOnline" class="apd__state apd__state--error">{{ $t('sets.addPart.offline') }}</div>
       <form v-else class="apd__form" @submit.prevent="save">
-        <input v-model="brand" class="apd__input" :placeholder="$t('inspections.table.brand')" />
-        <input v-model="description" class="apd__input" :placeholder="$t('inspections.table.article')" />
+        <div class="apd__field">
+          <input
+            v-model="brand"
+            class="apd__input"
+            :placeholder="$t('inspections.table.brand')"
+            @focus="activeField = 'brand'"
+            @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
+          />
+          <div v-if="activeField === 'brand' && fieldSuggestions.length" class="apd__suggest">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
+                    class="apd__suggest-item" :class="{ 'apd__suggest-item--active': i === suggestIndex }"
+                    @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
+        </div>
+        <div class="apd__field">
+          <input
+            v-model="description"
+            class="apd__input"
+            :placeholder="$t('inspections.table.article')"
+            @focus="activeField = 'article'"
+            @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
+          />
+          <div v-if="activeField === 'article' && fieldSuggestions.length" class="apd__suggest">
+            <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
+                    class="apd__suggest-item" :class="{ 'apd__suggest-item--active': i === suggestIndex }"
+                    @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+          </div>
+        </div>
         <input v-model="serial" class="apd__input" :placeholder="$t('articles.fields.serial')" />
         <div class="apd__row">
           <input v-model.number="year" type="number" class="apd__input apd__input--sm" :placeholder="$t('inspections.table.year')" />
@@ -51,11 +79,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, errorMessage } from '@gearonimo/core'
+import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 
-const props = defineProps<{ customerId: string; mainArticleId: string; mainLabel: string }>()
+interface CatalogProduct { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
+const props = defineProps<{ customerId: string; mainArticleId: string; mainLabel: string; products: CatalogProduct[] }>()
 const emit = defineEmits<{ (e: 'saved'): void; (e: 'close'): void }>()
 
 const { t } = useI18n()
@@ -70,6 +100,67 @@ const role = ref('')
 const replaceArticleId = ref<string | null>(null)
 const saving = ref(false)
 const formError = ref('')
+
+// Zelfde zoeken/dropdown als bij "Artikel toevoegen" (CustomerArticles.vue):
+// merk filtert de artikel-suggesties (trechter), een exacte match vult het
+// merk terug in en koppelt bij het opslaan aan het echte catalogusproduct
+// i.p.v. altijd een vrij artikel te maken.
+function unique(arr: (string | null)[]): string[] {
+  return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
+}
+const allBrands = computed(() => unique(props.products.map((p) => p.brand)))
+const matchingProducts = computed(() =>
+  props.products.filter((p) => p.name && (!brand.value.trim() || (p.brand ?? '').toLowerCase() === brand.value.trim().toLowerCase()))
+)
+const CODE_SEP = '  ·  '
+function productLabel(p: CatalogProduct): string {
+  return p.manufacturer_code ? `${p.name}${CODE_SEP}${p.manufacturer_code}` : (p.name ?? '')
+}
+function stripCode(label: string): string {
+  return label.split(CODE_SEP)[0].trim()
+}
+const matchingArticleLabels = computed(() => unique(matchingProducts.value.map(productLabel)))
+
+type SuggestField = 'brand' | 'article'
+function suggestFilter(list: string[], typed: string): string[] {
+  return fuzzyFilter(list, typed, 30)
+}
+const {
+  activeField,
+  suggestIndex,
+  suggestions: fieldSuggestions,
+  itemRefs,
+  pick: pickSuggestion,
+  close: closeSuggest,
+  onKeydown: onSuggestKeydown,
+} = useFieldSuggest<SuggestField>({
+  scrollToActive: true,
+  resolve: (field) => (field === 'brand' ? suggestFilter(allBrands.value, brand.value) : suggestFilter(matchingArticleLabels.value, description.value)),
+  select: (field, val) => {
+    if (field === 'brand') brand.value = val
+    else description.value = stripCode(val)
+  },
+})
+
+watch(description, (name) => {
+  const n = name.trim().toLowerCase()
+  if (!n) return
+  const p = props.products.find((p) => (p.name ?? '').toLowerCase() === n)
+  if (p?.brand) brand.value = p.brand
+})
+
+function matchProduct(): CatalogProduct | null {
+  const name = description.value.trim().toLowerCase()
+  if (!name) return null
+  const matches = props.products.filter((p) => (p.name ?? '').toLowerCase() === name)
+  if (!matches.length) return null
+  const b = brand.value.trim().toLowerCase()
+  if (b) {
+    const withBrand = matches.find((p) => (p.brand ?? '').toLowerCase() === b)
+    if (withBrand) return withBrand
+  }
+  return matches[0]
+}
 
 interface Candidate { article_id: string; label: string }
 const candidates = ref<Candidate[]>([])
@@ -109,12 +200,14 @@ async function save() {
   }
   saving.value = true
   try {
+    const product = matchProduct()
     const { data: article, error: artErr } = await supabase
       .from('articles')
       .insert({
         customer_id: props.customerId,
-        free_brand: brand.value.trim() || null,
-        free_description: description.value.trim() || null,
+        product_id: product?.id ?? null,
+        free_brand: product ? null : (brand.value.trim() || null),
+        free_description: product ? null : (description.value.trim() || null),
         serial_number: serial.value.trim() || null,
         manufacture_year: year.value || null,
         manufacture_month: month.value || null,
@@ -157,10 +250,25 @@ async function save() {
 .apd__state { padding: 1rem 0; }
 .apd__state--error { color: #dc2626; }
 .apd__form { display: flex; flex-direction: column; gap: 0.6rem; }
+.apd__field { position: relative; }
 .apd__input {
   padding: 0.7rem 0.9rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit;
 }
+.apd__suggest {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 5;
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  margin-top: 0.25rem; padding: 0.3rem;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  max-height: 200px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.apd__suggest-item {
+  text-align: left; border: none; background: transparent; cursor: pointer;
+  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
+  color: #111827; font-family: inherit;
+}
+.apd__suggest-item:hover { background: #f3f4f6; }
+.apd__suggest-item--active { background: #e0e7ff; }
 .apd__row { display: flex; gap: 0.6rem; }
 .apd__input--sm { flex: 1; }
 .apd__replace { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }

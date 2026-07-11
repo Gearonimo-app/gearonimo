@@ -4,9 +4,10 @@
      onderdeel (bv. een nieuwe brug met eigen SN) moet in één stap gekoppeld
      worden i.p.v. los toegevoegd en achteraf opgezocht. Klant-accounts hebben
      geen directe tabeltoegang (RLS-ronde 20260713), dus dit gaat via twee
-     RPC's: add_my_article (bestaand) om het nieuwe artikel aan te maken, en
-     get_or_create_article_set (gedeeld met de Pro-app) om te koppelen en
-     optioneel het vervangen onderdeel af te voeren. -->
+     RPC's: add_my_article (bestaand, met dezelfde catalogus-zoeker
+     search_products als AddArticleForm.vue) om het nieuwe artikel aan te
+     maken, en get_or_create_article_set (gedeeld met de Pro-app) om te
+     koppelen en optioneel het vervangen onderdeel af te voeren. -->
 <template>
   <div class="apf" @click.self="$emit('close')">
     <div class="apf__panel">
@@ -17,8 +18,40 @@
       <p class="apf__label">{{ $t('sets.addPart.linkedTo', { name: mainLabel }) }}</p>
 
       <form class="apf__form" @submit.prevent="save">
-        <input v-model="brand" class="apf__input" :placeholder="$t('home.addArticle.brand')" />
-        <input v-model="description" class="apf__input" :placeholder="$t('home.addArticle.description')" />
+        <template v-if="!chosen && !freeMode">
+          <input
+            v-model="q"
+            class="apf__input"
+            :placeholder="$t('home.addArticle.search')"
+            autocomplete="off"
+            @input="onSearch"
+          />
+          <ul v-if="suggestions.length" class="apf__suggest">
+            <li v-for="s in suggestions" :key="s.id">
+              <button type="button" class="apf__suggest-item" @click="choose(s)">
+                <strong>{{ s.brand }}</strong> {{ s.name }}
+                <span v-if="s.product_type" class="apf__suggest-type">{{ s.product_type }}</span>
+              </button>
+            </li>
+          </ul>
+          <button type="button" class="apf__free-toggle" @click="freeMode = true">
+            {{ $t('home.addArticle.freeToggle') }}
+          </button>
+        </template>
+
+        <div v-if="chosen" class="apf__chosen">
+          <span><strong>{{ chosen.brand }}</strong> {{ chosen.name }}</span>
+          <button type="button" class="apf__chosen-clear" @click="chosen = null">✕</button>
+        </div>
+
+        <template v-if="freeMode">
+          <input v-model="freeDescription" class="apf__input" :placeholder="$t('home.addArticle.description')" />
+          <input v-model="freeBrand" class="apf__input" :placeholder="$t('home.addArticle.brand')" />
+          <button type="button" class="apf__free-toggle" @click="freeMode = false">
+            {{ $t('home.addArticle.backToSearch') }}
+          </button>
+        </template>
+
         <input v-model="serial" class="apf__input" :placeholder="$t('home.addArticle.serial')" />
         <div class="apf__row">
           <input v-model.number="year" type="number" min="1990" max="2100" class="apf__input" :placeholder="$t('home.addArticle.year')" />
@@ -55,8 +88,14 @@ const props = defineProps<{ customerId: string; mainArticleId: string; mainLabel
 const emit = defineEmits<{ (e: "saved"): void; (e: "close"): void }>();
 const { t } = useI18n();
 
-const brand = ref("");
-const description = ref("");
+interface ProductHit { id: string; brand: string | null; name: string | null; product_type: string | null }
+const q = ref("");
+const suggestions = ref<ProductHit[]>([]);
+const chosen = ref<ProductHit | null>(null);
+const freeMode = ref(false);
+const freeDescription = ref("");
+const freeBrand = ref("");
+
 const serial = ref("");
 const year = ref<number | null>(null);
 const month = ref<number | null>(null);
@@ -65,9 +104,27 @@ const replaceArticleId = ref<string | null>(null);
 const saving = ref(false);
 const formError = ref("");
 
+let searchTimer: ReturnType<typeof setTimeout> | undefined;
+function onSearch() {
+  clearTimeout(searchTimer);
+  const term = q.value.trim();
+  if (term.length < 2) {
+    suggestions.value = [];
+    return;
+  }
+  searchTimer = setTimeout(async () => {
+    const { data } = await supabase.rpc("search_products", { q: term, brand_filter: null });
+    suggestions.value = (data ?? []) as ProductHit[];
+  }, 250);
+}
+function choose(s: ProductHit) {
+  chosen.value = s;
+  suggestions.value = [];
+  q.value = "";
+}
+
 interface Candidate { article_id: string; label: string }
 const candidates = ref<Candidate[]>([]);
-
 interface SetRow { set_id: string; article_id: string; article_label: string | null; serial_number: string | null }
 
 onMounted(async () => {
@@ -85,15 +142,16 @@ onMounted(async () => {
 
 async function save() {
   formError.value = "";
-  if (!description.value.trim()) {
-    formError.value = t("sets.addPart.errors.missing");
+  if (!chosen.value && !freeDescription.value.trim()) {
+    formError.value = t("home.addArticle.needProductOrDescription");
     return;
   }
   saving.value = true;
   try {
     const { data: newArticleId, error: addErr } = await supabase.rpc("add_my_article", {
-      p_free_brand: brand.value.trim() || null,
-      p_free_description: description.value.trim(),
+      p_product_id: chosen.value?.id ?? null,
+      p_free_brand: chosen.value ? null : freeBrand.value.trim() || null,
+      p_free_description: chosen.value ? null : freeDescription.value.trim() || null,
       p_serial_number: serial.value.trim() || null,
       p_manufacture_year: year.value || null,
       p_manufacture_month: month.value || null,
@@ -135,6 +193,27 @@ async function save() {
   font-size: 0.95rem; width: 100%; box-sizing: border-box;
 }
 .apf__row { display: flex; gap: 0.5rem; }
+.apf__suggest {
+  list-style: none; margin: 0; padding: 0;
+  border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;
+}
+.apf__suggest li + li { border-top: 1px solid #f3f4f6; }
+.apf__suggest-item {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  padding: 0.55rem 0.7rem; cursor: pointer; font-size: 0.9rem;
+}
+.apf__suggest-item:hover { background: #f0fdf4; }
+.apf__suggest-type { color: #6b7280; font-size: 0.8rem; margin-left: 0.35rem; }
+.apf__free-toggle {
+  background: none; border: none; color: #16a34a; cursor: pointer;
+  font-size: 0.85rem; text-align: left; padding: 0;
+}
+.apf__chosen {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  background: #dcfce7; color: #166534; border-radius: 8px; padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+}
+.apf__chosen-clear { background: none; border: none; color: #166534; cursor: pointer; font-weight: 700; }
 .apf__replace { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
 .apf__error { margin: 0; color: #dc2626; font-size: 0.9rem; }
 .apf__actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
