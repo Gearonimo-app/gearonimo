@@ -310,6 +310,7 @@
       "matchTooltip": "Koppelen aan een artikel uit de catalogus — merk, categorie en levensduurgegevens worden dan automatisch ingevuld.",
       "matchPlaceholder": "Typ om te zoeken…",
       "addManualUrl": "Handleiding-link toevoegen",
+      "recallBadge": "RECALL",
       "manualUrlPrompt": "Handleiding-link:",
       "suggestForCatalog": "Toevoegen aan productendatabase",
       "norm": "Norm (bijv. EN 361)",

@@ -310,6 +310,7 @@
       "matchTooltip": "Match to a catalog article — brand, category and lifespan data will be filled in automatically.",
       "matchPlaceholder": "Type to search…",
       "addManualUrl": "Add manual link",
+      "recallBadge": "RECALL",
       "manualUrlPrompt": "Manual link:",
       "suggestForCatalog": "Suggest for product database",
       "norm": "Standard (e.g. EN 361)",

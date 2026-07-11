@@ -256,10 +256,7 @@
                          bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
                     <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
                     <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
-                    <!-- Catalogus-artikel: alleen-lezen recall-vlag uit products.recall_url. Bij vrije
-                         artikelen is een recall onbekend (geen catalogus om tegen te checken), dus
-                         daar tonen we helemaal geen vlag — niet eens een leeg/uit te zetten icoon. -->
-                    <a v-if="row.it.article.product?.recall_url" :href="row.it.article.product.recall_url" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
+                    <a v-if="itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
                   </td>
                   <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
@@ -298,6 +295,17 @@
                       class="iw__set-flag"
                       :title="$t('sets.addPart.linkedTo', { name: articleSetInfo[row.it.article_id].setName })"
                     >🔗</span>
+                    <!-- Niet meer alleen een klein vlaggetje in de warn-kolom: een
+                         recall is te belangrijk om te kunnen missen tijdens het
+                         invullen, dus ook een duidelijke rode melding direct naast
+                         de artikelnaam (feedback Jos 2026-07-11). Geldt nu ook voor
+                         vrije artikelen met de handmatige recall-toggle. -->
+                    <a
+                      v-if="itemRecallUrl(row.it)"
+                      :href="itemRecallUrl(row.it)!"
+                      target="_blank"
+                      class="iw__recall-badge"
+                    >🚩 {{ $t('inspections.table.recallBadge') }}</a>
                   </td>
                   <td :data-label="$t('inspections.table.colSerial')">
                     <input
@@ -1063,6 +1071,12 @@ function itemName(it: Item) { return it.article.product?.name ?? it.article.free
 function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
+// Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
+// keurmeester de handmatige recall-toggle heeft aangezet (free_recall_flag) --
+// zonder catalogus is een recall anders niet vast te stellen.
+function itemRecallUrl(it: Item): string | null {
+  return it.article.product?.recall_url ?? (it.article.free_recall_flag ? it.article.free_recall_url : null)
+}
 
 async function editManualUrl(it: Item) {
   if (it.article.product) return
@@ -1995,11 +2009,19 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 /* Setleden bij elkaar (besloten met Jos 2026-07-11): box-shadow i.p.v.
    border-left, want een echte border op <tr> wordt door border-collapse
    genegeerd. */
-.iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
+/* Geen achtergrondkleur hier (i.p.v. alleen box-shadow): zou de belangrijkere
+   goed/afgekeurd-achtergrond overschrijven (gelijke CSS-specificiteit, deze
+   regel staat later in het stylesheet). */
+.iw__row--grouped { box-shadow: inset 5px 0 0 0 #3b82f6; }
 .iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
 .iw__group-head-row td {
-  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
-  background: #eff6ff; border-top: 1px solid #dbeafe; border-bottom: 1px solid #dbeafe;
+  padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; color: #fff;
+  background: #3b82f6;
+}
+.iw__recall-badge {
+  display: inline-flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem;
+  background: #dc2626; color: #fff; border-radius: 999px; padding: 0.1rem 0.55rem;
+  font-size: 0.75rem; font-weight: 700; text-decoration: none; white-space: nowrap;
 }
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
