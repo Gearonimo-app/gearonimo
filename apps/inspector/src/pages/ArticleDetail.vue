@@ -5,7 +5,12 @@
         <button class="ad__icon" @click="back">←</button>
         <button class="ad__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
       </div>
-      <h1>{{ articleLabel || $t('articles.title') }}</h1>
+      <div class="ad__title">
+        <h1>{{ articleLabel || $t('articles.title') }}</h1>
+        <!-- Jos raakte hier de weg kwijt na doorklikken vanuit recall-zoeken:
+             van welke klant is dit artikel? Nu altijd zichtbaar in de kop. -->
+        <span v-if="customerName" class="ad__customer">{{ customerName }}</span>
+      </div>
       <button v-if="article && !editMode && isOnline" class="ad__icon" @click="startEdit">✎</button>
     </header>
 
@@ -84,6 +89,7 @@ import {
   useOfflineSession,
   getArticle,
   getProducts,
+  getCustomer,
   errorMessage,
 } from '@gearonimo/core'
 
@@ -117,6 +123,11 @@ interface ArticleRecord {
 }
 
 const article = ref<ArticleRecord | null>(null)
+// Los van `article` bijgehouden (i.p.v. via een genest `customer`-veld op
+// ArticleRecord): zo hoeft het bewerk-/afvoer-pad de join niet elke keer
+// opnieuw mee te selecteren, en werkt de offline-tak (die geen join kan doen)
+// op dezelfde manier.
+const customerName = ref<string | null>(null)
 const loading = ref(true)
 const error = ref('')
 const editMode = ref(false)
@@ -159,14 +170,19 @@ async function load() {
   if (!isOnline.value) {
     try {
       const key = useOfflineSession().getKey()
-      const cached = await getArticle<ArticleRecord & { product_id: string | null }>(key, id)
+      const cached = await getArticle<ArticleRecord & { product_id: string | null; customer_id: string | null }>(key, id)
       if (cached) {
         const product = cached.product_id
           ? ((await getProducts<{ id: string; brand: string | null; name: string | null }>(key, [cached.product_id]))[0] ?? null)
           : null
         article.value = { ...cached, product }
+        const customer = cached.customer_id
+          ? await getCustomer<{ name: string | null }>(key, cached.customer_id)
+          : null
+        customerName.value = customer?.name ?? null
       } else {
         article.value = null
+        customerName.value = null
       }
     } catch (e) {
       error.value = errorMessage(e)
@@ -177,11 +193,14 @@ async function load() {
 
   const { data, error: err } = await supabase
     .from('articles')
-    .select('*, product:products(id, brand, name)')
+    .select('*, customer:customers(name), product:products(id, brand, name)')
     .eq('id', id)
     .maybeSingle()
   if (err) error.value = err.message
-  else article.value = data
+  else {
+    article.value = data
+    customerName.value = (data?.customer as { name: string | null } | null)?.name ?? null
+  }
   loading.value = false
 }
 
@@ -256,8 +275,20 @@ async function retire() {
 }
 
 function back() {
-  if (article.value?.customer_id) router.push(`/customers/${article.value.customer_id}`)
-  else router.back()
+  // Gaat terug naar waar je vandaan kwam (serienummer-/recall-zoeken,
+  // setdetail, ...) als die geschiedenis er is -- Vue Router (createWebHistory)
+  // zet history.state.back op elke navigatie, null bij de eerste pagina in dit
+  // tabblad. Jos liep hier tegen aan: vanuit recall-zoeken belandde je altijd
+  // op het klantdetail, niet terug bij de zoekresultaten. Alleen zonder
+  // navigatiegeschiedenis (direct geopende link, pagina ververst) valt dit
+  // terug op het klantdetail, of anders het hoofdmenu.
+  if (window.history.state?.back) {
+    router.back()
+  } else if (article.value?.customer_id) {
+    router.push(`/customers/${article.value.customer_id}`)
+  } else {
+    router.push('/')
+  }
 }
 
 onMounted(load)
@@ -276,7 +307,9 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
 .ad__nav { display: flex; align-items: center; gap: 0.15rem; }
-.ad__header h1 { font-size: 1.2rem; margin: 0; flex: 1; text-align: center; }
+.ad__title { flex: 1; min-width: 0; text-align: center; }
+.ad__header h1 { font-size: 1.2rem; margin: 0; }
+.ad__customer { display: block; font-size: 0.8rem; color: #a7c4b0; margin-top: 0.1rem; }
 .ad__icon {
   background: none; border: none; color: #fff; font-size: 1.3rem;
   cursor: pointer; padding: 0.25rem 0.5rem; min-width: 2rem;
