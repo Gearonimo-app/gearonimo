@@ -172,8 +172,17 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="r in recallResults" :key="r.id" class="ss__trow" @click="openArticleTab(r.id)">
-                <td class="ss__td-name">{{ name(r) || '—' }}</td>
+              <!-- Echte link (i.p.v. een JS-klikhandler): zo opent Ctrl/Cmd-klik
+                   of een middelklik het artikel op de achtergrond, zoals een
+                   browser dat bij elke link doet -- dat kan een script niet
+                   afdwingen bij een gewone klik (de browser haalt een via JS
+                   geopend tabblad altijd naar de voorgrond). De link wordt met
+                   CSS over de hele rij "uitgerekt" (.ss__trow-link), zodat
+                   overal in de rij klikken werkt, niet alleen op de tekst. -->
+              <tr v-for="r in recallResults" :key="r.id" class="ss__trow">
+                <td class="ss__td-name">
+                  <a :href="`/articles/${r.id}`" target="_blank" rel="noopener" class="ss__trow-link">{{ name(r) || '—' }}</a>
+                </td>
                 <td>{{ brand(r) || '—' }}</td>
                 <td class="ss__td-sn">{{ r.serial_number || '—' }}</td>
                 <td class="ss__td-mfr" :class="{ 'ss__td-mfr--unknown': r._unknownDate }">
@@ -455,15 +464,6 @@ async function doRecall() {
   }
 }
 
-// Opent in een NIEUW tabblad i.p.v. binnen de app te navigeren: bij een
-// recall wil je juist alle treffers één voor één langslopen (afkeuren/
-// controleren), en dan is de resultatenlijst hier in het originele tabblad
-// intact -- geen heen-en-weer-navigeren, gewoon per tabblad afronden en
-// sluiten (Jos, fase G).
-function openArticleTab(articleId: string) {
-  window.open(`/articles/${articleId}`, '_blank')
-}
-
 function exportRecallCsv() {
   if (!recallResults.value.length) return
   const header = 'Product;Merk;Serienummer;Bouwjaar;Bouwmaand;Gebruiker;Klant'
@@ -588,9 +588,19 @@ onMounted(async () => {
   font-weight: 600; border-bottom: 1px solid #eee; white-space: nowrap;
 }
 .ss__table td { padding: 0.6rem 0.7rem; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
-.ss__trow { cursor: pointer; }
+.ss__trow { cursor: pointer; position: relative; }
 .ss__trow:active { background: #f9fafb; }
 .ss__td-name { font-weight: 600; }
+/* "Uitgerekte link": de <a> zelf blijft normaal in de eerste cel staan (de
+   naam is gewoon zichtbare tekst); een onzichtbaar ::after-laagje dekt met
+   position:absolute de hele rij af, zodat overal in de rij klikken werkt
+   -- niet de <a> zelf absoluut positioneren, anders verdwijnt de tekst uit
+   haar cel en overlapt hij de rest van de rij. */
+.ss__trow-link { color: inherit; text-decoration: none; }
+.ss__trow-link::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 1;
+}
 .ss__td-sn { font-family: monospace; font-size: 0.8rem; }
 .ss__td-mfr { font-weight: 600; color: #b45309; }
 .ss__td-mfr--unknown { color: #b91c1c; }
