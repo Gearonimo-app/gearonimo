@@ -31,6 +31,19 @@
              hieronder; staat een artikel er niet bij, vul de overige velden
              aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
              altijd in beeld blijft. -->
+        <!-- "Onderdeel toevoegen aan dit artikel": zichtbare bevestiging + rol-
+             en vervangt-velden, zodat duidelijk is dat het volgende toegevoegde
+             artikel gekoppeld wordt in plaats van los te blijven. -->
+        <div v-if="linkTo" class="iw__link-bar">
+          <span>{{ $t('sets.addPart.linkedTo', { name: linkTo.label }) }}</span>
+          <input v-model="linkRole" class="iw__input iw__input--sm" :placeholder="$t('sets.addPart.rolePlaceholder')" />
+          <select v-if="linkCandidates.length" v-model="linkReplaceId" class="iw__select iw__select--sm">
+            <option :value="null">{{ $t('sets.addPart.replacesNone') }}</option>
+            <option v-for="c in linkCandidates" :key="c.article_id" :value="c.article_id">{{ c.label }}</option>
+          </select>
+          <button type="button" class="iw__link-cancel" @click="cancelLinkPart">✕</button>
+        </div>
+
         <div class="iw__add">
           <input
             v-model="newDescription"
@@ -372,6 +385,7 @@
                             @click="suggestFor = row.it.article">
                       📚
                     </button>
+                    <button class="iw__part-btn" :title="$t('sets.addPart.title')" @click="startLinkPart(row.it)">🔗+</button>
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
@@ -508,6 +522,60 @@ const suggestLabel = computed(() => {
 })
 function onSuggestSaved(suggested: boolean) {
   if (suggestFor.value) suggestFor.value.suggest_for_catalog = suggested
+}
+
+// "Onderdeel toevoegen aan dit artikel" (besloten met Jos 2026-07-11): een
+// hoofdartikel (bv. een klimgordel) krijgt vaak een vervangen onderdeel met
+// een eigen SN (bv. een nieuwe brug). In plaats van dat onderdeel los toe te
+// voegen en daarna apart op te zoeken om te groeperen, start je de link hier
+// vanuit de rij zelf: het bestaande "nieuw artikel"-formulier bovenaan krijgt
+// een rol-veld + duidelijke "gekoppeld aan"-indicator, en addRow() koppelt na
+// het aanmaken in één moeite door via get_or_create_article_set. Bewust
+// online-only (net als andere set-acties).
+interface LinkTarget { id: string; label: string }
+const linkTo = ref<LinkTarget | null>(null)
+const linkRole = ref('')
+const linkReplaceId = ref<string | null>(null)
+const linkCandidates = ref<{ article_id: string; label: string }[]>([])
+
+async function startLinkPart(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  linkTo.value = { id: it.article_id, label: itemLabel(it) }
+  linkRole.value = ''
+  linkReplaceId.value = null
+  linkCandidates.value = []
+
+  const { data: memberRow } = await supabase
+    .from('article_set_members')
+    .select('set_id, article_sets!inner(customer_id)')
+    .eq('article_id', it.article_id)
+    .eq('article_sets.customer_id', inspection.value!.customer_id)
+    .maybeSingle()
+  if (!memberRow) return
+
+  const { data: members } = await supabase
+    .from('article_set_members')
+    .select('article_id, article:articles(serial_number, free_brand, free_description, retired, product:products(brand, name))')
+    .eq('set_id', (memberRow as { set_id: string }).set_id)
+    .neq('article_id', it.article_id)
+  type RawMember = { article_id: string; article: { serial_number: string | null; free_brand: string | null; free_description: string | null; retired: boolean; product: { brand: string | null; name: string | null } | null } }
+  linkCandidates.value = ((members ?? []) as unknown as RawMember[])
+    .filter((m) => !m.article.retired)
+    .map((m) => {
+      const a = m.article
+      const s = a.product ? [a.product.brand, a.product.name].filter(Boolean).join(' ') : [a.free_brand, a.free_description].filter(Boolean).join(' ')
+      const sn = a.serial_number ? ` (SN ${a.serial_number})` : ''
+      return { article_id: m.article_id, label: (s || '?') + sn }
+    })
+}
+function cancelLinkPart() {
+  linkTo.value = null
+  linkRole.value = ''
+  linkReplaceId.value = null
+  linkCandidates.value = []
 }
 
 const previousResults = ref<Record<string, { result: string; comment: string | null; inspection_date: string } | null>>({})
@@ -1459,6 +1527,19 @@ async function addRow() {
       user: newUser.value.trim(),
     }
 
+    if (linkTo.value) {
+      const { error: linkErr } = await supabase.rpc('get_or_create_article_set', {
+        p_customer_id: inspection.value!.customer_id,
+        p_primary_article_id: linkTo.value.id,
+        p_primary_label: linkTo.value.label,
+        p_new_article_id: article.id,
+        p_role: linkRole.value.trim() || null,
+        p_retire_article_id: linkReplaceId.value,
+      })
+      if (linkErr) throw linkErr
+      cancelLinkPart()
+    }
+
     resetAddRow()
   } catch (e) {
     addError.value = errorMessage(e)
@@ -1867,8 +1948,16 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__result-cell { min-width: 11rem; }
 .iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
 .iw__actions-cell { text-align: center; }
+.iw__part-btn { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.5; margin-right: 0.35rem; }
+.iw__part-btn:hover { opacity: 1; }
 .iw__retire-btn { border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: 0.6; }
 .iw__retire-btn:hover { opacity: 1; }
+.iw__link-bar {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  background: #eff6ff; color: #1e40af; border-radius: 10px;
+  padding: 0.6rem 0.85rem; margin-bottom: 0.5rem; font-size: 0.9rem;
+}
+.iw__link-cancel { border: none; background: none; color: #1e40af; cursor: pointer; font-size: 1rem; margin-left: auto; }
 .iw__retired-badge { opacity: 0.5; }
 .iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
 .iw__cell-input {

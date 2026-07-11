@@ -183,6 +183,23 @@
       "deleteSet": "Set verwijderen",
       "deleteTitle": "Set verwijderen?",
       "deleteBody": "De artikelen zelf blijven bestaan, alleen de groepering verdwijnt."
+    },
+    "group": {
+      "selectButton": "Selecteren",
+      "selectedCount": "{count} geselecteerd",
+      "action": "Groepeer tot set",
+      "dialogTitle": "Set aanmaken"
+    },
+    "addPart": {
+      "title": "Onderdeel toevoegen",
+      "linkedTo": "Wordt gekoppeld aan: {name}",
+      "rolePlaceholder": "Rol (bijv. brug, karabiner)",
+      "replaces": "Dit vervangt",
+      "replacesNone": "Niets — nieuw onderdeel",
+      "offline": "Onderdeel koppelen kan alleen online.",
+      "errors": {
+        "missing": "Merk of omschrijving is verplicht."
+      }
     }
   },
   "login": {

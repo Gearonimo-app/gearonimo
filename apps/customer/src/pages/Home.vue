@@ -46,9 +46,23 @@
       <section class="hm__section">
         <div class="hm__section-head">
           <h2>{{ $t('home.articles') }}</h2>
-          <!-- Zelf materiaal aanmelden mag elk actief lid (zelfde lijn als
-               afvoeren); de keurmeester ziet het terug met source='customer'. -->
-          <button v-if="!addingArticle" class="hm__addbtn" @click="addingArticle = true">{{ $t('home.addArticle.button') }}</button>
+          <div class="hm__section-actions">
+            <!-- Samenstellen vanuit de lijst (besloten met Jos 2026-07-11):
+                 artikelen aanvinken en in één stap groeperen, i.p.v. eerst een
+                 lege set aan te maken en er dan naar artikelen te zoeken. -->
+            <button v-if="articles.length > 1 && !addingArticle" class="hm__selectbtn" @click="toggleSelectMode">
+              {{ selectMode ? $t('common.cancel') : $t('sets.group.selectButton') }}
+            </button>
+            <!-- Zelf materiaal aanmelden mag elk actief lid (zelfde lijn als
+                 afvoeren); de keurmeester ziet het terug met source='customer'. -->
+            <button v-if="!addingArticle && !selectMode" class="hm__addbtn" @click="addingArticle = true">{{ $t('home.addArticle.button') }}</button>
+          </div>
+        </div>
+        <div v-if="selectMode" class="hm__group-bar">
+          <span>{{ $t('sets.group.selectedCount', { count: selectedIds.length }) }}</span>
+          <button class="hm__group-btn" :disabled="selectedIds.length === 0" @click="openGroupDialog">
+            {{ $t('sets.group.action') }}
+          </button>
         </div>
         <AddArticleForm
           v-if="addingArticle"
@@ -59,7 +73,14 @@
         <p v-if="!articles.length" class="hm__state">{{ $t('home.noArticles') }}</p>
         <ul v-else class="hm__list">
           <li v-for="a in sortedArticles" :key="a.id" class="hm__item">
-            <div class="hm__item-main">
+            <input
+              v-if="selectMode"
+              type="checkbox"
+              class="hm__checkbox"
+              :checked="selectedIds.includes(a.id)"
+              @change="toggleSelect(a.id)"
+            />
+            <div class="hm__item-main" @click="selectMode && toggleSelect(a.id)">
               <div class="hm__item-name">
                 {{ [a.brand, a.name].filter(Boolean).join(' ') || $t('home.untitled') }}
                 <!-- Tekstlink i.p.v. het boek-emoji: dat rendert op sommige
@@ -71,24 +92,53 @@
                 <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
                 <span v-if="a.assigned_user_name">· {{ a.assigned_user_name }}</span>
                 <span v-if="a.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(a.next_due) }}</span>
+                <span v-for="name in setBadges[a.id]" :key="name" class="hm__set-badge">🔗 {{ name }}</span>
               </div>
             </div>
-            <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
-                 chip draagt de betekenis, net als in de keurtabel. -->
-            <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`" :title="$t(`home.status.${a.uiStatus}`)">{{ statusIcon(a.uiStatus) }}</span>
-            <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
-                 ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
-                 de keurmeester ziet die terug bij het SN-zoeken. Bewust een
-                 onopvallend prullenbakje: het is een uitzonderingsactie. -->
-            <button
-              class="hm__trash"
-              :title="a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
-              :disabled="retiringId === a.id"
-              @click="retireArticle(a)"
-            >🗑</button>
+            <template v-if="!selectMode">
+              <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
+                   chip draagt de betekenis, net als in de keurtabel. -->
+              <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`" :title="$t(`home.status.${a.uiStatus}`)">{{ statusIcon(a.uiStatus) }}</span>
+              <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
+                   een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
+              <button class="hm__partbtn" :title="$t('sets.addPart.title')" @click="partFor = a">🔗+</button>
+              <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
+                   ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
+                   de keurmeester ziet die terug bij het SN-zoeken. Bewust een
+                   onopvallend prullenbakje: het is een uitzonderingsactie. -->
+              <button
+                class="hm__trash"
+                :title="a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
+                :disabled="retiringId === a.id"
+                @click="retireArticle(a)"
+              >🗑</button>
+            </template>
           </li>
         </ul>
       </section>
+
+      <AddPartForm
+        v-if="partFor"
+        :customer-id="customerId"
+        :main-article-id="partFor.id"
+        :main-label="[partFor.brand, partFor.name].filter(Boolean).join(' ') || $t('home.untitled')"
+        @saved="onPartSaved"
+        @close="partFor = null"
+      />
+
+      <div v-if="showGroupDialog" class="hm__overlay" @click.self="showGroupDialog = false">
+        <div class="hm__dialog">
+          <h2>{{ $t('sets.group.dialogTitle') }}</h2>
+          <input v-model="groupName" class="hm__dialog-input" :placeholder="$t('sets.fields.name')" />
+          <p v-if="groupError" class="hm__state hm__state--error">{{ groupError }}</p>
+          <div class="hm__dialog-actions">
+            <button class="hm__cancel" @click="showGroupDialog = false">{{ $t('common.cancel') }}</button>
+            <button class="hm__addbtn" :disabled="groupSaving" @click="saveGroup">
+              {{ groupSaving ? $t('common.saving') : $t('home.addArticle.save') }}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Certificaten -->
       <section class="hm__section">
@@ -114,6 +164,7 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { supabase, useAuth, errorMessage, calcStatus } from "@gearonimo/core";
 import AddArticleForm from "../components/AddArticleForm.vue";
+import AddPartForm from "../components/AddPartForm.vue";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -147,6 +198,7 @@ interface CertificateRow {
 }
 
 const customerName = ref("");
+const customerId = ref("");
 const companyName = ref("");
 const pendingRequest = ref<{ status: string; company_name: string } | null>(null);
 const isAdmin = ref(false);
@@ -216,6 +268,7 @@ async function load() {
       return;
     }
     customerName.value = row.customer_name;
+    customerId.value = row.customer_id;
     isAdmin.value = !!row.is_admin;
 
     const [arts, certs, link, reqs] = await Promise.all([
@@ -232,6 +285,7 @@ async function load() {
     companyName.value = linkRow?.company_name ?? "";
     pendingRequest.value = ((reqs.data ?? []) as { status: string; company_name: string }[])
       .find((r) => r.status === "pending") ?? null;
+    await loadSets();
   } catch (e) {
     error.value = errorMessage(e);
   } finally {
@@ -272,6 +326,73 @@ async function onArticleAdded() {
   await load();
 }
 
+// Sets: samenstellen vanuit de materiaallijst (besloten met Jos 2026-07-11) --
+// zelfde flow als de Pro-app-verbetering, via RPC's omdat klant-accounts geen
+// directe tabeltoegang hebben.
+const setBadges = ref<Record<string, string[]>>({});
+const selectMode = ref(false);
+const selectedIds = ref<string[]>([]);
+const showGroupDialog = ref(false);
+const groupName = ref("");
+const groupSaving = ref(false);
+const groupError = ref("");
+const partFor = ref<UiArticle | null>(null);
+
+interface SetRow { set_id: string; set_name: string; article_id: string }
+
+async function loadSets() {
+  const { data } = await supabase.rpc("my_article_sets");
+  const map: Record<string, string[]> = {};
+  for (const row of (data ?? []) as SetRow[]) {
+    (map[row.article_id] ??= []).push(row.set_name);
+  }
+  setBadges.value = map;
+}
+
+function toggleSelectMode() {
+  selectMode.value = !selectMode.value;
+  selectedIds.value = [];
+}
+function toggleSelect(id: string) {
+  const i = selectedIds.value.indexOf(id);
+  if (i === -1) selectedIds.value.push(id);
+  else selectedIds.value.splice(i, 1);
+}
+function openGroupDialog() {
+  groupError.value = "";
+  const first = articles.value.find((a) => a.id === selectedIds.value[0]);
+  groupName.value = first ? [first.brand, first.name].filter(Boolean).join(" ") : "";
+  showGroupDialog.value = true;
+}
+async function saveGroup() {
+  groupError.value = "";
+  if (!groupName.value.trim()) {
+    groupError.value = t("sets.errors.nameRequired");
+    return;
+  }
+  groupSaving.value = true;
+  try {
+    const { error: err } = await supabase.rpc("create_my_article_set", {
+      p_name: groupName.value.trim(),
+      p_article_ids: selectedIds.value,
+    });
+    if (err) throw err;
+    showGroupDialog.value = false;
+    selectMode.value = false;
+    selectedIds.value = [];
+    await loadSets();
+  } catch (e) {
+    groupError.value = errorMessage(e);
+  } finally {
+    groupSaving.value = false;
+  }
+}
+
+async function onPartSaved() {
+  partFor.value = null;
+  await load();
+}
+
 async function onSignOut() {
   await signOut();
   router.push("/login");
@@ -293,10 +414,36 @@ onMounted(load);
 .hm__signout { background: none; border: none; color: #a7c4b0; cursor: pointer; font-size: 0.9rem; }
 .hm__section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .hm__section-head h2 { margin: 0; }
+.hm__section-actions { display: flex; align-items: center; gap: 0.75rem; }
 .hm__addbtn {
   background: #16a34a; color: #fff; border: none; border-radius: 8px;
   padding: 0.4rem 0.8rem; font-weight: 700; cursor: pointer; font-size: 0.85rem;
 }
+.hm__addbtn:disabled { opacity: 0.5; }
+.hm__selectbtn { background: none; border: none; color: #1d4ed8; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+.hm__group-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  background: #dbeafe; color: #1e40af; border-radius: 10px;
+  padding: 0.55rem 0.85rem; margin-bottom: 0.5rem; font-size: 0.85rem;
+}
+.hm__group-btn {
+  background: #1d4ed8; color: #fff; border: none; border-radius: 8px;
+  padding: 0.4rem 0.8rem; font-weight: 700; cursor: pointer; font-size: 0.8rem;
+}
+.hm__group-btn:disabled { opacity: 0.5; }
+.hm__checkbox { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; }
+.hm__partbtn { flex: 0 0 auto; border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.45; padding: 0.25rem; }
+.hm__partbtn:hover { opacity: 1; }
+.hm__set-badge { background: #dbeafe; color: #1e40af; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
+.hm__overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100;
+}
+.hm__dialog { background: #fff; border-radius: 16px; padding: 1.25rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.6rem; }
+.hm__dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.hm__dialog-input { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+.hm__dialog-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+.hm__cancel { background: none; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1rem; color: #374151; cursor: pointer; flex: 1; }
 .hm__state { text-align: center; padding: 2rem 1rem; color: #666; }
 .hm__state--error { color: #dc2626; }
 .hm__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }

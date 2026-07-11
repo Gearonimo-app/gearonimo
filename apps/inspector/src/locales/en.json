@@ -183,6 +183,23 @@
       "deleteSet": "Delete set",
       "deleteTitle": "Delete this set?",
       "deleteBody": "The articles themselves stay — only the grouping disappears."
+    },
+    "group": {
+      "selectButton": "Select",
+      "selectedCount": "{count} selected",
+      "action": "Group into set",
+      "dialogTitle": "Create set"
+    },
+    "addPart": {
+      "title": "Add part",
+      "linkedTo": "Will be linked to: {name}",
+      "rolePlaceholder": "Role (e.g. bridge, carabiner)",
+      "replaces": "This replaces",
+      "replacesNone": "Nothing — new part",
+      "offline": "Linking a part needs a connection.",
+      "errors": {
+        "missing": "Brand or description is required."
+      }
     }
   },
   "login": {

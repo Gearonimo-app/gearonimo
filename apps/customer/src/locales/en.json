@@ -2,9 +2,31 @@
   "common": {
     "loading": "Loading...",
     "busy": "Working...",
+    "saving": "Saving...",
     "signOut": "Sign out",
     "cancel": "Cancel",
     "back": "Back"
+  },
+  "sets": {
+    "group": {
+      "selectButton": "Select",
+      "selectedCount": "{count} selected",
+      "action": "Group into set",
+      "dialogTitle": "Create set"
+    },
+    "errors": {
+      "nameRequired": "Name is required"
+    },
+    "addPart": {
+      "title": "Add part",
+      "linkedTo": "Will be linked to: {name}",
+      "rolePlaceholder": "Role (e.g. bridge, carabiner)",
+      "replaces": "This replaces",
+      "replacesNone": "Nothing — new part",
+      "errors": {
+        "missing": "Description is required."
+      }
+    }
   },
   "login": {
     "title": "Sign in",

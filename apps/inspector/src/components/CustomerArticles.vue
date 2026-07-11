@@ -2,7 +2,22 @@
   <section class="ca">
     <div class="ca__head">
       <h2>{{ $t('articles.title') }}</h2>
-      <button v-if="!showAdd" class="ca__add" @click="openAdd">+ {{ $t('articles.add') }}</button>
+      <div class="ca__head-actions">
+        <button v-if="articles.length > 1 && !showAdd" class="ca__select-toggle" @click="toggleSelectMode">
+          {{ selectMode ? $t('common.cancel') : $t('sets.group.selectButton') }}
+        </button>
+        <button v-if="!showAdd && !selectMode" class="ca__add" @click="openAdd">+ {{ $t('articles.add') }}</button>
+      </div>
+    </div>
+
+    <!-- Samenstellen vanuit de lijst: artikelen aanvinken en in één stap
+         groeperen, i.p.v. eerst een lege set aan te maken (besluit Jos
+         2026-07-11). -->
+    <div v-if="selectMode" class="ca__group-bar">
+      <span>{{ $t('sets.group.selectedCount', { count: selectedIds.length }) }}</span>
+      <button class="ca__group-btn" :disabled="selectedIds.length === 0" @click="openGroupDialog">
+        {{ $t('sets.group.action') }}
+      </button>
     </div>
 
     <div v-if="loading" class="ca__state">{{ $t('common.loading') }}</div>
@@ -11,24 +26,37 @@
 
     <ul v-else-if="articles.length" class="ca__list">
       <li v-for="a in articles" :key="a.id" class="ca__item">
-        <div class="ca__item-main" @click="$router.push(`/articles/${a.id}`)">
+        <input
+          v-if="selectMode"
+          type="checkbox"
+          class="ca__checkbox"
+          :checked="selectedIds.includes(a.id)"
+          @change="toggleSelect(a.id)"
+        />
+        <div class="ca__item-main" @click="selectMode ? toggleSelect(a.id) : $router.push(`/articles/${a.id}`)">
           <div class="ca__desc">{{ articleLabel(a) }}</div>
           <div class="ca__meta">
             <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
             <span v-if="!a.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
+            <span v-for="name in setBadges[a.id]" :key="name" class="ca__set-badge">🔗 {{ name }}</span>
           </div>
         </div>
-        <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
-             Geen kaal vinkje meer: de knop opent een productformulier dat de
-             keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
-             2026-07-05). @click.stop zodat het niet doorklikt naar het
-             artikeldetail. Actief = al aangemeld. -->
-        <button v-if="!a.product_id" type="button" class="ca__catalog-toggle"
-                :class="{ 'ca__catalog-toggle--on': a.suggest_for_catalog }"
-                :title="$t('articles.suggestForCatalog')"
-                @click.stop="suggestFor = a">
-          📚
-        </button>
+        <template v-if="!selectMode">
+          <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
+               een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
+          <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = a">🔗+</button>
+          <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
+               Geen kaal vinkje meer: de knop opent een productformulier dat de
+               keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
+               2026-07-05). @click.stop zodat het niet doorklikt naar het
+               artikeldetail. Actief = al aangemeld. -->
+          <button v-if="!a.product_id" type="button" class="ca__catalog-toggle"
+                  :class="{ 'ca__catalog-toggle--on': a.suggest_for_catalog }"
+                  :title="$t('articles.suggestForCatalog')"
+                  @click.stop="suggestFor = a">
+            📚
+          </button>
+        </template>
       </li>
     </ul>
 
@@ -141,6 +169,29 @@
       @saved="onSuggestSaved"
       @close="suggestFor = null"
     />
+
+    <AddPartDialog
+      v-if="partFor"
+      :customer-id="props.customerId"
+      :main-article-id="partFor.id"
+      :main-label="articleLabel(partFor)"
+      @saved="onPartSaved"
+      @close="partFor = null"
+    />
+
+    <div v-if="showGroupDialog" class="ca__overlay" @click.self="showGroupDialog = false">
+      <div class="ca__dialog">
+        <h2>{{ $t('sets.group.dialogTitle') }}</h2>
+        <input v-model="groupName" class="ca__input" :placeholder="$t('sets.fields.name')" />
+        <p v-if="groupError" class="ca__error">{{ groupError }}</p>
+        <div class="ca__actions">
+          <button class="ca__btn ca__btn--cancel" @click="showGroupDialog = false">{{ $t('common.cancel') }}</button>
+          <button class="ca__btn ca__btn--save" :disabled="groupSaving" @click="saveGroup">
+            {{ groupSaving ? $t('common.saving') : $t('common.save') }}
+          </button>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -151,6 +202,7 @@ import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProd
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
+import AddPartDialog from './AddPartDialog.vue'
 
 const { isOnline } = useOnline()
 
@@ -309,6 +361,77 @@ function onSuggestSaved(suggested: boolean) {
 }
 const form = ref(emptyForm())
 
+// Sets: samenstellen vanuit de artikellijst (besloten met Jos 2026-07-11) --
+// i.p.v. eerst een lege set aanmaken en er dan artikelen bij zoeken, vink je
+// hier artikelen aan die je al voor je hebt en groepeer je ze in één stap.
+// Badges tonen meteen welke artikelen al bij een set horen.
+const selectMode = ref(false)
+const selectedIds = ref<string[]>([])
+const showGroupDialog = ref(false)
+const groupName = ref('')
+const groupSaving = ref(false)
+const groupError = ref('')
+const setBadges = ref<Record<string, string[]>>({})
+const partFor = ref<Article | null>(null)
+
+function toggleSelectMode() {
+  selectMode.value = !selectMode.value
+  selectedIds.value = []
+}
+function toggleSelect(id: string) {
+  const i = selectedIds.value.indexOf(id)
+  if (i === -1) selectedIds.value.push(id)
+  else selectedIds.value.splice(i, 1)
+}
+function openGroupDialog() {
+  groupError.value = ''
+  const first = articles.value.find((a) => a.id === selectedIds.value[0])
+  groupName.value = first ? articleLabel(first) : ''
+  showGroupDialog.value = true
+}
+async function saveGroup() {
+  groupError.value = ''
+  if (!groupName.value.trim()) { groupError.value = t('sets.errors.nameRequired'); return }
+  groupSaving.value = true
+  const { data: set, error: setErr } = await supabase
+    .from('article_sets')
+    .insert({ customer_id: props.customerId, name: groupName.value.trim() })
+    .select('id')
+    .single()
+  if (setErr) { groupSaving.value = false; groupError.value = setErr.message; return }
+
+  const { error: membersErr } = await supabase
+    .from('article_set_members')
+    .insert(selectedIds.value.map((article_id) => ({ set_id: set.id, article_id })))
+  groupSaving.value = false
+  if (membersErr) { groupError.value = membersErr.message; return }
+
+  showGroupDialog.value = false
+  selectMode.value = false
+  selectedIds.value = []
+  await loadSetBadges()
+}
+
+async function loadSetBadges() {
+  if (!isOnline.value) return
+  const { data } = await supabase
+    .from('article_set_members')
+    .select('article_id, article_sets!inner(name, customer_id)')
+    .eq('article_sets.customer_id', props.customerId)
+  type Row = { article_id: string; article_sets: { name: string } }
+  const map: Record<string, string[]> = {}
+  for (const row of (data ?? []) as unknown as Row[]) {
+    ;(map[row.article_id] ??= []).push(row.article_sets.name)
+  }
+  setBadges.value = map
+}
+
+function onPartSaved() {
+  partFor.value = null
+  load()
+  loadSetBadges()
+}
+
 watch(() => form.value.purchase_date, (v) => {
   if (!firstUseTouched.value) form.value.first_use_date = v
 })
@@ -422,6 +545,7 @@ onMounted(async () => {
     products.value = (prods ?? []) as Product[]
   }
   await load()
+  await loadSetBadges()
 })
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
@@ -434,13 +558,31 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca { margin-top: 1.5rem; }
 .ca__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .ca__head h2 { font-size: 1rem; margin: 0; }
+.ca__head-actions { display: flex; align-items: center; gap: 0.85rem; }
 .ca__add { background: none; border: none; color: #16a34a; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
+.ca__select-toggle { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
+.ca__group-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  background: #eff6ff; border-radius: 10px; padding: 0.6rem 0.85rem; margin-bottom: 0.5rem;
+  font-size: 0.9rem; color: #1e40af;
+}
+.ca__group-btn {
+  background: #2563eb; color: #fff; border: none; border-radius: 8px;
+  padding: 0.45rem 0.85rem; font-weight: 600; cursor: pointer; font-size: 0.85rem;
+}
+.ca__group-btn:disabled { opacity: 0.5; cursor: default; }
 .ca__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }
 .ca__state--error { color: #dc2626; }
 .ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .ca__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
 .ca__item:last-child { border-bottom: none; }
 .ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
+.ca__checkbox { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; }
+.ca__part-btn {
+  flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+  font-size: 0.95rem; opacity: 0.45; padding: 0.2rem;
+}
+.ca__part-btn:hover { opacity: 1; }
 .ca__catalog-toggle {
   display: inline-flex; align-items: center; cursor: pointer;
   border: none; background: none; font-size: 1.05rem; padding: 0.2rem;
@@ -448,8 +590,15 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .ca__catalog-toggle--on { opacity: 1; filter: none; }
 .ca__desc { font-weight: 600; }
-.ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; }
+.ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
+.ca__set-badge { background: #eff6ff; color: #1e40af; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
+.ca__overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100;
+}
+.ca__dialog { background: #fff; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.6rem; }
+.ca__dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
 
 .ca__form {
   background: #fff; border-radius: 12px; padding: 1rem;

@@ -2,9 +2,31 @@
   "common": {
     "loading": "Laden...",
     "busy": "Bezig...",
+    "saving": "Bezig met opslaan...",
     "signOut": "Uitloggen",
     "cancel": "Annuleren",
     "back": "Terug"
+  },
+  "sets": {
+    "group": {
+      "selectButton": "Selecteren",
+      "selectedCount": "{count} geselecteerd",
+      "action": "Groepeer tot set",
+      "dialogTitle": "Set aanmaken"
+    },
+    "errors": {
+      "nameRequired": "Naam is verplicht"
+    },
+    "addPart": {
+      "title": "Onderdeel toevoegen",
+      "linkedTo": "Wordt gekoppeld aan: {name}",
+      "rolePlaceholder": "Rol (bijv. brug, karabiner)",
+      "replaces": "Dit vervangt",
+      "replacesNone": "Niets — nieuw onderdeel",
+      "errors": {
+        "missing": "Omschrijving is verplicht."
+      }
+    }
   },
   "login": {
     "title": "Inloggen",
