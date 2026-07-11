@@ -73,13 +73,42 @@
     <template v-else>
       <div class="ss__recall-form">
         <p class="ss__recall-intro">{{ $t('serialSearch.recallIntro') }}</p>
-        <div class="ss__field">
+        <!-- Merk: typeahead op de catalogus (voorkomt schrijfwijze-verschillen),
+             maar blijft vrij tekstveld -- een recall kan ook een merk raken dat
+             (nog) niet in de catalogus staat. -->
+        <div class="ss__field ss__field--suggest">
           <label>{{ $t('serialSearch.recallBrand') }}</label>
-          <input v-model="rcBrand" type="search" :placeholder="$t('serialSearch.recallBrandPh')" class="ss__rc-input" />
+          <input
+            v-model="rcBrand"
+            type="search"
+            :placeholder="$t('serialSearch.recallBrandPh')"
+            class="ss__rc-input"
+            @focus="rcActiveField = 'brand'"
+            @blur="closeRcSuggest"
+            @keydown="onRcSuggestKeydown"
+          />
+          <div v-if="rcActiveField === 'brand' && rcBrandSuggestions.length" class="ss__rc-suggest">
+            <button v-for="(s, i) in rcBrandSuggestions" :key="s" type="button" ref="rcItemRefs"
+                    class="ss__rc-suggest-item" :class="{ 'ss__rc-suggest-item--active': i === rcSuggestIndex }"
+                    @mousedown.prevent="pickRcBrand(s)" @mouseenter="rcSuggestIndex = i">{{ s }}</button>
+          </div>
         </div>
         <div class="ss__field">
           <label>{{ $t('serialSearch.recallProduct') }}</label>
           <input v-model="rcProduct" type="search" :placeholder="$t('serialSearch.recallProductPh')" class="ss__rc-input" />
+          <!-- Live voorbeeld: toont welke SPECIFIEKE catalogusproducten deze
+               brede tekst-zoekopdracht raakt, nog vóór er gezocht wordt --
+               zodat "ok" niet als verrassing alle OK-varianten blijkt te
+               vinden. De zoekopdracht zelf blijft bewust breed (ook
+               vrije-invoerartikelen buiten de catalogus, en verwante
+               modellen), dit is puur een voorbeeld, geen beperking. -->
+          <p v-if="rcBrand.trim() || rcProduct.trim()" class="ss__rc-preview">
+            <template v-if="recallPreview.length">
+              <strong>{{ $t('serialSearch.recallPreviewLabel') }}:</strong>
+              {{ recallPreview.slice(0, 8).join(', ') }}<template v-if="recallPreview.length > 8">, +{{ recallPreview.length - 8 }} {{ $t('serialSearch.recallPreviewMore') }}</template>
+            </template>
+            <template v-else>{{ $t('serialSearch.recallPreviewEmpty') }}</template>
+          </p>
         </div>
         <div class="ss__row">
           <div class="ss__field">
@@ -167,6 +196,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
+import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 
 interface Product {
   brand: string | null
@@ -309,6 +339,51 @@ function prodHaystack(r: Row) {
   return [name(r), r.product?.category, r.free_category].filter(Boolean).join(' ').toLowerCase()
 }
 
+// Volledige catalogus, alleen voor de Merk-typeahead en het live voorbeeld
+// hieronder -- de recall-zoekopdracht zelf blijft draaien op de artikelen
+// van klanten (doRecall), niet op deze lijst.
+const catalog = ref<{ brand: string | null; name: string | null; category: string | null }[]>([])
+function unique(arr: (string | null)[]): string[] {
+  return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
+}
+const catalogBrands = computed(() => unique(catalog.value.map((p) => p.brand)))
+
+type RecallField = 'brand'
+const {
+  activeField: rcActiveField,
+  suggestIndex: rcSuggestIndex,
+  suggestions: rcBrandSuggestions,
+  itemRefs: rcItemRefs,
+  pick: pickRcBrand,
+  close: closeRcSuggest,
+  onKeydown: onRcSuggestKeydown,
+} = useFieldSuggest<RecallField>({
+  scrollToActive: true,
+  resolve: (field) => (field === 'brand' ? fuzzyFilter(catalogBrands.value, rcBrand.value, 20) : []),
+  select: (field, val) => { if (field === 'brand') rcBrand.value = val },
+})
+
+// Live voorbeeld onder het Product-veld: welke SPECIFIEKE catalogusproducten
+// raakt deze (bewust brede) bevat-match, nog vóór er gezocht wordt. Zelfde
+// bevat-logica als doRecall() hieronder, maar dan tegen de catalogus i.p.v.
+// tegen de artikelen van klanten -- zo zie je bv. bij "ok" meteen dat dit alle
+// OK-varianten (OK Triact-Lock, OK RJ, ...) raakt, in plaats van daar pas na
+// het zoeken achter te komen.
+const recallPreview = computed(() => {
+  const bMerk = rcBrand.value.trim().toLowerCase()
+  const bProd = rcProduct.value.trim().toLowerCase()
+  if (!bMerk && !bProd) return []
+  const matches = catalog.value.filter((p) => {
+    if (bMerk && !(p.brand ?? '').toLowerCase().includes(bMerk)) return false
+    if (bProd) {
+      const haystack = [p.name, p.category].filter(Boolean).join(' ').toLowerCase()
+      if (!haystack.includes(bProd)) return false
+    }
+    return true
+  })
+  return unique(matches.map((p) => [p.brand, p.name].filter(Boolean).join(' ')))
+})
+
 const uniqueCustomers = computed(
   () => new Set(recallResults.value.map((r) => r.customer?.name || '?')).size
 )
@@ -406,6 +481,9 @@ onMounted(async () => {
   }
   await nextTick()
   inputEl.value?.focus()
+
+  const { data: prods } = await supabase.from('products').select('brand, name, category')
+  catalog.value = prods ?? []
 })
 </script>
 
@@ -462,13 +540,29 @@ onMounted(async () => {
 /* Recall-formulier */
 .ss__recall-form { background: #fff; margin: 1rem 1.25rem; padding: 1rem; border-radius: 12px; }
 .ss__recall-intro { margin: 0 0 0.75rem; font-size: 0.85rem; color: #6b7280; }
-.ss__field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.6rem; flex: 1; }
+.ss__field { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.6rem; flex: 1; position: relative; }
 .ss__field label { font-size: 0.8rem; color: #374151; font-weight: 600; }
 .ss__row { display: flex; gap: 0.6rem; }
 .ss__rc-input {
   padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit;
 }
+.ss__rc-suggest {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 5;
+  background: #fff; border: 1px solid #ddd; border-radius: 8px;
+  margin-top: 0.25rem; padding: 0.3rem;
+  display: flex; flex-direction: column; gap: 0.1rem;
+  max-height: 240px; overflow-y: auto; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.ss__rc-suggest-item {
+  text-align: left; border: none; background: transparent; cursor: pointer;
+  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
+  color: #111827; font-family: inherit;
+}
+.ss__rc-suggest-item:hover { background: #f3f4f6; }
+.ss__rc-suggest-item--active { background: #e0e7ff; }
+.ss__rc-preview { margin: 0.35rem 0 0; font-size: 0.8rem; color: #6b7280; line-height: 1.4; }
+.ss__rc-preview strong { color: #374151; }
 .ss__recall-actions { display: flex; gap: 0.6rem; margin-top: 0.5rem; flex-wrap: wrap; }
 .ss__rc-btn {
   padding: 0.7rem 1.1rem; border-radius: 10px; border: 1px solid #d1d5db; background: #f3f4f6;
