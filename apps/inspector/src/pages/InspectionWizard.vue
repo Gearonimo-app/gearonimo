@@ -2012,11 +2012,14 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 /* Geen achtergrondkleur hier (i.p.v. alleen box-shadow): zou de belangrijkere
    goed/afgekeurd-achtergrond overschrijven (gelijke CSS-specificiteit, deze
    regel staat later in het stylesheet). */
-.iw__row--grouped { box-shadow: inset 5px 0 0 0 #3b82f6; }
+.iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
 .iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
+/* Zacht/transparant i.p.v. een volle, felle balk (feedback Jos 2026-07-11:
+   "schreeuwt van de daken, doet pijn aan de ogen") -- zelfde subtiele tint
+   als de artikellijst, met alleen een dun randje zodat de kop nog wel opvalt. */
 .iw__group-head-row td {
-  padding: 0.55rem 1rem; font-size: 0.85rem; font-weight: 700; color: #fff;
-  background: #3b82f6;
+  padding: 0.35rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
+  background: #eff6ff; box-shadow: inset 3px 0 0 0 #93c5fd;
 }
 .iw__recall-badge {
   display: inline-flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem;
