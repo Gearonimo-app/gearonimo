@@ -190,7 +190,15 @@
                   <template v-else>{{ manufactureStr(r) }}</template>
                 </td>
                 <td>{{ r.assigned_user_name || '—' }}</td>
-                <td class="ss__td-cust">{{ r.customer?.name || '—' }}</td>
+                <td class="ss__td-cust">
+                  <!-- Eigen link naar het klantdetail (telefoon/e-mail), boven
+                       de uitgerekte productlink uit (hogere z-index) zodat
+                       deze cel niet doorklikt naar het artikel. -->
+                  <a v-if="r.customer" :href="`/customers/${r.customer.id}`" target="_blank" rel="noopener" class="ss__td-cust-link">
+                    {{ r.customer.name }}
+                  </a>
+                  <template v-else>—</template>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -228,7 +236,7 @@ interface Row {
   manufacture_year: number | null
   manufacture_month: number | null
   assigned_user_name: string | null
-  customer: { name: string } | null
+  customer: { id: string; name: string } | null
   product: Product | null
   _unknownDate?: boolean
 }
@@ -241,7 +249,7 @@ const mode = ref<'serial' | 'recall'>('serial')
 const SELECT =
   'id, serial_number, free_brand, free_description, free_category, free_recall_flag, free_recall_url, free_manual_url, ' +
   'product_id, manufacture_year, manufacture_month, assigned_user_name, ' +
-  'customer:customers(name), ' +
+  'customer:customers(id, name), ' +
   'product:products(brand, name, category, recall_url, inspection_notice_url, manual_url)'
 
 const loading = ref(false)
@@ -605,6 +613,10 @@ onMounted(async () => {
 .ss__td-mfr { font-weight: 600; color: #b45309; }
 .ss__td-mfr--unknown { color: #b91c1c; }
 .ss__td-cust { color: #16a34a; }
+.ss__td-cust-link {
+  position: relative; z-index: 2;
+  color: inherit; text-decoration: underline;
+}
 .ss__recall-warn {
   margin: 0 1.25rem 0.6rem; font-size: 0.85rem; color: #b91c1c;
   background: #fee2e2; border-radius: 8px; padding: 0.5rem 0.7rem;
