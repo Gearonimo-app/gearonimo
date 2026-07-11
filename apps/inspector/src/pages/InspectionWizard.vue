@@ -247,7 +247,7 @@
             </thead>
             <tbody>
               <template v-for="row in sortedRows" :key="row.it.id">
-                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id }">
+                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id, 'iw__row--grouped': !!articleSetInfo[row.it.article_id] }">
                   <td class="iw__warn-cell">
                     <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
                          bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
@@ -290,6 +290,11 @@
                       @click="startMatch(row.it)"
                     >{{ row.label }}</button>
                     <span v-else>{{ row.label }}</span>
+                    <span
+                      v-if="articleSetInfo[row.it.article_id]"
+                      class="iw__set-flag"
+                      :title="$t('sets.addPart.linkedTo', { name: articleSetInfo[row.it.article_id].setName })"
+                    >🔗</span>
                   </td>
                   <td :data-label="$t('inspections.table.colSerial')">
                     <input
@@ -591,6 +596,24 @@ const addError = ref('')
 
 const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
 const sortDir = ref<1 | -1>(1)
+
+// Setleden bij elkaar in de tabel i.p.v. los verspreid (besloten met Jos
+// 2026-07-11: "als ik de Nomad vasthou wil ik de Fidus er meteen naast zien
+// staan, ga goedkeuren wil ik hier snel doorheen kunnen klikken"). article_id
+// -> zijn (eerste) set; voedt de groepering in sortedRows hieronder.
+const articleSetInfo = ref<Record<string, { setId: string; setName: string; role: string | null }>>({})
+async function loadArticleSetInfo(customerId: string) {
+  const { data } = await supabase
+    .from('article_set_members')
+    .select('article_id, set_id, role, article_sets!inner(name, customer_id)')
+    .eq('article_sets.customer_id', customerId)
+  type Row = { article_id: string; set_id: string; role: string | null; article_sets: { name: string } }
+  const map: Record<string, { setId: string; setName: string; role: string | null }> = {}
+  for (const row of (data ?? []) as unknown as Row[]) {
+    if (!map[row.article_id]) map[row.article_id] = { setId: row.set_id, setName: row.article_sets.name, role: row.role }
+  }
+  articleSetInfo.value = map
+}
 
 // Hele catalogus één keer geladen; voedt de datalists (zoeken + vrije invoer)
 // en laat ons een getypt artikel terugkoppelen aan een productrij (product_id),
@@ -1177,21 +1200,45 @@ const rows = computed<Row[]>(() => {
   return result
 })
 
+function compareRows(a: Row, b: Row): number {
+  let cmp = 0
+  if (sortKey.value === 'category') cmp = a.category.localeCompare(b.category)
+  else if (sortKey.value === 'brand') cmp = a.brand.localeCompare(b.brand)
+  else if (sortKey.value === 'label') cmp = a.label.localeCompare(b.label)
+  else if (sortKey.value === 'serial') cmp = (a.it.article.serial_number || '').localeCompare(b.it.article.serial_number || '')
+  else if (sortKey.value === 'year') cmp = (a.it.article.manufacture_year ?? 0) - (b.it.article.manufacture_year ?? 0)
+  else if (sortKey.value === 'nextDue') cmp = (a.it.next_due || '').localeCompare(b.it.next_due || '')
+  return cmp * sortDir.value
+}
+function rowSetId(r: Row): string | null {
+  return articleSetInfo.value[r.it.article_id]?.setId ?? null
+}
+
 const sortedRows = computed(() => {
   const list = [...rows.value]
   if (hasFilter.value) {
     list.sort((a, b) => a.score - b.score)
     return list
   }
+  // Setleden blijven aaneengesloten: een set sorteert op zijn beste lid
+  // (volgens de gekozen kolom), en de leden zelf staan daarbinnen met het
+  // hoofdartikel voorop.
+  const groupKey = (r: Row) => rowSetId(r) ?? `single:${r.it.article_id}`
+  const groupBest = new Map<string, Row>()
+  for (const r of list) {
+    const g = groupKey(r)
+    const cur = groupBest.get(g)
+    if (!cur || compareRows(r, cur) < 0) groupBest.set(g, r)
+  }
   list.sort((a, b) => {
-    let cmp = 0
-    if (sortKey.value === 'category') cmp = a.category.localeCompare(b.category)
-    else if (sortKey.value === 'brand') cmp = a.brand.localeCompare(b.brand)
-    else if (sortKey.value === 'label') cmp = a.label.localeCompare(b.label)
-    else if (sortKey.value === 'serial') cmp = (a.it.article.serial_number || '').localeCompare(b.it.article.serial_number || '')
-    else if (sortKey.value === 'year') cmp = (a.it.article.manufacture_year ?? 0) - (b.it.article.manufacture_year ?? 0)
-    else if (sortKey.value === 'nextDue') cmp = (a.it.next_due || '').localeCompare(b.it.next_due || '')
-    return cmp * sortDir.value
+    const ga = groupKey(a)
+    const gb = groupKey(b)
+    if (ga !== gb) return compareRows(groupBest.get(ga)!, groupBest.get(gb)!)
+    const aRole = articleSetInfo.value[a.it.article_id]?.role
+    const bRole = articleSetInfo.value[b.it.article_id]?.role
+    if (aRole === 'hoofdartikel' && bRole !== 'hoofdartikel') return -1
+    if (bRole === 'hoofdartikel' && aRole !== 'hoofdartikel') return 1
+    return compareRows(a, b)
   })
   return list
 })
@@ -1290,6 +1337,8 @@ async function load() {
   customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
     brand: a.brand || null, name: a.name || null, category: a.category || null,
   }))
+
+  await loadArticleSetInfo(insp.customer_id)
 
   if (insp.status === 'completed') {
     finished.value = true
@@ -1920,6 +1969,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__sortable:hover { color: #111827; }
 .iw__row--passed { background: #f0fdf4; }
 .iw__row--rejected { background: #fef2f2; }
+/* Setleden bij elkaar (besloten met Jos 2026-07-11): box-shadow i.p.v.
+   border-left, want een echte border op <tr> wordt door border-collapse
+   genegeerd. */
+.iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
+.iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
 .iw__icon-btn {

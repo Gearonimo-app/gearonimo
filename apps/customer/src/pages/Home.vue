@@ -72,48 +72,50 @@
         <p v-if="retireError" class="hm__state hm__state--error">{{ retireError }}</p>
         <p v-if="!articles.length" class="hm__state">{{ $t('home.noArticles') }}</p>
         <ul v-else class="hm__list">
-          <li v-for="a in sortedArticles" :key="a.id" class="hm__item">
-            <input
-              v-if="selectMode"
-              type="checkbox"
-              class="hm__checkbox"
-              :checked="selectedIds.includes(a.id)"
-              @change="toggleSelect(a.id)"
-            />
-            <div class="hm__item-main" @click="selectMode && toggleSelect(a.id)">
-              <div class="hm__item-name">
-                {{ [a.brand, a.name].filter(Boolean).join(' ') || $t('home.untitled') }}
-                <!-- Tekstlink i.p.v. het boek-emoji: dat rendert op sommige
-                     desktopfonts als een leeg vierkantje. -->
-                <a v-if="a.manual_url" :href="a.manual_url" target="_blank" class="hm__manual">{{ $t('home.manual') }}</a>
-                <a v-if="a.recall_url" :href="a.recall_url" target="_blank" class="hm__recall" :title="$t('home.recall')">🚩 {{ $t('home.recall') }}</a>
+          <template v-for="row in displayArticles" :key="row.article.id">
+            <li v-if="row.isFirstInGroup" class="hm__group-head">🔗 {{ row.groupName }}</li>
+            <li class="hm__item" :class="{ 'hm__item--grouped': row.groupId }">
+              <input
+                v-if="selectMode"
+                type="checkbox"
+                class="hm__checkbox"
+                :checked="selectedIds.includes(row.article.id)"
+                @change="toggleSelect(row.article.id)"
+              />
+              <div class="hm__item-main" @click="selectMode && toggleSelect(row.article.id)">
+                <div class="hm__item-name">
+                  {{ [row.article.brand, row.article.name].filter(Boolean).join(' ') || $t('home.untitled') }}
+                  <!-- Tekstlink i.p.v. het boek-emoji: dat rendert op sommige
+                       desktopfonts als een leeg vierkantje. -->
+                  <a v-if="row.article.manual_url" :href="row.article.manual_url" target="_blank" class="hm__manual">{{ $t('home.manual') }}</a>
+                  <a v-if="row.article.recall_url" :href="row.article.recall_url" target="_blank" class="hm__recall" :title="$t('home.recall')">🚩 {{ $t('home.recall') }}</a>
+                </div>
+                <div class="hm__item-meta">
+                  <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
+                  <span v-if="row.article.assigned_user_name">· {{ row.article.assigned_user_name }}</span>
+                  <span v-if="row.article.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(row.article.next_due) }}</span>
+                </div>
               </div>
-              <div class="hm__item-meta">
-                <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
-                <span v-if="a.assigned_user_name">· {{ a.assigned_user_name }}</span>
-                <span v-if="a.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(a.next_due) }}</span>
-                <span v-for="name in setBadges[a.id]" :key="name" class="hm__set-badge">🔗 {{ name }}</span>
-              </div>
-            </div>
-            <template v-if="!selectMode">
-              <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
-                   chip draagt de betekenis, net als in de keurtabel. -->
-              <span class="hm__chip" :class="`hm__chip--${a.uiStatus}`" :title="$t(`home.status.${a.uiStatus}`)">{{ statusIcon(a.uiStatus) }}</span>
-              <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
-                   een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
-              <button class="hm__partbtn" :title="$t('sets.addPart.title')" @click="partFor = a">🔗+</button>
-              <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
-                   ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
-                   de keurmeester ziet die terug bij het SN-zoeken. Bewust een
-                   onopvallend prullenbakje: het is een uitzonderingsactie. -->
-              <button
-                class="hm__trash"
-                :title="a.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
-                :disabled="retiringId === a.id"
-                @click="retireArticle(a)"
-              >🗑</button>
-            </template>
-          </li>
+              <template v-if="!selectMode">
+                <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
+                     chip draagt de betekenis, net als in de keurtabel. -->
+                <span class="hm__chip" :class="`hm__chip--${row.article.uiStatus}`" :title="$t(`home.status.${row.article.uiStatus}`)">{{ statusIcon(row.article.uiStatus) }}</span>
+                <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
+                     een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
+                <button class="hm__partbtn" :title="$t('sets.addPart.title')" @click="partFor = row.article">🔗+</button>
+                <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
+                     ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
+                     de keurmeester ziet die terug bij het SN-zoeken. Bewust een
+                     onopvallend prullenbakje: het is een uitzonderingsactie. -->
+                <button
+                  class="hm__trash"
+                  :title="row.article.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
+                  :disabled="retiringId === row.article.id"
+                  @click="retireArticle(row.article)"
+                >🗑</button>
+              </template>
+            </li>
+          </template>
         </ul>
       </section>
 
@@ -223,6 +225,31 @@ const sortedArticles = computed(() =>
   )
 );
 
+// Setleden bij elkaar tonen i.p.v. los verspreid over de lijst (besloten met
+// Jos 2026-07-11), bovenop de bestaande status-sortering: een groep komt op
+// de plek van zijn dringendste lid (bv. een afgekeurd onderdeel trekt de hele
+// set naar boven), en de leden blijven daarna aaneengesloten.
+interface DisplayArticleRow { article: UiArticle; groupId: string | null; groupName: string | null; isFirstInGroup: boolean }
+const displayArticles = computed<DisplayArticleRow[]>(() => {
+  const seen = new Set<string>();
+  const result: DisplayArticleRow[] = [];
+  for (const a of sortedArticles.value) {
+    if (seen.has(a.id)) continue;
+    const info = setInfo.value[a.id];
+    if (info) {
+      const members = sortedArticles.value.filter((x) => setInfo.value[x.id]?.setId === info.setId);
+      members.forEach((m, idx) => {
+        seen.add(m.id);
+        result.push({ article: m, groupId: info.setId, groupName: info.setName, isFirstInGroup: idx === 0 });
+      });
+    } else {
+      seen.add(a.id);
+      result.push({ article: a, groupId: null, groupName: null, isFirstInGroup: false });
+    }
+  }
+  return result;
+});
+
 const counts = computed(() => ({
   ok: articles.value.filter((a) => a.uiStatus === "ok").length,
   due_soon: articles.value.filter((a) => a.uiStatus === "due_soon").length,
@@ -329,7 +356,8 @@ async function onArticleAdded() {
 // Sets: samenstellen vanuit de materiaallijst (besloten met Jos 2026-07-11) --
 // zelfde flow als de Pro-app-verbetering, via RPC's omdat klant-accounts geen
 // directe tabeltoegang hebben.
-const setBadges = ref<Record<string, string[]>>({});
+// article_id -> zijn (eerste) set. Voedt de groepering in displayArticles.
+const setInfo = ref<Record<string, { setId: string; setName: string }>>({});
 const selectMode = ref(false);
 const selectedIds = ref<string[]>([]);
 const showGroupDialog = ref(false);
@@ -342,11 +370,11 @@ interface SetRow { set_id: string; set_name: string; article_id: string }
 
 async function loadSets() {
   const { data } = await supabase.rpc("my_article_sets");
-  const map: Record<string, string[]> = {};
+  const map: Record<string, { setId: string; setName: string }> = {};
   for (const row of (data ?? []) as SetRow[]) {
-    (map[row.article_id] ??= []).push(row.set_name);
+    if (!map[row.article_id]) map[row.article_id] = { setId: row.set_id, setName: row.set_name };
   }
-  setBadges.value = map;
+  setInfo.value = map;
 }
 
 function toggleSelectMode() {
@@ -489,6 +517,11 @@ onMounted(load);
   padding: 0.85rem 1rem; border-bottom: 1px solid #eee;
 }
 .hm__item:last-child { border-bottom: none; }
+.hm__group-head {
+  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
+  background: #dbeafe; border-bottom: 1px solid #bfdbfe;
+}
+.hm__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
 .hm__item-main { min-width: 0; }
 .hm__item-name { font-weight: 600; }
 .hm__item-name a { text-decoration: none; margin-left: 0.35rem; }

@@ -25,39 +25,41 @@
     <p v-else-if="articles.length === 0 && !showAdd" class="ca__state">{{ $t('articles.empty') }}</p>
 
     <ul v-else-if="articles.length" class="ca__list">
-      <li v-for="a in articles" :key="a.id" class="ca__item">
-        <input
-          v-if="selectMode"
-          type="checkbox"
-          class="ca__checkbox"
-          :checked="selectedIds.includes(a.id)"
-          @change="toggleSelect(a.id)"
-        />
-        <div class="ca__item-main" @click="selectMode ? toggleSelect(a.id) : $router.push(`/articles/${a.id}`)">
-          <div class="ca__desc">{{ articleLabel(a) }}</div>
-          <div class="ca__meta">
-            <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
-            <span v-if="!a.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
-            <span v-for="name in setBadges[a.id]" :key="name" class="ca__set-badge">🔗 {{ name }}</span>
+      <template v-for="row in displayRows" :key="row.article.id">
+        <li v-if="row.isFirstInGroup" class="ca__group-head">🔗 {{ row.groupName }}</li>
+        <li class="ca__item" :class="{ 'ca__item--grouped': row.groupId }">
+          <input
+            v-if="selectMode"
+            type="checkbox"
+            class="ca__checkbox"
+            :checked="selectedIds.includes(row.article.id)"
+            @change="toggleSelect(row.article.id)"
+          />
+          <div class="ca__item-main" @click="selectMode ? toggleSelect(row.article.id) : $router.push(`/articles/${row.article.id}`)">
+            <div class="ca__desc">{{ articleLabel(row.article) }}</div>
+            <div class="ca__meta">
+              <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
+              <span v-if="!row.article.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
+            </div>
           </div>
-        </div>
-        <template v-if="!selectMode">
-          <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
-               een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
-          <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = a">🔗+</button>
-          <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
-               Geen kaal vinkje meer: de knop opent een productformulier dat de
-               keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
-               2026-07-05). @click.stop zodat het niet doorklikt naar het
-               artikeldetail. Actief = al aangemeld. -->
-          <button v-if="!a.product_id" type="button" class="ca__catalog-toggle"
-                  :class="{ 'ca__catalog-toggle--on': a.suggest_for_catalog }"
-                  :title="$t('articles.suggestForCatalog')"
-                  @click.stop="suggestFor = a">
-            📚
-          </button>
-        </template>
-      </li>
+          <template v-if="!selectMode">
+            <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
+                 een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
+            <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = row.article">🔗+</button>
+            <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
+                 Geen kaal vinkje meer: de knop opent een productformulier dat de
+                 keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
+                 2026-07-05). @click.stop zodat het niet doorklikt naar het
+                 artikeldetail. Actief = al aangemeld. -->
+            <button v-if="!row.article.product_id" type="button" class="ca__catalog-toggle"
+                    :class="{ 'ca__catalog-toggle--on': row.article.suggest_for_catalog }"
+                    :title="$t('articles.suggestForCatalog')"
+                    @click.stop="suggestFor = row.article">
+              📚
+            </button>
+          </template>
+        </li>
+      </template>
     </ul>
 
     <!-- Toevoegen (inline) -->
@@ -372,8 +374,35 @@ const showGroupDialog = ref(false)
 const groupName = ref('')
 const groupSaving = ref(false)
 const groupError = ref('')
-const setBadges = ref<Record<string, string[]>>({})
+// article_id -> zijn (eerste) set. Voedt zowel de groepering in de lijst
+// hieronder als het setdetail-overzicht.
+const setInfo = ref<Record<string, { setId: string; setName: string }>>({})
 const partFor = ref<Article | null>(null)
+
+// Setleden bij elkaar tonen i.p.v. los verspreid over de lijst (besloten met
+// Jos 2026-07-11: "als ik de Nomad vasthou wil ik de Fidus er meteen naast
+// zien staan"). Eén groepskop per set, gevolgd door zijn leden; artikelen
+// zonder set blijven gewoon los, op hun eigen plek in de bestaande volgorde.
+interface DisplayRow { article: Article; groupId: string | null; groupName: string | null; isFirstInGroup: boolean }
+const displayRows = computed<DisplayRow[]>(() => {
+  const seen = new Set<string>()
+  const result: DisplayRow[] = []
+  for (const a of articles.value) {
+    if (seen.has(a.id)) continue
+    const info = setInfo.value[a.id]
+    if (info) {
+      const members = articles.value.filter((x) => setInfo.value[x.id]?.setId === info.setId)
+      members.forEach((m, idx) => {
+        seen.add(m.id)
+        result.push({ article: m, groupId: info.setId, groupName: info.setName, isFirstInGroup: idx === 0 })
+      })
+    } else {
+      seen.add(a.id)
+      result.push({ article: a, groupId: null, groupName: null, isFirstInGroup: false })
+    }
+  }
+  return result
+})
 
 function toggleSelectMode() {
   selectMode.value = !selectMode.value
@@ -410,27 +439,29 @@ async function saveGroup() {
   showGroupDialog.value = false
   selectMode.value = false
   selectedIds.value = []
-  await loadSetBadges()
+  await loadSets()
 }
 
-async function loadSetBadges() {
+async function loadSets() {
   if (!isOnline.value) return
   const { data } = await supabase
     .from('article_set_members')
-    .select('article_id, article_sets!inner(name, customer_id)')
+    .select('article_id, set_id, article_sets!inner(name, customer_id)')
     .eq('article_sets.customer_id', props.customerId)
-  type Row = { article_id: string; article_sets: { name: string } }
-  const map: Record<string, string[]> = {}
+  type Row = { article_id: string; set_id: string; article_sets: { name: string } }
+  const map: Record<string, { setId: string; setName: string }> = {}
   for (const row of (data ?? []) as unknown as Row[]) {
-    ;(map[row.article_id] ??= []).push(row.article_sets.name)
+    // Eerste gevonden set wint (een artikel in meerdere sets is een
+    // uitzondering; voor de groepering in de lijst kiezen we er één).
+    if (!map[row.article_id]) map[row.article_id] = { setId: row.set_id, setName: row.article_sets.name }
   }
-  setBadges.value = map
+  setInfo.value = map
 }
 
 function onPartSaved() {
   partFor.value = null
   load()
-  loadSetBadges()
+  loadSets()
 }
 
 watch(() => form.value.purchase_date, (v) => {
@@ -546,7 +577,7 @@ onMounted(async () => {
     products.value = (prods ?? []) as Product[]
   }
   await load()
-  await loadSetBadges()
+  await loadSets()
 })
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
@@ -577,6 +608,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .ca__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
 .ca__item:last-child { border-bottom: none; }
+.ca__group-head {
+  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
+  background: #eff6ff; border-bottom: 1px solid #dbeafe;
+}
+.ca__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
 .ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
 .ca__checkbox { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; }
 .ca__part-btn {
