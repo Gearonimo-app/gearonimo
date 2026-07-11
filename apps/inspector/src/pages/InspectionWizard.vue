@@ -157,6 +157,16 @@
           >{{ $t('inspections.table.copyLast') }}</button>
         </div>
 
+        <!-- Subtiele melding tijdens het invullen (geen rood blok, gewoon een
+             klein regeltje): het getypte artikel heeft een bekende recall of
+             inspection notice, zodat je dat al ziet vóór je op Toevoegen klikt. -->
+        <p v-if="addRowRecallInfo" class="iw__add-recall-hint">
+          🚩
+          <a :href="addRowRecallInfo.url" target="_blank">
+            {{ addRowRecallInfo.kind === 'recall' ? $t('inspections.table.recallHint') : $t('inspections.table.noticeHint') }}
+          </a>
+        </p>
+
         <!-- Vrij artikel (geen catalogusmatch): extra velden die het keurbedrijf
              heeft aangezet (Norm/MBS). Het aanbieden voor de catalogus-wachtlijst
              staat bewust niet hier maar per rij in de tabel hieronder (laatste
@@ -256,7 +266,12 @@
                          bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
                     <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
                     <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
-                    <a v-if="itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" title="Recall">🚩</a>
+                    <!-- Alleen het vlaggetje (geen rood blok meer -- feedback Jos
+                         2026-07-11: "dan hoeft er niet ook nog een rood vlak met
+                         RECALL te staan schreeuwen. het vlaggetje is genoeg").
+                         Tooltip toont waar de link naartoe wijst (er is geen aparte
+                         titel-kolom in het datamodel, alleen de url zelf). -->
+                    <a v-if="itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="itemRecallTitle(row.it)!">🚩</a>
                   </td>
                   <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
@@ -295,17 +310,6 @@
                       class="iw__set-flag"
                       :title="$t('sets.addPart.linkedTo', { name: articleSetInfo[row.it.article_id].setName })"
                     >🔗</span>
-                    <!-- Niet meer alleen een klein vlaggetje in de warn-kolom: een
-                         recall is te belangrijk om te kunnen missen tijdens het
-                         invullen, dus ook een duidelijke rode melding direct naast
-                         de artikelnaam (feedback Jos 2026-07-11). Geldt nu ook voor
-                         vrije artikelen met de handmatige recall-toggle. -->
-                    <a
-                      v-if="itemRecallUrl(row.it)"
-                      :href="itemRecallUrl(row.it)!"
-                      target="_blank"
-                      class="iw__recall-badge"
-                    >🚩 {{ $t('inspections.table.recallBadge') }}</a>
                   </td>
                   <td :data-label="$t('inspections.table.colSerial')">
                     <input
@@ -835,6 +839,16 @@ const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.val
 // Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
 // het naar de catalogus-wachtlijst voor de curator.
 const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !matchProduct())
+// Subtiele melding tijdens het invullen zelf, niet pas nadat het artikel al
+// aan de tabel is toegevoegd (feedback Jos 2026-07-11): zodra het getypte
+// artikel een catalogusproduct met een recall of inspection notice matcht.
+const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice' } | null>(() => {
+  const p = matchProduct()
+  if (!p) return null
+  if (p.recall_url) return { url: p.recall_url, kind: 'recall' }
+  if (p.inspection_notice_url) return { url: p.inspection_notice_url, kind: 'notice' }
+  return null
+})
 
 // Onthoudt het laatst toegevoegde artikel zodat een serie identieke
 // exemplaren (bv. 10 karabiners) snel achter elkaar in te voeren is: alles
@@ -1074,8 +1088,21 @@ function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.a
 // Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
 // keurmeester de handmatige recall-toggle heeft aangezet (free_recall_flag) --
 // zonder catalogus is een recall anders niet vast te stellen.
+// Catalogus-artikel: recall_url of (als die ontbreekt) inspection_notice_url
+// -- zelfde vlag-gedrag, zie DATAMODEL. Vrij artikel: alleen de handmatige
+// recall-toggle (geen "inspection notice" voor vrije artikelen).
 function itemRecallUrl(it: Item): string | null {
-  return it.article.product?.recall_url ?? (it.article.free_recall_flag ? it.article.free_recall_url : null)
+  if (it.article.product) return it.article.product.recall_url ?? it.article.product.inspection_notice_url ?? null
+  return it.article.free_recall_flag ? it.article.free_recall_url : null
+}
+// Tooltip bij het vlaggetje: onderscheid recall/inspection notice + de url
+// zelf als voorbeeld (geen aparte titel-kolom in het datamodel).
+function itemRecallTitle(it: Item): string | null {
+  const url = itemRecallUrl(it)
+  if (!url) return null
+  const isRecall = !!(it.article.product?.recall_url ?? (it.article.free_recall_flag ? it.article.free_recall_url : null))
+  const kind = isRecall ? t('inspections.table.recallHint') : t('inspections.table.noticeHint')
+  return `${kind}: ${url}`
 }
 
 async function editManualUrl(it: Item) {
@@ -2021,11 +2048,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   padding: 0.35rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
   background: #eff6ff; box-shadow: inset 3px 0 0 0 #93c5fd;
 }
-.iw__recall-badge {
-  display: inline-flex; align-items: center; gap: 0.2rem; margin-left: 0.5rem;
-  background: #dc2626; color: #fff; border-radius: 999px; padding: 0.1rem 0.55rem;
-  font-size: 0.75rem; font-weight: 700; text-decoration: none; white-space: nowrap;
-}
+/* Klein en subtiel regeltje onder de toevoegrij, geen blok (feedback Jos
+   2026-07-11). */
+.iw__add-recall-hint { margin: 0.4rem 0 0; font-size: 0.8rem; color: #b91c1c; }
+.iw__add-recall-hint a { color: inherit; }
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
 .iw__icon-btn {
