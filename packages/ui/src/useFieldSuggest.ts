@@ -49,10 +49,16 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
     if (activeField.value === f) activeField.value = null;
   }
 
-  /** Korte vertraging zodat een klik nog registreert vóór blur de lijst sluit. */
+  /** Korte vertraging zodat een klik nog registreert vóór blur de lijst sluit.
+   * Onthoudt welk veld de sluit-actie plande: sprong de gebruiker intussen al
+   * naar een volgend typeahead-veld (focus daar zet activeField meteen om),
+   * dan mag deze verlate timer dat niet alsnog overschrijven -- anders sluit
+   * elke veldwissel de net geopende suggestielijst van het NIEUWE veld na
+   * 120ms vanzelf weer (leek zo een lege/haperende dropdown). */
   function close() {
+    const wasActive = activeField.value;
     setTimeout(() => {
-      activeField.value = null;
+      if (activeField.value === wasActive) activeField.value = null;
     }, 120);
   }
 

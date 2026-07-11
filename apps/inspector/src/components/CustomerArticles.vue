@@ -36,12 +36,29 @@
     <div v-if="showAdd" class="ca__form">
       <h3>{{ $t('articles.add') }}</h3>
 
-      <!-- Trechter-flow: eerst Merk, dan Categorie (gefilterd op het gekozen
-           merk), dan het Artikel zelf (gefilterd op merk + categorie). Elk veld
-           heeft z'n eigen typeahead op de catalogus; matcht het getypte artikel
-           exact een catalogusproduct, dan bevestigen merk/categorie zich
-           vanzelf. Geen match = vrij artikel. `ref="itemRefs"` +
-           scrollToActive laten de gemarkeerde suggestie meescrollen bij ↑/↓. -->
+      <!-- Standaardflow: eerst het Artikel/omschrijving -- je typt wat er op het
+           artikel staat (naam of fabrikant-artikelcode) en zoekt in de HELE
+           catalogus. Matcht dat exact een catalogusproduct, dan vullen Merk en
+           Categorie zich vanzelf. Alleen als je het artikel zo niet vindt, neem
+           je de moeite om eerst het Merk (en eventueel Categorie) op te zoeken
+           -- die twee filteren de artikel-suggesties dan verder in. Geen match
+           = vrij artikel. `ref="itemRefs"` + scrollToActive laten de
+           gemarkeerde suggestie meescrollen bij ↑/↓. -->
+      <div class="ca__field">
+        <input
+          v-model="newDescription"
+          class="ca__input"
+          :placeholder="$t('inspections.table.article')"
+          @focus="activeField = 'article'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+        </div>
+      </div>
       <div class="ca__field">
         <input
           v-model="newBrand"
@@ -67,21 +84,6 @@
           @keydown="onSuggestKeydown"
         />
         <div v-if="activeField === 'category' && fieldSuggestions.length" class="ca__suggest">
-          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
-                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
-                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
-        </div>
-      </div>
-      <div class="ca__field">
-        <input
-          v-model="newDescription"
-          class="ca__input"
-          :placeholder="$t('inspections.table.article')"
-          @focus="activeField = 'article'"
-          @blur="closeSuggest"
-          @keydown="onSuggestKeydown"
-        />
-        <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
           <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
                   class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
                   @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>

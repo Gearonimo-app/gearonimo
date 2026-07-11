@@ -571,8 +571,11 @@
         "maxAgeUseYears": "Max age from first use (years)",
         "maxAgeMfrYears": "Max age manufacturer (years)",
         "breakingStrength": "Breaking strength (MBS)",
+        "ropeDiameterMin": "Rope diameter min. (mm)",
+        "ropeDiameterMax": "Rope diameter max. (mm)",
         "intervalOverride": "Interval override (months)",
         "manualUrl": "Manual (link)",
+        "productPageUrl": "Manufacturer product page (link)",
         "recallUrl": "Recall notice (link)",
         "inspectionNoticeUrl": "Safety bulletin (link)",
         "notes": "Notes"

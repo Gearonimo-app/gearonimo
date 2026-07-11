@@ -91,7 +91,8 @@ const formError = ref('')
 const COLUMNS = [
   'id', 'brand', 'name', 'product_type', 'category', 'material', 'standard',
   'max_age_years', 'max_age_use_years', 'max_age_mfr_years', 'breaking_strength',
-  'interval_override_months', 'manual_url', 'recall_url', 'inspection_notice_url', 'notes',
+  'rope_diameter_min_mm', 'rope_diameter_max_mm',
+  'interval_override_months', 'manual_url', 'product_page_url', 'recall_url', 'inspection_notice_url', 'notes',
 ] as const
 
 async function load() {
@@ -151,8 +152,11 @@ function toRow(f: ProductFormModel) {
     max_age_use_years: f.max_age_use_years,
     max_age_mfr_years: f.max_age_mfr_years,
     breaking_strength: f.breaking_strength.trim() || null,
+    rope_diameter_min_mm: f.rope_diameter_min_mm,
+    rope_diameter_max_mm: f.rope_diameter_max_mm,
     interval_override_months: f.interval_override_months,
     manual_url: f.manual_url.trim() || null,
+    product_page_url: f.product_page_url.trim() || null,
     recall_url: f.recall_url.trim() || null,
     inspection_notice_url: f.inspection_notice_url.trim() || null,
     notes: f.notes.trim() || null,
@@ -248,8 +252,11 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
       max_age_use_years: numOrNull(raw.max_age_use_years),
       max_age_mfr_years: numOrNull(raw.max_age_mfr_years),
       breaking_strength: String(raw.breaking_strength ?? '').trim(),
+      rope_diameter_min_mm: numOrNull(raw.rope_diameter_min_mm),
+      rope_diameter_max_mm: numOrNull(raw.rope_diameter_max_mm),
       interval_override_months: numOrNull(raw.interval_override_months),
       manual_url: String(raw.manual_url ?? '').trim(),
+      product_page_url: String(raw.product_page_url ?? '').trim(),
       recall_url: String(raw.recall_url ?? '').trim(),
       inspection_notice_url: String(raw.inspection_notice_url ?? '').trim(),
       notes: String(raw.notes ?? '').trim(),

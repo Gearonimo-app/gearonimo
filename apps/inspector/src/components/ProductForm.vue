@@ -65,9 +65,25 @@
         <input v-model.number="form.interval_override_months" type="number" min="0" class="pf__input" />
       </label>
     </div>
+    <!-- Alleen relevant voor touwwerk (afdaalapparaten/grigri's e.d.); leeg
+         laten is prima voor producten waar dit niet op van toepassing is. -->
+    <div class="pf__row">
+      <label class="pf__field">
+        <span>{{ $t('settings.catalog.fields.ropeDiameterMin') }}</span>
+        <input v-model.number="form.rope_diameter_min_mm" type="number" min="0" step="0.1" class="pf__input" />
+      </label>
+      <label class="pf__field">
+        <span>{{ $t('settings.catalog.fields.ropeDiameterMax') }}</span>
+        <input v-model.number="form.rope_diameter_max_mm" type="number" min="0" step="0.1" class="pf__input" />
+      </label>
+    </div>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.manualUrl') }}</span>
       <input v-model="form.manual_url" type="url" class="pf__input" />
+    </label>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.productPageUrl') }}</span>
+      <input v-model="form.product_page_url" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.recallUrl') }}</span>

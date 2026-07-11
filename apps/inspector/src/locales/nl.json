@@ -571,8 +571,11 @@
         "maxAgeUseYears": "Max. leeftijd vanaf ingebruikname (jaar)",
         "maxAgeMfrYears": "Max. leeftijd fabrikant (jaar)",
         "breakingStrength": "Breuksterkte (MBS)",
+        "ropeDiameterMin": "Touwdiameter min. (mm)",
+        "ropeDiameterMax": "Touwdiameter max. (mm)",
         "intervalOverride": "Afwijkend keuringsinterval (maanden)",
         "manualUrl": "Handleiding (link)",
+        "productPageUrl": "Productpagina fabrikant (link)",
         "recallUrl": "Recall-bericht (link)",
         "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
         "notes": "Opmerkingen"
