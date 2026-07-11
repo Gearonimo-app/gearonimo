@@ -246,7 +246,10 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="row in sortedRows" :key="row.it.id">
+              <template v-for="row in groupedSortedRows" :key="row.it.id">
+                <tr v-if="row.isFirstInGroup" class="iw__group-head-row">
+                  <td colspan="12">🔗 {{ row.groupName }}</td>
+                </tr>
                 <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id, 'iw__row--grouped': !!articleSetInfo[row.it.article_id] }">
                   <td class="iw__warn-cell">
                     <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
@@ -1243,6 +1246,22 @@ const sortedRows = computed(() => {
   return list
 })
 
+// Net als bij de artikellijsten: een duidelijke groepskop boven het eerste
+// lid, i.p.v. alleen een klein vlaggetje per rij (dat bleek in de tabel niet
+// duidelijk genoeg -- feedback Jos 2026-07-11).
+interface GroupedRow extends Row { isFirstInGroup: boolean; groupName: string | null }
+const groupedSortedRows = computed<GroupedRow[]>(() => {
+  const list = sortedRows.value
+  if (hasFilter.value) return list.map((r) => ({ ...r, isFirstInGroup: false, groupName: null }))
+  let prevGroup: string | null = null
+  return list.map((r) => {
+    const g = rowSetId(r)
+    const isFirst = g !== null && g !== prevGroup
+    prevGroup = g
+    return { ...r, isFirstInGroup: isFirst, groupName: g ? articleSetInfo.value[r.it.article_id]?.setName ?? null : null }
+  })
+})
+
 function toggleSort(key: typeof sortKey.value) {
   if (sortKey.value === key) sortDir.value = (sortDir.value * -1) as 1 | -1
   else { sortKey.value = key; sortDir.value = 1 }
@@ -1978,6 +1997,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
    genegeerd. */
 .iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
 .iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
+.iw__group-head-row td {
+  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
+  background: #eff6ff; border-top: 1px solid #dbeafe; border-bottom: 1px solid #dbeafe;
+}
 .iw__warn-cell { white-space: nowrap; }
 .iw__warn-icon { margin-right: 0.25rem; }
 .iw__icon-btn {
