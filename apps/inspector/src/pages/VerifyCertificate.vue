@@ -14,9 +14,13 @@
       </dl>
 
       <h2>{{ $t('verify.items') }}</h2>
+      <!-- Expliciet op 'rejected' toetsen i.p.v. "alles wat niet passed is":
+           de RPC laat 'not_assessed'-items al weg (zelfde regel als de PDF),
+           maar dit voorkomt dat een onverwachte/toekomstige statuswaarde hier
+           alsnog als "afgekeurd" oogt. -->
       <ul class="vc__items">
-        <li v-for="(it, i) in data.items" :key="i" :class="it.result === 'passed' ? 'vc__item--pass' : 'vc__item--fail'">
-          {{ it.result === 'passed' ? '✅' : '❌' }} {{ it.label }}
+        <li v-for="(it, i) in data.items" :key="i" :class="it.result === 'rejected' ? 'vc__item--fail' : 'vc__item--pass'">
+          {{ it.result === 'rejected' ? '❌' : '✅' }} {{ it.label }}
           <span v-if="it.serial_number" class="vc__sn">SN {{ it.serial_number }}</span>
         </li>
       </ul>
