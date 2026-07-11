@@ -41,11 +41,11 @@
         <input v-model="form.standard" class="pf__input" />
       </label>
     </div>
-    <div class="pf__row pf__row--three">
-      <label class="pf__field">
-        <span>{{ $t('settings.catalog.fields.maxAgeYears') }}</span>
-        <input v-model.number="form.max_age_years" type="number" min="0" class="pf__input" />
-      </label>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.manufacturerCode') }}</span>
+      <input v-model="form.manufacturer_code" class="pf__input" />
+    </label>
+    <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.maxAgeUseYears') }}</span>
         <input v-model.number="form.max_age_use_years" type="number" min="0" class="pf__input" />
@@ -59,6 +59,16 @@
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.breakingStrength') }}</span>
         <input v-model="form.breaking_strength" class="pf__input" />
+      </label>
+      <label class="pf__field">
+        <span>{{ $t('settings.catalog.fields.workingLoadLimit') }}</span>
+        <input v-model="form.working_load_limit" class="pf__input" />
+      </label>
+    </div>
+    <div class="pf__row">
+      <label class="pf__field">
+        <span>{{ $t('settings.catalog.fields.maxUserWeightKg') }}</span>
+        <input v-model.number="form.max_user_weight_kg" type="number" min="0" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.intervalOverride') }}</span>
@@ -77,6 +87,10 @@
         <input v-model.number="form.rope_diameter_max_mm" type="number" min="0" step="0.1" class="pf__input" />
       </label>
     </div>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.serialNumberLocation') }}</span>
+      <input v-model="form.serial_number_location" class="pf__input" />
+    </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.manualUrl') }}</span>
       <input v-model="form.manual_url" type="url" class="pf__input" />
@@ -131,7 +145,6 @@ function submit() {
 <style scoped>
 .pf { background: #fff; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
 .pf__row { display: flex; gap: 0.6rem; }
-.pf__row--three .pf__field { flex: 1; }
 .pf__row .pf__field { flex: 1; min-width: 0; }
 .pf__field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
 .pf__input {

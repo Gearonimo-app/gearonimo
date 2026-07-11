@@ -279,7 +279,6 @@ keurbedrijf B.
 | category | text? | huidige `categorie` |
 | material | text? | |
 | standard | text? | EN-norm (huidige `norm`) |
-| max_age_years | int? | kalenderleeftijd (huidige `max_leeftijd`) |
 | max_age_use_years | int? | vanaf ingebruikname (`max_leeftijd_use`) |
 | max_age_mfr_years | int? | fabrikantentermijn (`max_leeftijd_mfr`) |
 | breaking_strength | text? | breuksterkte |
@@ -297,6 +296,13 @@ keurbedrijf B.
 | interval_override_months | int? | wijkt af van het regime voor dit product |
 | status | text | `approved` / `pending` (wachtrij) / `rejected` / `archived` |
 | created_by | FK → users | wie hem aandroeg (klant of curator) |
+
+**`max_age_years` verwijderd (besloten 2026-07-09):** kalenderleeftijd zonder
+mfr/use-onderscheid; de next_due-berekening (`packages/core/nextDue.ts`) las
+alleen `max_age_mfr_years` (vanaf bouwjaar) en `max_age_use_years` (vanaf
+ingebruikname). `max_age_years` had dus geen enkel effect en was pure dode
+data — kolom en veld verwijderd i.p.v. verstopt, om te voorkomen dat de
+catalogus net als in KlimKeur Pro langzaam volloopt met ongebruikte velden.
 
 **Meertaligheid catalogus (besloten 2026-06-14):** `brand` en `name` zijn
 internationaal (merk/modelnaam, bv. "Petzl Avao Bod") en blijven ongemoeid.
