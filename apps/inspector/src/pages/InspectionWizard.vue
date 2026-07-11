@@ -1800,7 +1800,11 @@ async function saveRow(it: Item) {
 }
 
 async function finish() {
-  const notAssessed = items.value.filter((i) => i.result === 'not_assessed')
+  // Afgevoerde artikelen (bv. vervangen via de "onderdeel toevoegen"-koppeling)
+  // horen niet in deze waarschuwing: die blijven niet "bij de klant staan voor
+  // een volgende keer" -- ze zijn al vervangen/uit dienst. De tabel filtert ze
+  // om diezelfde reden al weg (zie rows), deze check moet dat spiegelen.
+  const notAssessed = items.value.filter((i) => i.result === 'not_assessed' && !i.article.retired)
   if (notAssessed.length) {
     const names = notAssessed.map((i) => itemLabel(i)).join('\n - ')
     const ok = confirm(t('inspections.table.notAssessedConfirm', { count: notAssessed.length }) + '\n - ' + names)
