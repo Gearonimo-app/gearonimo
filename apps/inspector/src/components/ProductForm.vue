@@ -17,14 +17,12 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.productType') }}</span>
-        <select v-model="form.product_type" class="pf__input">
-          <option value="">—</option>
-          <option value="ppe">{{ $t('settings.catalog.productTypes.ppe') }}</option>
-          <option value="rigging">{{ $t('settings.catalog.productTypes.rigging') }}</option>
-          <option value="aerial_platform">{{ $t('settings.catalog.productTypes.aerial_platform') }}</option>
-          <option value="machine">{{ $t('settings.catalog.productTypes.machine') }}</option>
-          <option value="other">{{ $t('settings.catalog.productTypes.other') }}</option>
-        </select>
+        <input v-model="form.product_type" list="pf-product-types" class="pf__input" />
+        <!-- Suggesties, geen vaste lijst: brondata gebruikt niet altijd één
+             van deze termen, dus vrije invoer (en leeg) blijft mogelijk. -->
+        <datalist id="pf-product-types">
+          <option v-for="key in productTypeKeys" :key="key" :value="$t(`settings.catalog.productTypes.${key}`)" />
+        </datalist>
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.category') }}</span>
@@ -133,6 +131,8 @@ const props = defineProps<{
   error?: string
 }>()
 const emit = defineEmits<{ (e: 'submit', value: ProductFormModel): void; (e: 'cancel'): void }>()
+
+const productTypeKeys = ['ppe', 'no_ppe', 'rigging', 'aerial_platform', 'machine', 'other']
 
 const form = ref<ProductFormModel>({ ...props.modelValue })
 watch(() => props.modelValue, (v) => { form.value = { ...v } })

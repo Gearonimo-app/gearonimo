@@ -607,6 +607,7 @@
       },
       "productTypes": {
         "ppe": "PBM",
+        "no_ppe": "Geen PBM",
         "rigging": "Rigging",
         "aerial_platform": "Hoogwerker",
         "machine": "Machine",

@@ -607,6 +607,7 @@
       },
       "productTypes": {
         "ppe": "PPE",
+        "no_ppe": "No PPE",
         "rigging": "Rigging",
         "aerial_platform": "Aerial platform",
         "machine": "Machine",
