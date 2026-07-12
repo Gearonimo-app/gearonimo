@@ -139,7 +139,21 @@
           <option v-for="m in 12" :key="m" :value="m">{{ m }}</option>
         </select>
       </div>
-      <input v-model="form.assigned_user_name" :placeholder="$t('articles.fields.user')"   class="ca__input" />
+      <div class="ca__field">
+        <input
+          v-model="form.assigned_user_name"
+          class="ca__input"
+          :placeholder="$t('articles.fields.user')"
+          @focus="activeField = 'user'"
+          @blur="closeSuggest"
+          @keydown="onSuggestKeydown"
+        />
+        <div v-if="activeField === 'user' && fieldSuggestions.length" class="ca__suggest">
+          <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
+                  class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
+                  @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
+        </div>
+      </div>
       <!-- Aankoop-/verkoopdatum is leidend: dat is wat de winkel/keurmeester bij
            verkoop invult. De ingebruikname (wanneer de klant 'm echt gaat
            gebruiken) weet de keurmeester meestal niet, dus die spiegelt
@@ -152,7 +166,6 @@
         {{ $t('articles.fields.firstUse') }}
         <input v-model="form.first_use_date" type="date" class="ca__input" @input="firstUseTouched = true" />
       </label>
-      <input v-model="form.set_label" :placeholder="$t('articles.fields.set')" class="ca__input" />
       <textarea v-model="form.notes" :placeholder="$t('articles.fields.notes')" class="ca__input" rows="2"></textarea>
 
       <p v-if="formError" class="ca__error">{{ formError }}</p>
@@ -280,7 +293,7 @@ const newCategory = ref('')
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 
-type SuggestField = 'article' | 'brand' | 'category'
+type SuggestField = 'article' | 'brand' | 'category' | 'user'
 
 // Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
 // (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
@@ -292,8 +305,13 @@ function setFieldValue(field: SuggestField, val: string) {
     case 'article': newDescription.value = stripCode(val); break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
+    case 'user': form.value.assigned_user_name = val; break
   }
 }
+
+// Medewerkers van déze klant als suggestiebron voor "Gebruiker" (besloten met
+// Jos 2026-07-11): een dropdown i.p.v. vrije tekst.
+const memberNames = ref<string[]>([])
 
 // Gedeelde typeahead-besturing (zie @gearonimo/ui). De template gebruikt de
 // vertrouwde namen via aliassen.
@@ -312,6 +330,7 @@ const {
       case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
       case 'brand': return suggestFilter(allBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
+      case 'user': return suggestFilter(memberNames.value, form.value.assigned_user_name)
       default: return []
     }
   },
@@ -347,7 +366,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 function emptyForm() {
   return {
     free_norm: '', free_mbs: '',
-    serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', set_label: '', notes: '',
+    serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', notes: '',
   }
 }
 
@@ -550,7 +569,6 @@ async function save() {
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
     purchase_date: form.value.purchase_date || null,
-    set_label: form.value.set_label.trim() || null,
     notes: form.value.notes.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,
@@ -575,6 +593,13 @@ onMounted(async () => {
       .from('products')
       .select('id, brand, name, category, manufacturer_code')
     products.value = (prods ?? []) as Product[]
+
+    const { data: members } = await supabase
+      .from('customer_members')
+      .select('name')
+      .eq('customer_id', props.customerId)
+      .eq('active', true)
+    memberNames.value = ((members ?? []) as { name: string }[]).map((m) => m.name).filter(Boolean)
   }
   await load()
   await loadSets()
