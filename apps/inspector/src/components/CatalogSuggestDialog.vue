@@ -48,7 +48,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { supabase, errorMessage, useOnline } from '@gearonimo/core'
-import { emptyProductForm, type ProductFormModel } from '../composables/productForm'
+import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
 
 const props = defineProps<{ articleId: string; label: string }>()
@@ -94,7 +94,7 @@ onMounted(async () => {
     // keurmeester in de vrije velden heeft getypt (merk/omschrijving/
     // categorie/materiaal/norm/MBS) zodat hij alleen aanvult.
     prefill.value = row.catalog_suggestion
-      ? { ...emptyProductForm(), ...row.catalog_suggestion }
+      ? toFormModel(row.catalog_suggestion)
       : {
           ...emptyProductForm(),
           brand: row.free_brand ?? '',

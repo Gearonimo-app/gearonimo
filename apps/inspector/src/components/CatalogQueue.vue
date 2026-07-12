@@ -43,7 +43,7 @@
 import { ref, onMounted } from 'vue'
 import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
-import { emptyProductForm, type ProductFormModel } from '../composables/productForm'
+import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
 
 interface QueueArticle {
@@ -100,7 +100,7 @@ function openAdd(a: QueueArticle) {
   // de schamele vrije velden voor artikelen die vóór die wijziging (of door de
   // klant-app) op de wachtrij kwamen zonder ingevuld voorstel.
   prefill.value = a.catalog_suggestion
-    ? { ...emptyProductForm(), ...a.catalog_suggestion }
+    ? toFormModel(a.catalog_suggestion)
     : {
         ...emptyProductForm(),
         brand: a.free_brand ?? '',

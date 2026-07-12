@@ -37,3 +37,21 @@ export function emptyProductForm(): ProductFormModel {
     manual_url: '', product_page_url: '', recall_url: '', inspection_notice_url: '', notes: '',
   }
 }
+
+const STRING_FIELDS = [
+  'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code',
+  'breaking_strength', 'working_load_limit', 'serial_number_location',
+  'manual_url', 'product_page_url', 'recall_url', 'inspection_notice_url', 'notes',
+] as const satisfies readonly (keyof ProductFormModel)[]
+
+// products.* laat de meeste tekstvelden null zijn in de database, ook al
+// belooft ProductFormModel altijd een string. Data van buitenaf (bewerken,
+// kopiëren, catalog_suggestion-JSON) moet hierdoorheen voordat 'm in het
+// formulier komt, anders crasht het opslaan op `null.trim()`.
+export function toFormModel(row: Partial<Record<keyof ProductFormModel, unknown>>): ProductFormModel {
+  const merged = { ...emptyProductForm(), ...row } as ProductFormModel
+  for (const key of STRING_FIELDS) {
+    if (merged[key] == null) merged[key] = ''
+  }
+  return merged
+}

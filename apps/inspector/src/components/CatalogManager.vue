@@ -76,7 +76,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
 import { supabase, errorMessage } from '@gearonimo/core'
-import { emptyProductForm, type ProductFormModel } from '../composables/productForm'
+import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
 
 interface Product extends ProductFormModel {
@@ -138,7 +138,7 @@ function openAdd() {
 
 function openEdit(p: Product) {
   editingId.value = p.id
-  form.value = { ...p }
+  form.value = toFormModel(p)
   formError.value = ''
   showForm.value = true
 }
@@ -149,7 +149,7 @@ function openEdit(p: Product) {
 function openDuplicate(p: Product) {
   const { id: _id, ...rest } = p
   editingId.value = null
-  form.value = { ...rest }
+  form.value = toFormModel(rest)
   formError.value = ''
   showForm.value = true
 }
