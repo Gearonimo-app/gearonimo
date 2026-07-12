@@ -573,6 +573,7 @@
         "search": "Zoeken op merk, naam of categorie",
         "add": "Product toevoegen",
         "edit": "Product bewerken",
+        "duplicate": "Kopiëren naar nieuw product (bv. andere maat)",
         "empty": "Geen producten gevonden.",
         "export": "Exporteren naar Excel",
         "import": "Importeren uit Excel",

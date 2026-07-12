@@ -56,8 +56,16 @@
     <ul v-else-if="!loading && !error" class="cm__list">
       <li v-if="filtered.length === 0" class="cm__state">{{ $t('settings.catalog.manager.empty') }}</li>
       <li v-for="p in filtered" :key="p.id" class="cm__item" @click="openEdit(p)">
-        <div class="cm__name">{{ p.brand }} {{ p.name }}</div>
-        <div class="cm__meta">{{ [p.category, p.product_type].filter(Boolean).join(' · ') }}</div>
+        <div class="cm__item-body">
+          <div class="cm__name">{{ p.brand }} {{ p.name }}</div>
+          <div class="cm__meta">{{ [p.category, p.product_type].filter(Boolean).join(' · ') }}</div>
+        </div>
+        <button
+          type="button"
+          class="cm__copy"
+          :title="$t('settings.catalog.manager.duplicate')"
+          @click.stop="openDuplicate(p)"
+        >⧉</button>
       </li>
     </ul>
   </section>
@@ -131,6 +139,17 @@ function openAdd() {
 function openEdit(p: Product) {
   editingId.value = p.id
   form.value = { ...p }
+  formError.value = ''
+  showForm.value = true
+}
+
+// Opent het formulier met de velden van p maar zonder id/editingId, zodat
+// opslaan een nieuw product aanmaakt -- handig om snel dezelfde maat-reeks
+// (bv. verschillende harnasmaten) achter elkaar in te voeren.
+function openDuplicate(p: Product) {
+  const { id: _id, ...rest } = p
+  editingId.value = null
+  form.value = { ...rest }
   formError.value = ''
   showForm.value = true
 }
@@ -335,10 +354,16 @@ onMounted(load)
 .cm__preview p { margin: 0 0 0.5rem; }
 .cm__preview-errors { margin: 0 0 0.5rem; padding-left: 1.1rem; color: #dc2626; font-size: 0.85rem; }
 .cm__list { list-style: none; margin: 0; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
-.cm__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; }
+.cm__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
 .cm__item:last-child { border-bottom: none; }
+.cm__item-body { flex: 1; min-width: 0; }
 .cm__name { font-weight: 600; }
 .cm__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
+.cm__copy {
+  flex: none; border: none; background: #f3f4f6; color: #374151; border-radius: 8px;
+  width: 2.2rem; height: 2.2rem; font-size: 1.1rem; line-height: 1; cursor: pointer;
+}
+.cm__copy:active { background: #e5e7eb; }
 .cm__form h3 { margin: 0 0 0.5rem; font-size: 1rem; }
 .cm__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }
 .cm__btn { border: none; border-radius: 8px; padding: 0.6rem 1rem; font-size: 0.9rem; font-weight: 600; cursor: pointer; }

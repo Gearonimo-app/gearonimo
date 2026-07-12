@@ -573,6 +573,7 @@
         "search": "Search by brand, name or category",
         "add": "Add product",
         "edit": "Edit product",
+        "duplicate": "Copy to new product (e.g. different size)",
         "empty": "No products found.",
         "export": "Export to Excel",
         "import": "Import from Excel",
