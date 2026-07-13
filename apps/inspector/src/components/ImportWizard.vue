@@ -87,8 +87,12 @@
 
       <div class="imp__field">
         <label>{{ $t('settings.import.fixedCustomerLabel') }}</label>
-        <div v-if="selectedCustomer" class="imp__customer-chosen">
-          <span class="imp__ok">{{ $t('settings.import.customerSelected', { name: selectedCustomer.name }) }}</span>
+        <div v-if="selectedCustomer || fixedCustomerName" class="imp__customer-chosen">
+          <span class="imp__ok">
+            {{ selectedCustomer
+              ? $t('settings.import.customerSelected', { name: selectedCustomer.name })
+              : $t('settings.import.customerFromFile', { name: fixedCustomerName }) }}
+          </span>
           <button type="button" class="imp__linkbtn" @click="clearCustomer">{{ $t('settings.import.customerChange') }}</button>
         </div>
         <div v-else class="imp__customerpick">
@@ -116,12 +120,44 @@
             ＋ {{ $t('settings.import.newCustomer') }}
           </button>
         </div>
+        <button
+          v-if="!selectedCustomer && !fixedCustomerName && headerBlockCells.length"
+          type="button"
+          class="imp__linkbtn imp__linkbtn--block"
+          @click="showCustomerPick = !showCustomerPick"
+        >{{ $t('settings.import.pickFromFile') }}</button>
+        <div v-if="showCustomerPick && !selectedCustomer && !fixedCustomerName" class="imp__chips">
+          <button
+            v-for="(c, i) in headerBlockCells"
+            :key="i"
+            type="button"
+            class="imp__chip"
+            :title="c.value"
+            @click="pickCustomerFromFile(c.value)"
+          ><span class="imp__chip-row">{{ $t('settings.import.rowN', { n: c.row }) }}</span>{{ c.value }}</button>
+        </div>
         <p class="imp__hint">{{ $t('settings.import.fixedCustomerHint') }}</p>
       </div>
 
       <div class="imp__field">
         <label>{{ $t('settings.import.fixedDateLabel') }}</label>
         <input type="date" v-model="fixedInspectionDate" />
+        <button
+          v-if="dateBlockCells.length"
+          type="button"
+          class="imp__linkbtn imp__linkbtn--block"
+          @click="showDatePick = !showDatePick"
+        >{{ $t('settings.import.pickFromFile') }}</button>
+        <div v-if="showDatePick" class="imp__chips">
+          <button
+            v-for="(c, i) in dateBlockCells"
+            :key="i"
+            type="button"
+            class="imp__chip"
+            :title="c.iso"
+            @click="pickDateFromFile(c.iso)"
+          ><span class="imp__chip-row">{{ $t('settings.import.rowN', { n: c.row }) }}</span>{{ c.value }}</button>
+        </div>
         <p class="imp__hint">{{ $t('settings.import.fixedDateHint') }}</p>
       </div>
 
@@ -256,6 +292,7 @@ import {
 import {
   commitImport,
   findImportProfile,
+  parseToISODate,
   saveImportProfile,
   type CommitResult,
 } from '../composables/useImportCommit'
@@ -303,6 +340,58 @@ function setLastRow(i: number) {
 const mapping = ref<Record<number, FieldKey>>({})
 const fixedCustomerName = ref('')
 const fixedInspectionDate = ref('')
+
+// --- Waarden uit het kopblok boven de tabel -----------------------------------
+// Klantnaam en keuringsdatum staan op certificaten vaak niet als kolom in de
+// tabel maar in losse cellen erboven ("Klant: Jansen BV"). Die cellen bieden we
+// hier klikbaar aan zodat de keurmeester niets hoeft over te typen. Een label
+// vóór een dubbele punt ("Klant:", "Datum:") wordt daarbij weggeknipt.
+const showCustomerPick = ref(false)
+const showDatePick = ref(false)
+
+function stripLabel(v: string): string {
+  // alleen strippen als het deel vóór de dubbele punt op een label lijkt
+  // (bevat letters) — anders knippen we tijden als "12:30" kapot
+  const m = v.match(/^([^:]{1,30}):\s*(.+)$/)
+  return m && /[a-zA-Z]/.test(m[1]) ? m[2].trim() : v
+}
+
+const headerBlockCells = computed(() => {
+  const out: { row: number; value: string }[] = []
+  const seen = new Set<string>()
+  for (let i = 0; i < headerRowIndex.value && out.length < 40; i++) {
+    for (const cell of allRows.value[i] ?? []) {
+      const raw = cell === null ? '' : String(cell).trim()
+      if (!raw) continue
+      const value = stripLabel(raw)
+      if (!value || seen.has(value)) continue
+      seen.add(value)
+      out.push({ row: i + 1, value })
+      if (out.length >= 40) break
+    }
+  }
+  return out
+})
+
+const dateBlockCells = computed(() =>
+  headerBlockCells.value
+    .map((c) => ({ ...c, iso: parseToISODate(c.value) as string }))
+    // alleen cellen die echt als datum te lezen zijn; een los jaartal ("2021")
+    // is te dubbelzinnig om als keuringsdatum aan te bieden
+    .filter((c) => c.iso !== null && !/^\d{4}$/.test(c.value))
+)
+
+function pickCustomerFromFile(value: string) {
+  selectedCustomerId.value = null
+  fixedCustomerName.value = value
+  customerSearch.value = value
+  showCustomerPick.value = false
+}
+
+function pickDateFromFile(iso: string) {
+  fixedInspectionDate.value = iso
+  showDatePick.value = false
+}
 
 // Klant-dropdown (stap 3): kies een bestaande klant voor het hele bestand, of
 // maak er meteen een aan. fixedCustomerId stuurt de import naar precies die klant.
@@ -612,6 +701,12 @@ async function runCommit() {
 .imp__endbtn--active { background: #f59e0b; border-color: #f59e0b; color: #fff; }
 .imp__selinfo { font-size: 0.85rem; color: #374151; margin: 0.25rem 0 0.6rem; }
 .imp__linkbtn { background: none; border: none; color: #1a3a2a; text-decoration: underline; cursor: pointer; font-size: 0.8rem; padding: 0 0 0 0.4rem; }
+.imp__linkbtn--block { display: block; padding: 0.35rem 0 0; }
+
+.imp__chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.4rem 0; max-height: 170px; overflow-y: auto; }
+.imp__chip { background: #f3f4f6; border: 1px solid #d1d5db; border-radius: 999px; padding: 0.25rem 0.7rem; font: inherit; font-size: 0.8rem; cursor: pointer; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.imp__chip:hover { background: #e5e7eb; border-color: #9ca3af; }
+.imp__chip-row { color: #9ca3af; margin-right: 0.4rem; font-size: 0.7rem; }
 
 .imp__customerpick { display: flex; gap: 0.5rem; align-items: flex-start; }
 .imp__customerbox { position: relative; flex: 1; }
