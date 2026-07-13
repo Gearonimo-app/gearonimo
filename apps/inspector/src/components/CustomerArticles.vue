@@ -26,7 +26,16 @@
 
     <ul v-else-if="articles.length" class="ca__list">
       <template v-for="row in displayRows" :key="row.article.id">
-        <li v-if="row.isFirstInGroup" class="ca__group-head">🔗 {{ row.groupName }}</li>
+        <!-- Klikbare setkop: sinds het aparte "Sets"-blok weg is (dubbelop met
+             deze groepskoppen, besluit Jos 2026-07-13) is dit dé ingang naar
+             het setdetail (hernoemen/leden wijzigen/verwijderen). -->
+        <li
+          v-if="row.isFirstInGroup"
+          class="ca__group-head"
+          role="link"
+          :title="$t('sets.openDetail')"
+          @click="$router.push(`/sets/${row.groupId}`)"
+        >🔗 {{ row.groupName }}<span class="ca__group-chev">›</span></li>
         <li class="ca__item" :class="{ 'ca__item--grouped': row.groupId }">
           <input
             v-if="selectMode"
@@ -636,7 +645,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__group-head {
   padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
   background: #eff6ff; border-bottom: 1px solid #dbeafe;
+  cursor: pointer; display: flex; align-items: center;
 }
+.ca__group-head:hover { background: #dbeafe; }
+.ca__group-chev { margin-left: auto; font-size: 0.9rem; line-height: 1; opacity: 0.6; }
 .ca__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
 .ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
 .ca__checkbox { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; }

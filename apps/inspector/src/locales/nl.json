@@ -200,7 +200,8 @@
       "errors": {
         "missing": "Merk of omschrijving is verplicht."
       }
-    }
+    },
+    "openDetail": "Set openen — hernoemen, leden wijzigen of verwijderen"
   },
   "login": {
     "title": "Inloggen",

@@ -35,8 +35,10 @@
         <button class="cd__invite-copy" :title="$t('common.copy')" @click="copyInvite">{{ inviteCopied ? '✓' : '⧉' }}</button>
       </div>
       <CustomerMembers :customer-id="id" />
+      <!-- Het aparte "Sets"-blok is weg: de artikellijst groepeert al per set
+           en de setkoppen daarin klikken door naar het setdetail (dubbelop,
+           besluit Jos 2026-07-13). -->
       <CustomerArticles :customer-id="id" />
-      <CustomerSets :customer-id="id" />
       <button class="cd__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
     </div>
 
@@ -97,7 +99,6 @@ import { useI18n } from 'vue-i18n'
 import { errorMessage, useOfflineSession } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
-import CustomerSets from '../components/CustomerSets.vue'
 import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
 import { fetchCustomer, updateCustomer, deleteCustomer } from '../composables/useCustomers'
 import {

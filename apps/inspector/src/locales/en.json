@@ -200,7 +200,8 @@
       "errors": {
         "missing": "Brand or description is required."
       }
-    }
+    },
+    "openDetail": "Open set — rename, edit members or delete"
   },
   "login": {
     "title": "Log in",
