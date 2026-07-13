@@ -82,9 +82,17 @@
                   <span v-if="row.article.assigned_user_name">· {{ row.article.assigned_user_name }}</span>
                   <span v-if="row.article.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(row.article.next_due) }}</span>
                 </div>
+                <!-- De reden staat nu ook als tekst in de rij (Jos, 2026-07-13:
+                     "ik wil meteen zien waarom"): op de telefoon is een tooltip
+                     onbereikbaar. Alleen bij "in orde" is er niets te melden. -->
+                <div v-if="row.article.uiStatus !== 'ok'" class="mt__item-reason" :class="`mt__item-reason--${row.article.uiStatus}`">
+                  {{ $t(`home.status.${row.article.uiStatus}`) }}
+                </div>
               </div>
-              <!-- Status als vinkje/kruisje (tekst in de tooltip); kleur van de
-                   chip draagt de betekenis, net als in de keurtabel. -->
+              <!-- Status als vinkje/kruisje; kleur van de chip draagt de
+                   betekenis, net als in de keurtabel. De tekst staat er
+                   voortaan ook al bij (zie hierboven), dit blijft alleen het
+                   compacte icoon voor op-een-oogopslag-scannen. -->
               <span class="mt__chip-status" :class="`mt__chip-status--${row.article.uiStatus}`" :title="$t(`home.status.${row.article.uiStatus}`)">{{ statusIcon(row.article.uiStatus) }}</span>
               <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
                    een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
@@ -458,6 +466,10 @@ onMounted(load);
 .mt__trash:hover { opacity: 1; }
 .mt__trash:disabled { opacity: 0.25; }
 .mt__item-meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
+.mt__item-reason { font-size: 0.8rem; font-weight: 700; margin-top: 0.2rem; }
+.mt__item-reason--due_soon, .mt__item-reason--first_inspection_due { color: #92400e; }
+.mt__item-reason--overdue, .mt__item-reason--rejected { color: #991b1b; }
+.mt__item-reason--never_inspected { color: #6b7280; font-weight: 600; }
 
 .mt__chip-status {
   flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; line-height: 1;
