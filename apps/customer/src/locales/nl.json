@@ -87,7 +87,7 @@
     "retire": "Vervangen? Afvoeren",
     "retireConfirm": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen. De keuringshistorie en certificaten blijven bewaard.",
     "retireOther": "Afvoeren",
-    "retirePrompt": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen; historie en certificaten blijven bewaard.\n\nReden (optioneel, bv. vervangen / verloren / gestolen):",
+    "retireReasonPlaceholder": "Reden (optioneel, bv. vervangen / verloren / gestolen)",
     "retireReasonReplaced": "vervangen na afkeur",
     "addArticle": {
       "button": "+ Toevoegen",

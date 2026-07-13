@@ -131,6 +131,21 @@
         @close="partFor = null"
       />
 
+      <div v-if="retireFor" class="mt__overlay" @click.self="retireFor = null">
+        <div class="mt__dialog">
+          <h2>{{ $t('home.retireOther') }}</h2>
+          <p class="mt__dialog-text">{{ $t('home.retireConfirm', { name: retireLabel(retireFor) }) }}</p>
+          <input v-model="retireReason" class="mt__dialog-input" :placeholder="$t('home.retireReasonPlaceholder')" />
+          <p v-if="retireError" class="mt__state mt__state--error">{{ retireError }}</p>
+          <div class="mt__dialog-actions">
+            <button class="mt__cancel" @click="retireFor = null">{{ $t('common.cancel') }}</button>
+            <button class="mt__dangerbtn" :disabled="retiringId !== null" @click="confirmRetire">
+              {{ retiringId ? $t('common.busy') : $t('home.retireOther') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div v-if="showGroupDialog" class="mt__overlay" @click.self="showGroupDialog = false">
         <div class="mt__dialog">
           <h2>{{ $t('sets.group.dialogTitle') }}</h2>
@@ -308,25 +323,38 @@ async function load() {
 
 const retiringId = ref<string | null>(null);
 const retireError = ref("");
+// Eigen dialoog i.p.v. window.prompt: Jos vinkte tijdens het testen
+// (2026-07-13) "voorkom extra dialoogvensters" aan, waarna afvoeren
+// geluidloos niets meer deed. Een in-app dialoog kan de browser niet
+// onderdrukken. Het dialoog doet dubbel dienst als bevestiging
+// (Annuleren = afbreken) en als reden-invoer; de reden komt bij de
+// keurmeester in beeld bij SN-zoeken.
+const retireFor = ref<UiArticle | null>(null);
+const retireReason = ref("");
 
-async function retireArticle(a: UiArticle) {
-  const name = [a.brand, a.name].filter(Boolean).join(" ") || t("home.untitled");
-  // prompt doet dubbel dienst als bevestiging (Annuleren = afbreken) en als
-  // reden-invoer; de reden komt bij de keurmeester in beeld bij SN-zoeken.
-  const reason = window.prompt(
-    t("home.retirePrompt", { name }),
-    a.uiStatus === "rejected" ? t("home.retireReasonReplaced") : ""
-  );
-  if (reason === null) return;
+function retireLabel(a: UiArticle) {
+  return [a.brand, a.name].filter(Boolean).join(" ") || t("home.untitled");
+}
+
+function retireArticle(a: UiArticle) {
+  retireError.value = "";
+  retireReason.value = a.uiStatus === "rejected" ? t("home.retireReasonReplaced") : "";
+  retireFor.value = a;
+}
+
+async function confirmRetire() {
+  const a = retireFor.value;
+  if (!a) return;
   retiringId.value = a.id;
   retireError.value = "";
   try {
     const { error: err } = await supabase.rpc("retire_my_article", {
       p_article_id: a.id,
-      p_reason: reason.trim() || null,
+      p_reason: retireReason.value.trim() || null,
     });
     if (err) throw err;
     articles.value = articles.value.filter((x) => x.id !== a.id);
+    retireFor.value = null;
   } catch (e) {
     retireError.value = errorMessage(e);
   } finally {
@@ -469,6 +497,12 @@ onMounted(load);
 .mt__dialog-input { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
 .mt__dialog-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
 .mt__cancel { background: none; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1rem; color: #374151; cursor: pointer; flex: 1; }
+.mt__dialog-text { margin: 0; font-size: 0.9rem; color: #374151; }
+.mt__dangerbtn {
+  background: #dc2626; color: #fff; border: none; border-radius: 8px;
+  padding: 0.5rem 1rem; font-weight: 700; cursor: pointer; flex: 1;
+}
+.mt__dangerbtn:disabled { opacity: 0.5; }
 
 .mt__list { list-style: none; margin: 0; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .mt__item {
