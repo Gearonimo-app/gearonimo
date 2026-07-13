@@ -363,9 +363,27 @@ function preferredWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold:
   })
 }
 
+// Ondergrens per kolom: de (éénregelige) kop plus het breedste losse woord in
+// de cellen. Smaller dan dit betekent afbreken midden in een woord
+// ("teufelberge/r"), en dat willen we nooit zolang de pagina het toelaat.
+function wordFloorWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold: PDFFont, size: number): number[] {
+  return cols.map((col) => {
+    let w = bold.widthOfTextAtSize(col.header, size)
+    for (const it of items) {
+      for (const word of cellText(col, it).split(/\s+/)) {
+        if (word) w = Math.max(w, font.widthOfTextAtSize(word, size))
+      }
+    }
+    return w + CELL_PAD * 2
+  })
+}
+
 // Past de kolombreedtes op de beschikbare breedte: groeit de flex-kolommen als
-// er ruimte over is, of schaalt alles proportioneel als het te breed is.
-function fitWidths(pref: number[], cols: ColDef[], avail: number): number[] {
+// er ruimte over is, of krimpt bij ruimtegebrek naar rato van de rek die elke
+// kolom heeft boven zijn ondergrens (kop + breedste losse woord). Zo levert
+// een kolom met veel witruimte (Artikel met korte namen) het meest in en zakt
+// geen enkele kolom onder wat zijn langste woord nodig heeft.
+function fitWidths(pref: number[], floors: number[], cols: ColDef[], avail: number): number[] {
   const total = pref.reduce((a, b) => a + b, 0)
   const flexIdx = cols.map((c, i) => (c.flex ? i : -1)).filter((i) => i >= 0)
   if (total <= avail) {
@@ -373,19 +391,16 @@ function fitWidths(pref: number[], cols: ColDef[], avail: number): number[] {
     const per = extra / (flexIdx.length || 1)
     return pref.map((w, i) => (flexIdx.includes(i) ? w + per : w))
   }
-  // Te breed: krimp eerst alleen de flexibele kolommen (Artikel/Opmerking) en
-  // houd de vaste kolommen — met name Serienummer — op hun voorkeursbreedte,
-  // zodat die niet over twee regels afbreekt. Past zelfs dat niet, val dan
-  // terug op proportioneel krimpen van alles.
-  const nonFlex = pref.reduce((a, w, i) => a + (cols[i].flex ? 0 : w), 0)
-  const flexPref = pref.reduce((a, w, i) => a + (cols[i].flex ? w : 0), 0)
-  const flexMin = cols.reduce((a, c) => a + (c.flex ? c.min : 0), 0)
-  const availForFlex = avail - nonFlex
-  if (flexIdx.length && availForFlex >= flexMin) {
-    const scale = availForFlex / flexPref
-    return pref.map((w, i) => (cols[i].flex ? w * scale : w))
-  }
-  return pref.map((w) => (w * avail) / total)
+  const floor = pref.map((w, i) => Math.min(w, floors[i]))
+  const floorSum = floor.reduce((a, b) => a + b, 0)
+  // Passen zelfs de ondergrenzen niet, dan is de pagina echt te smal en blijft
+  // alleen proportioneel krimpen over (met midden-in-woord-afbreken als
+  // onvermijdelijk gevolg).
+  if (floorSum >= avail) return pref.map((w) => (w * avail) / total)
+  const slack = pref.map((w, i) => w - floor[i])
+  const slackSum = slack.reduce((a, b) => a + b, 0) || 1
+  const cut = (total - avail) / slackSum
+  return pref.map((w, i) => w - slack[i] * cut)
 }
 
 // ----------------------------------------------------------------------------
@@ -467,7 +482,12 @@ export async function renderCertificatePdf(
   const pageHeight = landscape ? A4_SHORT : A4_LONG
   const contentWidth = pageWidth - 2 * margin
 
-  const colWidths = fitWidths(preferredWidths(items, cols, font, bold, tableSize), cols, contentWidth)
+  const colWidths = fitWidths(
+    preferredWidths(items, cols, font, bold, tableSize),
+    wordFloorWidths(items, cols, font, bold, tableSize),
+    cols,
+    contentWidth
+  )
 
   let page!: PDFPage
   let y = 0
