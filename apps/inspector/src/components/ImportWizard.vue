@@ -125,6 +125,16 @@
         <p class="imp__hint">{{ $t('settings.import.fixedDateHint') }}</p>
       </div>
 
+      <div v-if="inspectorOptions.length > 1" class="imp__field">
+        <label>{{ $t('settings.import.inspectorLabel') }}</label>
+        <select v-model="selectedInspectorId" class="imp__inspectorselect">
+          <option v-for="i in inspectorOptions" :key="i.id" :value="i.id">
+            {{ i.name }}<template v-if="!i.active"> — {{ $t('settings.inspectors.inactiveBadge') }}</template>
+          </option>
+        </select>
+        <p class="imp__hint">{{ $t('settings.import.inspectorHint') }}</p>
+      </div>
+
       <div class="imp__mapgrid">
         <div v-for="(col, colIndex) in headerRow" :key="colIndex" class="imp__mapcol">
           <div class="imp__colhead">{{ col || $t('settings.import.unnamedColumn', { n: colIndex + 1 }) }}</div>
@@ -250,6 +260,8 @@ import {
   type CommitResult,
 } from '../composables/useImportCommit'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
+import { ensureInspector } from '../composables/useInspections'
+import { supabase } from '@gearonimo/core'
 import CustomerFormModal from './CustomerFormModal.vue'
 
 const { t } = useI18n()
@@ -313,7 +325,28 @@ async function loadCustomers() {
     // geen verbinding: dropdown blijft leeg, "Nieuwe klant" werkt nog wel
   }
 }
-onMounted(loadCustomers)
+
+// Keurmeester-dropdown: historische keuringen zijn vaak door een collega
+// gedaan; kies hier op wiens naam ze komen. Ook inactieve keurmeesters staan
+// erin (oud-collega's op oude certificaten). Standaard: de ingelogde gebruiker.
+const inspectorOptions = ref<{ id: string; name: string; active: boolean }[]>([])
+const selectedInspectorId = ref('')
+
+async function loadInspectors() {
+  try {
+    const me = await ensureInspector()
+    selectedInspectorId.value = me.id
+    const { data } = await supabase
+      .from('inspectors')
+      .select('id, name, active')
+      .eq('company_id', me.company_id)
+      .order('name')
+    inspectorOptions.value = (data ?? []) as { id: string; name: string; active: boolean }[]
+  } catch {
+    // geen verbinding: dropdown blijft verborgen, import valt terug op de ingelogde keurmeester
+  }
+}
+onMounted(() => { loadCustomers(); loadInspectors() })
 
 function selectCustomer(c: CustomerListItem) {
   selectedCustomerId.value = c.id
@@ -534,6 +567,7 @@ async function runCommit() {
       fixedCustomerName: fixedCustomerName.value,
       fixedCustomerId: selectedCustomerId.value ?? undefined,
       fixedInspectionDate: fixedInspectionDate.value,
+      inspectorId: selectedInspectorId.value || undefined,
     })
   } finally {
     committing.value = false
@@ -589,6 +623,7 @@ async function runCommit() {
 .imp__newcustomer { white-space: nowrap; }
 .imp__customer-chosen { display: flex; align-items: center; gap: 0.5rem; }
 .imp__field input[type="text"], .imp__field input[type="date"] { padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; box-sizing: border-box; }
+.imp__inspectorselect { padding: 0.5rem 0.6rem; border-radius: 6px; border: 1px solid #d1d5db; background: #fff; }
 
 .imp__mapgrid { display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; }
 .imp__mapcol { min-width: 160px; flex: 0 0 auto; }

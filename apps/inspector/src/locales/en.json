@@ -503,6 +503,8 @@
       "newCustomer": "New customer",
       "customerSelected": "Selected customer: {name}",
       "customerChange": "change",
+      "inspectorLabel": "Inspector for this import",
+      "inspectorHint": "Imported inspections are attributed to this inspector — useful when a colleague performed the historical inspections. Default: you.",
       "fixedDateLabel": "Inspection date for this whole file (optional)",
       "fixedDateHint": "Fill this in if the inspection date isn't a column anywhere in the file — this date will then apply to all rows instead of a mapped column.",
       "unnamedColumn": "Column {n}",

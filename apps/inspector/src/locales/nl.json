@@ -505,6 +505,8 @@
       "customerChange": "wijzigen",
       "fixedDateLabel": "Keuringsdatum voor dit hele bestand (optioneel)",
       "fixedDateHint": "Vul dit in als de keuringsdatum nergens als kolom in het bestand staat — dan geldt deze datum voor alle rijen, in plaats van een gekoppelde kolom.",
+      "inspectorLabel": "Keurmeester voor deze import",
+      "inspectorHint": "De geïmporteerde keuringen komen op naam van deze keurmeester — handig als een collega de historische keuringen deed. Standaard: jijzelf.",
       "unnamedColumn": "Kolom {n}",
       "step4Title": "Stap 4: controle en voorvertoning",
       "missingRequired": "Verplichte velden niet gekoppeld",

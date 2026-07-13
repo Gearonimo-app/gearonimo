@@ -80,6 +80,10 @@ export interface CommitOptions {
   fixedCustomerId?: string
   /** Keuringsdatum (ISO yyyy-mm-dd) voor het hele bestand, voor bestanden zonder datumkolom. Overschrijft een eventuele gekoppelde kolom. */
   fixedInspectionDate?: string
+  /** Keurmeester op wiens naam de geïmporteerde keuringen komen (gekozen via
+   * de dropdown in stap 3). Leeg = de ingelogde keurmeester. De import-batch
+   * zelf blijft altijd op naam van de ingelogde gebruiker (audit). */
+  inspectorId?: string
 }
 
 export interface CommitResult {
@@ -102,6 +106,7 @@ export interface CommitResult {
  * anker — er wordt nooit een nieuw certificaat-PDF voor gerenderd. */
 export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   const inspector = await ensureInspector()
+  const inspectionInspectorId = opts.inspectorId || inspector.id
   const result: CommitResult = {
     customersCreated: 0,
     articlesCreated: 0,
@@ -249,7 +254,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             .insert({
               customer_id: customerId,
               company_id: inspector.company_id,
-              inspector_id: inspector.id,
+              inspector_id: inspectionInspectorId,
               inspection_date: inspectionDate,
               status: 'completed',
               completed_at: new Date().toISOString(),
@@ -311,7 +316,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
               .insert({
                 customer_id: customerId,
                 company_id: inspector.company_id,
-                inspector_id: inspector.id,
+                inspector_id: inspectionInspectorId,
                 status: 'draft',
                 source: 'import',
                 import_batch_id: batch.id,
