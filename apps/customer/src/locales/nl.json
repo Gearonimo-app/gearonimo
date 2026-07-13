@@ -17,6 +17,9 @@
     "errors": {
       "nameRequired": "Naam is verplicht"
     },
+    "fields": {
+      "name": "Naam van de set"
+    },
     "addPart": {
       "title": "Onderdeel toevoegen",
       "linkedTo": "Wordt gekoppeld aan: {name}",
@@ -75,6 +78,12 @@
     },
     "certificates": "Certificaten",
     "noCertificates": "Nog geen certificaten.",
+    "tiles": {
+      "materials": "Mijn materiaal",
+      "certificates": "Certificaten",
+      "request": "Keuring aanvragen",
+      "settings": "Instellingen"
+    },
     "retire": "Vervangen? Afvoeren",
     "retireConfirm": "\"{name}\" afvoeren? Het verdwijnt uit dit overzicht en uit volgende keuringen. De keuringshistorie en certificaten blijven bewaard.",
     "retireOther": "Afvoeren",
@@ -98,6 +107,17 @@
       "cancel": "Annuleren",
       "needProductOrDescription": "Kies een product uit de catalogus of vul een omschrijving in."
     }
+  },
+  "materials": {
+    "title": "Mijn materiaal",
+    "searchPlaceholder": "Zoek op naam, merk of serienummer",
+    "everyone": "Iedereen",
+    "attention": "Aandacht nodig",
+    "noMatches": "Niets gevonden binnen deze filters.",
+    "clearFilters": "Filters wissen"
+  },
+  "settings": {
+    "title": "Instellingen"
   },
   "members": {
     "title": "Medewerkers",

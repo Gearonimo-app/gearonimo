@@ -17,6 +17,9 @@
     "errors": {
       "nameRequired": "Name is required"
     },
+    "fields": {
+      "name": "Set name"
+    },
     "addPart": {
       "title": "Add part",
       "linkedTo": "Will be linked to: {name}",
@@ -75,6 +78,12 @@
     },
     "certificates": "Certificates",
     "noCertificates": "No certificates yet.",
+    "tiles": {
+      "materials": "My gear",
+      "certificates": "Certificates",
+      "request": "Request inspection",
+      "settings": "Settings"
+    },
     "retire": "Replaced? Retire",
     "retireConfirm": "Retire \"{name}\"? It disappears from this overview and from future inspections. Inspection history and certificates are kept.",
     "retireOther": "Retire",
@@ -98,6 +107,17 @@
       "cancel": "Cancel",
       "needProductOrDescription": "Pick a product from the catalogue or enter a description."
     }
+  },
+  "materials": {
+    "title": "My gear",
+    "searchPlaceholder": "Search by name, brand or serial number",
+    "everyone": "Everyone",
+    "attention": "Needs attention",
+    "noMatches": "Nothing found within these filters.",
+    "clearFilters": "Clear filters"
+  },
+  "settings": {
+    "title": "Settings"
   },
   "members": {
     "title": "Team members",

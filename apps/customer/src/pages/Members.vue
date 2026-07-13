@@ -2,7 +2,9 @@
   <div class="mb">
     <header class="mb__header">
       <router-link to="/" class="mb__back">‹ {{ $t('members.back') }}</router-link>
-      <h1>{{ $t('members.title') }}</h1>
+      <!-- De pagina heet "Instellingen" (de tegel op het dashboard); het
+           medewerkersbeheer + de uitnodigingscode zijn de inhoud ervan. -->
+      <h1>{{ $t('settings.title') }}</h1>
       <span class="mb__spacer"></span>
     </header>
 

@@ -160,14 +160,14 @@ Elke stap heeft een **Verwacht:**-regel zodat je meteen kunt vergelijken.
 55. **Verwacht (belangrijk):** je ziet het **startscherm** met twee keuzes: *"Ik heb een uitnodigingscode"* en *"Zelf beginnen"*.
 56. Kies **Ik heb een uitnodigingscode** → voer **KLANT-1** in (fase D) + je naam → bevestig.
     **Verwacht:** je komt op het **dashboard** van "Klimvereniging De Rots".
-57. Dashboard: bekijk het **stoplicht** + tellers en de artikelen.
-    **Verwacht:** de artikelen uit fase D/F staan er, met status (✓/!/✗) en volgende-keuringsdatum; het afgekeurde artikel telt als "actie nodig".
-58. Bekijk **Certificaten**.
+57. Dashboard: bekijk de **stoplichtkaart** en de tegels.
+    **Verwacht:** één kaart met het oordeel én de tellers (✓/!/✗) erin, met daaronder de tegels **Mijn materiaal · Certificaten · Keuring aanvragen · Instellingen**. Klik op de stoplichtkaart → je komt op **Mijn materiaal**, voorgefilterd op "Aandacht nodig": de artikelen uit fase D/F met status en volgende-keuringsdatum, het afgekeurde artikel telt als "actie nodig". Op die pagina zit ook een **zoekbalk** (naam/merk/serienummer) en een **personeelslid-filter**; de app-naam bovenin is overal de home-knop terug naar het dashboard.
+58. Dashboard → tegel **Certificaten**.
     **Verwacht:** het certificaat uit fase F staat er, met **⬇ PDF**-download.
-59. Bovenin: open **Medewerkers** (jij bent admin).
+59. Dashboard → tegel **Instellingen** (jij bent admin).
     **Verwacht:** ledenlijst met jou als beheerder; de uitnodigingscode is zichtbaar om collega's te laten koppelen.
-60. Dashboard → **+ Toevoegen** (materiaal): voeg een artikel toe via catalogus-zoeken.
-    **Verwacht:** artikel toegevoegd; verschijnt in de lijst.
+60. Dashboard → **Mijn materiaal** → **+ Toevoegen**: voeg een artikel toe via catalogus-zoeken.
+    **Verwacht:** artikel toegevoegd; verschijnt in de lijst (zet evt. het "Aandacht nodig"-filter uit om alles te zien).
 61. Voeg een artikel toe met een **onbekend product** (vrije invoer).
     **Verwacht:** toegevoegd; dit gaat automatisch de **catalogus-wachtrij** in (curator ziet het later).
 62. Voer bij een artikel **Afvoeren** uit (🗑) met een reden (bv. "verloren").
@@ -184,9 +184,9 @@ Elke stap heeft een **Verwacht:**-regel zodat je meteen kunt vergelijken.
 66. **Verwacht (belangrijk):** een blauwe banner *"Je materiaal is nog niet gekoppeld aan een keurbedrijf. Vraag een keuring aan wanneer je wilt."* (geen rood alarm).
 67. SQL-controle: `select c.name, cl.status from customers c left join customer_links cl on cl.customer_id = c.id where c.name = 'Jansen Klimtechniek';`
     **Verwacht:** de klant bestaat, **zonder** customer_link (staat op zichzelf).
-68. Dashboard → **+ Toevoegen** → voeg wat eigen materiaal toe.
-    **Verwacht:** toegevoegd; dashboard toont "nog niet gekeurd".
-69. Bovenin/banner → **Keuring aanvragen**.
+68. Dashboard → **Mijn materiaal** → **+ Toevoegen** → voeg wat eigen materiaal toe.
+    **Verwacht:** toegevoegd; de stoplichtkaart op het dashboard telt het als "nog nooit gekeurd".
+69. Tegel of banner → **Keuring aanvragen**.
     **Verwacht:** de aanvraagpagina opent met een **wereldkaart**.
 70. Bekijk de kaart.
     **Verwacht:** één **groene pin** bij Elst (Safety Green). Onder de kaart een lijst met Safety Green.

@@ -268,6 +268,19 @@ De knoppen die zichtbaar zijn, hangen af van die rol (een monteur ziet geen
 **Navigatie onderin** (max 4, §1.7): **Overzicht · Mijn materiaal ·
 Certificaten · Meer** (onder "Meer" valt Aanvragen + Beheer voor wie dat mag).
 
+**Bijstelling (Jos, 2026-07-13, tijdens fase-K-test):** géén navigatiebalk
+onderin — het tegel-dashboard is de enige navigatie ("optie A"). De app-naam
+in de kop is overal de home-knop terug naar het dashboard; subpagina's
+krijgen daarnaast een expliciete ←. Tegels: **Mijn materiaal · Certificaten ·
+Keuring aanvragen (admin) · Instellingen (admin)** — "Beheer" heet in de app
+"Instellingen". "+ Toevoegen", de zoekbalk (naam/merk/serienummer) en het
+personeelslid-filter zitten óp de Mijn-materiaal-pagina; een gewone
+medewerker start daar op zijn eigen materiaal. De stoplichtkaart blijft op
+het dashboard, ingetogen (witte kaart met accentrand, "geen rood geschreeuw")
+mét de tellers erin, en klikt door naar Mijn materiaal voorgefilterd op
+"Aandacht nodig". Een balk onderin kan later alsnog bovenop dit model, mocht
+het switchen in de praktijk te veel tikken kosten.
+
 **Koerslijn (Jos, 2026-06-13):** ook hier "niks meer simpel houden om het
 simpel te houden" — de klant-app wordt in één keer goed gebouwd, met
 rolonderscheid, data-eigendom en de leadmotor vanaf fase 3 volwaardig
