@@ -38,7 +38,7 @@
           </button>
         </li>
       </ul>
-      <button type="button" class="aa__free-toggle" @click="freeMode = true">
+      <button type="button" class="aa__free-toggle" @click="openFreeMode">
         {{ $t('home.addArticle.freeToggle') }}
       </button>
     </template>
@@ -59,7 +59,33 @@
     </template>
 
     <input v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
-    <input v-model="userName" class="aa__input" :placeholder="$t('home.addArticle.user')" />
+    <!-- Gebruiker: typeahead op de medewerkerslijst (Jos, 2026-07-13: "piet"
+         en "Piet" stonden er al naast elkaar) -- zelfde patroon/composable
+         als de Pro-app (useFieldSuggest, CustomerArticles.vue). Vrije invoer
+         blijft mogelijk voor wie niet als medewerker geregistreerd staat. -->
+    <div class="aa__field">
+      <input
+        v-model="userName"
+        class="aa__input"
+        :placeholder="$t('home.addArticle.user')"
+        autocomplete="off"
+        @focus="activeField = 'user'"
+        @blur="closeSuggest"
+        @keydown="onSuggestKeydown"
+      />
+      <ul v-if="activeField === 'user' && userSuggestions.length" class="aa__suggest">
+        <li v-for="(s, i) in userSuggestions" :key="s">
+          <button
+            type="button"
+            ref="userItemRefs"
+            class="aa__suggest-item"
+            :class="{ 'aa__suggest-item--active': i === suggestIndex }"
+            @mousedown.prevent="pickSuggestion(s)"
+            @mouseenter="suggestIndex = i"
+          >{{ s }}</button>
+        </li>
+      </ul>
+    </div>
     <div class="aa__row">
       <input v-model.number="year" type="number" min="1990" max="2100" class="aa__input" :placeholder="$t('home.addArticle.year')" />
       <input v-model.number="month" type="number" min="1" max="12" class="aa__input" :placeholder="$t('home.addArticle.month')" />
@@ -88,6 +114,7 @@
 import { ref, nextTick, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { supabase, errorMessage } from "@gearonimo/core";
+import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 
 const emit = defineEmits<{ (e: "close"): void; (e: "added"): void }>();
 const { t } = useI18n();
@@ -124,9 +151,36 @@ watch(purchaseDate, (v) => {
   if (!firstUseTouched.value) firstUse.value = v;
 });
 
+const memberNames = ref<string[]>([]);
+
 onMounted(async () => {
-  const { data } = await supabase.rpc("list_product_brands");
-  brandOptions.value = ((data ?? []) as { brand: string }[]).map((r) => r.brand);
+  const [brandsRes, membersRes] = await Promise.all([
+    supabase.rpc("list_product_brands"),
+    supabase.rpc("my_members"),
+  ]);
+  brandOptions.value = ((brandsRes.data ?? []) as { brand: string }[]).map((r) => r.brand);
+  memberNames.value = ((membersRes.data ?? []) as { name: string; active: boolean }[])
+    .filter((m) => m.active)
+    .map((m) => m.name);
+});
+
+// Gebruiker-typeahead: zelfde composable als de Pro-app (packages/ui),
+// hier met één veld ("user").
+type SuggestField = "user";
+const {
+  activeField,
+  suggestIndex,
+  suggestions: userSuggestions,
+  itemRefs: userItemRefs,
+  pick: pickSuggestion,
+  close: closeSuggest,
+  onKeydown: onSuggestKeydown,
+} = useFieldSuggest<SuggestField>({
+  resolve: () => fuzzyFilter(memberNames.value, userName.value),
+  select: (_field, value) => {
+    userName.value = value;
+  },
+  scrollToActive: true,
 });
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -187,9 +241,24 @@ function clearChosen() {
   chosen.value = null;
 }
 
+// "Zelf invullen": neemt over wat er al in het zoekveld stond, i.p.v. de
+// gebruiker te laten retypen wat hij net al typte (Jos, 2026-07-13: "vrije
+// invoer lukt niet ... maar omschrijving staat al ingevuld").
+function openFreeMode() {
+  if (!freeDescription.value.trim() && q.value.trim()) {
+    freeDescription.value = q.value.trim();
+  }
+  freeMode.value = true;
+}
+
 async function save() {
   formError.value = "";
-  if (!chosen.value && !freeDescription.value.trim()) {
+  // Zelfde reden als hierboven: een getypte zoekterm zonder gekozen product
+  // of expliciete "Zelf invullen" telt óók als omschrijving -- niets kiezen
+  // en op Toevoegen klikken hoort niet stil te falen op een tekst die er al
+  // stond.
+  const description = freeDescription.value.trim() || q.value.trim();
+  if (!chosen.value && !description) {
     formError.value = t("home.addArticle.needProductOrDescription");
     return;
   }
@@ -199,7 +268,7 @@ async function save() {
       p_product_id: chosen.value?.id ?? null,
       p_free_brand: chosen.value ? null : freeBrand.value.trim() || null,
       p_free_category: chosen.value ? null : freeCategory.value.trim() || null,
-      p_free_description: chosen.value ? null : freeDescription.value.trim() || null,
+      p_free_description: chosen.value ? null : description || null,
       p_serial_number: serial.value.trim() || null,
       p_assigned_user_name: userName.value.trim() || null,
       p_manufacture_year: year.value || null,
@@ -228,6 +297,8 @@ async function save() {
 }
 .aa__brand-select { background: #fff; color: #111827; }
 .aa__row { display: flex; gap: 0.5rem; }
+.aa__field { position: relative; }
+.aa__field .aa__suggest { position: absolute; top: calc(100% + 0.25rem); left: 0; right: 0; z-index: 10; background: #fff; }
 .aa__suggest {
   list-style: none; margin: 0; padding: 0;
   border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;

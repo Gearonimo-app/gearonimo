@@ -49,7 +49,7 @@
               </button>
             </li>
           </ul>
-          <button type="button" class="apf__free-toggle" @click="freeMode = true">
+          <button type="button" class="apf__free-toggle" @click="openFreeMode">
             {{ $t('home.addArticle.freeToggle') }}
           </button>
         </template>
@@ -199,9 +199,20 @@ onMounted(async () => {
     }));
 });
 
+// "Zelf invullen": neemt over wat er al in het zoekveld stond, i.p.v. de
+// gebruiker te laten retypen wat hij net al typte (Jos, 2026-07-13, zelfde
+// fix als AddArticleForm.vue).
+function openFreeMode() {
+  if (!freeDescription.value.trim() && q.value.trim()) {
+    freeDescription.value = q.value.trim();
+  }
+  freeMode.value = true;
+}
+
 async function save() {
   formError.value = "";
-  if (!chosen.value && !freeDescription.value.trim()) {
+  const description = freeDescription.value.trim() || q.value.trim();
+  if (!chosen.value && !description) {
     formError.value = t("home.addArticle.needProductOrDescription");
     return;
   }
@@ -210,7 +221,7 @@ async function save() {
     const { data: newArticleId, error: addErr } = await supabase.rpc("add_my_article", {
       p_product_id: chosen.value?.id ?? null,
       p_free_brand: chosen.value ? null : freeBrand.value.trim() || null,
-      p_free_description: chosen.value ? null : freeDescription.value.trim() || null,
+      p_free_description: chosen.value ? null : description || null,
       p_serial_number: serial.value.trim() || null,
       p_manufacture_year: year.value || null,
       p_manufacture_month: month.value || null,

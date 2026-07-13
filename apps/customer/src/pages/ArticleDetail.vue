@@ -41,7 +41,26 @@
       <form v-else-if="editMode" class="ad__form" @submit.prevent="save">
         <label class="ad__field">
           {{ $t('articleDetail.fields.user') }}
-          <input v-model="form.userName" class="ad__input" />
+          <input
+            v-model="form.userName"
+            class="ad__input"
+            autocomplete="off"
+            @focus="activeField = 'user'"
+            @blur="closeSuggest"
+            @keydown="onSuggestKeydown"
+          />
+          <ul v-if="activeField === 'user' && userSuggestions.length" class="ad__suggest">
+            <li v-for="(s, i) in userSuggestions" :key="s">
+              <button
+                type="button"
+                ref="userItemRefs"
+                class="ad__suggest-item"
+                :class="{ 'ad__suggest-item--active': i === suggestIndex }"
+                @mousedown.prevent="pickSuggestion(s)"
+                @mouseenter="suggestIndex = i"
+              >{{ s }}</button>
+            </li>
+          </ul>
         </label>
         <label class="ad__field">
           {{ $t('articleDetail.fields.purchaseDate') }}
@@ -66,6 +85,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { supabase, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
+import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
 
 const route = useRoute();
@@ -149,7 +169,27 @@ const saving = ref(false);
 const formError = ref("");
 const form = ref({ userName: "", purchaseDate: "", firstUseDate: "" });
 
-function startEdit() {
+// Gebruiker-typeahead: zelfde patroon als AddArticleForm.vue -- helpt
+// tikfouten/hoofdletterverschillen voorkomen ("piet" naast "Piet").
+const memberNames = ref<string[]>([]);
+type SuggestField = "user";
+const {
+  activeField,
+  suggestIndex,
+  suggestions: userSuggestions,
+  itemRefs: userItemRefs,
+  pick: pickSuggestion,
+  close: closeSuggest,
+  onKeydown: onSuggestKeydown,
+} = useFieldSuggest<SuggestField>({
+  resolve: () => fuzzyFilter(memberNames.value, form.value.userName),
+  select: (_field, value) => {
+    form.value.userName = value;
+  },
+  scrollToActive: true,
+});
+
+async function startEdit() {
   if (!article.value) return;
   form.value = {
     userName: article.value.assigned_user_name ?? "",
@@ -158,6 +198,12 @@ function startEdit() {
   };
   formError.value = "";
   editMode.value = true;
+  if (!memberNames.value.length) {
+    const { data } = await supabase.rpc("my_members");
+    memberNames.value = ((data ?? []) as { name: string; active: boolean }[])
+      .filter((m) => m.active)
+      .map((m) => m.name);
+  }
 }
 
 async function save() {
@@ -219,11 +265,23 @@ onMounted(load);
   background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem;
   display: flex; flex-direction: column; gap: 0.7rem;
 }
-.ad__field { font-size: 0.85rem; color: #374151; display: flex; flex-direction: column; gap: 0.25rem; }
+.ad__field { font-size: 0.85rem; color: #374151; display: flex; flex-direction: column; gap: 0.25rem; position: relative; }
 .ad__input {
   border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem;
   font-size: 0.95rem; width: 100%; box-sizing: border-box;
 }
+.ad__suggest {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 10; margin-top: 0.25rem;
+  list-style: none; padding: 0; background: #fff;
+  border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;
+  max-height: 220px; overflow-y: auto;
+}
+.ad__suggest li + li { border-top: 1px solid #f3f4f6; }
+.ad__suggest-item {
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  padding: 0.55rem 0.7rem; cursor: pointer; font-size: 0.9rem; font-weight: 400; color: #111827;
+}
+.ad__suggest-item:hover, .ad__suggest-item--active { background: #f0fdf4; }
 .ad__locked { margin: 0; font-size: 0.85rem; color: #6b7280; }
 .ad__actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
 .ad__save {
