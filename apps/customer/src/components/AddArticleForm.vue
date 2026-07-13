@@ -5,6 +5,15 @@
          ingelogden). Geen match = vrije invoer, die automatisch de
          catalogus-wachtrij in gaat (add_my_article). -->
     <template v-if="!chosen && !freeMode">
+      <!-- Merk filtert de dropdown live mee (Jos, 2026-07-13): handig zodra
+           er meerdere producten met een gelijkende naam bestaan. -->
+      <input
+        v-model="brand"
+        class="aa__input"
+        :placeholder="$t('home.addArticle.brandFilter')"
+        autocomplete="off"
+        @input="onSearch"
+      />
       <input
         v-model="q"
         class="aa__input"
@@ -75,6 +84,7 @@ interface ProductHit {
 }
 
 const q = ref("");
+const brand = ref("");
 const suggestions = ref<ProductHit[]>([]);
 const chosen = ref<ProductHit | null>(null);
 const freeMode = ref(false);
@@ -93,12 +103,17 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined;
 function onSearch() {
   clearTimeout(searchTimer);
   const term = q.value.trim();
-  if (term.length < 2) {
+  const brandTerm = brand.value.trim();
+  // Merk alleen (nog) geen naam getypt mag ook al resultaten tonen.
+  if (term.length < 2 && brandTerm.length < 2) {
     suggestions.value = [];
     return;
   }
   searchTimer = setTimeout(async () => {
-    const { data } = await supabase.rpc("search_products", { q: term, brand_filter: null });
+    const { data } = await supabase.rpc("search_products", {
+      q: term || null,
+      brand_filter: brandTerm || null,
+    });
     suggestions.value = (data ?? []) as ProductHit[];
   }, 250);
 }

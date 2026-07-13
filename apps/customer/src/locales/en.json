@@ -91,6 +91,7 @@
     "retireReasonReplaced": "replaced after rejection",
     "addArticle": {
       "button": "+ Add",
+      "brandFilter": "Brand (filters the list, optional)",
       "search": "Search the catalogue (brand or name)",
       "freeToggle": "Not listed? Enter it yourself",
       "backToSearch": "‹ Search the catalogue instead",

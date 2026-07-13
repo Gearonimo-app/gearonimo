@@ -91,6 +91,7 @@
     "retireReasonReplaced": "vervangen na afkeur",
     "addArticle": {
       "button": "+ Toevoegen",
+      "brandFilter": "Merk (filtert de lijst, optioneel)",
       "search": "Zoek in de catalogus (merk of naam)",
       "freeToggle": "Staat het er niet tussen? Zelf invullen",
       "backToSearch": "‹ Toch in de catalogus zoeken",

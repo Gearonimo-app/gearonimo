@@ -19,6 +19,14 @@
 
       <form class="apf__form" @submit.prevent="save">
         <template v-if="!chosen && !freeMode">
+          <!-- Merk filtert de dropdown live mee (Jos, 2026-07-13). -->
+          <input
+            v-model="brand"
+            class="apf__input"
+            :placeholder="$t('home.addArticle.brandFilter')"
+            autocomplete="off"
+            @input="onSearch"
+          />
           <input
             v-model="q"
             class="apf__input"
@@ -90,6 +98,7 @@ const { t } = useI18n();
 
 interface ProductHit { id: string; brand: string | null; name: string | null; product_type: string | null }
 const q = ref("");
+const brand = ref("");
 const suggestions = ref<ProductHit[]>([]);
 const chosen = ref<ProductHit | null>(null);
 const freeMode = ref(false);
@@ -108,12 +117,16 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined;
 function onSearch() {
   clearTimeout(searchTimer);
   const term = q.value.trim();
-  if (term.length < 2) {
+  const brandTerm = brand.value.trim();
+  if (term.length < 2 && brandTerm.length < 2) {
     suggestions.value = [];
     return;
   }
   searchTimer = setTimeout(async () => {
-    const { data } = await supabase.rpc("search_products", { q: term, brand_filter: null });
+    const { data } = await supabase.rpc("search_products", {
+      q: term || null,
+      brand_filter: brandTerm || null,
+    });
     suggestions.value = (data ?? []) as ProductHit[];
   }, 250);
 }
