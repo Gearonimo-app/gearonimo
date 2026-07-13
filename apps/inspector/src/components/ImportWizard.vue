@@ -160,7 +160,10 @@
         <p v-if="validation.unparsableDates" class="imp__warn">
           {{ $t('settings.import.unparsableDates', { count: validation.unparsableDates }) }}
         </p>
-        <p v-if="!validation.missingRequired.length && !Object.keys(validation.emptyRequiredCount).length && !validation.duplicateSerials.length && !validation.unparsableDates" class="imp__ok">
+        <p v-if="validation.unparsableYears" class="imp__warn">
+          {{ $t('settings.import.unparsableYears', { count: validation.unparsableYears }) }}
+        </p>
+        <p v-if="!validation.missingRequired.length && !Object.keys(validation.emptyRequiredCount).length && !validation.duplicateSerials.length && !validation.unparsableDates && !validation.unparsableYears" class="imp__ok">
           {{ $t('settings.import.allGood') }}
         </p>
         <p class="imp__hint">{{ $t('settings.import.rowCount', { count: validation.rowCount }) }}</p>
@@ -592,7 +595,10 @@ async function runCommit() {
 .imp__colhead { font-weight: 600; font-size: 0.85rem; margin-bottom: 0.35rem; }
 .imp__mapcol select { width: 100%; padding: 0.4rem; border-radius: 6px; border: 1px solid #d1d5db; }
 .imp__samples { margin-top: 0.4rem; font-size: 0.75rem; color: #6b7280; }
-.imp__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* min-height: een lege cel moet een lege regel blijven, anders klapt de div
+   dicht en schuiven de voorbeeldwaarden eronder een regel omhoog — dan lijkt
+   bijv. een "X" (goedgekeurd) bij het verkeerde artikel te horen. */
+.imp__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
 
 .imp__checkbox { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; margin-top: 0.6rem; }
 .imp__summary { font-size: 0.9rem; padding-left: 1.2rem; }

@@ -1,6 +1,6 @@
 import { supabase } from '@gearonimo/core'
 import { ensureInspector, fetchRejectionCodes } from './useInspections'
-import type { FieldKey, RawRow } from './useImportMapping'
+import { parseMonth, parseYearMonth, type FieldKey, type RawRow } from './useImportMapping'
 
 /** Zoekt bij een geïmporteerde afkeurcode-cel de juiste rejection_code_id.
  * Matcht eerst op het nummer vooraan ("6" of "6 Defecte sluiting"), daarna op
@@ -51,7 +51,10 @@ export function parseToISODate(value: string | number | Date | null): string | n
 
 export function normalizeResult(value: string | number | null): 'passed' | 'rejected' | 'not_assessed' {
   const s = String(value ?? '').trim().toLowerCase()
-  if (['goed', 'ok', 'pass', 'passed', 'akkoord', 'goedgekeurd'].includes(s)) return 'passed'
+  // 'x'/'✓'/'v': veel certificaten hebben een "Goed"-kolom met alleen een
+  // kruisje of vinkje per goedgekeurd artikel — dat is een uitslag, geen
+  // ontbrekende waarde.
+  if (['goed', 'ok', 'pass', 'passed', 'akkoord', 'goedgekeurd', 'x', '✓', 'v', 'ja', 'yes'].includes(s)) return 'passed'
   if (['afgekeurd', 'nok', 'fail', 'rejected', 'afkeur'].includes(s)) return 'rejected'
   return 'not_assessed'
 }
@@ -211,7 +214,10 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
       }
 
       if (!articleId) {
-        const yearRaw = cellsForField(opts.mapping, 'manufactureYear', row)
+        // Jaar en maand: een aparte maandkolom wint; anders pakken we de maand
+        // die eventueel in de jaarcel zelf zit ("07/2022", "mei 2021").
+        const ym = parseYearMonth(cellsForField(opts.mapping, 'manufactureYear', row) || null)
+        const month = parseMonth(cellsForField(opts.mapping, 'manufactureMonth', row) || null) ?? ym.month
         const { data: createdArticle, error: artErr } = await supabase
           .from('articles')
           .insert({
@@ -220,7 +226,8 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             free_description: description,
             free_category: cellsForField(opts.mapping, 'category', row) || null,
             serial_number: serial || null,
-            manufacture_year: yearRaw ? parseInt(yearRaw, 10) || null : null,
+            manufacture_year: ym.year,
+            manufacture_month: month,
             first_use_date: parseToISODate(cellsForField(opts.mapping, 'firstUseDate', row) || null),
             assigned_user_name: cellsForField(opts.mapping, 'assignedUserName', row) || null,
             retired: false,
