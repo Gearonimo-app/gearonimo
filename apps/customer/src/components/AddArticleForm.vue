@@ -16,6 +16,7 @@
         <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
       </select>
       <input
+        ref="searchInput"
         v-model="q"
         class="aa__input"
         :placeholder="$t('home.addArticle.search')"
@@ -49,16 +50,16 @@
     </div>
 
     <template v-if="freeMode">
-      <input v-model="freeDescription" class="aa__input" :placeholder="$t('home.addArticle.description')" />
+      <input ref="descriptionInput" v-model="freeDescription" class="aa__input" :placeholder="$t('home.addArticle.description')" />
       <input v-model="freeBrand" class="aa__input" :placeholder="$t('home.addArticle.brand')" />
       <input v-model="freeCategory" class="aa__input" :placeholder="$t('home.addArticle.category')" />
       <p class="aa__note">{{ $t('home.addArticle.queueNote') }}</p>
-      <button type="button" class="aa__free-toggle" @click="freeMode = false">
+      <button type="button" class="aa__free-toggle" @click="backToSearch">
         {{ $t('home.addArticle.backToSearch') }}
       </button>
     </template>
 
-    <input v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
+    <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
     <!-- Gebruiker: typeahead op de medewerkerslijst (Jos, 2026-07-13: "piet"
          en "Piet" stonden er al naast elkaar) -- zelfde patroon/composable
          als de Pro-app (useFieldSuggest, CustomerArticles.vue). Vrije invoer
@@ -116,6 +117,12 @@ import { useI18n } from "vue-i18n";
 import { supabase, errorMessage } from "@gearonimo/core";
 import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 
+// knownUsers: de namen die al op andere artikelen van deze klant staan
+// (Materials.vue's memberNames). Nodig naast de officiële medewerkerslijst
+// (my_members): "Piet"/"piet" waren nooit als medewerker toegevoegd, alleen
+// getypt op een ander artikel -- zonder deze bron bleef de typeahead leeg
+// voor precies de namen die de duplicatie veroorzaakten (Jos, 2026-07-13).
+const props = defineProps<{ knownUsers?: string[] }>();
 const emit = defineEmits<{ (e: "close"): void; (e: "added"): void }>();
 const { t } = useI18n();
 
@@ -159,9 +166,13 @@ onMounted(async () => {
     supabase.rpc("my_members"),
   ]);
   brandOptions.value = ((brandsRes.data ?? []) as { brand: string }[]).map((r) => r.brand);
-  memberNames.value = ((membersRes.data ?? []) as { name: string; active: boolean }[])
+  const registeredNames = ((membersRes.data ?? []) as { name: string; active: boolean }[])
     .filter((m) => m.active)
     .map((m) => m.name);
+  // Beide bronnen samen, exacte duplicaten eruit -- verschillende
+  // schrijfwijzen ("piet"/"Piet") blijven bewust allebei zichtbaar, dat is
+  // eerlijker dan er zomaar één van te laten verdwijnen.
+  memberNames.value = [...new Set([...registeredNames, ...(props.knownUsers ?? [])])];
 });
 
 // Gebruiker-typeahead: zelfde composable als de Pro-app (packages/ui),
@@ -230,15 +241,27 @@ function scrollActiveIntoView() {
   nextTick(() => itemRefs.value[highlightIndex.value]?.scrollIntoView({ block: "nearest" }));
 }
 
+// Refs voor de focus-fix hieronder: kiezen/wisselen van modus verwijdert het
+// blok met het net-geklikte element uit de DOM (v-if), waarna de browser de
+// focus kwijtraakt en terugvalt op <body> -- Tab begint dan weer helemaal
+// bovenaan de pagina i.p.v. bij het volgende veld (Jos, 2026-07-13). Door na
+// zo'n wissel expliciet een veld te focussen, blijft Tab een zinnig pad
+// volgen.
+const searchInput = ref<HTMLInputElement | null>(null);
+const descriptionInput = ref<HTMLInputElement | null>(null);
+const serialInput = ref<HTMLInputElement | null>(null);
+
 function choose(s: ProductHit) {
   chosen.value = s;
   suggestions.value = [];
   highlightIndex.value = -1;
   q.value = "";
+  nextTick(() => serialInput.value?.focus());
 }
 
 function clearChosen() {
   chosen.value = null;
+  nextTick(() => searchInput.value?.focus());
 }
 
 // "Zelf invullen": neemt over wat er al in het zoekveld stond, i.p.v. de
@@ -249,6 +272,12 @@ function openFreeMode() {
     freeDescription.value = q.value.trim();
   }
   freeMode.value = true;
+  nextTick(() => descriptionInput.value?.focus());
+}
+
+function backToSearch() {
+  freeMode.value = false;
+  nextTick(() => searchInput.value?.focus());
 }
 
 async function save() {

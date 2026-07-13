@@ -199,10 +199,20 @@ async function startEdit() {
   formError.value = "";
   editMode.value = true;
   if (!memberNames.value.length) {
-    const { data } = await supabase.rpc("my_members");
-    memberNames.value = ((data ?? []) as { name: string; active: boolean }[])
+    // Beide bronnen: de officiële medewerkerslijst én de namen die al op
+    // andere artikelen staan (Jos, 2026-07-13 -- "Piet"/"piet" waren nooit
+    // als medewerker toegevoegd, alleen getypt bij het toevoegen).
+    const [membersRes, articlesRes] = await Promise.all([
+      supabase.rpc("my_members"),
+      supabase.rpc("my_articles"),
+    ]);
+    const registeredNames = ((membersRes.data ?? []) as { name: string; active: boolean }[])
       .filter((m) => m.active)
       .map((m) => m.name);
+    const usedNames = ((articlesRes.data ?? []) as { assigned_user_name: string | null }[])
+      .map((a) => a.assigned_user_name)
+      .filter((n): n is string => !!n);
+    memberNames.value = [...new Set([...registeredNames, ...usedNames])];
   }
 }
 

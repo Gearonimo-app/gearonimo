@@ -27,6 +27,7 @@
             <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
           </select>
           <input
+            ref="searchInput"
             v-model="q"
             class="apf__input"
             :placeholder="$t('home.addArticle.search')"
@@ -56,18 +57,18 @@
 
         <div v-if="chosen" class="apf__chosen">
           <span><strong>{{ chosen.brand }}</strong> {{ chosen.name }}</span>
-          <button type="button" class="apf__chosen-clear" @click="chosen = null">✕</button>
+          <button type="button" class="apf__chosen-clear" @click="clearChosen">✕</button>
         </div>
 
         <template v-if="freeMode">
-          <input v-model="freeDescription" class="apf__input" :placeholder="$t('home.addArticle.description')" />
+          <input ref="descriptionInput" v-model="freeDescription" class="apf__input" :placeholder="$t('home.addArticle.description')" />
           <input v-model="freeBrand" class="apf__input" :placeholder="$t('home.addArticle.brand')" />
-          <button type="button" class="apf__free-toggle" @click="freeMode = false">
+          <button type="button" class="apf__free-toggle" @click="backToSearch">
             {{ $t('home.addArticle.backToSearch') }}
           </button>
         </template>
 
-        <input v-model="serial" class="apf__input" :placeholder="$t('home.addArticle.serial')" />
+        <input ref="serialInput" v-model="serial" class="apf__input" :placeholder="$t('home.addArticle.serial')" />
         <div class="apf__row">
           <input v-model.number="year" type="number" min="1990" max="2100" class="apf__input" :placeholder="$t('home.addArticle.year')" />
           <input v-model.number="month" type="number" min="1" max="12" class="apf__input" :placeholder="$t('home.addArticle.month')" />
@@ -170,11 +171,25 @@ function scrollActiveIntoView() {
   nextTick(() => itemRefs.value[highlightIndex.value]?.scrollIntoView({ block: "nearest" }));
 }
 
+// Refs voor de focus-fix hieronder: kiezen/wisselen van modus verwijdert het
+// blok met het net-geklikte element uit de DOM (v-if), waarna de browser de
+// focus kwijtraakt en Tab weer bovenaan de pagina begint (Jos, 2026-07-13;
+// zelfde fix als AddArticleForm.vue).
+const searchInput = ref<HTMLInputElement | null>(null);
+const descriptionInput = ref<HTMLInputElement | null>(null);
+const serialInput = ref<HTMLInputElement | null>(null);
+
 function choose(s: ProductHit) {
   chosen.value = s;
   suggestions.value = [];
   highlightIndex.value = -1;
   q.value = "";
+  nextTick(() => serialInput.value?.focus());
+}
+
+function clearChosen() {
+  chosen.value = null;
+  nextTick(() => searchInput.value?.focus());
 }
 
 interface Candidate { article_id: string; label: string }
@@ -207,6 +222,12 @@ function openFreeMode() {
     freeDescription.value = q.value.trim();
   }
   freeMode.value = true;
+  nextTick(() => descriptionInput.value?.focus());
+}
+
+function backToSearch() {
+  freeMode.value = false;
+  nextTick(() => searchInput.value?.focus());
 }
 
 async function save() {

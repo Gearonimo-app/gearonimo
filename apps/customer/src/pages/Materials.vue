@@ -56,6 +56,7 @@
         </div>
         <AddArticleForm
           v-if="addingArticle"
+          :known-users="memberNames"
           @close="addingArticle = false"
           @added="onArticleAdded"
         />
