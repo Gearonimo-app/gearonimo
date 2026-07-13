@@ -251,6 +251,11 @@ async function sha256Hex(bytes: Uint8Array): Promise<string> {
 // gebroken. Geeft minstens één (mogelijk lege) regel terug.
 function wrapText(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   if (!text) return ['']
+  // Kleine tolerantie tegen zwevendekomma-ruis: de kolombreedte wordt elders
+  // berekend als (woordbreedte + padding) en hier weer als (kolom − padding)
+  // teruggemeten. Dat scheelt ~1e-14pt, waardoor uitgerekend het lángste woord
+  // van een kolom als "past niet" werd gezien en midden in het woord afbrak.
+  maxWidth += 0.1
   const lines: string[] = []
   for (const paragraph of text.split('\n')) {
     const words = paragraph.split(/\s+/).filter((w) => w.length > 0)
@@ -355,11 +360,13 @@ function cellText(col: ColDef, it: CertItem): string {
 }
 
 // Voorkeursbreedte per kolom = max(kop, langste cel) + padding, afgetopt op cap.
+// Naar boven afgerond op hele punten, zodat de langste cel er met zekerheid in
+// past (zie ook de tolerantie in wrapText).
 function preferredWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold: PDFFont, size: number): number[] {
   return cols.map((col) => {
     let w = bold.widthOfTextAtSize(col.header, size)
     for (const it of items) w = Math.max(w, font.widthOfTextAtSize(col.value(it), size))
-    return Math.min(col.cap, Math.max(col.min, w + CELL_PAD * 2))
+    return Math.min(col.cap, Math.max(col.min, Math.ceil(w + CELL_PAD * 2)))
   })
 }
 
@@ -374,7 +381,7 @@ function wordFloorWidths(items: CertItem[], cols: ColDef[], font: PDFFont, bold:
         if (word) w = Math.max(w, font.widthOfTextAtSize(word, size))
       }
     }
-    return w + CELL_PAD * 2
+    return Math.ceil(w + CELL_PAD * 2)
   })
 }
 
@@ -458,7 +465,7 @@ export async function renderCertificatePdf(
   }
 
   const margin = 50
-  const tableSize = 9.5
+  let tableSize = 9.5
   const items = data.items
   const cols = activeColumns(items, layout.columns)
 
@@ -482,12 +489,19 @@ export async function renderCertificatePdf(
   const pageHeight = landscape ? A4_SHORT : A4_LONG
   const contentWidth = pageWidth - 2 * margin
 
-  const colWidths = fitWidths(
-    preferredWidths(items, cols, font, bold, tableSize),
-    wordFloorWidths(items, cols, font, bold, tableSize),
-    cols,
-    contentWidth
-  )
+  // Passen zelfs de ondergrenzen (langste woord per kolom) niet op de pagina —
+  // veel kolommen aan op staand papier — dan de tabelletter stapsgewijs iets
+  // kleiner tot het wél past. Ondergrens 7.5pt: daaronder wint leesbaarheid en
+  // accepteren we alsnog afgebroken woorden.
+  let pref = preferredWidths(items, cols, font, bold, tableSize)
+  let floors = wordFloorWidths(items, cols, font, bold, tableSize)
+  const floorSum = () => pref.reduce((a, w, i) => a + Math.min(w, floors[i]), 0)
+  while (tableSize > 7.5 && floorSum() > contentWidth) {
+    tableSize -= 0.25
+    pref = preferredWidths(items, cols, font, bold, tableSize)
+    floors = wordFloorWidths(items, cols, font, bold, tableSize)
+  }
+  const colWidths = fitWidths(pref, floors, cols, contentWidth)
 
   let page!: PDFPage
   let y = 0
