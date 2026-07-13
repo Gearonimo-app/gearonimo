@@ -9,7 +9,12 @@
 -- 1) my_articles(): first_use_date erbij, nodig om client-side te bepalen of
 -- de EN 365-termijn van 12 maanden na ingebruikname is verstreken zonder dat
 -- er ooit gekeurd is (packages/core: isFirstInspectionOverdue).
-create or replace function public.my_articles()
+-- Een kolom toevoegen aan een RETURNS TABLE mag niet via create or replace
+-- (Postgres: "cannot change return type of existing function") -- dat mag
+-- alleen bij nieuwe input-parameters met een default. Vandaar eerst drop.
+drop function if exists public.my_articles();
+
+create function public.my_articles()
 returns table (
   id uuid,
   name text,
@@ -60,6 +65,8 @@ as $$
       order by m.created_at limit 1
     );
 $$;
+
+grant execute on function public.my_articles() to authenticated;
 
 -- 2) Eén artikel in detail -- voor het nieuwe artikelscherm in de klant-app.
 create or replace function public.my_article_detail(p_article_id uuid)
