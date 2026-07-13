@@ -91,7 +91,7 @@
     "retireReasonReplaced": "vervangen na afkeur",
     "addArticle": {
       "button": "+ Toevoegen",
-      "brandFilter": "Merk (filtert de lijst, optioneel)",
+      "allBrands": "Alle merken",
       "search": "Zoek in de catalogus (merk of naam)",
       "freeToggle": "Staat het er niet tussen? Zelf invullen",
       "backToSearch": "‹ Toch in de catalogus zoeken",
@@ -102,6 +102,7 @@
       "user": "Gebruiker (wie draagt het)",
       "year": "Bouwjaar",
       "month": "Maand",
+      "purchaseDate": "Aankoopdatum (optioneel)",
       "firstUse": "In gebruik sinds (optioneel)",
       "queueNote": "Onbekende producten bieden we automatisch aan voor de Gearonimo-catalogus.",
       "save": "Toevoegen",

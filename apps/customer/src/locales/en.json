@@ -91,7 +91,7 @@
     "retireReasonReplaced": "replaced after rejection",
     "addArticle": {
       "button": "+ Add",
-      "brandFilter": "Brand (filters the list, optional)",
+      "allBrands": "All brands",
       "search": "Search the catalogue (brand or name)",
       "freeToggle": "Not listed? Enter it yourself",
       "backToSearch": "‹ Search the catalogue instead",
@@ -102,6 +102,7 @@
       "user": "User (who wears it)",
       "year": "Year of manufacture",
       "month": "Month",
+      "purchaseDate": "Purchase date (optional)",
       "firstUse": "In use since (optional)",
       "queueNote": "Unknown products are automatically suggested for the Gearonimo catalogue.",
       "save": "Add",

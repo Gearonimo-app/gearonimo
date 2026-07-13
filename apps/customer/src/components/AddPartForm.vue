@@ -19,24 +19,31 @@
 
       <form class="apf__form" @submit.prevent="save">
         <template v-if="!chosen && !freeMode">
-          <!-- Merk filtert de dropdown live mee (Jos, 2026-07-13). -->
-          <input
-            v-model="brand"
-            class="apf__input"
-            :placeholder="$t('home.addArticle.brandFilter')"
-            autocomplete="off"
-            @input="onSearch"
-          />
+          <!-- Merk is een keuzelijst: kies een merk en blader zonder
+               zoekterm door de hele catalogus van dat merk (Jos,
+               2026-07-13; zelfde patroon als AddArticleForm.vue). -->
+          <select v-model="brand" class="apf__input apf__brand-select" @change="onSearch">
+            <option value="">{{ $t('home.addArticle.allBrands') }}</option>
+            <option v-for="b in brandOptions" :key="b" :value="b">{{ b }}</option>
+          </select>
           <input
             v-model="q"
             class="apf__input"
             :placeholder="$t('home.addArticle.search')"
             autocomplete="off"
             @input="onSearch"
+            @keydown="onKeydown"
           />
           <ul v-if="suggestions.length" class="apf__suggest">
-            <li v-for="s in suggestions" :key="s.id">
-              <button type="button" class="apf__suggest-item" @click="choose(s)">
+            <li v-for="(s, i) in suggestions" :key="s.id">
+              <button
+                type="button"
+                ref="itemRefs"
+                class="apf__suggest-item"
+                :class="{ 'apf__suggest-item--active': i === highlightIndex }"
+                @click="choose(s)"
+                @mouseenter="highlightIndex = i"
+              >
                 <strong>{{ s.brand }}</strong> {{ s.name }}
                 <span v-if="s.product_type" class="apf__suggest-type">{{ s.product_type }}</span>
               </button>
@@ -88,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { supabase, errorMessage } from "@gearonimo/core";
 
@@ -99,7 +106,10 @@ const { t } = useI18n();
 interface ProductHit { id: string; brand: string | null; name: string | null; product_type: string | null }
 const q = ref("");
 const brand = ref("");
+const brandOptions = ref<string[]>([]);
 const suggestions = ref<ProductHit[]>([]);
+const highlightIndex = ref(-1);
+const itemRefs = ref<HTMLElement[]>([]);
 const chosen = ref<ProductHit | null>(null);
 const freeMode = ref(false);
 const freeDescription = ref("");
@@ -117,22 +127,53 @@ let searchTimer: ReturnType<typeof setTimeout> | undefined;
 function onSearch() {
   clearTimeout(searchTimer);
   const term = q.value.trim();
-  const brandTerm = brand.value.trim();
-  if (term.length < 2 && brandTerm.length < 2) {
+  const brandTerm = brand.value;
+  // Merk alleen (nog) geen naam getypt mag ook al resultaten tonen: dat is
+  // het "bladeren door een merk"-geval.
+  if (term.length < 2 && !brandTerm) {
     suggestions.value = [];
+    highlightIndex.value = -1;
     return;
   }
+  const browsing = term.length === 0 && !!brandTerm;
   searchTimer = setTimeout(async () => {
     const { data } = await supabase.rpc("search_products", {
       q: term || null,
       brand_filter: brandTerm || null,
+      limit_count: browsing ? 50 : 15,
     });
     suggestions.value = (data ?? []) as ProductHit[];
+    highlightIndex.value = -1;
   }, 250);
 }
+
+function onKeydown(e: KeyboardEvent) {
+  if (!suggestions.value.length) return;
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    highlightIndex.value = (highlightIndex.value + 1) % suggestions.value.length;
+    scrollActiveIntoView();
+  } else if (e.key === "ArrowUp") {
+    e.preventDefault();
+    highlightIndex.value = highlightIndex.value <= 0 ? suggestions.value.length - 1 : highlightIndex.value - 1;
+    scrollActiveIntoView();
+  } else if (e.key === "Enter" && highlightIndex.value >= 0) {
+    e.preventDefault();
+    choose(suggestions.value[highlightIndex.value]);
+  } else if (e.key === "Escape") {
+    suggestions.value = [];
+    highlightIndex.value = -1;
+  }
+}
+
+function scrollActiveIntoView() {
+  nextTick(() => itemRefs.value[highlightIndex.value]?.scrollIntoView({ block: "nearest" }));
+}
+
 function choose(s: ProductHit) {
   chosen.value = s;
   suggestions.value = [];
+  highlightIndex.value = -1;
   q.value = "";
 }
 
@@ -141,8 +182,13 @@ const candidates = ref<Candidate[]>([]);
 interface SetRow { set_id: string; article_id: string; article_label: string | null; serial_number: string | null }
 
 onMounted(async () => {
-  const { data } = await supabase.rpc("my_article_sets");
-  const rows = (data ?? []) as SetRow[];
+  const [brandsRes, setsRes] = await Promise.all([
+    supabase.rpc("list_product_brands"),
+    supabase.rpc("my_article_sets"),
+  ]);
+  brandOptions.value = ((brandsRes.data ?? []) as { brand: string }[]).map((r) => r.brand);
+
+  const rows = (setsRes.data ?? []) as SetRow[];
   const mine = rows.find((r) => r.article_id === props.mainArticleId);
   if (!mine) return;
   candidates.value = rows
@@ -206,16 +252,18 @@ async function save() {
   font-size: 0.95rem; width: 100%; box-sizing: border-box;
 }
 .apf__row { display: flex; gap: 0.5rem; }
+.apf__brand-select { background: #fff; color: #111827; }
 .apf__suggest {
   list-style: none; margin: 0; padding: 0;
   border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;
+  max-height: 260px; overflow-y: auto;
 }
 .apf__suggest li + li { border-top: 1px solid #f3f4f6; }
 .apf__suggest-item {
   display: block; width: 100%; text-align: left; background: none; border: none;
   padding: 0.55rem 0.7rem; cursor: pointer; font-size: 0.9rem;
 }
-.apf__suggest-item:hover { background: #f0fdf4; }
+.apf__suggest-item:hover, .apf__suggest-item--active { background: #f0fdf4; }
 .apf__suggest-type { color: #6b7280; font-size: 0.8rem; margin-left: 0.35rem; }
 .apf__free-toggle {
   background: none; border: none; color: #16a34a; cursor: pointer;
