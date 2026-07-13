@@ -265,6 +265,29 @@
           </li>
         </ul>
         <p v-for="(e, i) in commitResult.errors.slice(0, 5)" :key="i" class="imp__warn">{{ e }}</p>
+
+        <div class="imp__afteractions">
+          <button
+            v-if="commitResult.inspectionIds.length === 1"
+            class="imp__btn"
+            @click="$router.push(`/inspections/${commitResult.inspectionIds[0]}`)"
+          >{{ $t('settings.import.viewInspection') }}</button>
+          <button
+            v-else-if="commitResult.inspectionIds.length > 1"
+            class="imp__btn"
+            @click="$router.push('/inspections')"
+          >{{ $t('settings.import.viewInspections') }}</button>
+          <button
+            v-if="commitResult.customerId"
+            class="imp__btn imp__btn--ghost"
+            @click="$router.push(`/customers/${commitResult.customerId}`)"
+          >{{ $t('settings.import.toCustomer') }}</button>
+          <button
+            v-if="commitResult.customerId"
+            class="imp__btn imp__btn--ghost"
+            @click="$router.push(`/customers/${commitResult.customerId}?startInspection=1`)"
+          >{{ $t('settings.import.startNewInspection') }}</button>
+        </div>
       </div>
     </section>
 
@@ -732,6 +755,7 @@ async function runCommit() {
 
 .imp__checkbox { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; margin-top: 0.6rem; }
 .imp__summary { font-size: 0.9rem; padding-left: 1.2rem; }
+.imp__afteractions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
 
 .imp__nav { display: flex; gap: 0.5rem; margin-top: 1.25rem; }
 .imp__btn { background: #1a3a2a; color: #fff; border: none; border-radius: 8px; padding: 0.6rem 1.2rem; font-weight: 600; cursor: pointer; }

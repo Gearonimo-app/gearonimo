@@ -96,6 +96,12 @@ export interface CommitResult {
   rowsSkippedNoCustomer: number
   /** Subset van rowsSkipped: rij had wel een klant, maar geen omschrijving/artikel. */
   rowsSkippedNoDescription: number
+  /** Id's van de geraakte keuringen (aangemaakt of hergebruikt concept), voor
+   * doorklikken vanaf het eindscherm. */
+  inspectionIds: string[]
+  /** Klant-id als alle rijen naar dezelfde klant gingen (verreweg het gewoonste
+   * geval), anders null — dan is er geen eenduidige klant om naar te linken. */
+  customerId: string | null
   errors: string[]
 }
 
@@ -115,8 +121,11 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
     rowsSkipped: 0,
     rowsSkippedNoCustomer: 0,
     rowsSkippedNoDescription: 0,
+    inspectionIds: [],
+    customerId: null,
     errors: [],
   }
+  const customerIdsSeen = new Set<string>()
 
   const storagePath = `${inspector.company_id}/${Date.now()}-${opts.file.name}`
   const { error: uploadErr } = await supabase.storage.from('imports').upload(storagePath, opts.file)
@@ -202,6 +211,8 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
         }
       }
 
+      customerIdsSeen.add(customerId)
+
       let articleId: string | undefined
       if (serial) {
         const { data: existingArticle } = await supabase
@@ -267,6 +278,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           inspectionId = String(createdInspection.id)
           inspectionCache.set(inspectionKey, inspectionId)
           result.inspectionsCreated++
+          result.inspectionIds.push(inspectionId)
         }
 
         // Afkeurcode en opmerking zijn aparte kolommen. De code proberen we te
@@ -328,6 +340,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
             result.inspectionsCreated++
           }
           draftInspectionCache.set(customerId, draftInspectionId)
+          result.inspectionIds.push(draftInspectionId)
         }
 
         const { error: itemErr } = await supabase.from('inspection_items').insert({
@@ -346,6 +359,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   }
 
   result.rowsSkipped = skipped
+  result.customerId = customerIdsSeen.size === 1 ? [...customerIdsSeen][0] : null
   await supabase
     .from('import_batches')
     .update({ imported_count: imported, skipped_count: skipped })

@@ -295,7 +295,17 @@ async function remove() {
   }
 }
 
-onMounted(load)
+onMounted(async () => {
+  await load()
+  // Vanaf het import-eindscherm: ?startInspection=1 start meteen de "Nieuwe
+  // keuring"-flow (incl. concept-detectie en artikelkeuze), dezelfde als de
+  // knop op deze pagina. Query direct opruimen zodat een refresh of
+  // terug-navigatie niet nóg een keer een keuring start.
+  if (route.query.startInspection === '1' && customer.value) {
+    void router.replace({ query: {} })
+    void onStartInspection()
+  }
+})
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {

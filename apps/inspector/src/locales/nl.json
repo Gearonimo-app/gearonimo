@@ -534,6 +534,10 @@
       "sumRowsSkipped": "{count} rij(en) overgeslagen",
       "sumSkippedNoCustomer": "waarvan {count} omdat de klantnaam ontbrak — vul in stap 3 \"Klantnaam voor dit hele bestand\" in als het bestand geen klantkolom heeft",
       "sumSkippedNoDescription": "waarvan {count} omdat de omschrijving/artikel ontbrak — koppel in stap 3 een kolom aan \"Omschrijving\"",
+      "viewInspection": "Bekijk de geïmporteerde keuring",
+      "viewInspections": "Naar keuringenoverzicht",
+      "toCustomer": "Naar de klant",
+      "startNewInspection": "Nieuwe keuring met deze klant",
       "groups": {
         "ignore": "—",
         "customer": "Klant",

@@ -534,6 +534,10 @@
       "sumRowsSkipped": "{count} row(s) skipped",
       "sumSkippedNoCustomer": "of which {count} because the customer name was missing — fill in \"Customer name for this whole file\" in step 3 if the file has no customer column",
       "sumSkippedNoDescription": "of which {count} because the description/article was missing — map a column to \"Description\" in step 3",
+      "viewInspection": "View the imported inspection",
+      "viewInspections": "Go to inspections",
+      "toCustomer": "Go to the customer",
+      "startNewInspection": "New inspection with this customer",
       "groups": {
         "ignore": "—",
         "customer": "Customer",
