@@ -39,8 +39,8 @@ export const FIELD_DEFS: FieldDef[] = [
   { key: 'customerCity', group: 'customer', hints: ['plaats', 'stad', 'city', 'woonplaats'] },
   { key: 'brand', group: 'article', hints: ['merk', 'brand', 'fabrikant', 'manufacturer'] },
   { key: 'description', group: 'article', required: true, hints: ['omschrijving', 'artikel', 'product', 'description', 'type'] },
-  { key: 'category', group: 'article', hints: ['categorie', 'category', 'soort'] },
-  { key: 'serialNumber', group: 'article', required: true, hints: ['serienr', 'serienummer', 'sn', 'serial'] },
+  { key: 'category', group: 'article', hints: ['categorie', 'category', 'soort', 'materiaal'] },
+  { key: 'serialNumber', group: 'article', required: true, hints: ['serienr', 'serienummer', 'serie', 'sn', 'serial'] },
   // Bewust géén losse 'manufacture'-hint op het jaarveld: die zou een kolom
   // als "Manufacture month" wegkapen vóór het maandveld aan de beurt is.
   { key: 'manufactureYear', group: 'article', hints: ['bouwjaar', 'fabricagejaar', 'jaar', 'year'] },

@@ -373,6 +373,30 @@ export interface SavedProfile {
   mapping: Record<number, FieldKey>
 }
 
+/** Kolom-geheugen over álle eerder opgeslagen profielen heen: kolomkop
+ * (lowercase) → veld. De kopteksten zitten al in header_signature
+ * ('|'-gescheiden), dus dit werkt zonder schemawijziging. Zo worden bekende
+ * kolommen ook herkend in een bestand met een nét andere indeling, waarvoor
+ * het exacte profiel (findImportProfile) niet matcht. Recentere profielen
+ * winnen bij dezelfde kolomkop. */
+export async function fetchColumnMemory(): Promise<Map<string, FieldKey>> {
+  const inspector = await ensureInspector()
+  const { data } = await supabase
+    .from('import_profiles')
+    .select('header_signature, mapping')
+    .eq('company_id', inspector.company_id)
+    .order('updated_at', { ascending: true })
+  const byHeader = new Map<string, FieldKey>()
+  for (const p of data ?? []) {
+    const names = String(p.header_signature).split('|')
+    Object.entries(p.mapping as Record<number, FieldKey>).forEach(([col, field]) => {
+      const name = (names[Number(col)] ?? '').trim()
+      if (name && field !== 'ignore') byHeader.set(name, field)
+    })
+  }
+  return byHeader
+}
+
 export async function findImportProfile(headerRow: RawRow): Promise<SavedProfile | null> {
   const inspector = await ensureInspector()
   const { data } = await supabase

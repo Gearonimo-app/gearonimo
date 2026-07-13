@@ -30,6 +30,7 @@
     <section v-else-if="step === 2" class="imp__step">
       <h2>{{ $t('settings.import.step2Title') }}</h2>
       <p v-if="profileApplied" class="imp__ok">{{ $t('settings.import.profileApplied') }}</p>
+      <p v-else-if="columnsRecalled" class="imp__ok">{{ $t('settings.import.columnsRecalled') }}</p>
       <p class="imp__hint">{{ $t('settings.import.step2Hint') }}</p>
       <p class="imp__hint">{{ $t('settings.import.step2RangeHint') }}</p>
       <p class="imp__selinfo">
@@ -84,6 +85,7 @@
     <section v-else-if="step === 3" class="imp__step">
       <h2>{{ $t('settings.import.step3Title') }}</h2>
       <p class="imp__hint">{{ $t('settings.import.step3Hint') }}</p>
+      <p v-if="columnsRecalled && !profileApplied" class="imp__ok">{{ $t('settings.import.columnsRecalled') }}</p>
 
       <div class="imp__field">
         <label>{{ $t('settings.import.fixedCustomerLabel') }}</label>
@@ -314,6 +316,7 @@ import {
 } from '../composables/useImportMapping'
 import {
   commitImport,
+  fetchColumnMemory,
   findImportProfile,
   parseToISODate,
   saveImportProfile,
@@ -496,7 +499,42 @@ const applying = ref(false)
 watch(headerRowIndex, () => {
   if (applying.value) return
   mapping.value = guessMapping(headerRow.value)
+  applyColumnMemory()
 })
+
+// --- Kolom-geheugen ------------------------------------------------------------
+// Het exacte profiel (findImportProfile) matcht alleen bij precies dezelfde
+// koprij. Een bestand met een nét andere indeling (kolom erbij, andere
+// schrijfwijze) viel daardoor terug op alleen de hint-gok. Daarom onthouden we
+// dwars door alle opgeslagen profielen heen wélk veld bij wélke kolomkop
+// hoorde, en vullen we bekende koppen daarmee alvast in.
+const columnMemory = ref<Map<string, FieldKey>>(new Map())
+const columnsRecalled = ref(false)
+
+function applyColumnMemory() {
+  columnsRecalled.value = false
+  if (!columnMemory.value.size) return
+  const recalled: Record<number, FieldKey> = {}
+  const claimed = new Set<FieldKey>()
+  headerRow.value.forEach((cell, i) => {
+    const name = String(cell ?? '').trim().toLowerCase()
+    const field = name ? columnMemory.value.get(name) : undefined
+    if (field && !claimed.has(field)) {
+      recalled[i] = field
+      claimed.add(field)
+    }
+  })
+  if (!Object.keys(recalled).length) return
+  // Het geheugen wint van de hint-gok: een veld dat het geheugen aan een
+  // kolom toewijst, mag niet óók nog op een gegokte kolom blijven staan.
+  const merged: Record<number, FieldKey> = {}
+  Object.entries(mapping.value).forEach(([col, f]) => {
+    merged[Number(col)] = claimed.has(f) && recalled[Number(col)] === undefined ? 'ignore' : f
+  })
+  Object.entries(recalled).forEach(([col, f]) => { merged[Number(col)] = f })
+  mapping.value = merged
+  columnsRecalled.value = true
+}
 
 const fieldGroups = computed(() => {
   const groups: { key: string; fields: typeof FIELD_DEFS }[] = []
@@ -551,10 +589,19 @@ async function applyProfileIfAny() {
       headerRowIndex.value = profile.header_row_index
       mapping.value = profile.mapping
       profileApplied.value = true
+      return
     }
   } catch {
     // geen profiel gevonden of geen verbinding — gewoon doorgaan met de gok
   }
+  // Geen exact profiel: vul in elk geval de kolomkoppen in die we uit eerdere
+  // imports kennen.
+  try {
+    columnMemory.value = await fetchColumnMemory()
+  } catch {
+    columnMemory.value = new Map()
+  }
+  applyColumnMemory()
 }
 
 // Gedeelde inlees-stap voor zowel een geüpload bestand als een geplakte tabel:
@@ -661,6 +708,7 @@ watch(selectedSheet, () => {
   lastRowIndex.value = null
   headerRowIndex.value = guessHeaderRow(allRows.value)
   mapping.value = guessMapping(headerRow.value)
+  applyColumnMemory()
 })
 
 async function runCommit() {

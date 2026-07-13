@@ -522,6 +522,7 @@
       "skipDuplicates": "Skip existing serial number for this customer (don't duplicate the article)",
       "saveProfile": "Remember this header row + columns for the next import with the same layout",
       "profileApplied": "Recognised a previously saved profile and applied it automatically — check and adjust where needed.",
+      "columnsRecalled": "Columns you mapped in earlier imports have been pre-filled — check them and complete the rest.",
       "step5Title": "Step 5: import",
       "step5Hint": "{count} rows will be imported. The original file is kept unchanged as evidence; no new certificate PDF is generated for historical inspections.",
       "startImport": "Start import",

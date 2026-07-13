@@ -522,6 +522,7 @@
       "skipDuplicates": "Bestaand serienummer bij deze klant overslaan (artikel niet dubbel aanmaken)",
       "saveProfile": "Deze koprij + kolommen onthouden voor de volgende import met dezelfde lay-out",
       "profileApplied": "Eerder opgeslagen profiel herkend en automatisch ingevuld — controleer en pas aan waar nodig.",
+      "columnsRecalled": "Kolommen die je bij eerdere imports koppelde zijn alvast ingevuld — controleer ze en vul de rest aan.",
       "step5Title": "Stap 5: importeren",
       "step5Hint": "{count} rijen worden geïmporteerd. Het originele bestand wordt ongewijzigd bewaard als bewijs; er wordt geen nieuw certificaat-PDF aangemaakt voor historische keuringen.",
       "startImport": "Start import",
