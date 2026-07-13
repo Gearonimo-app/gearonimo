@@ -3,23 +3,12 @@
     "loading": "Laden...",
     "busy": "Bezig...",
     "saving": "Bezig met opslaan...",
+    "save": "Opslaan",
     "signOut": "Uitloggen",
     "cancel": "Annuleren",
     "back": "Terug"
   },
   "sets": {
-    "group": {
-      "selectButton": "Selecteren",
-      "selectedCount": "{count} geselecteerd",
-      "action": "Groepeer tot set",
-      "dialogTitle": "Set aanmaken"
-    },
-    "errors": {
-      "nameRequired": "Naam is verplicht"
-    },
-    "fields": {
-      "name": "Naam van de set"
-    },
     "addPart": {
       "title": "Onderdeel toevoegen",
       "linkedTo": "Wordt gekoppeld aan: {name}",
@@ -72,6 +61,7 @@
     "status": {
       "ok": "In orde",
       "due_soon": "Binnenkort",
+      "first_inspection_due": "Eerste keuring nodig",
       "overdue": "Verlopen",
       "rejected": "Afgekeurd",
       "never_inspected": "Nog niet gekeurd"
@@ -117,6 +107,23 @@
     "attention": "Aandacht nodig",
     "noMatches": "Niets gevonden binnen deze filters.",
     "clearFilters": "Filters wissen"
+  },
+  "articleDetail": {
+    "notFound": "Artikel niet gevonden.",
+    "edit": "Bewerken",
+    "noUser": "Niet toegewezen",
+    "lastInspection": "Laatste keuring",
+    "noLastInspection": "Nog niet gekeurd",
+    "firstUseLocked": "eenmalig ingevuld, niet meer te wijzigen",
+    "fields": {
+      "category": "Categorie",
+      "serial": "Serienummer",
+      "user": "Gebruiker",
+      "year": "Bouwjaar",
+      "purchaseDate": "Aankoopdatum",
+      "firstUse": "In gebruik sinds",
+      "nextDue": "Volgende keuring"
+    }
   },
   "settings": {
     "title": "Instellingen"

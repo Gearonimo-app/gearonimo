@@ -74,7 +74,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { supabase, useAuth, errorMessage, calcStatus } from "@gearonimo/core";
+import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 
 const router = useRouter();
@@ -83,8 +83,9 @@ const { signOut } = useAuth();
 interface ArticleRow {
   last_result: string | null;
   next_due: string | null;
+  first_use_date: string | null;
 }
-type UiStatus = "rejected" | "overdue" | "due_soon" | "ok" | "never_inspected";
+type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected";
 
 const customerName = ref("");
 const companyName = ref("");
@@ -94,19 +95,25 @@ const statuses = ref<UiStatus[]>([]);
 const loading = ref(true);
 const error = ref("");
 
-// UI-status = calcStatus (packages/core, de geteste domeinlogica) + één
-// extra geval dat daar buiten valt: bij de laatste keuring afgekeurd.
+// UI-status = calcStatus (packages/core, de geteste domeinlogica) + twee
+// extra gevallen: bij de laatste keuring afgekeurd, en (EN 365, Jos
+// 2026-07-13) 12 maanden in gebruik zonder ooit gekeurd te zijn -- telt mee
+// als "binnenkort keuren" (zachte toon, geen rood alarm).
 function uiStatus(a: ArticleRow): UiStatus {
   if (a.last_result === "rejected") return "rejected";
-  return calcStatus({
+  const base = calcStatus({
     today: new Date(),
     next_due: a.next_due ? new Date(a.next_due) : null,
-  }) as UiStatus;
+  });
+  if (base === "never_inspected" && isFirstInspectionOverdue(a.first_use_date ? new Date(a.first_use_date) : null, new Date())) {
+    return "first_inspection_due";
+  }
+  return base as UiStatus;
 }
 
 const counts = computed(() => ({
   ok: statuses.value.filter((s) => s === "ok").length,
-  due_soon: statuses.value.filter((s) => s === "due_soon").length,
+  due_soon: statuses.value.filter((s) => s === "due_soon" || s === "first_inspection_due").length,
   action: statuses.value.filter((s) => s === "rejected" || s === "overdue").length,
   never: statuses.value.filter((s) => s === "never_inspected").length,
 }));

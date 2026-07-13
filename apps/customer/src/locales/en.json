@@ -3,23 +3,12 @@
     "loading": "Loading...",
     "busy": "Working...",
     "saving": "Saving...",
+    "save": "Save",
     "signOut": "Sign out",
     "cancel": "Cancel",
     "back": "Back"
   },
   "sets": {
-    "group": {
-      "selectButton": "Select",
-      "selectedCount": "{count} selected",
-      "action": "Group into set",
-      "dialogTitle": "Create set"
-    },
-    "errors": {
-      "nameRequired": "Name is required"
-    },
-    "fields": {
-      "name": "Set name"
-    },
     "addPart": {
       "title": "Add part",
       "linkedTo": "Will be linked to: {name}",
@@ -72,6 +61,7 @@
     "status": {
       "ok": "In order",
       "due_soon": "Due soon",
+      "first_inspection_due": "First inspection due",
       "overdue": "Overdue",
       "rejected": "Rejected",
       "never_inspected": "Not inspected yet"
@@ -117,6 +107,23 @@
     "attention": "Needs attention",
     "noMatches": "Nothing found within these filters.",
     "clearFilters": "Clear filters"
+  },
+  "articleDetail": {
+    "notFound": "Article not found.",
+    "edit": "Edit",
+    "noUser": "Not assigned",
+    "lastInspection": "Last inspection",
+    "noLastInspection": "Not inspected yet",
+    "firstUseLocked": "set once, can no longer be changed",
+    "fields": {
+      "category": "Category",
+      "serial": "Serial number",
+      "user": "User",
+      "year": "Year of manufacture",
+      "purchaseDate": "Purchase date",
+      "firstUse": "In use since",
+      "nextDue": "Next inspection"
+    }
   },
   "settings": {
     "title": "Settings"

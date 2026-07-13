@@ -22,6 +22,7 @@ const router = createRouter({
   routes: [
     { path: "/", component: () => import("./pages/Home.vue") },
     { path: "/materials", component: () => import("./pages/Materials.vue") },
+    { path: "/materials/:id", component: () => import("./pages/ArticleDetail.vue") },
     { path: "/certificates", component: () => import("./pages/Certificates.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
     { path: "/start", component: () => import("./pages/Start.vue") },

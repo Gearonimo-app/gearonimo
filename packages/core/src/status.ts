@@ -39,3 +39,22 @@ export function calcStatus(input: StatusInput): ArticleStatus {
   if (diff_days <= due_soon_days) return "due_soon";
   return "ok";
 }
+
+/**
+ * EN 365: the first periodic inspection is due at the latest 12 months
+ * after first use. Only meaningful while calcStatus still says
+ * "never_inspected" (that state itself never alarms, by design — the
+ * customer app is a free lead funnel and shouldn't scare people off).
+ * Kept separate from calcStatus: this is a customer-app nudge, not part of
+ * the inspection-company regime the Pro-app calculates with.
+ */
+export function isFirstInspectionOverdue(
+  first_use_date: Date | null,
+  today: Date,
+  threshold_months = 12
+): boolean {
+  if (first_use_date == null) return false;
+  const due = new Date(first_use_date);
+  due.setMonth(due.getMonth() + threshold_months);
+  return today >= due;
+}
