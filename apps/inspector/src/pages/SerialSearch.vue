@@ -58,7 +58,7 @@
             <span v-else-if="hasRecall(r)" class="ss__flag ss__flag--recall ss__flag--static">
               🚩 {{ $t('serialSearch.recall') }}
             </span>
-            <a v-if="r.product?.inspection_notice_url" class="ss__flag ss__flag--notice" :href="r.product.inspection_notice_url" target="_blank" rel="noopener">
+            <a v-if="noticeUrl(r)" class="ss__flag ss__flag--notice" :href="noticeUrl(r)!" target="_blank" rel="noopener">
               ⚠ {{ $t('serialSearch.notice') }}
             </a>
             <a v-if="manualUrl(r)" class="ss__flag ss__flag--manual" :href="manualUrl(r)!" target="_blank" rel="noopener">
@@ -232,6 +232,8 @@ interface Row {
   free_recall_flag: boolean | null
   free_recall_url: string | null
   free_manual_url: string | null
+  recall_cleared_url: string | null
+  notice_cleared_url: string | null
   product_id: string | null
   manufacture_year: number | null
   manufacture_month: number | null
@@ -248,6 +250,7 @@ const mode = ref<'serial' | 'recall'>('serial')
 
 const SELECT =
   'id, serial_number, free_brand, free_description, free_category, free_recall_flag, free_recall_url, free_manual_url, ' +
+  'recall_cleared_url, notice_cleared_url, ' +
   'product_id, manufacture_year, manufacture_month, assigned_user_name, ' +
   'customer:customers(id, name), ' +
   'product:products(brand, name, category, recall_url, inspection_notice_url, manual_url)'
@@ -284,10 +287,23 @@ let debounce: ReturnType<typeof setTimeout> | undefined
 
 const hasQuery = computed(() => query.value.trim().length >= 2)
 
-function hasRecall(r: Row) { return !!r.product?.recall_url || !!r.free_recall_flag }
-function recallUrl(r: Row): string | null { return r.product?.recall_url || r.free_recall_url || null }
+// Afgevinkt door de keurmeester (zie InspectionWizard clearRecallFlag/
+// clearNoticeFlag) blijft hier ook verborgen -- zelfde link, zelfde vlag.
+function isRecallCleared(r: Row): boolean {
+  const url = r.product?.recall_url || r.free_recall_url || null
+  return !!url && url === r.recall_cleared_url
+}
+function recallUrl(r: Row): string | null {
+  const url = r.product?.recall_url || r.free_recall_url || null
+  return url && !isRecallCleared(r) ? url : null
+}
+function hasRecall(r: Row) { return !isRecallCleared(r) && (!!r.product?.recall_url || !!r.free_recall_flag) }
+function noticeUrl(r: Row): string | null {
+  const url = r.product?.inspection_notice_url || null
+  return url && url !== r.notice_cleared_url ? url : null
+}
 function manualUrl(r: Row): string | null { return r.product?.manual_url || r.free_manual_url || null }
-function hasFlags(r: Row) { return hasRecall(r) || !!r.product?.inspection_notice_url || !!manualUrl(r) }
+function hasFlags(r: Row) { return hasRecall(r) || !!noticeUrl(r) || !!manualUrl(r) }
 
 function onInput() {
   clearTimeout(debounce)

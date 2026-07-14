@@ -269,9 +269,28 @@
                     <!-- Alleen het vlaggetje (geen rood blok meer -- feedback Jos
                          2026-07-11: "dan hoeft er niet ook nog een rood vlak met
                          RECALL te staan schreeuwen. het vlaggetje is genoeg").
-                         Tooltip toont waar de link naartoe wijst (er is geen aparte
-                         titel-kolom in het datamodel, alleen de url zelf). -->
-                    <a v-if="itemRecallUrl(row.it)" :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="itemRecallTitle(row.it)!">🚩</a>
+                         Recall en inspection notice zijn twee verschillende
+                         signalen (zie DATAMODEL products.recall_url /
+                         inspection_notice_url) en stonden hier ten onrechte
+                         samengevoegd achter hetzelfde 🚩 -- een gewoon
+                         fabrikantsbulletin zag er zo uit als een echte recall
+                         (feedback Jos 2026-07-14: onnodige paniek). Nu eigen
+                         icoon + tooltip per type, allebei tonen kan (een
+                         product kan beide links los hebben). Elk heeft een
+                         eigen ✕ om af te vinken met een opmerking (bv.
+                         "voldaan" of "dit exemplaar valt niet binnen de
+                         batch") -- feedback Jos 2026-07-14: anders blijft de
+                         vlag voor altijd staan, ook na beoordeling. -->
+                    <template v-if="itemRecallUrl(row.it)">
+                      <a :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.recallFlag')" :title="itemRecallTitle(row.it)!">🚩</a>
+                      <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearRecallFlag(row.it)">✕</button>
+                    </template>
+                    <span v-else-if="itemRecallClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemRecallClearedNote(row.it)}`">✓</span>
+                    <template v-if="itemNoticeUrl(row.it)">
+                      <a :href="itemNoticeUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.noticeFlag')" :title="itemNoticeTitle(row.it)!">⚠️</a>
+                      <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
+                    </template>
+                    <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
                   </td>
                   <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
@@ -495,6 +514,10 @@ interface Article {
   free_manual_url: string | null
   free_recall_flag: boolean
   free_recall_url: string | null
+  recall_cleared_url: string | null
+  recall_cleared_note: string | null
+  notice_cleared_url: string | null
+  notice_cleared_note: string | null
   assigned_user_name: string | null
   manufacture_year: number | null
   manufacture_month: number | null
@@ -1088,21 +1111,66 @@ function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.a
 // Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
 // keurmeester de handmatige recall-toggle heeft aangezet (free_recall_flag) --
 // zonder catalogus is een recall anders niet vast te stellen.
-// Catalogus-artikel: recall_url of (als die ontbreekt) inspection_notice_url
-// -- zelfde vlag-gedrag, zie DATAMODEL. Vrij artikel: alleen de handmatige
-// recall-toggle (geen "inspection notice" voor vrije artikelen).
-function itemRecallUrl(it: Item): string | null {
-  if (it.article.product) return it.article.product.recall_url ?? it.article.product.inspection_notice_url ?? null
+function itemRecallRawUrl(it: Item): string | null {
+  if (it.article.product) return it.article.product.recall_url ?? null
   return it.article.free_recall_flag ? it.article.free_recall_url : null
 }
-// Tooltip bij het vlaggetje: onderscheid recall/inspection notice + de url
-// zelf als voorbeeld (geen aparte titel-kolom in het datamodel).
+// Afgevinkt door de keurmeester (met opmerking, zie clearRecallFlag) blijft
+// verborgen zolang het dezelfde link betreft -- wijzigt products.recall_url
+// later (een nieuwe recall), dan verschijnt de vlag vanzelf weer.
+function itemRecallUrl(it: Item): string | null {
+  const url = itemRecallRawUrl(it)
+  return url && url === it.article.recall_cleared_url ? null : url
+}
 function itemRecallTitle(it: Item): string | null {
   const url = itemRecallUrl(it)
-  if (!url) return null
-  const isRecall = !!(it.article.product?.recall_url ?? (it.article.free_recall_flag ? it.article.free_recall_url : null))
-  const kind = isRecall ? t('inspections.table.recallHint') : t('inspections.table.noticeHint')
-  return `${kind}: ${url}`
+  return url ? `${t('inspections.table.recallHint')}: ${url}` : null
+}
+function itemRecallClearedNote(it: Item): string | null {
+  const url = itemRecallRawUrl(it)
+  if (!url || url !== it.article.recall_cleared_url) return null
+  return it.article.recall_cleared_note || null
+}
+async function clearRecallFlag(it: Item) {
+  if (!isOnline.value) { addError.value = t('offline.onlineOnlyAction'); return }
+  const url = itemRecallUrl(it)
+  if (!url) return
+  const note = window.prompt(t('inspections.table.clearFlagPrompt'), '')
+  if (!note?.trim()) return
+  const patch = { recall_cleared_url: url, recall_cleared_note: note.trim() }
+  const { error: err } = await supabase.from('articles').update(patch).eq('id', it.article.id)
+  if (!err) Object.assign(it.article, patch)
+}
+// Inspection notice / veiligheidsbulletin van de fabrikant: alleen
+// catalogusproducten (products.inspection_notice_url) -- geen vrij-artikel-
+// equivalent, zie DATAMODEL. Los van itemRecallUrl: een echte recall en een
+// routinebulletin zijn geen hetzelfde signaal en horen niet achter dezelfde
+// vlag te schuilen.
+function itemNoticeRawUrl(it: Item): string | null {
+  return it.article.product?.inspection_notice_url ?? null
+}
+function itemNoticeUrl(it: Item): string | null {
+  const url = itemNoticeRawUrl(it)
+  return url && url === it.article.notice_cleared_url ? null : url
+}
+function itemNoticeTitle(it: Item): string | null {
+  const url = itemNoticeUrl(it)
+  return url ? `${t('inspections.table.noticeHint')}: ${url}` : null
+}
+function itemNoticeClearedNote(it: Item): string | null {
+  const url = itemNoticeRawUrl(it)
+  if (!url || url !== it.article.notice_cleared_url) return null
+  return it.article.notice_cleared_note || null
+}
+async function clearNoticeFlag(it: Item) {
+  if (!isOnline.value) { addError.value = t('offline.onlineOnlyAction'); return }
+  const url = itemNoticeUrl(it)
+  if (!url) return
+  const note = window.prompt(t('inspections.table.clearFlagPrompt'), '')
+  if (!note?.trim()) return
+  const patch = { notice_cleared_url: url, notice_cleared_note: note.trim() }
+  const { error: err } = await supabase.from('articles').update(patch).eq('id', it.article.id)
+  if (!err) Object.assign(it.article, patch)
 }
 
 async function editManualUrl(it: Item) {
@@ -2066,6 +2134,19 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__icon-btn:hover { opacity: 1; }
 .iw__icon-btn--active { opacity: 1; filter: drop-shadow(0 0 1px #dc2626); }
+.iw__flag-clear {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.7rem;
+  line-height: 1;
+  padding: 0.1rem;
+  margin-right: 0.4rem;
+  opacity: 0.4;
+  color: #374151;
+}
+.iw__flag-clear:hover { opacity: 1; }
+.iw__flag-cleared { margin-right: 0.25rem; opacity: 0.45; cursor: help; }
 .iw__category { color: #374151; }
 .iw__sn { color: #6b7280; }
 .iw__prev--pass { color: #16a34a; }
