@@ -98,11 +98,13 @@
               <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
                    een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
               <button class="mt__partbtn" :title="$t('sets.addPart.title')" @click="partFor = row.article">🔗+</button>
-              <!-- Afvoeren mag op elk eigen artikel (vervangen na afkeur, maar
-                   ook verlies/diefstal -- besluit Jos 2026-07-02), mét reden:
-                   de keurmeester ziet die terug bij het SN-zoeken. Bewust een
-                   onopvallend prullenbakje: het is een uitzonderingsactie. -->
+              <!-- Afvoeren: alleen de beheerder (Jos, 2026-07-13 -- draait het
+                   besluit van 2026-07-02 terug: dat mocht toen nog elk lid).
+                   Ook serverside afgedwongen in retire_my_article, dit is
+                   niet alleen de knop verbergen. Bewust een onopvallend
+                   prullenbakje: het is een uitzonderingsactie. -->
               <button
+                v-if="isAdmin"
                 class="mt__trash"
                 :title="row.article.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
                 :disabled="retiringId === row.article.id"
@@ -179,6 +181,7 @@ interface UiArticle extends ArticleRow {
 }
 
 const customerId = ref("");
+const isAdmin = ref(false);
 const addingArticle = ref(false);
 const articles = ref<UiArticle[]>([]);
 const loading = ref(true);
@@ -299,6 +302,7 @@ async function load() {
       return;
     }
     customerId.value = row.customer_id;
+    isAdmin.value = !!row.is_admin;
 
     const { data, error: err } = await supabase.rpc("my_articles");
     if (err) throw err;
