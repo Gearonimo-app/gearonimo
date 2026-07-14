@@ -25,8 +25,8 @@
     "signOut": "Uitloggen",
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
     "goToCustomerApp": "Ga naar de klantomgeving →",
-    "upcomingReinspections": "📅 {count} artikel(en) moeten binnen 30 dagen herkeurd worden",
-    "allGood": "✅ Alles op orde"
+    "upcomingReinspectionsLabel": "artikel(en) moeten binnen 30 dagen herkeurd worden",
+    "allGoodLabel": "Alles op orde — niets verloopt binnen 30 dagen"
   },
   "serialSearch": {
     "title": "SN zoeken / Recall",

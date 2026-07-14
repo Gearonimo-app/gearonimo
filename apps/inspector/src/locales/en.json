@@ -25,8 +25,8 @@
     "signOut": "Sign out",
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
     "goToCustomerApp": "Go to the customer app →",
-    "upcomingReinspections": "📅 {count} item(s) due for reinspection within 30 days",
-    "allGood": "✅ All up to date"
+    "upcomingReinspectionsLabel": "item(s) due for reinspection within 30 days",
+    "allGoodLabel": "All up to date — nothing expires within 30 days"
   },
   "serialSearch": {
     "title": "SN search / Recall",

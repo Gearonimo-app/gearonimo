@@ -13,12 +13,6 @@
         </div>
         <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
       </div>
-      <!-- Eén melding, geen statistiek-etalage (UX-FLOW §4.4): certificaten
-           die binnen 30 dagen verlopen, actionable i.p.v. een vanity-teller. -->
-      <div class="home__status" :class="{ 'home__status--attention': upcomingReinspections > 0 }">
-        <span class="home__status-dot" :class="{ 'home__status-dot--attention': upcomingReinspections > 0 }"></span>
-        {{ statusText }}
-      </div>
     </header>
 
     <!-- Klant-account in de Pro-app beland (zelfde domein, gedeelde sessie):
@@ -29,23 +23,23 @@
       <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
     </div>
 
-    <!-- Zoekbalk + tegelmenu: alleen voor een echt keurmeester-account.
-         Een klant-account krijgt hierboven al de melding + link naar
-         /portal/ -- de rest van de Pro-app hoeft dan niet zichtbaar te
-         zijn (RLS blokkeerde de dáta al, maar de schermen zelf bleven
-         klikbaar, wat een klant-account de indruk gaf hier iets te kunnen). -->
+    <!-- Melding + tegelmenu: alleen voor een echt keurmeester-account. Een
+         klant-account krijgt hierboven al de melding + link naar /portal/
+         -- de rest van de Pro-app hoeft dan niet zichtbaar te zijn (RLS
+         blokkeerde de dáta al, maar de schermen zelf bleven klikbaar, wat
+         een klant-account de indruk gaf hier iets te kunnen). -->
     <template v-if="!notInspector">
       <div class="home__body">
-        <div class="home__search">
-          <input
-            v-model="searchQuery"
-            type="search"
-            :placeholder="$t('home.searchPlaceholder')"
-            class="home__search-input"
-            @input="onSearch"
-          />
+        <!-- Eén melding, geen statistiek-etalage (UX-FLOW §4.4): certificaten
+             die binnen 30 dagen verlopen, actionable i.p.v. een vanity-teller.
+             Eigen kaart i.p.v. een dunne pil, zodat hij niet wegvalt. -->
+        <div class="home__stat" :class="{ 'home__stat--attention': upcomingReinspections > 0 }">
+          <span class="home__stat-value">{{ upcomingReinspections > 0 ? upcomingReinspections : '✅' }}</span>
+          <span class="home__stat-label">{{ statusText }}</span>
         </div>
 
+        <!-- Geen aparte zoekbalk: die was dubbelop met de tegels Klanten en
+             SN zoeken/Recall (UX-FLOW §1.1, "één primaire actie per scherm"). -->
         <nav class="home__grid">
           <button
             v-for="tile in tiles"
@@ -73,8 +67,6 @@ import { ensureInspector } from '../composables/useInspections'
 const router = useRouter()
 const { t } = useI18n()
 const { signOut, user } = useAuth()
-const searchQuery = ref('')
-
 const notInspector = ref(false)
 const pendingRequests = ref(0)
 
@@ -141,20 +133,13 @@ const upcomingReinspections = ref(0)
 
 const statusText = computed(() =>
   upcomingReinspections.value > 0
-    ? t('home.upcomingReinspections', { count: upcomingReinspections.value })
-    : t('home.allGood')
+    ? t('home.upcomingReinspectionsLabel', { count: upcomingReinspections.value })
+    : t('home.allGoodLabel')
 )
 
 
 function navigate(route: string | null) {
   if (route) router.push(route)
-}
-
-function onSearch() {
-  if (searchQuery.value.trim()) {
-    router.push({ path: '/serial-search', query: { q: searchQuery.value.trim() } })
-    searchQuery.value = ''
-  }
 }
 </script>
 
@@ -239,64 +224,33 @@ function onSearch() {
 .home__wrong-app p { margin: 0 0 0.5rem; }
 .home__wrong-app-link { color: #16a34a; font-weight: 700; }
 
-/* Statusmelding: witte kaart met accentrand, ingetogen, geen rood
-   geschreeuw (UX-FLOW §8, "stoplichtkaart"-principe hergebruikt). */
-.home__status {
-  font-size: 0.9rem;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.home__body { flex: 1; display: flex; flex-direction: column; padding: 1.25rem; gap: 1.25rem; }
+
+/* Statusmelding als eigen kaart, groot getal + label -- i.p.v. een dunne
+   pil die naast de foto wegviel (UX-FLOW §8, "stoplichtkaart"-principe:
+   ingetogen, geen rood geschreeuw). */
+.home__stat {
   background: rgba(255, 255, 255, 0.95);
   color: #1a3a2a;
-  border-radius: 999px;
-  padding: 0.45rem 0.9rem;
+  border-radius: 16px;
+  padding: 1.1rem 1.25rem;
   border: 1px solid rgba(255, 255, 255, 0.4);
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
 }
-.home__status--attention { border-color: #f59e0b; }
-.home__status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #16a34a;
-  display: inline-block;
-  flex-shrink: 0;
-}
-.home__status-dot--attention { background: #f59e0b; }
-
-.home__body { flex: 1; display: flex; flex-direction: column; }
-
-/* Zoekbalk */
-.home__search {
-  padding: 1.25rem 1.25rem 0.5rem;
-}
-.home__search-input {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.3);
-  font-size: 1rem;
-  background: rgba(255,255,255,0.18);
-  color: #fff;
-  box-sizing: border-box;
-  backdrop-filter: blur(6px);
-}
-.home__search-input::placeholder {
-  color: rgba(255,255,255,0.75);
-}
-.home__search-input:focus {
-  outline: none;
-  background: rgba(255,255,255,0.28);
-}
+.home__stat--attention { border-color: #f59e0b; }
+.home__stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+.home__stat-label { font-size: 0.9rem; font-weight: 600; }
 
 /* Tegel-grid: één consistente glas-stijl i.p.v. losse regenboogkleuren --
-   het icoon onderscheidt de tegels, niet de kleur. */
+   het icoon onderscheidt de tegels, niet de kleur. Vaste 1:1-verhouding
+   zodat ze echte vierkante tegels zijn i.p.v. platte balken. */
 .home__grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
-  padding: 1.25rem;
-  flex: 1;
 }
 
 .home__tile {
@@ -306,7 +260,7 @@ function onSearch() {
   align-items: center;
   justify-content: center;
   gap: 0.6rem;
-  padding: 1.75rem 1rem;
+  aspect-ratio: 1 / 1;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
@@ -317,7 +271,6 @@ function onSearch() {
   backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
-  min-height: 110px;
 }
 .home__tile:active {
   transform: scale(0.97);
@@ -334,19 +287,19 @@ function onSearch() {
 .home__tile-icon { font-size: 2rem; line-height: 1; }
 .home__tile-label { font-size: 0.9rem; text-align: center; line-height: 1.2; }
 
-/* Desktop: statusmelding + zoekbalk links, tegels rechts in een bredere grid. */
+/* Desktop: statusmelding links, tegels rechts -- tegels blijven vierkant
+   met een max-breedte, i.p.v. uit te rekken over het hele brede scherm. */
 @media (min-width: 900px) {
   .home__body {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 260px 1fr;
     gap: 1.5rem;
     padding: 0 1.5rem 1.5rem;
     align-items: start;
   }
-  .home__search { padding: 0; }
   .home__grid {
-    grid-template-columns: repeat(3, 1fr);
-    padding: 0;
+    grid-template-columns: repeat(3, minmax(0, 180px));
+    justify-content: start;
   }
 }
 </style>
