@@ -128,7 +128,27 @@
     }
   },
   "settings": {
-    "title": "Instellingen"
+    "title": "Instellingen",
+    "company": {
+      "title": "Bedrijfsgegevens",
+      "edit": "Bewerken",
+      "empty": "Nog niets ingevuld.",
+      "fields": {
+        "email": "E-mailadres",
+        "phone": "Telefoon",
+        "contactPerson": "Contactpersoon",
+        "kvkNumber": "KvK-nummer",
+        "vatNumber": "BTW-nummer",
+        "address": "Adres",
+        "street": "Straat",
+        "houseNumber": "Huisnummer",
+        "addition": "Toevoeging",
+        "postalCode": "Postcode",
+        "city": "Woonplaats",
+        "province": "Provincie",
+        "country": "Land"
+      }
+    }
   },
   "members": {
     "title": "Medewerkers",

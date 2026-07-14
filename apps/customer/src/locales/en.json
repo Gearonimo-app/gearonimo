@@ -128,7 +128,27 @@
     }
   },
   "settings": {
-    "title": "Settings"
+    "title": "Settings",
+    "company": {
+      "title": "Company details",
+      "edit": "Edit",
+      "empty": "Nothing filled in yet.",
+      "fields": {
+        "email": "Email address",
+        "phone": "Phone",
+        "contactPerson": "Contact person",
+        "kvkNumber": "Chamber of Commerce number",
+        "vatNumber": "VAT number",
+        "address": "Address",
+        "street": "Street",
+        "houseNumber": "House number",
+        "addition": "Addition",
+        "postalCode": "Postal code",
+        "city": "City",
+        "province": "Province",
+        "country": "Country"
+      }
+    }
   },
   "members": {
     "title": "Team members",

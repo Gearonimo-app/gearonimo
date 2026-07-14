@@ -24,6 +24,51 @@
         <button class="mb__invite-code" :title="$t('members.copy')" @click="copyCode">{{ inviteCode }}</button>
       </section>
 
+      <!-- Bedrijfsgegevens (adres, KvK/BTW, contactpersoon, bedrijfstelefoon/
+           -email): tot 2026-07-14 kon alleen de keurmeester dit invullen, via
+           het klantformulier in de Pro-app -- voor een klant die zichzelf
+           heeft aangemeld (leadmotor) is er dan niemand die dat voor hem
+           doet. Alleen de beheerder mag wijzigen; iedereen mag het zien. -->
+      <section class="mb__section mb__company">
+        <div class="mb__section-head">
+          <h2>{{ $t('settings.company.title') }}</h2>
+          <button v-if="isAdmin && !companyFormOpen" class="mb__add" @click="openCompanyEdit">{{ $t('settings.company.edit') }}</button>
+        </div>
+
+        <dl v-if="!companyFormOpen" class="mb__co-list">
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.email') }}</dt><dd>{{ company.email || '—' }}</dd></div>
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.phone') }}</dt><dd>{{ company.phone || '—' }}</dd></div>
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.contactPerson') }}</dt><dd>{{ company.contact_person || '—' }}</dd></div>
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.kvkNumber') }}</dt><dd>{{ company.kvk_number || '—' }}</dd></div>
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.vatNumber') }}</dt><dd>{{ company.vat_number || '—' }}</dd></div>
+          <div class="mb__co-row"><dt>{{ $t('settings.company.fields.address') }}</dt><dd>{{ addressLine || '—' }}</dd></div>
+        </dl>
+
+        <form v-else class="mb__form" @submit.prevent="saveCompany">
+          <input v-model="companyForm.email" type="email" :placeholder="$t('settings.company.fields.email')" class="mb__input" />
+          <input v-model="companyForm.phone" type="tel" :placeholder="$t('settings.company.fields.phone')" class="mb__input" />
+          <input v-model="companyForm.contact_person" :placeholder="$t('settings.company.fields.contactPerson')" class="mb__input" />
+          <input v-model="companyForm.kvk_number" :placeholder="$t('settings.company.fields.kvkNumber')" class="mb__input" />
+          <input v-model="companyForm.vat_number" :placeholder="$t('settings.company.fields.vatNumber')" class="mb__input" />
+          <div class="mb__co-row-inputs">
+            <input v-model="companyForm.street" :placeholder="$t('settings.company.fields.street')" class="mb__input mb__co-street" />
+            <input v-model="companyForm.house_number" :placeholder="$t('settings.company.fields.houseNumber')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.house_number_addition" :placeholder="$t('settings.company.fields.addition')" class="mb__input mb__co-short" />
+          </div>
+          <div class="mb__co-row-inputs">
+            <input v-model="companyForm.postal_code" :placeholder="$t('settings.company.fields.postalCode')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.city" :placeholder="$t('settings.company.fields.city')" class="mb__input" />
+          </div>
+          <input v-model="companyForm.province" :placeholder="$t('settings.company.fields.province')" class="mb__input" />
+          <input v-model="companyForm.country" :placeholder="$t('settings.company.fields.country')" class="mb__input" />
+          <p v-if="companyFormError" class="mb__state mb__state--error">{{ companyFormError }}</p>
+          <div class="mb__form-actions">
+            <button type="submit" class="mb__save" :disabled="companySaving">{{ $t('members.save') }}</button>
+            <button type="button" class="mb__cancel" @click="companyFormOpen = false">{{ $t('members.cancel') }}</button>
+          </div>
+        </form>
+      </section>
+
       <p v-if="!isAdmin" class="mb__state">{{ $t('members.readOnly') }}</p>
 
       <section class="mb__section">
@@ -78,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase, errorMessage } from "@gearonimo/core";
 
@@ -96,12 +141,40 @@ interface MemberRow {
   is_me: boolean;
 }
 
+interface CompanyInfo {
+  email: string | null;
+  phone: string | null;
+  contact_person: string | null;
+  kvk_number: string | null;
+  vat_number: string | null;
+  street: string | null;
+  house_number: string | null;
+  house_number_addition: string | null;
+  postal_code: string | null;
+  city: string | null;
+  province: string | null;
+  country: string | null;
+}
+const emptyCompanyForm = (): CompanyInfo => ({
+  email: "", phone: "", contact_person: "", kvk_number: "", vat_number: "",
+  street: "", house_number: "", house_number_addition: "", postal_code: "",
+  city: "", province: "", country: "",
+});
+
 const customerName = ref("");
 const inviteCode = ref("");
 const isAdmin = ref(false);
 const members = ref<MemberRow[]>([]);
+const company = ref<CompanyInfo>(emptyCompanyForm());
 const loading = ref(true);
 const error = ref("");
+
+const addressLine = computed(() => {
+  const c = company.value;
+  const line1 = [c.street, [c.house_number, c.house_number_addition].filter(Boolean).join("")].filter(Boolean).join(" ");
+  const line2 = [c.postal_code, c.city].filter(Boolean).join(" ");
+  return [line1, line2, c.province, c.country].filter(Boolean).join(", ");
+});
 
 const formOpen = ref(false);
 const editingId = ref<string | null>(null);
@@ -109,6 +182,11 @@ const editingIsMe = ref(false);
 const saving = ref(false);
 const formError = ref("");
 const form = ref({ name: "", role: "", phone: "", email: "", active: true, is_admin: false });
+
+const companyFormOpen = ref(false);
+const companySaving = ref(false);
+const companyFormError = ref("");
+const companyForm = ref<CompanyInfo>(emptyCompanyForm());
 
 async function load() {
   loading.value = true;
@@ -124,6 +202,12 @@ async function load() {
     customerName.value = row.customer_name;
     inviteCode.value = row.invite_code ?? "";
     isAdmin.value = !!row.is_admin;
+    company.value = {
+      email: row.email, phone: row.phone, contact_person: row.contact_person,
+      kvk_number: row.kvk_number, vat_number: row.vat_number,
+      street: row.street, house_number: row.house_number, house_number_addition: row.house_number_addition,
+      postal_code: row.postal_code, city: row.city, province: row.province, country: row.country,
+    };
 
     const { data, error: err } = await supabase.rpc("my_members");
     if (err) throw err;
@@ -132,6 +216,49 @@ async function load() {
     error.value = errorMessage(e);
   } finally {
     loading.value = false;
+  }
+}
+
+function openCompanyEdit() {
+  companyForm.value = {
+    email: company.value.email ?? "", phone: company.value.phone ?? "",
+    contact_person: company.value.contact_person ?? "",
+    kvk_number: company.value.kvk_number ?? "", vat_number: company.value.vat_number ?? "",
+    street: company.value.street ?? "", house_number: company.value.house_number ?? "",
+    house_number_addition: company.value.house_number_addition ?? "",
+    postal_code: company.value.postal_code ?? "", city: company.value.city ?? "",
+    province: company.value.province ?? "", country: company.value.country ?? "",
+  };
+  companyFormError.value = "";
+  companyFormOpen.value = true;
+}
+
+async function saveCompany() {
+  companySaving.value = true;
+  companyFormError.value = "";
+  try {
+    const f = companyForm.value;
+    const { error: err } = await supabase.rpc("update_my_customer", {
+      p_email: f.email?.trim() || null,
+      p_phone: f.phone?.trim() || null,
+      p_contact_person: f.contact_person?.trim() || null,
+      p_kvk_number: f.kvk_number?.trim() || null,
+      p_vat_number: f.vat_number?.trim() || null,
+      p_street: f.street?.trim() || null,
+      p_house_number: f.house_number?.trim() || null,
+      p_house_number_addition: f.house_number_addition?.trim() || null,
+      p_postal_code: f.postal_code?.trim() || null,
+      p_city: f.city?.trim() || null,
+      p_province: f.province?.trim() || null,
+      p_country: f.country?.trim() || null,
+    });
+    if (err) throw err;
+    companyFormOpen.value = false;
+    await load();
+  } catch (e) {
+    companyFormError.value = errorMessage(e);
+  } finally {
+    companySaving.value = false;
   }
 }
 
@@ -267,4 +394,17 @@ onMounted(load);
   flex: 0 0 auto; background: none; border: 1px solid #d1d5db; border-radius: 8px;
   padding: 0.3rem 0.7rem; font-size: 0.8rem; color: #374151; cursor: pointer;
 }
+
+.mb__company { margin-bottom: 1.5rem; }
+.mb__co-list { background: #fff; border-radius: 12px; padding: 0.25rem 1rem; margin: 0; }
+.mb__co-row {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.6rem 0; border-bottom: 1px solid #f3f4f6;
+}
+.mb__co-row:last-child { border-bottom: none; }
+.mb__co-row dt { color: #6b7280; font-size: 0.85rem; }
+.mb__co-row dd { margin: 0; font-weight: 600; text-align: right; }
+.mb__co-row-inputs { display: flex; gap: 0.5rem; }
+.mb__co-street { flex: 1; }
+.mb__co-short { flex: 0 0 6rem; }
 </style>
