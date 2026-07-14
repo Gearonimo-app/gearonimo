@@ -46,7 +46,7 @@
       "warn": "Inspection due soon",
       "bad": "Action needed: gear rejected or inspection overdue",
       "empty": "Welcome to Gearonimo!",
-      "emptyBody": "Register your first piece of gear here. The more complete your data, the more you get out of it: automatic recall alerts, the manual one click away — and later an inspector to fine-tune the registration."
+      "emptyBody": "Register your first piece of gear here. The more complete your data, the more you get out of it: automatic recall alerts and the manual one click away."
     },
     "counts": {
       "ok": "in order",
