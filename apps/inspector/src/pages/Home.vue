@@ -2,17 +2,12 @@
   <div class="home" :style="heroStyle">
     <div class="home__scrim"></div>
 
-    <!-- Header -->
+    <!-- Header: app-naam groot en gecentreerd (UX-FLOW §7, de app-naam is
+         overal de home-knop). Uitloggen rechtsboven, account eronder klein. -->
     <header class="home__header">
-      <div class="home__header-row">
-        <div class="home__identity">
-          <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
-          <!-- Ingelogd account tonen: Jos miste tijdens het testen (stap 14)
-               waar hij kon zien met welk account hij was ingelogd. -->
-          <span v-if="user?.email" class="home__account" :title="user.email">👤 {{ user.email }}</span>
-        </div>
-        <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
-      </div>
+      <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
+      <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
+      <span v-if="user?.email" class="home__account" :title="user.email">👤 {{ user.email }}</span>
     </header>
 
     <!-- Klant-account in de Pro-app beland (zelfde domein, gedeelde sessie):
@@ -24,22 +19,22 @@
     </div>
 
     <!-- Melding + tegelmenu: alleen voor een echt keurmeester-account. Een
-         klant-account krijgt hierboven al de melding + link naar /portal/
-         -- de rest van de Pro-app hoeft dan niet zichtbaar te zijn (RLS
-         blokkeerde de dáta al, maar de schermen zelf bleven klikbaar, wat
-         een klant-account de indruk gaf hier iets te kunnen). -->
+         klant-account krijgt hierboven al de melding + link naar /portal/. -->
     <template v-if="!notInspector">
       <div class="home__body">
-        <!-- Eén melding, geen statistiek-etalage (UX-FLOW §4.4): certificaten
-             die binnen 30 dagen verlopen, actionable i.p.v. een vanity-teller.
-             Eigen kaart i.p.v. een dunne pil, zodat hij niet wegvalt. -->
+        <!-- Statkaart links: het aantal artikelen dat binnen 30 dagen
+             herkeurd moet worden. Bewust altijd het getal (ook 0) i.p.v. een
+             "alles op orde"-boodschap -- 0 verlopende keuringen zegt niets
+             over of het bestand op orde is (besluit Jos 2026-07-14). -->
         <div class="home__stat" :class="{ 'home__stat--attention': upcomingReinspections > 0 }">
-          <span class="home__stat-value">{{ upcomingReinspections > 0 ? upcomingReinspections : '✅' }}</span>
-          <span class="home__stat-label">{{ statusText }}</span>
+          <span class="home__stat-value">{{ upcomingReinspections }}</span>
+          <span class="home__stat-label">{{ $t('home.reinspectionStatLabel') }}</span>
         </div>
 
-        <!-- Geen aparte zoekbalk: die was dubbelop met de tegels Klanten en
-             SN zoeken/Recall (UX-FLOW §1.1, "één primaire actie per scherm"). -->
+        <!-- Tegels rechts: 2 naast elkaar, 3 onder elkaar. Eén consistente
+             glas-stijl i.p.v. losse regenboogkleuren -- het icoon
+             onderscheidt de tegels, niet de kleur. Geen aparte zoekbalk: die
+             was dubbelop met Klanten en SN zoeken/Recall (UX-FLOW §1.1). -->
         <nav class="home__grid">
           <button
             v-for="tile in tiles"
@@ -60,15 +55,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useI18n } from 'vue-i18n'
 import { useAuth, supabase } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
-const { t } = useI18n()
 const { signOut, user } = useAuth()
 const notInspector = ref(false)
 const pendingRequests = ref(0)
+const upcomingReinspections = ref(0)
 
 async function onSignOut() {
   await signOut()
@@ -129,15 +123,6 @@ const tiles = [
   { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings' },
 ]
 
-const upcomingReinspections = ref(0)
-
-const statusText = computed(() =>
-  upcomingReinspections.value > 0
-    ? t('home.upcomingReinspectionsLabel', { count: upcomingReinspections.value })
-    : t('home.allGoodLabel')
-)
-
-
 function navigate(route: string | null) {
   if (route) router.push(route)
 }
@@ -165,51 +150,45 @@ function navigate(route: string | null) {
 .home__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10, 26, 18, 0.82) 0%, rgba(10, 26, 18, 0.55) 40%, rgba(10, 26, 18, 0.88) 100%);
+  background: linear-gradient(180deg, rgba(10, 26, 18, 0.82) 0%, rgba(10, 26, 18, 0.5) 45%, rgba(10, 26, 18, 0.85) 100%);
   pointer-events: none;
 }
 
 .home__header, .home__body { position: relative; z-index: 1; }
 
-/* Header */
+/* Header: gecentreerde, grote app-naam. Uitloggen absoluut rechtsboven zodat
+   de titel echt gecentreerd blijft. */
 .home__header {
-  padding: 1.25rem 1.5rem 1rem;
+  padding: 1.5rem 1.5rem 0.5rem;
   color: #fff;
-}
-.home__header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.4rem;
-}
-.home__identity {
-  display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
-  min-width: 0;
+  text-align: center;
+  position: relative;
 }
 .home__app-name {
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 2rem;
+  font-weight: 800;
   margin: 0;
   letter-spacing: 0.01em;
 }
 .home__account {
+  display: inline-block;
   font-size: 0.82rem;
   color: #cfe3d6;
+  margin-top: 0.2rem;
+  max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .home__signout {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.5rem;
   background: none;
   border: none;
   color: #cfe3d6;
   cursor: pointer;
   font-size: 0.9rem;
-  flex-shrink: 0;
-  align-self: flex-start;
 }
 .home__wrong-app {
   position: relative;
@@ -226,33 +205,36 @@ function navigate(route: string | null) {
 
 .home__body { flex: 1; display: flex; flex-direction: column; padding: 1.25rem; gap: 1.25rem; }
 
-/* Statusmelding als eigen kaart, groot getal + label -- i.p.v. een dunne
-   pil die naast de foto wegviel (UX-FLOW §8, "stoplichtkaart"-principe:
-   ingetogen, geen rood geschreeuw). */
-.home__stat {
-  background: rgba(255, 255, 255, 0.95);
-  color: #1a3a2a;
+/* Gedeelde glas-stijl voor statkaart én tegels. */
+.home__stat,
+.home__tile {
   border-radius: 16px;
-  padding: 1.1rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  display: flex;
-  align-items: baseline;
-  gap: 0.6rem;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  color: #fff;
+}
+
+/* Statkaart: groot getal + label. Amber randje zodra er iets te herkeuren is
+   (ingetogen, geen rood geschreeuw -- UX-FLOW §8). */
+.home__stat {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 1.5rem;
 }
 .home__stat--attention { border-color: #f59e0b; }
-.home__stat-value { font-size: 2rem; font-weight: 800; line-height: 1; }
-.home__stat-label { font-size: 0.9rem; font-weight: 600; }
+.home__stat-value { font-size: 3rem; font-weight: 800; line-height: 1; }
+.home__stat-label { font-size: 0.95rem; font-weight: 600; opacity: 0.95; }
 
-/* Tegel-grid: één consistente glas-stijl i.p.v. losse regenboogkleuren --
-   het icoon onderscheidt de tegels, niet de kleur. Vaste 1:1-verhouding
-   zodat ze echte vierkante tegels zijn i.p.v. platte balken. */
+/* Tegels: vierkant (1:1) i.p.v. platte balken. */
 .home__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
 }
-
 .home__tile {
   position: relative;
   display: flex;
@@ -261,16 +243,10 @@ function navigate(route: string | null) {
   justify-content: center;
   gap: 0.6rem;
   aspect-ratio: 1 / 1;
-  border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
-  transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+  transition: transform 0.1s, background 0.15s;
 }
 .home__tile:active {
   transform: scale(0.97);
@@ -283,23 +259,30 @@ function navigate(route: string | null) {
   font-size: 0.8rem; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
 }
-
 .home__tile-icon { font-size: 2rem; line-height: 1; }
 .home__tile-label { font-size: 0.9rem; text-align: center; line-height: 1.2; }
 
-/* Desktop: statusmelding links, tegels rechts -- tegels blijven vierkant
-   met een max-breedte, i.p.v. uit te rekken over het hele brede scherm. */
+/* Desktop: grote titel, statkaart links van het midden (vierkant, iets
+   groter dan de tegels), 6 tegels rechts als 2 x 3. Als groep gecentreerd. */
 @media (min-width: 900px) {
+  .home__app-name { font-size: 2.8rem; }
   .home__body {
-    display: grid;
-    grid-template-columns: 260px 1fr;
-    gap: 1.5rem;
-    padding: 0 1.5rem 1.5rem;
-    align-items: start;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem 1.5rem 3rem;
   }
+  .home__stat {
+    width: 280px;
+    height: 280px;
+    flex: 0 0 auto;
+  }
+  .home__stat-value { font-size: 4rem; }
   .home__grid {
-    grid-template-columns: repeat(3, minmax(0, 180px));
-    justify-content: start;
+    grid-template-columns: repeat(2, 170px);
+    grid-auto-rows: 170px;
+    flex: 0 0 auto;
   }
 }
 </style>

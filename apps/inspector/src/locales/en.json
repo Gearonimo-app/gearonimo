@@ -25,8 +25,7 @@
     "signOut": "Sign out",
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
     "goToCustomerApp": "Go to the customer app →",
-    "upcomingReinspectionsLabel": "item(s) due for reinspection within 30 days",
-    "allGoodLabel": "All up to date — nothing expires within 30 days"
+    "reinspectionStatLabel": "items to reinspect within 30 days"
   },
   "serialSearch": {
     "title": "SN search / Recall",
@@ -644,6 +643,11 @@
       "intro": "This photo appears on the main menu for every inspection company on the platform (not just this one) — meant to change every quarter, e.g. with a customer photo from a social media contest. Separate crops for mobile/tablet (portrait) and desktop (wide).",
       "mobileLabel": "Mobile/tablet (portrait)",
       "desktopLabel": "Desktop (wide)",
+      "chooseFile": "Choose photo…",
+      "noPhoto": "No photo yet",
+      "zoom": "Zoom",
+      "horizontal": "Horizontal",
+      "vertical": "Vertical",
       "saved": "Saved."
     }
   },

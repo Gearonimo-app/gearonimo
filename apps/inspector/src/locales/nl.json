@@ -25,8 +25,7 @@
     "signOut": "Uitloggen",
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
     "goToCustomerApp": "Ga naar de klantomgeving →",
-    "upcomingReinspectionsLabel": "artikel(en) moeten binnen 30 dagen herkeurd worden",
-    "allGoodLabel": "Alles op orde — niets verloopt binnen 30 dagen"
+    "reinspectionStatLabel": "artikelen te herkeuren binnen 30 dagen"
   },
   "serialSearch": {
     "title": "SN zoeken / Recall",
@@ -644,6 +643,11 @@
       "intro": "Deze foto staat op het hoofdmenu van álle keurbedrijven op het platform (niet alleen dit bedrijf) — bedoeld om elk kwartaal te wisselen, bijv. met een klantfoto uit een social-media-actie. Aparte crops voor mobiel/tablet (staand) en desktop (breed).",
       "mobileLabel": "Mobiel/tablet (staand)",
       "desktopLabel": "Desktop (breed)",
+      "chooseFile": "Foto kiezen…",
+      "noPhoto": "Nog geen foto",
+      "zoom": "Inzoomen",
+      "horizontal": "Horizontaal",
+      "vertical": "Verticaal",
       "saved": "Opgeslagen."
     }
   },
