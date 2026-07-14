@@ -4,7 +4,8 @@
      op eigen pagina's: Mijn materiaal, Certificaten, Instellingen. Geen
      navigatiebalk onderin; de app-naam in de kop is overal de home-knop. -->
 <template>
-  <div class="dh">
+  <div class="dh" :style="heroStyle">
+    <div class="dh__scrim"></div>
     <PageHeader>
       <button class="dh__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
     </PageHeader>
@@ -78,6 +79,30 @@ import PageHeader from "../components/PageHeader.vue";
 
 const router = useRouter();
 const { signOut } = useAuth();
+
+// Platform-brede hero-foto (UX-FLOW.md §7): dezelfde crowdsourced sfeerfoto als
+// de keurmeester-app -- "merk met een glimlach", community-gevoel. Ingesteld
+// door een platform-admin; geen foto = nette donkergroene fallback.
+const heroMobileUrl = ref<string | null>(null);
+const heroDesktopUrl = ref<string | null>(null);
+const heroStyle = computed(() => {
+  const url = heroDesktopUrl.value ?? heroMobileUrl.value;
+  if (!url) return {};
+  return { "--dh-hero-mobile": `url("${heroMobileUrl.value ?? url}")`, "--dh-hero-desktop": `url("${url}")` };
+});
+async function loadHeroPhoto() {
+  const { data } = await supabase
+    .from("platform_settings")
+    .select("hero_photo_mobile_path, hero_photo_desktop_path")
+    .eq("id", true)
+    .maybeSingle();
+  if (data?.hero_photo_mobile_path) {
+    heroMobileUrl.value = supabase.storage.from("branding").getPublicUrl(data.hero_photo_mobile_path).data.publicUrl;
+  }
+  if (data?.hero_photo_desktop_path) {
+    heroDesktopUrl.value = supabase.storage.from("branding").getPublicUrl(data.hero_photo_desktop_path).data.publicUrl;
+  }
+}
 
 interface ArticleRow {
   last_result: string | null;
@@ -169,28 +194,55 @@ async function onSignOut() {
   router.push("/login");
 }
 
-onMounted(load);
+onMounted(() => {
+  loadHeroPhoto();
+  load();
+});
 </script>
 
 <style scoped>
-.dh { min-height: 100vh; background: #f0f4f8; }
+.dh {
+  min-height: 100vh;
+  position: relative;
+  background-color: #142a1f;
+  background-image: var(--dh-hero-mobile, none);
+  background-size: cover;
+  background-position: center;
+}
+@media (min-width: 900px) {
+  .dh { background-image: var(--dh-hero-desktop, var(--dh-hero-mobile, none)); }
+}
+/* Vaste overlay boven de foto: garandeert leesbare tekst/tegels ongeacht welke
+   sfeerfoto er per kwartaal onder staat. */
+.dh__scrim {
+  position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(10, 26, 18, 0.7) 0%, rgba(10, 26, 18, 0.5) 45%, rgba(10, 26, 18, 0.82) 100%);
+}
+.dh__body { position: relative; z-index: 1; }
 .dh__signout { background: none; border: none; color: #a7c4b0; cursor: pointer; font-size: 0.9rem; }
-.dh__state { text-align: center; padding: 2rem 1rem; color: #666; }
-.dh__state--error { color: #dc2626; }
+.dh__state { position: relative; z-index: 1; text-align: center; padding: 2rem 1rem; color: #e5efe8; }
+.dh__state--error { color: #fecaca; }
 .dh__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
 /* Op tablet/desktop mag het geheel wat breder; de tegels gaan dan op één rij. */
 @media (min-width: 900px) { .dh__body { max-width: 860px; } }
 
-.dh__customer { text-align: center; color: #374151; font-weight: 600; margin: 0 0 1rem; }
-.dh__linked { font-size: 0.85rem; color: #6b7280; margin: 0 0 0.85rem; text-align: center; }
+.dh__customer { text-align: center; color: #fff; font-weight: 700; margin: 0 0 1rem; font-size: 1.1rem; }
+.dh__linked { font-size: 0.85rem; color: #cfe3d6; margin: 0 0 0.85rem; text-align: center; }
 
 /* Ingetogen stoplichtkaart: witte kaart met gekleurde accentrand, geen
    vol alarmvlak ("dat rode geschreeuw niet" -- Jos, 2026-07-13). */
+/* Zelfde glas-opmaak als de tegels ("mooi eenduidig", Jos 2026-07-14); de
+   status blijft afleesbaar via de gekleurde accentrand + een lichte
+   pasteltint voor de tekst (donkere tinten lezen niet op glas). */
 .dh__verdict {
   display: flex; align-items: center; gap: 0.85rem;
-  background: #fff; border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1.25rem;
-  text-decoration: none; color: #111827;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-left: 6px solid transparent;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  border-radius: 14px; padding: 1rem 1.1rem; margin-bottom: 1.25rem;
+  text-decoration: none; color: #fff;
 }
 .dh__verdict--good { border-left-color: #16a34a; }
 .dh__verdict--warn { border-left-color: #d97706; }
@@ -199,23 +251,29 @@ onMounted(load);
 .dh__verdict-icon { font-size: 1.5rem; flex: 0 0 auto; }
 .dh__verdict-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .dh__verdict-text { font-size: 1.05rem; font-weight: 700; }
-.dh__verdict--good .dh__verdict-text { color: #166534; }
-.dh__verdict--warn .dh__verdict-text { color: #854d0e; }
-.dh__verdict--bad .dh__verdict-text { color: #991b1b; }
-.dh__verdict--empty .dh__verdict-text { color: #1e40af; }
-.dh__verdict-counts { font-size: 0.85rem; color: #6b7280; }
-.dh__verdict-chevron { flex: 0 0 auto; font-size: 1.5rem; color: #9ca3af; }
+.dh__verdict--good .dh__verdict-text { color: #86efac; }
+.dh__verdict--warn .dh__verdict-text { color: #fcd34d; }
+.dh__verdict--bad .dh__verdict-text { color: #fca5a5; }
+.dh__verdict--empty .dh__verdict-text { color: #93c5fd; }
+.dh__verdict-counts { font-size: 0.85rem; color: rgba(255, 255, 255, 0.8); }
+.dh__verdict-chevron { flex: 0 0 auto; font-size: 1.5rem; color: rgba(255, 255, 255, 0.6); }
 
 .dh__grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.85rem; }
 @media (min-width: 900px) { .dh__grid { grid-template-columns: repeat(4, 1fr); } }
+/* Glas-tegels, zelfde stijl als de keurmeester-app: het icoon onderscheidt de
+   tegel, niet de kleur. */
 .dh__tile {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 0.6rem; background: #fff; border-radius: 16px;
-  padding: 1.6rem 1rem; text-decoration: none; color: #111827;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  gap: 0.6rem; border-radius: 16px;
+  padding: 1.6rem 1rem; text-decoration: none; color: #fff;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+  transition: transform 0.1s, background 0.15s;
 }
-.dh__tile:active { background: #e5e7eb; }
+.dh__tile:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.22); }
 .dh__tile-icon { font-size: 2rem; }
 .dh__tile-label { font-weight: 700; font-size: 0.95rem; text-align: center; }
-.dh__tile-caption { font-size: 0.75rem; color: #854d0e; text-align: center; }
+.dh__tile-caption { font-size: 0.75rem; color: #fde68a; text-align: center; }
 </style>
