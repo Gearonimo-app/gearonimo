@@ -44,7 +44,9 @@
     "verdict": {
       "good": "All in order",
       "warn": "Inspection due soon",
-      "bad": "Action needed: gear rejected or inspection overdue"
+      "bad": "Action needed: gear rejected or inspection overdue",
+      "empty": "Welcome to Gearonimo!",
+      "emptyBody": "Register your first piece of gear here. The more complete your data, the more you get out of it: automatic recall alerts, the manual one click away — and later an inspector to fine-tune the registration."
     },
     "counts": {
       "ok": "in order",
@@ -170,7 +172,6 @@
   },
   "request": {
     "title": "Request an inspection",
-    "navLink": "Request inspection",
     "intro": "Pick an inspection company on the map or search by name, and send a request.",
     "mine": "My requests",
     "searchPlaceholder": "Search an inspection company by name",
@@ -180,9 +181,7 @@
     "messagePlaceholder": "Message (optional)",
     "send": "Send request",
     "withdraw": "Withdraw",
-    "view": "View",
-    "leadBanner": "Your equipment is not linked to an inspection company yet. Request an inspection whenever you like.",
-    "pendingBanner": "Your request to {company} is awaiting approval.",
+    "pendingCaption": "Awaiting approval from {company}",
     "linkedTo": "Linked to {company}",
     "status": {
       "pending": "Pending",

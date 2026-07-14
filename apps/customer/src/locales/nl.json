@@ -44,7 +44,9 @@
     "verdict": {
       "good": "Alles in orde",
       "warn": "Binnenkort keuring nodig",
-      "bad": "Actie nodig: materiaal afgekeurd of keuring verlopen"
+      "bad": "Actie nodig: materiaal afgekeurd of keuring verlopen",
+      "empty": "Welkom bij Gearonimo!",
+      "emptyBody": "Registreer hier je eerste materiaal. Hoe vollediger je gegevens, hoe meer je eraan hebt: automatische recall-meldingen, de handleiding met één klik — en straks een keurmeester die de puntjes op de i zet."
     },
     "counts": {
       "ok": "in orde",
@@ -170,7 +172,6 @@
   },
   "request": {
     "title": "Keuring aanvragen",
-    "navLink": "Keuring aanvragen",
     "intro": "Kies een keurbedrijf op de kaart of zoek op naam, en stuur een aanvraag.",
     "mine": "Mijn aanvragen",
     "searchPlaceholder": "Zoek een keurbedrijf op naam",
@@ -180,9 +181,7 @@
     "messagePlaceholder": "Bericht (optioneel)",
     "send": "Aanvraag sturen",
     "withdraw": "Intrekken",
-    "view": "Bekijken",
-    "leadBanner": "Je materiaal is nog niet gekoppeld aan een keurbedrijf. Vraag een keuring aan wanneer je wilt.",
-    "pendingBanner": "Je aanvraag bij {company} wacht op goedkeuring.",
+    "pendingCaption": "Wacht op goedkeuring bij {company}",
     "linkedTo": "Gekoppeld aan {company}",
     "status": {
       "pending": "In behandeling",

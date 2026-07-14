@@ -14,29 +14,22 @@
 
     <div v-else class="dh__body">
       <p class="dh__customer">{{ customerName }}</p>
-
-      <!-- Leadmotor: een klant zonder gekoppeld keurbedrijf ziet geen alarm maar
-           een uitnodiging om een keuring aan te vragen (BLAUWDRUK §7). Een
-           lopende aanvraag toont zijn status; een gekoppeld keurbedrijf staat
-           subtiel in beeld. -->
-      <section v-if="pendingRequest" class="dh__banner dh__banner--pending">
-        <span>{{ $t('request.pendingBanner', { company: pendingRequest.company_name }) }}</span>
-        <router-link v-if="isAdmin" to="/request" class="dh__banner-link">{{ $t('request.view') }}</router-link>
-      </section>
-      <section v-else-if="!companyName" class="dh__banner dh__banner--lead">
-        <span>{{ $t('request.leadBanner') }}</span>
-        <router-link v-if="isAdmin" to="/request" class="dh__banner-link">{{ $t('request.navLink') }}</router-link>
-      </section>
-      <p v-else class="dh__linked">{{ $t('request.linkedTo', { company: companyName }) }}</p>
+      <!-- Gekoppeld keurbedrijf: puur informatief, geen actie -- dubbelt dus
+           niet met de "Keuring aanvragen"-tegel en blijft daarom gewoon
+           hier staan (geen banner, geen kader). -->
+      <p v-if="companyName" class="dh__linked">{{ $t('request.linkedTo', { company: companyName }) }}</p>
 
       <!-- De stoplichtkaart: "ben ik in orde?" in één oogopslag, met de tellers
            erin. Bewust ingetogen (zachte tint, geen alarmvlak) en klikbaar:
-           bij aandachtspunten opent hij Mijn materiaal voorgefilterd. -->
+           bij aandachtspunten opent hij Mijn materiaal voorgefilterd. Nog
+           geen materiaal? Dan geen hol "alles in orde" maar een welkom
+           (Jos, 2026-07-13). -->
       <router-link class="dh__verdict" :class="`dh__verdict--${verdict}`" :to="verdictLink">
         <span class="dh__verdict-icon">{{ verdictIcon }}</span>
         <span class="dh__verdict-main">
           <span class="dh__verdict-text">{{ $t(`home.verdict.${verdict}`) }}</span>
-          <span class="dh__verdict-counts">
+          <span v-if="verdict === 'empty'" class="dh__verdict-counts">{{ $t('home.verdict.emptyBody') }}</span>
+          <span v-else class="dh__verdict-counts">
             ✓ {{ counts.ok }} {{ $t('home.counts.ok') }}
             · ! {{ counts.due_soon }} {{ $t('home.counts.dueSoon') }}
             · ✗ {{ counts.action }} {{ $t('home.counts.action') }}<template v-if="counts.never">
@@ -58,9 +51,15 @@
           <span class="dh__tile-icon">📄</span>
           <span class="dh__tile-label">{{ $t('home.tiles.certificates') }}</span>
         </router-link>
+        <!-- Status van de aanvraag/koppeling stond eerst in een aparte banner
+             boven dit scherm -- dat was dubbelop met deze tegel (Jos,
+             2026-07-13: "de tegel is genoeg, geen dubbele dingen"). Alleen de
+             wachttoestand (nog geen ja/nee) is hier het vermelden waard; een
+             koppeling zelf staat al bovenaan het scherm. -->
         <router-link v-if="isAdmin" to="/request" class="dh__tile">
           <span class="dh__tile-icon">📅</span>
           <span class="dh__tile-label">{{ $t('home.tiles.request') }}</span>
+          <span v-if="pendingRequest" class="dh__tile-caption">{{ $t('request.pendingCaption', { company: pendingRequest.company_name }) }}</span>
         </router-link>
         <router-link v-if="isAdmin" to="/members" class="dh__tile">
           <span class="dh__tile-icon">⚙️</span>
@@ -119,15 +118,17 @@ const counts = computed(() => ({
 }));
 
 // Nooit-gekeurde artikelen maken het oordeel bewust niet rood (zie
-// packages/core status.ts) -- die krijgen hun eigen teller.
-const verdict = computed<"good" | "warn" | "bad">(() => {
+// packages/core status.ts) -- die krijgen hun eigen teller. Nul artikelen is
+// geen "alles in orde" (dat voelde hol, Jos 2026-07-13) maar een welkom.
+const verdict = computed<"good" | "warn" | "bad" | "empty">(() => {
+  if (statuses.value.length === 0) return "empty";
   if (counts.value.action > 0) return "bad";
   if (counts.value.due_soon > 0) return "warn";
   return "good";
 });
-const verdictIcon = computed(() => ({ good: "✅", warn: "⚠️", bad: "❗" })[verdict.value]);
+const verdictIcon = computed(() => ({ good: "✅", warn: "⚠️", bad: "❗", empty: "👋" })[verdict.value]);
 const verdictLink = computed(() =>
-  verdict.value === "good" ? "/materials" : "/materials?filter=aandacht"
+  verdict.value === "good" || verdict.value === "empty" ? "/materials" : "/materials?filter=aandacht"
 );
 
 async function load() {
@@ -181,18 +182,6 @@ onMounted(load);
 @media (min-width: 900px) { .dh__body { max-width: 860px; } }
 
 .dh__customer { text-align: center; color: #374151; font-weight: 600; margin: 0 0 1rem; }
-
-.dh__banner {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-  border-radius: 14px; padding: 0.9rem 1.1rem; margin-bottom: 0.85rem;
-  font-size: 0.95rem; font-weight: 600;
-}
-.dh__banner--lead { background: #dbeafe; color: #1e40af; }
-.dh__banner--pending { background: #fef9c3; color: #854d0e; }
-.dh__banner-link {
-  flex: 0 0 auto; background: #fff; border-radius: 8px; padding: 0.4rem 0.8rem;
-  text-decoration: none; color: #1a3a2a; font-weight: 700; font-size: 0.85rem;
-}
 .dh__linked { font-size: 0.85rem; color: #6b7280; margin: 0 0 0.85rem; text-align: center; }
 
 /* Ingetogen stoplichtkaart: witte kaart met gekleurde accentrand, geen
@@ -206,12 +195,14 @@ onMounted(load);
 .dh__verdict--good { border-left-color: #16a34a; }
 .dh__verdict--warn { border-left-color: #d97706; }
 .dh__verdict--bad { border-left-color: #dc2626; }
+.dh__verdict--empty { border-left-color: #2563eb; }
 .dh__verdict-icon { font-size: 1.5rem; flex: 0 0 auto; }
 .dh__verdict-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .dh__verdict-text { font-size: 1.05rem; font-weight: 700; }
 .dh__verdict--good .dh__verdict-text { color: #166534; }
 .dh__verdict--warn .dh__verdict-text { color: #854d0e; }
 .dh__verdict--bad .dh__verdict-text { color: #991b1b; }
+.dh__verdict--empty .dh__verdict-text { color: #1e40af; }
 .dh__verdict-counts { font-size: 0.85rem; color: #6b7280; }
 .dh__verdict-chevron { flex: 0 0 auto; font-size: 1.5rem; color: #9ca3af; }
 
@@ -226,4 +217,5 @@ onMounted(load);
 .dh__tile:active { background: #e5e7eb; }
 .dh__tile-icon { font-size: 2rem; }
 .dh__tile-label { font-weight: 700; font-size: 0.95rem; text-align: center; }
+.dh__tile-caption { font-size: 0.75rem; color: #854d0e; text-align: center; }
 </style>
