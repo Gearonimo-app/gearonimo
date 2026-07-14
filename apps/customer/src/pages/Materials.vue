@@ -73,10 +73,6 @@
               <div class="mt__item-main" @click="router.push(`/materials/${row.article.id}`)">
                 <div class="mt__item-name">
                   {{ [row.article.brand, row.article.name].filter(Boolean).join(' ') || $t('home.untitled') }}
-                  <!-- Tekstlink i.p.v. het boek-emoji: dat rendert op sommige
-                       desktopfonts als een leeg vierkantje. -->
-                  <a v-if="row.article.manual_url" :href="row.article.manual_url" target="_blank" class="mt__manual" @click.stop>{{ $t('home.manual') }}</a>
-                  <a v-if="row.article.recall_url" :href="row.article.recall_url" target="_blank" class="mt__recall" :title="$t('home.recall')" @click.stop>🚩 {{ $t('home.recall') }}</a>
                 </div>
                 <div class="mt__item-meta">
                   <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
@@ -461,9 +457,6 @@ onMounted(load);
 .mt__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
 .mt__item-main { min-width: 0; cursor: pointer; flex: 1; }
 .mt__item-name { font-weight: 600; }
-.mt__item-name a { text-decoration: none; margin-left: 0.35rem; }
-.mt__recall { color: #dc2626; font-size: 0.8rem; font-weight: 700; }
-.mt__manual { color: #16a34a; font-size: 0.8rem; font-weight: 600; margin-left: 0.35rem; }
 .mt__trash {
   flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
   font-size: 1rem; opacity: 0.45; padding: 0.25rem;
