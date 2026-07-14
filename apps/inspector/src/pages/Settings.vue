@@ -33,6 +33,7 @@
       <ImportWizard v-else-if="section === 'import'" />
       <CompanyListing v-else-if="section === 'listing'" />
       <CatalogSettings v-else-if="section === 'catalog'" />
+      <PlatformHeroSettings v-else-if="section === 'hero'" />
     </div>
   </div>
 </template>
@@ -47,12 +48,14 @@ import InspectorsSettings from '../components/InspectorsSettings.vue'
 import ImportWizard from '../components/ImportWizard.vue'
 import CompanyListing from '../components/CompanyListing.vue'
 import CatalogSettings from '../components/CatalogSettings.vue'
+import PlatformHeroSettings from '../components/PlatformHeroSettings.vue'
 import { ensureInspector } from '../composables/useInspections'
+import { supabase } from '@gearonimo/core'
 
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog'
+type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -67,6 +70,11 @@ interface SectionDef {
 // 2026-07-03).
 const canCurateCatalog = ref(false)
 
+// De hero-foto-tegel is platform-breed (niet per bedrijf) en dus alleen
+// voor de platform-admin -- zie migratie
+// 20260714_platform_hero_and_dashboard_stat.sql.
+const isPlatformAdmin = ref(false)
+
 const sections = computed<SectionDef[]>(() => {
   const base: SectionDef[] = [
     { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
@@ -77,6 +85,9 @@ const sections = computed<SectionDef[]>(() => {
   ]
   if (canCurateCatalog.value) {
     base.push({ key: 'catalog', icon: '📚', title: 'settings.catalog.menuTitle', desc: 'settings.catalog.menuDesc', ready: true })
+  }
+  if (isPlatformAdmin.value) {
+    base.push({ key: 'hero', icon: '🖼️', title: 'settings.hero.menuTitle', desc: 'settings.hero.menuDesc', ready: true })
   }
   return base
 })
@@ -90,6 +101,7 @@ const headerTitle = computed(() => {
   if (section.value === 'import') return t('settings.import.menuTitle')
   if (section.value === 'listing') return t('settings.listing.menuTitle')
   if (section.value === 'catalog') return t('settings.catalog.menuTitle')
+  if (section.value === 'hero') return t('settings.hero.menuTitle')
   return t('settings.title')
 })
 
@@ -100,6 +112,8 @@ function open(s: SectionDef) {
 onMounted(async () => {
   const inspector = await ensureInspector()
   canCurateCatalog.value = !!inspector.can_curate_catalog
+  const { data } = await supabase.rpc('is_platform_admin')
+  isPlatformAdmin.value = !!data
 })
 
 function back() {

@@ -24,7 +24,9 @@
     },
     "signOut": "Uitloggen",
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
-    "goToCustomerApp": "Ga naar de klantomgeving →"
+    "goToCustomerApp": "Ga naar de klantomgeving →",
+    "upcomingReinspections": "📅 {count} artikel(en) moeten binnen 30 dagen herkeurd worden",
+    "allGood": "✅ Alles op orde"
   },
   "serialSearch": {
     "title": "SN zoeken / Recall",
@@ -634,6 +636,14 @@
       "latitude": "Breedtegraad (latitude)",
       "longitude": "Lengtegraad (longitude)",
       "coordsHint": "De coördinaten bepalen je pin op de kaart. Zoek je adres op bijv. openstreetmap.org en neem de latitude/longitude over.",
+      "saved": "Opgeslagen."
+    },
+    "hero": {
+      "menuTitle": "Hero-foto",
+      "menuDesc": "De sfeerfoto op het hoofdmenu van alle keurbedrijven",
+      "intro": "Deze foto staat op het hoofdmenu van álle keurbedrijven op het platform (niet alleen dit bedrijf) — bedoeld om elk kwartaal te wisselen, bijv. met een klantfoto uit een social-media-actie. Aparte crops voor mobiel/tablet (staand) en desktop (breed).",
+      "mobileLabel": "Mobiel/tablet (staand)",
+      "desktopLabel": "Desktop (breed)",
       "saved": "Opgeslagen."
     }
   },

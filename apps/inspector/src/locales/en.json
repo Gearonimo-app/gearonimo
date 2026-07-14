@@ -24,7 +24,9 @@
     },
     "signOut": "Sign out",
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
-    "goToCustomerApp": "Go to the customer app →"
+    "goToCustomerApp": "Go to the customer app →",
+    "upcomingReinspections": "📅 {count} item(s) due for reinspection within 30 days",
+    "allGood": "✅ All up to date"
   },
   "serialSearch": {
     "title": "SN search / Recall",
@@ -634,6 +636,14 @@
       "latitude": "Latitude",
       "longitude": "Longitude",
       "coordsHint": "The coordinates set your pin on the map. Look up your address on e.g. openstreetmap.org and copy the latitude/longitude.",
+      "saved": "Saved."
+    },
+    "hero": {
+      "menuTitle": "Hero photo",
+      "menuDesc": "The mood photo on the main menu, for all inspection companies",
+      "intro": "This photo appears on the main menu for every inspection company on the platform (not just this one) — meant to change every quarter, e.g. with a customer photo from a social media contest. Separate crops for mobile/tablet (portrait) and desktop (wide).",
+      "mobileLabel": "Mobile/tablet (portrait)",
+      "desktopLabel": "Desktop (wide)",
       "saved": "Saved."
     }
   },

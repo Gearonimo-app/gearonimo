@@ -1,5 +1,7 @@
 <template>
-  <div class="home">
+  <div class="home" :style="heroStyle">
+    <div class="home__scrim"></div>
+
     <!-- Header -->
     <header class="home__header">
       <div class="home__header-row">
@@ -11,8 +13,10 @@
         </div>
         <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
       </div>
-      <div class="home__status">
-        <span class="home__status-dot" :class="statusClass"></span>
+      <!-- Eén melding, geen statistiek-etalage (UX-FLOW §4.4): certificaten
+           die binnen 30 dagen verlopen, actionable i.p.v. een vanity-teller. -->
+      <div class="home__status" :class="{ 'home__status--attention': upcomingReinspections > 0 }">
+        <span class="home__status-dot" :class="{ 'home__status-dot--attention': upcomingReinspections > 0 }"></span>
         {{ statusText }}
       </div>
     </header>
@@ -31,29 +35,30 @@
          zijn (RLS blokkeerde de dáta al, maar de schermen zelf bleven
          klikbaar, wat een klant-account de indruk gaf hier iets te kunnen). -->
     <template v-if="!notInspector">
-      <div class="home__search">
-        <input
-          v-model="searchQuery"
-          type="search"
-          :placeholder="$t('home.searchPlaceholder')"
-          class="home__search-input"
-          @input="onSearch"
-        />
-      </div>
+      <div class="home__body">
+        <div class="home__search">
+          <input
+            v-model="searchQuery"
+            type="search"
+            :placeholder="$t('home.searchPlaceholder')"
+            class="home__search-input"
+            @input="onSearch"
+          />
+        </div>
 
-      <nav class="home__grid">
-        <button
-          v-for="tile in tiles"
-          :key="tile.key"
-          class="home__tile"
-          :class="`home__tile--${tile.color}`"
-          @click="navigate(tile.route)"
-        >
-          <span v-if="tile.key === 'requests' && pendingRequests > 0" class="home__tile-badge">{{ pendingRequests }}</span>
-          <span class="home__tile-icon">{{ tile.icon }}</span>
-          <span class="home__tile-label">{{ $t(tile.label) }}</span>
-        </button>
-      </nav>
+        <nav class="home__grid">
+          <button
+            v-for="tile in tiles"
+            :key="tile.key"
+            class="home__tile"
+            @click="navigate(tile.route)"
+          >
+            <span v-if="tile.key === 'requests' && pendingRequests > 0" class="home__tile-badge">{{ pendingRequests }}</span>
+            <span class="home__tile-icon">{{ tile.icon }}</span>
+            <span class="home__tile-label">{{ $t(tile.label) }}</span>
+          </button>
+        </nav>
+      </div>
     </template>
   </div>
 </template>
@@ -61,10 +66,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { useAuth, supabase } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
+const { t } = useI18n()
 const { signOut, user } = useAuth()
 const searchQuery = ref('')
 
@@ -76,10 +83,37 @@ async function onSignOut() {
   router.push('/login')
 }
 
+// Platform-brede hero-foto (UX-FLOW.md §7): crowdsourced sfeerfoto, wisselt
+// per kwartaal via Instellingen -> Hero-foto (platform-admin only). Geen
+// foto ingesteld = nette fallback op de bestaande donkergroene kleur.
+const heroMobileUrl = ref<string | null>(null)
+const heroDesktopUrl = ref<string | null>(null)
+
+const heroStyle = computed(() => {
+  const url = heroDesktopUrl.value ?? heroMobileUrl.value
+  if (!url) return {}
+  return { '--home-hero-mobile': `url("${heroMobileUrl.value ?? url}")`, '--home-hero-desktop': `url("${url}")` }
+})
+
+async function loadHeroPhoto() {
+  const { data } = await supabase
+    .from('platform_settings')
+    .select('hero_photo_mobile_path, hero_photo_desktop_path')
+    .eq('id', true)
+    .maybeSingle()
+  if (data?.hero_photo_mobile_path) {
+    heroMobileUrl.value = supabase.storage.from('branding').getPublicUrl(data.hero_photo_mobile_path).data.publicUrl
+  }
+  if (data?.hero_photo_desktop_path) {
+    heroDesktopUrl.value = supabase.storage.from('branding').getPublicUrl(data.hero_photo_desktop_path).data.publicUrl
+  }
+}
+
 // Stil checken of dit account wel een keurmeester is: sinds de klant-app
 // (zelfde domein, gedeelde sessie) kan een klant-account hier belanden en
 // zag dan alleen lege lijsten. ensureInspector werpt dan een fout.
 onMounted(async () => {
+  loadHeroPhoto()
   try {
     await ensureInspector()
   } catch {
@@ -89,28 +123,28 @@ onMounted(async () => {
   // Openstaande keuring-aanvragen (leadmotor): tel ze voor de badge op de tegel.
   const { data } = await supabase.rpc('company_inspection_requests')
   pendingRequests.value = (data ?? []).length
+
+  const { data: count } = await supabase.rpc('upcoming_reinspections_count', { days_ahead: 30 })
+  upcomingReinspections.value = count ?? 0
 })
 
 const tiles = [
-  { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections',      color: 'green'  },
-  { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers',        color: 'orange' },
-  { key: 'requests',         icon: '📨', label: 'home.tiles.requests',         route: '/requests',         color: 'blue'   },
-  { key: 'offline',          icon: '⬇️', label: 'home.tiles.offline',          route: '/offline',          color: 'blue'   },
-  { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search',    color: 'purple' },
-  { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings',         color: 'gray'   },
+  { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections' },
+  { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers' },
+  { key: 'requests',         icon: '📨', label: 'home.tiles.requests',         route: '/requests' },
+  { key: 'offline',          icon: '⬇️', label: 'home.tiles.offline',          route: '/offline' },
+  { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search' },
+  { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings' },
 ]
 
-// Placeholder — wordt in fase 2 gevuld vanuit Supabase
-const itemsApprovedToday = ref(0)
+const upcomingReinspections = ref(0)
 
-const statusClass = computed(() =>
-  itemsApprovedToday.value > 0 ? 'home__status-dot--active' : ''
-)
 const statusText = computed(() =>
-  itemsApprovedToday.value > 0
-    ? `✅ ${itemsApprovedToday.value} items goed gekeurd vandaag`
-    : '—'
+  upcomingReinspections.value > 0
+    ? t('home.upcomingReinspections', { count: upcomingReinspections.value })
+    : t('home.allGood')
 )
+
 
 function navigate(route: string | null) {
   if (route) router.push(route)
@@ -127,17 +161,35 @@ function onSearch() {
 <style scoped>
 .home {
   min-height: 100vh;
-  background: #f0f4f8;
   display: flex;
   flex-direction: column;
   padding: 0;
+  position: relative;
+  background-color: #142a1f;
+  background-image: var(--home-hero-mobile, none);
+  background-size: cover;
+  background-position: center;
 }
+@media (min-width: 900px) {
+  .home { background-image: var(--home-hero-desktop, var(--home-hero-mobile, none)); }
+}
+
+/* Vaste overlay boven de foto: garandeert leesbare tekst/tegels ongeacht
+   welke sfeerfoto er per kwartaal onder staat (i.p.v. per foto handmatig
+   contrast tunen). */
+.home__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 26, 18, 0.82) 0%, rgba(10, 26, 18, 0.55) 40%, rgba(10, 26, 18, 0.88) 100%);
+  pointer-events: none;
+}
+
+.home__header, .home__body { position: relative; z-index: 1; }
 
 /* Header */
 .home__header {
-  background: #1a3a2a;
-  color: #fff;
   padding: 1.25rem 1.5rem 1rem;
+  color: #fff;
 }
 .home__header-row {
   display: flex;
@@ -160,7 +212,7 @@ function onSearch() {
 }
 .home__account {
   font-size: 0.82rem;
-  color: #a7c4b0;
+  color: #cfe3d6;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -168,13 +220,15 @@ function onSearch() {
 .home__signout {
   background: none;
   border: none;
-  color: #a7c4b0;
+  color: #cfe3d6;
   cursor: pointer;
   font-size: 0.9rem;
   flex-shrink: 0;
   align-self: flex-start;
 }
 .home__wrong-app {
+  position: relative;
+  z-index: 1;
   margin: 1.25rem 1.25rem 0;
   background: #fffbeb;
   border: 1px solid #fcd34d;
@@ -184,48 +238,59 @@ function onSearch() {
 }
 .home__wrong-app p { margin: 0 0 0.5rem; }
 .home__wrong-app-link { color: #16a34a; font-weight: 700; }
+
+/* Statusmelding: witte kaart met accentrand, ingetogen, geen rood
+   geschreeuw (UX-FLOW §8, "stoplichtkaart"-principe hergebruikt). */
 .home__status {
   font-size: 0.9rem;
-  opacity: 0.85;
-  display: flex;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a3a2a;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
+.home__status--attention { border-color: #f59e0b; }
 .home__status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #666;
+  background: #16a34a;
   display: inline-block;
+  flex-shrink: 0;
 }
-.home__status-dot--active {
-  background: #4ade80;
-}
+.home__status-dot--attention { background: #f59e0b; }
+
+.home__body { flex: 1; display: flex; flex-direction: column; }
 
 /* Zoekbalk */
 .home__search {
-  padding: 1rem 1.25rem 0.5rem;
-  background: #1a3a2a;
+  padding: 1.25rem 1.25rem 0.5rem;
 }
 .home__search-input {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: 10px;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.3);
   font-size: 1rem;
-  background: rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.18);
   color: #fff;
   box-sizing: border-box;
+  backdrop-filter: blur(6px);
 }
 .home__search-input::placeholder {
-  color: rgba(255,255,255,0.6);
+  color: rgba(255,255,255,0.75);
 }
 .home__search-input:focus {
   outline: none;
-  background: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.28);
 }
 
-/* Tegel-grid */
+/* Tegel-grid: één consistente glas-stijl i.p.v. losse regenboogkleuren --
+   het icoon onderscheidt de tegels, niet de kleur. */
 .home__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -235,6 +300,7 @@ function onSearch() {
 }
 
 .home__tile {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -242,20 +308,21 @@ function onSearch() {
   gap: 0.6rem;
   padding: 1.75rem 1rem;
   border-radius: 16px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
   cursor: pointer;
   font-size: 1rem;
   font-weight: 600;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  transition: transform 0.1s, box-shadow 0.1s;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
   min-height: 110px;
 }
 .home__tile:active {
   transform: scale(0.97);
-  box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+  background: rgba(255, 255, 255, 0.22);
 }
-.home__tile { position: relative; }
 .home__tile-badge {
   position: absolute; top: 0.6rem; right: 0.6rem;
   min-width: 1.4rem; height: 1.4rem; padding: 0 0.35rem;
@@ -267,11 +334,19 @@ function onSearch() {
 .home__tile-icon { font-size: 2rem; line-height: 1; }
 .home__tile-label { font-size: 0.9rem; text-align: center; line-height: 1.2; }
 
-/* Kleuren */
-.home__tile--green  { background: #16a34a; }
-.home__tile--blue   { background: #2563eb; }
-.home__tile--orange { background: #ea580c; }
-.home__tile--purple { background: #7c3aed; }
-.home__tile--gray   { background: #4b5563; }
-.home__tile--light  { background: #9ca3af; cursor: default; }
+/* Desktop: statusmelding + zoekbalk links, tegels rechts in een bredere grid. */
+@media (min-width: 900px) {
+  .home__body {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 1.5rem;
+    padding: 0 1.5rem 1.5rem;
+    align-items: start;
+  }
+  .home__search { padding: 0; }
+  .home__grid {
+    grid-template-columns: repeat(3, 1fr);
+    padding: 0;
+  }
+}
 </style>
