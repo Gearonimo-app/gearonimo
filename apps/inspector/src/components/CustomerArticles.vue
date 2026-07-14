@@ -3,21 +3,8 @@
     <div class="ca__head">
       <h2>{{ $t('articles.title') }}</h2>
       <div class="ca__head-actions">
-        <button v-if="articles.length > 1 && !showAdd" class="ca__select-toggle" @click="toggleSelectMode">
-          {{ selectMode ? $t('common.cancel') : $t('sets.group.selectButton') }}
-        </button>
-        <button v-if="!showAdd && !selectMode" class="ca__add" @click="openAdd">+ {{ $t('articles.add') }}</button>
+        <button v-if="!showAdd" class="ca__add" @click="openAdd">+ {{ $t('articles.add') }}</button>
       </div>
-    </div>
-
-    <!-- Samenstellen vanuit de lijst: artikelen aanvinken en in één stap
-         groeperen, i.p.v. eerst een lege set aan te maken (besluit Jos
-         2026-07-11). -->
-    <div v-if="selectMode" class="ca__group-bar">
-      <span>{{ $t('sets.group.selectedCount', { count: selectedIds.length }) }}</span>
-      <button class="ca__group-btn" :disabled="selectedIds.length === 0" @click="openGroupDialog">
-        {{ $t('sets.group.action') }}
-      </button>
     </div>
 
     <div v-if="loading" class="ca__state">{{ $t('common.loading') }}</div>
@@ -37,39 +24,53 @@
           @click="$router.push(`/sets/${row.groupId}`)"
         >🔗 {{ row.groupName }}<span class="ca__group-chev">›</span></li>
         <li class="ca__item" :class="{ 'ca__item--grouped': row.groupId }">
-          <input
-            v-if="selectMode"
-            type="checkbox"
-            class="ca__checkbox"
-            :checked="selectedIds.includes(row.article.id)"
-            @change="toggleSelect(row.article.id)"
-          />
-          <div class="ca__item-main" @click="selectMode ? toggleSelect(row.article.id) : $router.push(`/articles/${row.article.id}`)">
+          <div class="ca__item-main" @click="$router.push(`/articles/${row.article.id}`)">
             <div class="ca__desc">{{ articleLabel(row.article) }}</div>
             <div class="ca__meta">
               <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
               <span v-if="!row.article.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
             </div>
           </div>
-          <template v-if="!selectMode">
-            <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
-                 een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
-            <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = row.article">🔗+</button>
-            <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
-                 Geen kaal vinkje meer: de knop opent een productformulier dat de
-                 keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
-                 2026-07-05). @click.stop zodat het niet doorklikt naar het
-                 artikeldetail. Actief = al aangemeld. -->
-            <button v-if="!row.article.product_id" type="button" class="ca__catalog-toggle"
-                    :class="{ 'ca__catalog-toggle--on': row.article.suggest_for_catalog }"
-                    :title="$t('articles.suggestForCatalog')"
-                    @click.stop="suggestFor = row.article">
-              📚
-            </button>
-          </template>
+          <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
+               een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
+          <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = row.article">🔗+</button>
+          <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
+               Geen kaal vinkje meer: de knop opent een productformulier dat de
+               keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
+               2026-07-05). @click.stop zodat het niet doorklikt naar het
+               artikeldetail. Actief = al aangemeld. -->
+          <button v-if="!row.article.product_id" type="button" class="ca__catalog-toggle"
+                  :class="{ 'ca__catalog-toggle--on': row.article.suggest_for_catalog }"
+                  :title="$t('articles.suggestForCatalog')"
+                  @click.stop="suggestFor = row.article">
+            📚
+          </button>
         </li>
       </template>
     </ul>
+
+    <!-- Afgevoerd materiaal: archief, geen werkplek (ontwerpprincipe §1.3) --
+         standaard dicht, alleen op verzoek zichtbaar. Jos, 2026-07-13: "ik
+         mis het een knop met afgevoerde materialen" -- tot nu toe was een
+         afgevoerd artikel van deze klant nergens meer terug te vinden. -->
+    <button v-if="!loading" type="button" class="ca__retired-toggle" @click="toggleRetired">
+      {{ showRetired ? $t('articles.hideRetired') : $t('articles.showRetired') }}
+    </button>
+    <div v-if="showRetired" class="ca__retired">
+      <div v-if="loadingRetired" class="ca__state">{{ $t('common.loading') }}</div>
+      <p v-else-if="!retiredArticles.length" class="ca__state">{{ $t('articles.noRetired') }}</p>
+      <ul v-else class="ca__list">
+        <li v-for="a in retiredArticles" :key="a.id" class="ca__item" @click="$router.push(`/articles/${a.id}`)">
+          <div class="ca__item-main">
+            <div class="ca__desc">{{ articleLabel(a) }}</div>
+            <div class="ca__meta">
+              <span v-if="a.serial_number">SN {{ a.serial_number }}</span>
+              <span class="ca__badge ca__badge--retired">{{ $t('articles.detail.retiredBadge') }}{{ a.retired_reason ? ` (${a.retired_reason})` : '' }}</span>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
 
     <!-- Toevoegen (inline) -->
     <div v-if="showAdd" class="ca__form">
@@ -204,19 +205,6 @@
       @close="partFor = null"
     />
 
-    <div v-if="showGroupDialog" class="ca__overlay" @click.self="showGroupDialog = false">
-      <div class="ca__dialog">
-        <h2>{{ $t('sets.group.dialogTitle') }}</h2>
-        <input v-model="groupName" class="ca__input" :placeholder="$t('sets.fields.name')" />
-        <p v-if="groupError" class="ca__error">{{ groupError }}</p>
-        <div class="ca__actions">
-          <button class="ca__btn ca__btn--cancel" @click="showGroupDialog = false">{{ $t('common.cancel') }}</button>
-          <button class="ca__btn ca__btn--save" :disabled="groupSaving" @click="saveGroup">
-            {{ groupSaving ? $t('common.saving') : $t('common.save') }}
-          </button>
-        </div>
-      </div>
-    </div>
   </section>
 </template>
 
@@ -244,11 +232,37 @@ interface Article {
   product_id: string | null
   suggest_for_catalog: boolean
   product: ProductMatch | null
+  retired_reason?: string | null
 }
 
 const articles = ref<Article[]>([])
 const loading = ref(true)
 const error = ref('')
+
+// Afgevoerd materiaal: archief, standaard dicht (ontwerpprincipe §1.3),
+// alleen op verzoek geladen -- Jos, 2026-07-13.
+const showRetired = ref(false)
+const loadingRetired = ref(false)
+const retiredArticles = ref<Article[]>([])
+
+async function toggleRetired() {
+  showRetired.value = !showRetired.value
+  if (showRetired.value && !retiredArticles.value.length) await loadRetired()
+}
+
+async function loadRetired() {
+  if (!isOnline.value) return
+  loadingRetired.value = true
+  const { data, error: err } = await supabase
+    .from('articles')
+    .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, retired_reason, product:products(id, brand, name)')
+    .eq('customer_id', props.customerId)
+    .eq('retired', true)
+    .order('retired_at', { ascending: false })
+  loadingRetired.value = false
+  if (err) { error.value = err.message; return }
+  retiredArticles.value = (data ?? []) as unknown as Article[]
+}
 
 const showAdd = ref(false)
 const saving = ref(false)
@@ -392,16 +406,9 @@ function onSuggestSaved(suggested: boolean) {
 }
 const form = ref(emptyForm())
 
-// Sets: samenstellen vanuit de artikellijst (besloten met Jos 2026-07-11) --
-// i.p.v. eerst een lege set aanmaken en er dan artikelen bij zoeken, vink je
-// hier artikelen aan die je al voor je hebt en groepeer je ze in één stap.
-// Badges tonen meteen welke artikelen al bij een set horen.
-const selectMode = ref(false)
-const selectedIds = ref<string[]>([])
-const showGroupDialog = ref(false)
-const groupName = ref('')
-const groupSaving = ref(false)
-const groupError = ref('')
+// Sets: alleen nog via het 🔗+-knopje per artikel (AddPartDialog) -- het
+// aanvinken-en-groeperen hier is eruit (besloten met Jos 2026-07-13, zelfde
+// als de klant-app: gaf een dubbele weg naar hetzelfde).
 // article_id -> zijn (eerste) set. Voedt zowel de groepering in de lijst
 // hieronder als het setdetail-overzicht.
 const setInfo = ref<Record<string, { setId: string; setName: string }>>({})
@@ -431,44 +438,6 @@ const displayRows = computed<DisplayRow[]>(() => {
   }
   return result
 })
-
-function toggleSelectMode() {
-  selectMode.value = !selectMode.value
-  selectedIds.value = []
-}
-function toggleSelect(id: string) {
-  const i = selectedIds.value.indexOf(id)
-  if (i === -1) selectedIds.value.push(id)
-  else selectedIds.value.splice(i, 1)
-}
-function openGroupDialog() {
-  groupError.value = ''
-  const first = articles.value.find((a) => a.id === selectedIds.value[0])
-  groupName.value = first ? articleLabel(first) : ''
-  showGroupDialog.value = true
-}
-async function saveGroup() {
-  groupError.value = ''
-  if (!groupName.value.trim()) { groupError.value = t('sets.errors.nameRequired'); return }
-  groupSaving.value = true
-  const { data: set, error: setErr } = await supabase
-    .from('article_sets')
-    .insert({ customer_id: props.customerId, name: groupName.value.trim() })
-    .select('id')
-    .single()
-  if (setErr) { groupSaving.value = false; groupError.value = setErr.message; return }
-
-  const { error: membersErr } = await supabase
-    .from('article_set_members')
-    .insert(selectedIds.value.map((article_id) => ({ set_id: set.id, article_id })))
-  groupSaving.value = false
-  if (membersErr) { groupError.value = membersErr.message; return }
-
-  showGroupDialog.value = false
-  selectMode.value = false
-  selectedIds.value = []
-  await loadSets()
-}
 
 async function loadSets() {
   if (!isOnline.value) return
@@ -626,17 +595,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__head h2 { font-size: 1rem; margin: 0; }
 .ca__head-actions { display: flex; align-items: center; gap: 0.85rem; }
 .ca__add { background: none; border: none; color: #16a34a; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
-.ca__select-toggle { background: none; border: none; color: #2563eb; font-weight: 600; font-size: 0.9rem; cursor: pointer; }
-.ca__group-bar {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-  background: #eff6ff; border-radius: 10px; padding: 0.6rem 0.85rem; margin-bottom: 0.5rem;
-  font-size: 0.9rem; color: #1e40af;
-}
-.ca__group-btn {
-  background: #2563eb; color: #fff; border: none; border-radius: 8px;
-  padding: 0.45rem 0.85rem; font-weight: 600; cursor: pointer; font-size: 0.85rem;
-}
-.ca__group-btn:disabled { opacity: 0.5; cursor: default; }
 .ca__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }
 .ca__state--error { color: #dc2626; }
 .ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
@@ -651,7 +609,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__group-chev { margin-left: auto; font-size: 0.9rem; line-height: 1; opacity: 0.6; }
 .ca__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
 .ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
-.ca__checkbox { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; }
 .ca__part-btn {
   flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
   font-size: 0.95rem; opacity: 0.45; padding: 0.2rem;
@@ -666,13 +623,15 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__desc { font-weight: 600; }
 .ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
 .ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
+.ca__badge--retired { background: #f3f4f6; color: #6b7280; }
 .ca__set-badge { background: #eff6ff; color: #1e40af; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
-.ca__overlay {
-  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
-  display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100;
+
+/* Afgevoerd materiaal: archief, ingetogen -- geen groene/blauwe actieknop. */
+.ca__retired-toggle {
+  background: none; border: none; color: #6b7280; font-weight: 600; font-size: 0.85rem;
+  cursor: pointer; padding: 0.5rem 0; text-align: left;
 }
-.ca__dialog { background: #fff; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.6rem; }
-.ca__dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.ca__retired { margin-top: 0.25rem; }
 
 .ca__form {
   background: #fff; border-radius: 12px; padding: 1rem;

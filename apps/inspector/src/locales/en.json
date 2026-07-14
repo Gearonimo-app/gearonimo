@@ -132,6 +132,10 @@
     "cantFind": "Can't find it? Add as free article",
     "backToCatalog": "← Back to catalogue",
     "suggestForCatalog": "Suggest for product database",
+    "showRetired": "Show retired items",
+    "hideRetired": "Hide retired items",
+    "noRetired": "No retired items yet.",
+    "reinstate": "Put back into use",
     "fields": {
       "brand": "Brand",
       "description": "Description",
@@ -168,9 +172,6 @@
     "empty": "No sets yet",
     "itemsSuffix": "articles",
     "pickArticles": "Choose articles for this set",
-    "fields": {
-      "name": "Name (e.g. Lanyard John)"
-    },
     "errors": {
       "nameRequired": "Name is required",
       "articlesRequired": "Choose at least one article"
@@ -183,12 +184,6 @@
       "deleteSet": "Delete set",
       "deleteTitle": "Delete this set?",
       "deleteBody": "The articles themselves stay — only the grouping disappears."
-    },
-    "group": {
-      "selectButton": "Select",
-      "selectedCount": "{count} selected",
-      "action": "Group into set",
-      "dialogTitle": "Create set"
     },
     "addPart": {
       "title": "Add part",

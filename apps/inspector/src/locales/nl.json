@@ -132,6 +132,10 @@
     "cantFind": "Niet gevonden? Vrij artikel invoeren",
     "backToCatalog": "← Terug naar catalogus",
     "suggestForCatalog": "Toevoegen aan productendatabase",
+    "showRetired": "Afgevoerd materiaal weergeven",
+    "hideRetired": "Afgevoerd materiaal verbergen",
+    "noRetired": "Nog geen afgevoerd materiaal.",
+    "reinstate": "Weer in gebruik nemen",
     "fields": {
       "brand": "Merk",
       "description": "Omschrijving",
@@ -168,9 +172,6 @@
     "empty": "Nog geen sets",
     "itemsSuffix": "artikelen",
     "pickArticles": "Kies artikelen voor deze set",
-    "fields": {
-      "name": "Naam (bijv. Fliplijn Piet)"
-    },
     "errors": {
       "nameRequired": "Naam is verplicht",
       "articlesRequired": "Kies minstens één artikel"
@@ -183,12 +184,6 @@
       "deleteSet": "Set verwijderen",
       "deleteTitle": "Set verwijderen?",
       "deleteBody": "De artikelen zelf blijven bestaan, alleen de groepering verdwijnt."
-    },
-    "group": {
-      "selectButton": "Selecteren",
-      "selectedCount": "{count} geselecteerd",
-      "action": "Groepeer tot set",
-      "dialogTitle": "Set aanmaken"
     },
     "addPart": {
       "title": "Onderdeel toevoegen",

@@ -20,7 +20,9 @@
 
     <!-- Bekijken -->
     <div v-else-if="!editMode" class="ad__body">
-      <span v-if="article.retired" class="ad__retired-badge">{{ $t('articles.detail.retiredBadge') }}</span>
+      <span v-if="article.retired" class="ad__retired-badge">
+        {{ $t('articles.detail.retiredBadge') }}{{ article.retired_reason ? ` (${article.retired_reason})` : '' }}
+      </span>
       <dl class="ad__list">
         <div class="ad__view-row">
           <dt>{{ $t('articles.fields.brand') }}</dt>
@@ -35,6 +37,14 @@
       </dl>
       <button v-if="!article.retired && isOnline" class="ad__retire" @click="openRetire">
         {{ $t('articles.detail.retire') }}
+      </button>
+      <!-- Weer in gebruik nemen: bestond tot nu toe alleen binnen een lopende
+           keuring (SN-zoeken in InspectionWizard) -- Jos, 2026-07-13: vanuit
+           het klantdetail (nieuw "Afgevoerd materiaal"-overzicht) was een
+           afgevoerd artikel een doodlopend pad. Zelfde simpele veldreset,
+           zonder het meteen aan een keuring te koppelen. -->
+      <button v-if="article.retired && isOnline" class="ad__reinstate" :disabled="reinstating" @click="reinstate">
+        {{ reinstating ? $t('common.busy') : $t('articles.reinstate') }}
       </button>
     </div>
 
@@ -133,6 +143,7 @@ const error = ref('')
 const editMode = ref(false)
 const saving = ref(false)
 const retiring = ref(false)
+const reinstating = ref(false)
 const formError = ref('')
 const showRetire = ref(false)
 const everCertified = ref(true)
@@ -274,6 +285,22 @@ async function retire() {
   article.value = data
 }
 
+// Zelfde simpele veldreset als InspectionWizard.reinstateAndAdd (SN-zoeken
+// binnen een keuring), maar dan zonder het artikel meteen aan een lopende
+// keuring te koppelen -- dit scherm staat daar los van.
+async function reinstate() {
+  reinstating.value = true
+  const { data, error: err } = await supabase
+    .from('articles')
+    .update({ retired: false, retired_at: null, retired_reason: null })
+    .eq('id', id)
+    .select('*, product:products(id, brand, name)')
+    .single()
+  reinstating.value = false
+  if (err) { error.value = err.message; return }
+  article.value = data
+}
+
 function back() {
   // Gaat terug naar waar je vandaan kwam (serienummer-/recall-zoeken,
   // setdetail, ...) als die geschiedenis er is -- Vue Router (createWebHistory)
@@ -337,6 +364,12 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   border: 1px solid #fecaca; background: #fff; color: #dc2626;
   font-size: 1rem; font-weight: 600; cursor: pointer;
 }
+.ad__reinstate {
+  margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;
+  border: none; background: #16a34a; color: #fff;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+}
+.ad__reinstate:disabled { opacity: 0.6; }
 
 /* Bewerken */
 .ad__field { margin-bottom: 0.85rem; }
