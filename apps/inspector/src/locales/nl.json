@@ -643,11 +643,14 @@
       "intro": "Deze foto staat op het hoofdmenu van álle keurbedrijven op het platform (niet alleen dit bedrijf) — bedoeld om elk kwartaal te wisselen, bijv. met een klantfoto uit een social-media-actie. Aparte crops voor mobiel/tablet (staand) en desktop (breed).",
       "mobileLabel": "Mobiel/tablet (staand)",
       "desktopLabel": "Desktop (breed)",
+      "stripLabel": "Kopstrook subpagina's (breed/laag)",
       "chooseFile": "Foto kiezen…",
       "noPhoto": "Nog geen foto",
       "zoom": "Inzoomen",
       "horizontal": "Horizontaal",
       "vertical": "Verticaal",
+      "overlay": "Donkering",
+      "overlayHint": "Meer donkering = beter leesbare tekst op drukke of lichte foto's. Geldt voor het hoofdmenu én de kopstrook.",
       "saved": "Opgeslagen."
     }
   },

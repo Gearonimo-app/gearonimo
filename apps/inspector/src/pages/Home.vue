@@ -150,7 +150,10 @@ function navigate(route: string | null) {
 .home__scrim {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(10, 26, 18, 0.82) 0%, rgba(10, 26, 18, 0.5) 45%, rgba(10, 26, 18, 0.85) 100%);
+  background: linear-gradient(180deg,
+    rgba(10, 26, 18, calc(var(--hero-overlay, 0.55) + 0.2)) 0%,
+    rgba(10, 26, 18, var(--hero-overlay, 0.55)) 45%,
+    rgba(10, 26, 18, calc(var(--hero-overlay, 0.55) + 0.25)) 100%);
   pointer-events: none;
 }
 

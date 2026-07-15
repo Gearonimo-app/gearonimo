@@ -24,3 +24,22 @@ select,
 textarea {
   font-family: inherit;
 }
+
+/* Merkstrook: de platform-hero-foto als donkere kopstrook achter de gedeelde
+   PageHeader (.ph). Werkt alleen als er een strook-foto is ingesteld: zonder
+   --hero-strip is de background-image-waarde ongeldig en valt de scoped
+   donkergroene balk terug. --hero-strip/--hero-overlay worden gezet in
+   App.vue. !important omdat de scoped component-CSS specifieker is. */
+.ph {
+  background-image:
+    linear-gradient(rgba(10, 26, 18, var(--hero-overlay, 0.55)), rgba(10, 26, 18, var(--hero-overlay, 0.55))),
+    var(--hero-strip) !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+/* Effen kop (dashboard, dat al de volledige hero heeft): geen strook. */
+.ph--plain {
+  background-image: none !important;
+  background-color: #1a3a2a !important;
+}

@@ -4,7 +4,9 @@
      iedereen weet dat een logo klikbaar is. Rechts staat de paginatitel, of
      (op het dashboard) een slot voor bv. de uitlogknop. -->
 <template>
-  <header class="ph">
+  <!-- plain = effen groene kop zonder hero-strook. Op het dashboard (dat al de
+       volledige hero-achtergrond heeft) voorkomt dat een dubbel fotobeeld. -->
+  <header class="ph" :class="{ 'ph--plain': plain }">
     <button v-if="back" class="ph__back" :title="$t('common.back')" @click="router.push('/')">←</button>
     <span v-else></span>
     <router-link to="/" class="ph__brand">{{ $t('home.title') }}</router-link>
@@ -16,7 +18,7 @@
 import { useRouter } from "vue-router";
 
 const router = useRouter();
-defineProps<{ title?: string; back?: boolean }>();
+defineProps<{ title?: string; back?: boolean; plain?: boolean }>();
 </script>
 
 <style scoped>

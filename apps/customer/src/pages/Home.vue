@@ -6,7 +6,7 @@
 <template>
   <div class="dh" :style="heroStyle">
     <div class="dh__scrim"></div>
-    <PageHeader>
+    <PageHeader plain>
       <button class="dh__signout" @click="onSignOut">{{ $t('common.signOut') }}</button>
     </PageHeader>
 
@@ -216,7 +216,10 @@ onMounted(() => {
    sfeerfoto er per kwartaal onder staat. */
 .dh__scrim {
   position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(180deg, rgba(10, 26, 18, 0.7) 0%, rgba(10, 26, 18, 0.5) 45%, rgba(10, 26, 18, 0.82) 100%);
+  background: linear-gradient(180deg,
+    rgba(10, 26, 18, calc(var(--hero-overlay, 0.55) + 0.15)) 0%,
+    rgba(10, 26, 18, var(--hero-overlay, 0.55)) 45%,
+    rgba(10, 26, 18, calc(var(--hero-overlay, 0.55) + 0.27)) 100%);
 }
 .dh__body { position: relative; z-index: 1; }
 .dh__signout { background: none; border: none; color: #a7c4b0; cursor: pointer; font-size: 0.9rem; }
