@@ -1,13 +1,8 @@
 <template>
   <div class="iw">
-    <header class="iw__header">
-      <div class="iw__nav">
-        <button class="iw__icon" @click="$router.push(`/customers/${inspection?.customer_id}`)">←</button>
-        <button class="iw__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-      </div>
-      <h1>{{ inspection?.customer?.name }}</h1>
+    <AppHeader :title="inspection?.customer?.name" @back="$router.push(`/customers/${inspection?.customer_id}`)">
       <span class="iw__totals">{{ $t('inspections.table.totals', { passed: passedCount, rejected: rejectedCount, open: notAssessedCount }) }}</span>
-    </header>
+    </AppHeader>
 
     <div v-if="loading" class="iw__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="iw__state iw__state--error">{{ error }}</div>
@@ -459,6 +454,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'

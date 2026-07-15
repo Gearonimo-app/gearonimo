@@ -1,10 +1,6 @@
 <template>
   <div class="set">
-    <header class="set__header">
-      <button class="set__icon" @click="back">←</button>
-      <h1>{{ headerTitle }}</h1>
-      <button class="set__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-    </header>
+    <AppHeader :title="headerTitle" @back="back" />
 
     <!-- Overzicht van instellingen-onderdelen -->
     <ul v-if="section === null" class="set__menu">
@@ -39,6 +35,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

@@ -1,10 +1,6 @@
 <template>
   <div class="imp">
-    <header class="imp__header">
-      <button class="imp__icon" @click="$router.back()">←</button>
-      <h1>{{ $t('settings.import.menuTitle') }}</h1>
-      <span class="imp__icon"></span>
-    </header>
+    <AppHeader :title="$t('settings.import.menuTitle')" @back="$router.back()" />
 
     <div class="imp__body">
       <ImportWizard />
@@ -13,6 +9,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import ImportWizard from '../components/ImportWizard.vue'
 </script>
 

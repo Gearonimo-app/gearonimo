@@ -25,30 +25,5 @@ textarea {
   font-family: inherit;
 }
 
-/* Merkstrook: de platform-hero-foto als donkere kopstrook achter de
-   paginakoppen van de subpagina's (Home heeft al de volledige hero, dus die
-   valt hier bewust buiten). Werkt alleen als er een strook-foto is ingesteld:
-   zonder --hero-strip is de background-image-waarde ongeldig en valt de
-   scoped donkergroene balk terug. De donkering --hero-overlay (0..1) houdt de
-   koptekst leesbaar en is per foto instelbaar (Instellingen -> Hero-foto).
-   !important omdat de scoped page-CSS een hogere specificiteit heeft dan een
-   globale class. --hero-strip/--hero-overlay worden gezet in App.vue. */
-.ad__header,
-.cd__header,
-.customers__header,
-.il__header,
-.imp__header,
-.in__header,
-.iw__header,
-.od__header,
-.rq__header,
-.sd__header,
-.set__header,
-.ss__header {
-  background-image:
-    linear-gradient(rgba(10, 26, 18, var(--hero-overlay, 0.55)), rgba(10, 26, 18, var(--hero-overlay, 0.55))),
-    var(--hero-strip) !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-repeat: no-repeat !important;
-}
+/* De hero-kopstrook zit nu in het gedeelde AppHeader-component (scoped),
+   niet meer in een globale !important-regel over losse paginakoppen. */

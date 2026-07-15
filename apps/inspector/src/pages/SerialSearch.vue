@@ -1,10 +1,6 @@
 <template>
   <div class="ss">
-    <header class="ss__header">
-      <button class="ss__icon" @click="$router.push('/')">←</button>
-      <h1>{{ $t('serialSearch.title') }}</h1>
-      <button class="ss__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-    </header>
+    <AppHeader :title="$t('serialSearch.title')" back-to="/" />
 
     <!-- Modus-schakelaar: serienummer zoeken vs. recall zoeken -->
     <div class="ss__modes">
@@ -209,6 +205,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'

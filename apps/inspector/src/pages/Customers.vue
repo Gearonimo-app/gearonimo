@@ -1,13 +1,8 @@
 <template>
   <div class="customers">
-    <header class="customers__header">
-      <div class="customers__nav">
-        <button class="customers__back" @click="$router.push('/')">← Terug</button>
-        <button class="customers__back" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-      </div>
-      <h1>{{ $t('customers.title') }}</h1>
+    <AppHeader :title="$t('customers.title')" back-to="/">
       <button class="customers__add" @click="showAdd = true">+</button>
-    </header>
+    </AppHeader>
 
     <div class="customers__search">
       <input
@@ -41,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { errorMessage, useOfflineSession } from '@gearonimo/core'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'

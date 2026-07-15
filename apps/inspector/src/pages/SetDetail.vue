@@ -1,13 +1,8 @@
 <template>
   <div class="sd">
-    <header class="sd__header">
-      <div class="sd__nav">
-        <button class="sd__icon" @click="back">←</button>
-        <button class="sd__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-      </div>
-      <h1>{{ set?.name || $t('sets.title') }}</h1>
+    <AppHeader :title="set?.name || $t('sets.title')" @back="back">
       <button v-if="set && !editMode && isOnline" class="sd__icon" @click="startEdit">✎</button>
-    </header>
+    </AppHeader>
 
     <div v-if="loading" class="sd__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="sd__state sd__state--error">{{ error }}</div>
@@ -66,6 +61,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

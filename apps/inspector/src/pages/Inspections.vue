@@ -1,10 +1,6 @@
 <template>
   <div class="il">
-    <header class="il__header">
-      <button class="il__icon" @click="$router.push('/')">←</button>
-      <h1>{{ $t('inspections.listTitle') }}</h1>
-      <button class="il__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-    </header>
+    <AppHeader :title="$t('inspections.listTitle')" back-to="/" />
 
     <!-- Primaire actie: nieuwe keuring starten (los van de lijst zodat je
          nooit per ongeluk een oude keuring opent) -->
@@ -73,6 +69,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage, useOnline } from '@gearonimo/core'

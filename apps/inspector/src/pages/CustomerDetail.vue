@@ -1,13 +1,8 @@
 <template>
   <div class="cd">
-    <header class="cd__header">
-      <div class="cd__nav">
-        <button class="cd__icon" @click="$router.push('/customers')">←</button>
-        <button class="cd__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-      </div>
-      <h1>{{ customer?.name || $t('customers.title') }}</h1>
+    <AppHeader :title="(customer?.name as string) || $t('customers.title')" back-to="/customers">
       <button v-if="customer && !editMode" class="cd__icon" @click="startEdit">✎</button>
-    </header>
+    </AppHeader>
 
     <div v-if="loading" class="cd__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="cd__state cd__state--error">{{ error }}</div>
@@ -93,6 +88,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

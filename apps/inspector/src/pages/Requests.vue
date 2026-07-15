@@ -4,10 +4,7 @@
      of af. Zie migratie 20260717_inspection_requests_leadmotor.sql. -->
 <template>
   <div class="rq">
-    <header class="rq__header">
-      <button class="rq__home" :title="$t('common.back')" @click="$router.push('/')">🏠</button>
-      <h1>{{ $t('requests.title') }}</h1>
-    </header>
+    <AppHeader :title="$t('requests.title')" back-to="/" />
 
     <div v-if="loading" class="rq__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="rq__state rq__state--error">{{ error }}</div>
@@ -36,6 +33,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'

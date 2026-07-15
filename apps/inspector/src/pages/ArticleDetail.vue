@@ -1,18 +1,8 @@
 <template>
   <div class="ad">
-    <header class="ad__header">
-      <div class="ad__nav">
-        <button class="ad__icon" @click="back">←</button>
-        <button class="ad__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-      </div>
-      <div class="ad__title">
-        <h1>{{ articleLabel || $t('articles.title') }}</h1>
-        <!-- Jos raakte hier de weg kwijt na doorklikken vanuit recall-zoeken:
-             van welke klant is dit artikel? Nu altijd zichtbaar in de kop. -->
-        <span v-if="customerName" class="ad__customer">{{ customerName }}</span>
-      </div>
+    <AppHeader :title="articleLabel || $t('articles.title')" :subtitle="customerName || undefined" @back="back">
       <button v-if="article && !editMode && isOnline" class="ad__icon" @click="startEdit">✎</button>
-    </header>
+    </AppHeader>
 
     <div v-if="loading" class="ad__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="ad__state ad__state--error">{{ error }}</div>
@@ -90,6 +80,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

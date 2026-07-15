@@ -1,10 +1,6 @@
 <template>
   <div class="in">
-    <header class="in__header">
-      <button class="in__icon" @click="$router.push('/')">←</button>
-      <h1>{{ $t('inspections.newTitle') }}</h1>
-      <span class="in__icon"></span>
-    </header>
+    <AppHeader :title="$t('inspections.newTitle')" back-to="/" />
 
     <div class="in__search">
       <input
@@ -62,6 +58,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { errorMessage } from '@gearonimo/core'

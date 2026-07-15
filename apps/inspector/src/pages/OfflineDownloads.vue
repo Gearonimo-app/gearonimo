@@ -1,10 +1,6 @@
 <template>
   <div class="od">
-    <header class="od__header">
-      <button class="od__icon" @click="$router.push('/')">←</button>
-      <h1>{{ $t('offline.title') }}</h1>
-      <button class="od__icon" :title="$t('common.home')" @click="$router.push('/')">🏠</button>
-    </header>
+    <AppHeader :title="$t('offline.title')" back-to="/" />
 
     <!-- Vergrendeld: eerst PIN instellen of invoeren -->
     <div v-if="!session.checking.value && !session.isUnlocked.value" class="od__locked">
@@ -85,6 +81,7 @@
 </template>
 
 <script setup lang="ts">
+import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { errorMessage } from '@gearonimo/core'
