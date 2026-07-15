@@ -1,6 +1,7 @@
 import { createApp, watch } from "vue";
 import { createI18n } from "vue-i18n";
 import { createRouter, createWebHashHistory } from "vue-router";
+import "./style.css";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";

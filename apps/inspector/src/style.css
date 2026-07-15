@@ -1,0 +1,26 @@
+/* Globale basis: één systeem-sans voor de hele app (San Francisco op
+   Apple, Roboto op Android, Segoe UI op Windows). Zonder deze regel viel
+   alles terug op de browser-standaard -- Times New Roman. Bewust geen
+   Google-Fonts-link: die zou de offline-first PWA breken en elke lading een
+   externe request laten doen (AVG). Emoji-fallbacks erbij zodat de icoontjes
+   op de tegels overal kleuren houden. */
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Formulier-elementen erven het lettertype niet vanzelf van de browser. */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+}

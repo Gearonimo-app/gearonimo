@@ -2,6 +2,7 @@ import { createApp, watch } from "vue";
 import { createI18n } from "vue-i18n";
 import { createRouter, createWebHistory } from "vue-router";
 import { registerSW } from "virtual:pwa-register";
+import "./style.css";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
