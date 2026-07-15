@@ -224,6 +224,9 @@ async function save() {
   saved.value = false
   error.value = ''
   try {
+    // Oude paden onthouden zodat we hun bestanden kunnen opruimen nadat de
+    // nieuwe succesvol zijn opgeslagen (geen wees-foto's in de bucket).
+    const oldPaths: Record<TargetKey, string | null> = { ...paths }
     if (sourceImg) {
       for (const t of targets) {
         paths[t.key] = await uploadCrop(t)
@@ -240,6 +243,18 @@ async function save() {
       })
       .eq('id', true)
     if (err) throw err
+
+    // Pas ná een geslaagde opslag de vervangen bestanden verwijderen.
+    if (sourceImg) {
+      const stale = (Object.keys(oldPaths) as TargetKey[])
+        .map((k) => oldPaths[k])
+        .filter((p): p is string => !!p && !Object.values(paths).includes(p))
+      if (stale.length) {
+        // Verwijderen is best-effort: mislukt het, dan blijft hooguit een
+        // ongebruikt bestand staan -- geen reden om de opslag te laten falen.
+        await supabase.storage.from('branding').remove(stale).catch(() => {})
+      }
+    }
     saved.value = true
   } catch (e) {
     error.value = errorMessage(e)
