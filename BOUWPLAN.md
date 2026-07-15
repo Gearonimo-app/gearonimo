@@ -1111,6 +1111,44 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 > overstap met historie-meereizen. Elke stap heeft een "Verwacht:"-regel zodat
 > Jos per stap ✅/❌ kan terugkoppelen. `testdata-reset.sql` wist de
 > transactionele data + auth-accounts maar behoudt catalogus/bedrijf/afkeurcodes.
+>
+> **Styling-/opmaakronde (2026-07-14/15, met Jos live meetestend).** De
+> UI-opmaak-pas die al langer open stond (en UX-FLOW §7's crowdsourced
+> hero-foto) is gebouwd, plus onderweg gevonden bugs:
+> - **Platform-hero-foto**: sfeerfoto op het hoofdmenu van beide apps én als
+>   gedimde kopstrook op alle subpagina's. Instelbaar door de platform-admin
+>   via Instellingen → Hero-foto: één bronfoto, drie crops
+>   (mobiel/desktop/kopstrook) met inzoomen/uitlijnen en een
+>   donkering-schuif, live voorbeeld; oude bestanden worden bij opslaan
+>   opgeruimd. Nieuwe singleton-tabel `platform_settings` +
+>   `is_platform_admin()`; opslag in de bestaande `branding`-bucket
+>   (migraties `20260714`, `20260730` t/m `20260732` — alle door Jos
+>   uitgevoerd). Onderweg gefixt: `platform_admins.user_id`-FK wees naar
+>   `public.users` i.p.v. `auth.users` (derde keer dit patroon), en de tabel
+>   miste een grant ("permission denied").
+> - **Hoofdmenu's herbouwd**: glas-tegels (één stijl i.p.v. regenboogkleuren)
+>   over de foto; Pro-app desktop = statkaart links ("N artikelen te
+>   herkeuren binnen 30 dagen", nieuwe RPC `upcoming_reinspections_count`,
+>   bewust géén "alles op orde"-tekst en geen vanity-tellers) + 2×3-tegels
+>   rechts; zoekbalk van het hoofdmenu weg (dubbelop met de tegels).
+> - **Gedeelde koppen**: de 12 losse, uit de pas gelopen paginakoppen van de
+>   Pro-app vervangen door één `AppHeader` (terug+home links, titel midden,
+>   actie-slot rechts); klant-app-pagina's Members/Request alsnog aan de
+>   gedeelde `PageHeader`. De hero-kopstrook zit ín die componenten.
+> - **Lijn-iconen i.p.v. emoji**: gedeeld `GIcon`-component
+>   (`packages/ui`), stijl dun+rond, gekozen door Jos via een
+>   preview-artifact; gereedschapskist voor "Mijn materiaal".
+> - **Systeem-sans** als lettertype (er stond helemaal geen font-family —
+>   alles viel terug op Times New Roman); bewust geen webfont
+>   (offline-first + AVG).
+> - **Twee ernstige bugs gevonden en gefixt**: (1) supabase-js-deadlock —
+>   een query bínnen de `onAuthStateChange`-callback blokkeerde de hele
+>   klant-app op "Laden..." (fix: `setTimeout` buiten de callback-tick;
+>   boot headless geverifieerd); (2) verouderde PWA-chunks na een deploy
+>   lieten tegel-kliks stil falen (fix: `router.onError` + eenmalige
+>   reload, beide apps).
+> - **`CLAUDE.md` toegevoegd** met de werkafspraken/landmijnen uit deze
+>   ronde, zodat volgende sessies ze automatisch meekrijgen.
 
 - Dashboard "ben ik in orde", artikelen + historie, certificaten downloaden,
   handleiding-links.
