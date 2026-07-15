@@ -160,4 +160,22 @@ router.beforeEach(async (to) => {
   }
 });
 
+// Zelfherstel bij een verouderde lazy-chunk na een deploy: de pagina's worden
+// lui geladen (import()), met een gehashte bestandsnaam. Na een nieuwe deploy
+// bestaat die oude naam niet meer, dus een klik op een tegel kan stil falen
+// ("navigatie doet niets") tot de service worker zichzelf heeft bijgewerkt.
+// Vangt die importfout op en herlaadt één keer de doel-URL zodat de verse
+// index + chunks geladen worden. De sessionStorage-vlag voorkomt een lus;
+// hij wordt na een geslaagde navigatie weer gewist.
+router.onError((error, to) => {
+  const msg = String((error as Error)?.message || "");
+  const isChunkError =
+    /dynamically imported module|module script failed|Failed to fetch dynamically imported/i.test(msg);
+  if (!isChunkError) return;
+  if (sessionStorage.getItem("chunkReload")) return;
+  sessionStorage.setItem("chunkReload", "1");
+  window.location.assign(to.fullPath);
+});
+router.afterEach(() => sessionStorage.removeItem("chunkReload"));
+
 createApp(App).use(i18n).use(router).mount("#app");

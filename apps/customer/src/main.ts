@@ -58,6 +58,20 @@ router.beforeEach(async (to) => {
   if (isLoggedIn.value && to.path === "/login") return "/";
 });
 
+// Zelfherstel bij een verouderde lazy-chunk na een deploy (zie de uitleg in
+// de inspector-main.ts): vangt de importfout op en herlaadt één keer, zodat
+// een klik op een tegel niet stil faalt tot de service worker is bijgewerkt.
+router.onError((error, to) => {
+  const msg = String((error as Error)?.message || "");
+  const isChunkError =
+    /dynamically imported module|module script failed|Failed to fetch dynamically imported/i.test(msg);
+  if (!isChunkError) return;
+  if (sessionStorage.getItem("chunkReload")) return;
+  sessionStorage.setItem("chunkReload", "1");
+  window.location.assign(to.fullPath);
+});
+router.afterEach(() => sessionStorage.removeItem("chunkReload"));
+
 // De magic-link komt terug met de tokens in de hash
 // (/portal/#access_token=...). De hash-router zou die als (onbestaande)
 // route lezen -> wit scherm (gemeld door Jos, 2026-07-02). getSession()
