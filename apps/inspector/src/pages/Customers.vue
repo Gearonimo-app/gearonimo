@@ -1,7 +1,7 @@
 <template>
   <div class="customers">
     <AppHeader :title="$t('customers.title')" back-to="/">
-      <button class="customers__add" @click="showAdd = true">+</button>
+      <button class="customers__add" :title="$t('customers.addTitle')" @click="showAdd = true"><GIcon name="plus" class="hdr-glyph" /></button>
     </AppHeader>
 
     <div class="customers__search">
@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { GIcon } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
 import { errorMessage, useOfflineSession } from '@gearonimo/core'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'

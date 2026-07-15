@@ -7,10 +7,7 @@
      (en een eventuele oude koppeling beëindigd). -->
 <template>
   <div class="rq">
-    <header class="rq__header">
-      <button class="rq__home" :title="$t('common.back')" @click="router.push('/')">←</button>
-      <h1>{{ $t('request.title') }}</h1>
-    </header>
+    <PageHeader :title="$t('request.title')" back />
 
     <div v-if="loading" class="rq__state">{{ $t('common.loading') }}</div>
     <div v-else class="rq__body">
@@ -82,12 +79,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { useRouter } from "vue-router";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { supabase, errorMessage } from "@gearonimo/core";
+import PageHeader from "../components/PageHeader.vue";
 
-const router = useRouter();
 
 interface Company {
   id: string;
@@ -255,12 +251,6 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .rq { min-height: 100vh; background: #f0f4f8; }
-.rq__header {
-  background: #1a3a2a; color: #fff; display: flex; align-items: center; gap: 0.75rem;
-  padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
-}
-.rq__header h1 { font-size: 1.15rem; margin: 0; }
-.rq__home { background: none; border: none; color: #fff; font-size: 1.3rem; cursor: pointer; }
 .rq__state { text-align: center; padding: 2.5rem 1rem; color: #666; }
 .rq__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
 .rq__section { margin-bottom: 1.25rem; }

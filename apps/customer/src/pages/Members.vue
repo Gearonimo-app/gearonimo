@@ -1,12 +1,8 @@
 <template>
   <div class="mb">
-    <header class="mb__header">
-      <router-link to="/" class="mb__back">‹ {{ $t('members.back') }}</router-link>
-      <!-- De pagina heet "Instellingen" (de tegel op het dashboard); het
-           medewerkersbeheer + de uitnodigingscode zijn de inhoud ervan. -->
-      <h1>{{ $t('settings.title') }}</h1>
-      <span class="mb__spacer"></span>
-    </header>
+    <!-- De pagina heet "Instellingen" (de tegel op het dashboard); het
+         medewerkersbeheer + de uitnodigingscode zijn de inhoud ervan. -->
+    <PageHeader :title="$t('settings.title')" back />
 
     <div v-if="loading" class="mb__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="mb__state mb__state--error">{{ error }}</div>
@@ -126,6 +122,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase, errorMessage } from "@gearonimo/core";
+import PageHeader from "../components/PageHeader.vue";
 
 const router = useRouter();
 
@@ -326,14 +323,6 @@ onMounted(load);
 
 <style scoped>
 .mb { min-height: 100vh; background: #f0f4f8; }
-.mb__header {
-  background: #1a3a2a; color: #fff;
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;
-}
-.mb__header h1 { font-size: 1.2rem; margin: 0; flex: 1; text-align: center; }
-.mb__back { color: #a7c4b0; text-decoration: none; font-size: 0.9rem; white-space: nowrap; }
-.mb__spacer { width: 3rem; }
 .mb__state { text-align: center; padding: 1.5rem 1rem; color: #666; }
 .mb__state--error { color: #dc2626; }
 .mb__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }

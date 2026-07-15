@@ -7,7 +7,8 @@
     "delete": "Delete",
     "home": "Home",
     "copy": "Copy",
-    "back": "Back"
+    "back": "Back",
+    "edit": "Edit"
   },
   "home": {
     "appName": "Gearonimo Pro",

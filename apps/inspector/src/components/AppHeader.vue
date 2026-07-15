@@ -12,8 +12,8 @@
 <template>
   <header class="apphdr">
     <div class="apphdr__side apphdr__side--left">
-      <button v-if="showBack" class="apphdr__btn" :title="$t('common.back')" @click="onBack">←</button>
-      <button v-if="showHome" class="apphdr__btn" :title="$t('common.home')" @click="router.push('/')">🏠</button>
+      <button v-if="showBack" class="apphdr__btn" :title="$t('common.back')" @click="onBack"><GIcon name="back" class="apphdr__glyph" /></button>
+      <button v-if="showHome" class="apphdr__btn" :title="$t('common.home')" @click="router.push('/')"><GIcon name="home" class="apphdr__glyph" /></button>
     </div>
     <div class="apphdr__title">
       <h1>{{ title }}</h1>
@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import { getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
+import { GIcon } from '@gearonimo/ui'
 
 const router = useRouter()
 const props = withDefaults(
@@ -98,5 +99,7 @@ function onBack() {
 .apphdr__btn {
   background: none; border: none; color: #fff;
   font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0.1rem 0.4rem;
+  display: grid; place-items: center;
 }
+.apphdr__glyph { width: 22px; height: 22px; }
 </style>

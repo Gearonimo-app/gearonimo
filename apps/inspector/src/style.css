@@ -27,3 +27,6 @@ textarea {
 
 /* De hero-kopstrook zit nu in het gedeelde AppHeader-component (scoped),
    niet meer in een globale !important-regel over losse paginakoppen. */
+
+/* Grootte van GIcon-lijniconen in kopbalk-actieknoppen (AppHeader-slot). */
+.hdr-glyph { width: 20px; height: 20px; display: block; }

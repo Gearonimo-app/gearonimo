@@ -37,5 +37,13 @@ async function loadHeroTheme() {
 }
 
 onMounted(loadHeroTheme)
-supabase.auth.onAuthStateChange(() => loadHeroTheme())
+// LET OP: nooit rechtstreeks supabase-aanroepen doen BINNEN de
+// onAuthStateChange-callback -- die draait terwijl supabase-js zijn interne
+// auth-vergrendeling vasthoudt, en elke query wacht op diezelfde
+// vergrendeling. Dat blokkeerde de klant-app volledig op "Laden..." en
+// hield hier de kopstrook-foto tegen (gevonden 2026-07-15). setTimeout
+// plant de query buiten de callback-tick.
+supabase.auth.onAuthStateChange(() => {
+  setTimeout(loadHeroTheme, 0)
+})
 </script>

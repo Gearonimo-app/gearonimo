@@ -7,7 +7,7 @@
   <!-- plain = effen groene kop zonder hero-strook. Op het dashboard (dat al de
        volledige hero-achtergrond heeft) voorkomt dat een dubbel fotobeeld. -->
   <header class="ph" :class="{ 'ph--plain': plain }">
-    <button v-if="back" class="ph__back" :title="$t('common.back')" @click="router.push('/')">←</button>
+    <button v-if="back" class="ph__back" :title="$t('common.back')" @click="router.push('/')"><GIcon name="back" class="ph__glyph" /></button>
     <span v-else></span>
     <router-link to="/" class="ph__brand">{{ $t('home.title') }}</router-link>
     <span class="ph__side"><slot>{{ title }}</slot></span>
@@ -16,6 +16,7 @@
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
+import { GIcon } from "@gearonimo/ui";
 
 const router = useRouter();
 defineProps<{ title?: string; back?: boolean; plain?: boolean }>();
@@ -28,9 +29,11 @@ defineProps<{ title?: string; back?: boolean; plain?: boolean }>();
   padding: 0.85rem 1.25rem; position: sticky; top: 0; z-index: 10;
 }
 .ph__back {
-  justify-self: start; background: none; border: none; color: #a7c4b0;
-  font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0.1rem 0.4rem;
+  justify-self: start; background: none; border: none; color: #fff;
+  line-height: 1; cursor: pointer; padding: 0.1rem 0.4rem;
+  display: grid; place-items: center;
 }
+.ph__glyph { width: 22px; height: 22px; }
 .ph__brand {
   justify-self: center; color: #fff; text-decoration: none;
   font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; font-size: 1.05rem;

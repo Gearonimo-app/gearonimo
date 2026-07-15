@@ -43,7 +43,7 @@
             @click="navigate(tile.route)"
           >
             <span v-if="tile.key === 'requests' && pendingRequests > 0" class="home__tile-badge">{{ pendingRequests }}</span>
-            <span class="home__tile-icon">{{ tile.icon }}</span>
+            <GIcon :name="tile.icon" class="home__tile-icon" />
             <span class="home__tile-label">{{ $t(tile.label) }}</span>
           </button>
         </nav>
@@ -56,6 +56,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth, supabase } from '@gearonimo/core'
+import { GIcon } from '@gearonimo/ui'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
@@ -115,12 +116,12 @@ onMounted(async () => {
 })
 
 const tiles = [
-  { key: 'inspections',      icon: '📋', label: 'home.tiles.inspections',      route: '/inspections' },
-  { key: 'customers',        icon: '👥', label: 'home.tiles.customers',        route: '/customers' },
-  { key: 'requests',         icon: '📨', label: 'home.tiles.requests',         route: '/requests' },
-  { key: 'offline',          icon: '⬇️', label: 'home.tiles.offline',          route: '/offline' },
-  { key: 'serial-search',    icon: '🔎', label: 'home.tiles.serialSearch',     route: '/serial-search' },
-  { key: 'settings',         icon: '⚙️', label: 'home.tiles.settings',         route: '/settings' },
+  { key: 'inspections',      icon: 'inspections', label: 'home.tiles.inspections',  route: '/inspections' },
+  { key: 'customers',        icon: 'customers',   label: 'home.tiles.customers',    route: '/customers' },
+  { key: 'requests',         icon: 'requests',    label: 'home.tiles.requests',     route: '/requests' },
+  { key: 'offline',          icon: 'offline',     label: 'home.tiles.offline',      route: '/offline' },
+  { key: 'serial-search',    icon: 'search',      label: 'home.tiles.serialSearch', route: '/serial-search' },
+  { key: 'settings',         icon: 'settings',    label: 'home.tiles.settings',     route: '/settings' },
 ]
 
 function navigate(route: string | null) {
@@ -262,7 +263,7 @@ function navigate(route: string | null) {
   font-size: 0.8rem; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
 }
-.home__tile-icon { font-size: 2rem; line-height: 1; }
+.home__tile-icon { width: 34px; height: 34px; }
 .home__tile-label { font-size: 0.9rem; text-align: center; line-height: 1.2; }
 
 /* Desktop: grote titel, statkaart links van het midden (vierkant, iets

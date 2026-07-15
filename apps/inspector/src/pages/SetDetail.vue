@@ -1,7 +1,7 @@
 <template>
   <div class="sd">
     <AppHeader :title="set?.name || $t('sets.title')" @back="back">
-      <button v-if="set && !editMode && isOnline" class="sd__icon" @click="startEdit">✎</button>
+      <button v-if="set && !editMode && isOnline" class="sd__icon" :title="$t('common.edit')" @click="startEdit"><GIcon name="edit" class="hdr-glyph" /></button>
     </AppHeader>
 
     <div v-if="loading" class="sd__state">{{ $t('common.loading') }}</div>
@@ -62,6 +62,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { GIcon } from '@gearonimo/ui'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'

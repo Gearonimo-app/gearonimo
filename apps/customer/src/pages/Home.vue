@@ -45,11 +45,11 @@
            beheerderswerk en blijven voor een gewone medewerker verborgen. -->
       <nav class="dh__grid">
         <router-link to="/materials" class="dh__tile">
-          <span class="dh__tile-icon">🧰</span>
+          <GIcon name="materials" class="dh__tile-icon" />
           <span class="dh__tile-label">{{ $t('home.tiles.materials') }}</span>
         </router-link>
         <router-link to="/certificates" class="dh__tile">
-          <span class="dh__tile-icon">📄</span>
+          <GIcon name="certificates" class="dh__tile-icon" />
           <span class="dh__tile-label">{{ $t('home.tiles.certificates') }}</span>
         </router-link>
         <!-- Status van de aanvraag/koppeling stond eerst in een aparte banner
@@ -58,12 +58,12 @@
              wachttoestand (nog geen ja/nee) is hier het vermelden waard; een
              koppeling zelf staat al bovenaan het scherm. -->
         <router-link v-if="isAdmin" to="/request" class="dh__tile">
-          <span class="dh__tile-icon">📅</span>
+          <GIcon name="calendar-check" class="dh__tile-icon" />
           <span class="dh__tile-label">{{ $t('home.tiles.request') }}</span>
           <span v-if="pendingRequest" class="dh__tile-caption">{{ $t('request.pendingCaption', { company: pendingRequest.company_name }) }}</span>
         </router-link>
         <router-link v-if="isAdmin" to="/members" class="dh__tile">
-          <span class="dh__tile-icon">⚙️</span>
+          <GIcon name="settings" class="dh__tile-icon" />
           <span class="dh__tile-label">{{ $t('home.tiles.settings') }}</span>
         </router-link>
       </nav>
@@ -75,6 +75,7 @@
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
+import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
 
 const router = useRouter();
@@ -276,7 +277,7 @@ onMounted(() => {
   transition: transform 0.1s, background 0.15s;
 }
 .dh__tile:active { transform: scale(0.97); background: rgba(255, 255, 255, 0.22); }
-.dh__tile-icon { font-size: 2rem; }
+.dh__tile-icon { width: 34px; height: 34px; }
 .dh__tile-label { font-weight: 700; font-size: 0.95rem; text-align: center; }
 .dh__tile-caption { font-size: 0.75rem; color: #fde68a; text-align: center; }
 </style>
