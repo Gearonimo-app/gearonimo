@@ -16,7 +16,9 @@
       <span class="ad__status" :class="`ad__status--${status}`">{{ $t(`home.status.${status}`) }}</span>
 
       <dl v-if="!editMode" class="ad__list">
+        <div v-if="article.brand" class="ad__row"><dt>{{ $t('articleDetail.fields.brand') }}</dt><dd>{{ article.brand }}</dd></div>
         <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ article.category }}</dd></div>
+        <div v-if="article.material" class="ad__row"><dt>{{ $t('articleDetail.fields.material') }}</dt><dd>{{ article.material }}</dd></div>
         <div v-if="article.serial_number" class="ad__row"><dt>{{ $t('articleDetail.fields.serial') }}</dt><dd>{{ article.serial_number }}</dd></div>
         <div class="ad__row"><dt>{{ $t('articleDetail.fields.user') }}</dt><dd>{{ article.assigned_user_name || $t('articleDetail.noUser') }}</dd></div>
         <div v-if="article.manufacture_year" class="ad__row">
@@ -95,6 +97,7 @@ interface ArticleDetailRow {
   id: string;
   name: string | null;
   brand: string | null;
+  material: string | null;
   category: string | null;
   serial_number: string | null;
   assigned_user_name: string | null;

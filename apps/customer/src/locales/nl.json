@@ -118,7 +118,9 @@
     "noLastInspection": "Nog niet gekeurd",
     "firstUseLocked": "eenmalig ingevuld, niet meer te wijzigen",
     "fields": {
+      "brand": "Merk",
       "category": "Categorie",
+      "material": "Materiaal",
       "serial": "Serienummer",
       "user": "Gebruiker",
       "year": "Bouwjaar",

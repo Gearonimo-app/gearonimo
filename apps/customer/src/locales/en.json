@@ -118,7 +118,9 @@
     "noLastInspection": "Not inspected yet",
     "firstUseLocked": "set once, can no longer be changed",
     "fields": {
+      "brand": "Brand",
       "category": "Category",
+      "material": "Material",
       "serial": "Serial number",
       "user": "User",
       "year": "Year of manufacture",
