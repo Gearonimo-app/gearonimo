@@ -20,6 +20,8 @@
            hier staan (geen banner, geen kader). -->
       <p v-if="companyName" class="dh__linked">{{ $t('request.linkedTo', { company: companyName }) }}</p>
 
+      <PasskeyPrompt />
+
       <!-- De stoplichtkaart: "ben ik in orde?" in één oogopslag, met de tellers
            erin. Bewust ingetogen (zachte tint, geen alarmvlak) en klikbaar:
            bij aandachtspunten opent hij Mijn materiaal voorgefilterd. Nog
@@ -77,6 +79,7 @@ import { useRouter } from "vue-router";
 import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
+import PasskeyPrompt from "../components/PasskeyPrompt.vue";
 
 const router = useRouter();
 const { signOut } = useAuth();

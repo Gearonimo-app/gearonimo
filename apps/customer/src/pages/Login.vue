@@ -5,6 +5,19 @@
       <p class="lg__sub">{{ $t('login.subtitle') }}</p>
 
       <div v-if="!sent">
+        <!-- Alleen op een toestel dat hier al eerder een passkey op
+             registreerde (settings.security in Instellingen of de prompt na
+             de eerste login) -- op een nieuw toestel is er nog niets om mee
+             in te loggen, dus dan tonen we alleen het mailformulier. -->
+        <div v-if="showPasskeyButton" class="lg__passkey">
+          <button type="button" class="lg__btn lg__btn--passkey" :disabled="passkeyBusy" @click="handlePasskeyLogin">
+            <GIcon name="fingerprint" class="lg__passkey-icon" />
+            {{ passkeyBusy ? $t('login.busy') : $t('passkey.loginButton') }}
+          </button>
+          <p v-if="passkeyError" class="lg__error">{{ passkeyError }}</p>
+          <div class="lg__divider"><span>{{ $t('passkey.or') }}</span></div>
+        </div>
+
         <form @submit.prevent="handleLogin">
           <label class="lg__label">{{ $t('login.email') }}</label>
           <input v-model="email" type="email" required autocomplete="email" class="lg__input" />
@@ -27,15 +40,41 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import { useAuth, errorMessage } from "@gearonimo/core";
+import { ref, onMounted } from "vue";
+import { useAuth, errorMessage, passkeySupported, isPasskeyCancelled, isPasskeyEnabledOnThisDevice } from "@gearonimo/core";
+import { GIcon } from "@gearonimo/ui";
 
-const { signInWithMagicLink } = useAuth();
+const { signInWithMagicLink, signInWithPasskey } = useAuth();
 
 const email = ref("");
 const error = ref("");
 const busy = ref(false);
 const sent = ref(false);
+
+// Alleen tonen als dít toestel eerder al een passkey registreerde (zie
+// PasskeyPrompt.vue / Members.vue) -- anders is er niets om mee in te
+// loggen en zou de knop een doodlopend biometrie-schermpje openen.
+const showPasskeyButton = ref(false);
+const passkeyBusy = ref(false);
+const passkeyError = ref("");
+
+onMounted(() => {
+  showPasskeyButton.value = passkeySupported() && isPasskeyEnabledOnThisDevice();
+});
+
+async function handlePasskeyLogin() {
+  passkeyBusy.value = true;
+  passkeyError.value = "";
+  try {
+    await signInWithPasskey();
+    // Bij succes verwerkt de router-guard (main.ts) de nieuwe sessie en stuurt
+    // vanzelf door -- geen router.push nodig.
+  } catch (e) {
+    if (!isPasskeyCancelled(e)) passkeyError.value = errorMessage(e);
+  } finally {
+    passkeyBusy.value = false;
+  }
+}
 
 async function handleLogin() {
   busy.value = true;
@@ -79,4 +118,15 @@ async function handleLogin() {
 .lg__error { color: #dc2626; font-size: 0.9rem; margin: 0 0 0.75rem; }
 .lg__sent { text-align: center; color: #1a3a2a; }
 .lg__again { background: none; border: none; color: #16a34a; font-weight: 600; cursor: pointer; margin-top: 0.75rem; }
+
+.lg__passkey { margin-bottom: 1rem; }
+.lg__btn--passkey {
+  background: #1a3a2a; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+}
+.lg__passkey-icon { width: 20px; height: 20px; flex: 0 0 auto; }
+.lg__divider {
+  display: flex; align-items: center; gap: 0.75rem; margin: 1rem 0;
+  color: #9ca3af; font-size: 0.8rem;
+}
+.lg__divider::before, .lg__divider::after { content: ""; flex: 1; height: 1px; background: #e5e7eb; }
 </style>

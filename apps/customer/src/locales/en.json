@@ -30,6 +30,22 @@
     "again": "Use a different email address",
     "hint": "No password needed: you'll receive a link by email."
   },
+  "passkey": {
+    "loginButton": "Sign in with fingerprint / Face ID",
+    "or": "or",
+    "promptTitle": "Sign in without email from now on?",
+    "promptBody": "Use fingerprint or Face ID on this device to sign in faster — no more sign-in link by email.",
+    "promptAccept": "Yes, enable it",
+    "promptDecline": "Not now",
+    "settingsTitle": "Security",
+    "settingsBody": "Sign in on this device with fingerprint or Face ID instead of an email every time.",
+    "add": "+ Add device",
+    "remove": "Remove",
+    "removeConfirm": "Remove \"{name}\"? This device will no longer be able to sign in with fingerprint or Face ID — a new sign-in link by email always keeps working.",
+    "added": "Added on {date}",
+    "unnamed": "This device",
+    "empty": "No device linked yet."
+  },
   "join": {
     "title": "Link your company",
     "subtitle": "Enter the invite code you received from your inspector.",
