@@ -16,6 +16,7 @@
       <span class="ad__status" :class="`ad__status--${status}`">{{ $t(`home.status.${status}`) }}</span>
 
       <dl v-if="!editMode" class="ad__list">
+        <div v-if="article.name" class="ad__row"><dt>{{ $t('articleDetail.fields.article') }}</dt><dd>{{ article.name }}</dd></div>
         <div v-if="article.brand" class="ad__row"><dt>{{ $t('articleDetail.fields.brand') }}</dt><dd>{{ article.brand }}</dd></div>
         <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ article.category }}</dd></div>
         <div v-if="article.material" class="ad__row"><dt>{{ $t('articleDetail.fields.material') }}</dt><dd>{{ article.material }}</dd></div>

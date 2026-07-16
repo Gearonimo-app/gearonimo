@@ -118,6 +118,7 @@
     "noLastInspection": "Nog niet gekeurd",
     "firstUseLocked": "eenmalig ingevuld, niet meer te wijzigen",
     "fields": {
+      "article": "Artikel",
       "brand": "Merk",
       "category": "Categorie",
       "material": "Materiaal",

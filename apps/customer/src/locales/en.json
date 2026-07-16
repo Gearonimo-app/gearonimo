@@ -118,6 +118,7 @@
     "noLastInspection": "Not inspected yet",
     "firstUseLocked": "set once, can no longer be changed",
     "fields": {
+      "article": "Article",
       "brand": "Brand",
       "category": "Category",
       "material": "Material",
