@@ -4,8 +4,13 @@
 -- material stond nergens in de RPC; erbij via hetzelfde catalogus/vrij-
 -- artikel-coalesce-patroon (products.material / articles.free_material,
 -- DATAMODEL §2/§3).
+--
+-- Een extra kolom in de returns table wijzigt het rijtype van de functie --
+-- "create or replace" mag dat niet (42P13), eerst droppen.
 
-create or replace function public.my_article_detail(p_article_id uuid)
+drop function if exists public.my_article_detail(uuid);
+
+create function public.my_article_detail(p_article_id uuid)
 returns table (
   id uuid,
   name text,
