@@ -30,6 +30,22 @@
     "again": "Ander e-mailadres gebruiken",
     "hint": "Geen wachtwoord nodig: je krijgt een link per e-mail."
   },
+  "passkey": {
+    "loginButton": "Log in met vingerafdruk / Face ID",
+    "or": "of",
+    "promptTitle": "Voortaan inloggen zonder mail?",
+    "promptBody": "Gebruik vingerafdruk of Face ID op dit toestel om sneller in te loggen — geen inloglink per mail meer nodig.",
+    "promptAccept": "Ja, activeer",
+    "promptDecline": "Niet nu",
+    "settingsTitle": "Beveiliging",
+    "settingsBody": "Log in op dit toestel met vingerafdruk of Face ID in plaats van elke keer een mail.",
+    "add": "+ Toestel toevoegen",
+    "remove": "Verwijderen",
+    "removeConfirm": "\"{name}\" verwijderen? Dit toestel kan dan niet meer met vingerafdruk of Face ID inloggen — een nieuwe inloglink per mail blijft altijd werken.",
+    "added": "Toegevoegd op {date}",
+    "unnamed": "Dit toestel",
+    "empty": "Nog geen toestel gekoppeld."
+  },
   "join": {
     "title": "Koppel je bedrijf",
     "subtitle": "Vul de uitnodigingscode in die je van je keurmeester hebt gekregen.",

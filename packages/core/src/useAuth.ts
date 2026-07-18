@@ -61,6 +61,35 @@ export function useAuth() {
     if (error) throw error;
   }
 
+  // Registreert een passkey (vingerafdruk/Face ID/Windows Hello) voor de
+  // ingelogde gebruiker op dít toestel. Vereist een actieve sessie -- de
+  // eerste keer moet een klant dus altijd nog via magic-link/wachtwoord
+  // inloggen, pas daarna kan een toestel gekoppeld worden.
+  async function registerPasskey() {
+    const { data, error } = await supabase.auth.registerPasskey();
+    if (error) throw error;
+    return data;
+  }
+
+  // Discoverable-credential flow: de browser laat de gebruiker zelf een
+  // gekoppeld account/toestel kiezen, geen e-mailadres nodig vooraf.
+  async function signInWithPasskey() {
+    const { data, error } = await supabase.auth.signInWithPasskey();
+    if (error) throw error;
+    return data;
+  }
+
+  async function listPasskeys() {
+    const { data, error } = await supabase.auth.passkey.list();
+    if (error) throw error;
+    return data;
+  }
+
+  async function deletePasskey(passkeyId: string) {
+    const { error } = await supabase.auth.passkey.delete({ passkeyId });
+    if (error) throw error;
+  }
+
   return {
     user,
     loading,
@@ -70,5 +99,63 @@ export function useAuth() {
     signOut,
     resetPasswordForEmail,
     updatePassword,
+    registerPasskey,
+    signInWithPasskey,
+    listPasskeys,
+    deletePasskey,
   };
+}
+
+// Losse (niet-async-afhankelijke) capability-checks -- los van useAuth() zodat
+// een pagina vóór het tonen van een knop kan checken of dit toestel
+// vingerafdruk/Face ID ondersteunt, zonder een sessie nodig te hebben.
+export function passkeySupported(): boolean {
+  return typeof window !== "undefined" && !!window.PublicKeyCredential;
+}
+
+export async function platformAuthenticatorAvailable(): Promise<boolean> {
+  if (!passkeySupported() || !PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable) {
+    return false;
+  }
+  try {
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  } catch {
+    return false;
+  }
+}
+
+// Duck-typed check i.p.v. een afhankelijkheid op supabase-js' interne
+// WebAuthnError-klasse (die niet publiek geëxporteerd wordt): een gebruiker
+// die de vingerafdruk/Face ID-prompt annuleert of wegklikt hoort geen
+// foutmelding te zien, alleen andere mislukkingen (bv. geen internet) wel.
+export function isPasskeyCancelled(e: unknown): boolean {
+  const err = e as { code?: string; name?: string } | null;
+  return (
+    err?.code === "ERROR_CEREMONY_ABORTED" ||
+    err?.name === "AbortError" ||
+    err?.name === "NotAllowedError"
+  );
+}
+
+// Eén gedeelde bron voor de twee toestel-vlaggen rond passkeys (i.p.v. de
+// localStorage-sleutels los in Login.vue, PasskeyPrompt.vue en
+// Members.vue te herhalen). Bewust per-toestel (niet in het account) --
+// dat is precies wat een platform-passkey ook is.
+const PASSKEY_ENABLED_KEY = "gearonimo.passkeyEnabled";
+const PASSKEY_PROMPT_DISMISSED_KEY = "gearonimo.passkeyPromptDismissed";
+
+export function isPasskeyEnabledOnThisDevice(): boolean {
+  return typeof window !== "undefined" && localStorage.getItem(PASSKEY_ENABLED_KEY) === "1";
+}
+
+export function markPasskeyEnabledOnThisDevice(): void {
+  if (typeof window !== "undefined") localStorage.setItem(PASSKEY_ENABLED_KEY, "1");
+}
+
+export function isPasskeyPromptDismissed(): boolean {
+  return typeof window !== "undefined" && localStorage.getItem(PASSKEY_PROMPT_DISMISSED_KEY) === "1";
+}
+
+export function markPasskeyPromptDismissed(): void {
+  if (typeof window !== "undefined") localStorage.setItem(PASSKEY_PROMPT_DISMISSED_KEY, "1");
 }

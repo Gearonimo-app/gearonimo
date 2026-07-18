@@ -719,6 +719,30 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
   hieronder). De eerdere bouwfase-situatie (RLS uit + brede GRANTs aan
   `authenticated`) is daarmee afgesloten. Noodrem: `supabase/rls-rollback.sql`
   zet alles in één keer terug als er midden op een keurdag iets blokkeert.
+- **Passkey-login (vingerafdruk/Face ID) in de klant-app (2026-07-16):** Jos
+  wilde af van de magic-link-per-mail bij elke login. Supabase Auth heeft
+  sinds eind mei 2026 native (bèta) passkey/WebAuthn-ondersteuning; dat is nu
+  aangesloten in plaats van een eigen WebAuthn-implementatie. `useAuth.ts`
+  (packages/core) kreeg `registerPasskey`/`signInWithPasskey`/`listPasskeys`/
+  `deletePasskey` + capability-checks (`passkeySupported`,
+  `platformAuthenticatorAvailable`). Flow: na de **eerste** magic-link-login
+  op een toestel toont het dashboard automatisch een aanbod
+  (`PasskeyPrompt.vue`, besloten met Jos: automatisch i.p.v. verstopt in
+  Instellingen) om vingerafdruk/Face ID te activeren voor dát toestel; bij
+  "Ja" wordt een passkey geregistreerd en onthoudt de app dit lokaal
+  (`localStorage`, per toestel — dat is ook precies wat een platform-passkey
+  is). Volgende keer toont het loginscherm dan een
+  "Log in met vingerafdruk/Face ID"-knop vóór het mailformulier (die blijft
+  altijd als terugvaloptie staan). Beheer van gekoppelde toestellen
+  (toevoegen/verwijderen) staat in Instellingen → Beveiliging.
+  **Bèta-kanttekening**: Supabase's passkey-API kan nog wijzigen; **Jos moet
+  zelf** de Relying Party (naam, domein, toegestane origins) instellen in het
+  Supabase Dashboard onder Authentication → Passkeys voordat dit in productie
+  werkt — zonder die configuratie geeft `registerPasskey`/`signInWithPasskey`
+  een fout. Geen migratie nodig (Supabase beheert de passkey-tabellen zelf).
+  Nieuw icoon `fingerprint` toegevoegd aan het gedeelde `GIcon`
+  (packages/ui), zelfde dun+rond-stijl, visueel gecheckt met headless
+  Chromium vóór gebruik.
 
 Uitgangspunten:
 

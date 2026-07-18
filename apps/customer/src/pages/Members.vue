@@ -65,6 +65,32 @@
         </form>
       </section>
 
+      <!-- Beveiliging: vingerafdruk/Face ID i.p.v. elke keer een inloglink per
+           mail (Jos, 2026-07-16). Persoonlijk per account/toestel, dus geen
+           isAdmin-check -- iedere medewerker beheert zijn eigen toestellen. -->
+      <section v-if="passkeySupportedDevice" class="mb__section mb__security">
+        <div class="mb__section-head">
+          <h2>{{ $t('passkey.settingsTitle') }}</h2>
+          <button class="mb__add" :disabled="passkeyBusy" @click="addPasskey">{{ $t('passkey.add') }}</button>
+        </div>
+        <p class="mb__security-hint">{{ $t('passkey.settingsBody') }}</p>
+        <p v-if="passkeyError" class="mb__state mb__state--error">{{ passkeyError }}</p>
+
+        <p v-if="!passkeyLoading && !passkeys.length" class="mb__state">{{ $t('passkey.empty') }}</p>
+        <ul v-else-if="passkeys.length" class="mb__list">
+          <li v-for="pk in passkeys" :key="pk.id" class="mb__item">
+            <div class="mb__item-main">
+              <div class="mb__item-name">
+                <GIcon name="fingerprint" class="mb__security-icon" />
+                {{ pk.friendly_name || $t('passkey.unnamed') }}
+              </div>
+              <div class="mb__item-meta">{{ $t('passkey.added', { date: formatDate(pk.created_at) }) }}</div>
+            </div>
+            <button class="mb__edit" :disabled="passkeyBusy" @click="removePasskey(pk)">{{ $t('passkey.remove') }}</button>
+          </li>
+        </ul>
+      </section>
+
       <p v-if="!isAdmin" class="mb__state">{{ $t('members.readOnly') }}</p>
 
       <section class="mb__section">
@@ -121,8 +147,26 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { supabase, errorMessage } from "@gearonimo/core";
+import { useI18n } from "vue-i18n";
+import {
+  supabase,
+  errorMessage,
+  useAuth,
+  passkeySupported,
+  isPasskeyCancelled,
+  markPasskeyEnabledOnThisDevice,
+} from "@gearonimo/core";
+import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
+
+interface PasskeyRow {
+  id: string;
+  friendly_name?: string;
+  created_at: string;
+}
+
+const { registerPasskey, listPasskeys, deletePasskey } = useAuth();
+const { t } = useI18n();
 
 const router = useRouter();
 
@@ -165,6 +209,56 @@ const members = ref<MemberRow[]>([]);
 const company = ref<CompanyInfo>(emptyCompanyForm());
 const loading = ref(true);
 const error = ref("");
+
+const passkeySupportedDevice = passkeySupported();
+const passkeys = ref<PasskeyRow[]>([]);
+const passkeyLoading = ref(true);
+const passkeyBusy = ref(false);
+const passkeyError = ref("");
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleDateString();
+}
+
+async function loadPasskeys() {
+  passkeyLoading.value = true;
+  try {
+    passkeys.value = (await listPasskeys()) ?? [];
+  } catch (e) {
+    passkeyError.value = errorMessage(e);
+  } finally {
+    passkeyLoading.value = false;
+  }
+}
+
+async function addPasskey() {
+  passkeyBusy.value = true;
+  passkeyError.value = "";
+  try {
+    await registerPasskey();
+    markPasskeyEnabledOnThisDevice();
+    await loadPasskeys();
+  } catch (e) {
+    if (!isPasskeyCancelled(e)) passkeyError.value = errorMessage(e);
+  } finally {
+    passkeyBusy.value = false;
+  }
+}
+
+async function removePasskey(pk: PasskeyRow) {
+  const label = pk.friendly_name || t("passkey.unnamed");
+  if (!window.confirm(t("passkey.removeConfirm", { name: label }))) return;
+  passkeyBusy.value = true;
+  passkeyError.value = "";
+  try {
+    await deletePasskey(pk.id);
+    await loadPasskeys();
+  } catch (e) {
+    passkeyError.value = errorMessage(e);
+  } finally {
+    passkeyBusy.value = false;
+  }
+}
 
 const addressLine = computed(() => {
   const c = company.value;
@@ -319,6 +413,7 @@ async function copyCode() {
 }
 
 onMounted(load);
+if (passkeySupportedDevice) onMounted(loadPasskeys);
 </script>
 
 <style scoped>
@@ -346,6 +441,11 @@ onMounted(load);
   background: #16a34a; color: #fff; border: none; border-radius: 8px;
   padding: 0.4rem 0.8rem; font-weight: 700; cursor: pointer; font-size: 0.85rem;
 }
+.mb__add:disabled { opacity: 0.5; cursor: default; }
+
+.mb__security { margin-bottom: 1.5rem; }
+.mb__security-hint { font-size: 0.85rem; color: #6b7280; margin: 0 0 0.75rem; }
+.mb__security-icon { width: 18px; height: 18px; flex: 0 0 auto; color: #6b7280; }
 
 .mb__form {
   background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 0.85rem;
