@@ -5,7 +5,32 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Voortgang (bijgewerkt 2026-07-02)
+## Voortgang (bijgewerkt 2026-07-18)
+
+> **Sessie 2026-07-18 — grote code review + afronding openstaande punten:**
+> Diepe review van beide apps, core en alle migraties: 16 punten gevonden,
+> 14 gefixt en live (migraties 20260734 t/m 20260739, alle door Jos
+> uitgevoerd). Hoogtepunten: stil dataverlies gedicht (keurresultaat-save,
+> vastgelopen sync-mutaties), identiteit gewist bij uitloggen,
+> datum-verschuivingen gefixt (Excel-import/next_due/offline), storage per
+> keurbedrijf afgeschermd, **certificaatnummers uniek** via server-side
+> volgnummer (JJJJMMDD-KLANT, -2, -3 ...), verify + PDF lezen uit de
+> bevroren article_snapshot, "vorige keuring"-hint slaat not_assessed over
+> en sorteert op keurdatum, maandeinde-randgeval in addMonths, rem op
+> invite-codes (10/uur), nette melding bij klant-verwijderen met historie.
+> Verder: **certificaatnummers zichtbaar + doorzoekbaar** op de
+> keuringen-pagina, klantpagina-blokken inklapbaar met nieuw
+> **Certificaten-blok** per klant, **rollen en rechten af** (inspectors.
+> is_admin server-side afgedwongen: bedrijfsgegevens/certificaat-opmaak,
+> afkeurcodes, keurmeesters beheren en klanten verwijderen alleen voor
+> beheerders; vangnet-trigger tegen "laatste beheerder weg"; menu verbergt
+> beheerder-secties), en **Zoho-SMTP live** (smtppro.zoho.eu:587,
+> app-wachtwoord, afzender info@gearonimo.net — getest). Parallel is in een
+> andere sessie passkey/vingerafdruk-login aan de klant-app toegevoegd.
+> Nog open uit de review: alleen cosmetisch (env-bestand/.gitignore
+> tegenstrijdig, migratienamen 20260732+ zijn geen echte datums).
+
+## Voortgang (2026-07-02)
 
 - **GitHub:** github.com/Gearonimo-app/gearonimo · **Supabase:**
   buitfeiclivzzldfdelp.supabase.co (EU).
