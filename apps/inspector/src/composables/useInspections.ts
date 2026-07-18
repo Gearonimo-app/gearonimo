@@ -363,21 +363,38 @@ export async function findPreviousResult(
 ): Promise<{ result: string; comment: string | null; inspection_date: string } | null> {
   const { isOnline } = useOnline()
   if (isOnline.value) {
+    // Twee lessen uit de praktijk (Jos + code review 2026-07-18):
+    // 1. 'not_assessed' overslaan -- stond het artikel bij de laatste keuring
+    //    wel op de lijst maar is het niet beoordeeld (vergeten/kwijt), dan wil
+    //    de keurmeester de laatste ÉCHTE beoordeling zien, niet "—".
+    // 2. Sorteren op de keurdatum van de keuring, niet op created_at van de
+    //    rij -- na een Excel-import van oude historie zijn die rijen "nieuw"
+    //    en zou de import winnen van een recentere echte keuring.
     const { data, error } = await supabase
       .from('inspection_items')
-      .select('result, comment, inspection:inspections(inspection_date, status)')
+      .select('result, comment, created_at, inspection:inspections(inspection_date, status)')
       .eq('article_id', articleId)
       .neq('inspection_id', excludeInspectionId)
+      .neq('result', 'not_assessed')
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(50)
     if (error) throw error
     interface PrevItemRow {
       result: string
       comment: string | null
+      created_at: string
       inspection: { inspection_date: string; status: string } | null
     }
     const rows = (data ?? []) as unknown as PrevItemRow[]
-    const completed = rows.find((row) => row.inspection?.status === 'completed')
+    const completed = rows
+      .filter((row) => row.inspection?.status === 'completed')
+      .sort((a, b) => {
+        const byDate = (b.inspection!.inspection_date).localeCompare(a.inspection!.inspection_date)
+        if (byDate !== 0) return byDate
+        // Zelfde keurdatum: dan wél de nieuwst aangemaakte (bv. keuring
+        // 's ochtends én 's middags op dezelfde dag).
+        return b.created_at.localeCompare(a.created_at)
+      })[0]
     if (!completed || !completed.inspection) return null
     return {
       result: completed.result,

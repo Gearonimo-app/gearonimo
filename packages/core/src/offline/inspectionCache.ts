@@ -178,7 +178,7 @@ export async function getLocallyInspectedArticleIds(key: CryptoKey): Promise<Set
  * offline gemaakt), niet de volledige serverhistorie -- prima voor een
  * contexthint, niet voor besluitvorming (de keurmeester vult het resultaat
  * altijd zelf opnieuw in). */
-export async function findLocalPreviousResult<T extends { article_id: string; inspection_id: string }>(
+export async function findLocalPreviousResult<T extends { article_id: string; inspection_id: string; result: string }>(
   key: CryptoKey,
   articleId: string,
   excludeInspectionId: string
@@ -188,7 +188,10 @@ export async function findLocalPreviousResult<T extends { article_id: string; in
   const candidates: T[] = [];
   for (const row of allItems) {
     const item = await decryptJson<T>(key, row.enc);
-    if (item.article_id === articleId && item.inspection_id !== excludeInspectionId) {
+    // 'not_assessed' overslaan (Jos 2026-07-18): de hint moet de laatste
+    // ÉCHTE beoordeling tonen, niet een keer dat het artikel vergeten/kwijt
+    // was. Zelfde regel als de online variant in useInspections.
+    if (item.article_id === articleId && item.inspection_id !== excludeInspectionId && item.result !== "not_assessed") {
       candidates.push(item);
     }
   }
@@ -204,7 +207,7 @@ export async function findLocalPreviousResult<T extends { article_id: string; in
  * O(n^2) Web Crypto-aanroepen, merkbaar traag op een tablet bij een klant
  * met honderden artikelen. Dit ontsleutelt alles precies één keer en geeft
  * per artikel dezelfde "laatst toegevoegde kandidaat"-hint terug. */
-export async function findLocalPreviousResults<T extends { article_id: string; inspection_id: string }>(
+export async function findLocalPreviousResults<T extends { article_id: string; inspection_id: string; result: string }>(
   key: CryptoKey,
   articleIds: string[],
   excludeInspectionId: string
@@ -215,7 +218,8 @@ export async function findLocalPreviousResults<T extends { article_id: string; i
   const hits = new Map<string, T>();
   for (const row of allItems) {
     const item = await decryptJson<T>(key, row.enc);
-    if (wanted.has(item.article_id) && item.inspection_id !== excludeInspectionId) {
+    // 'not_assessed' overslaan -- zie findLocalPreviousResult hierboven.
+    if (wanted.has(item.article_id) && item.inspection_id !== excludeInspectionId && item.result !== "not_assessed") {
       hits.set(item.article_id, item);
     }
   }
