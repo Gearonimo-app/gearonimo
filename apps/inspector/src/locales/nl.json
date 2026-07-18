@@ -96,7 +96,8 @@
       "notFound": "Klant niet gevonden",
       "deleteTitle": "Klant verwijderen?",
       "deleteBody": "Dit kan niet ongedaan gemaakt worden.",
-      "inviteCode": "Uitnodigingscode klant-app"
+      "inviteCode": "Uitnodigingscode klant-app",
+      "deleteBlockedHistory": "Deze klant kan niet verwijderd worden: er is keurhistorie. Keurrapporten zijn een wettelijk bewijsstuk en blijven bewaard."
     }
   },
   "members": {

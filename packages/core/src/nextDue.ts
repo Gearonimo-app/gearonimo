@@ -30,8 +30,17 @@ export interface NextDueInput {
 }
 
 function addMonths(date: Date, months: number): Date {
+  // Code review 2026-07-18, punt 10: setMonth() loopt over bij maandeindes
+  // (31 jan + 1 maand werd 3 maart, 31 aug + 6 maanden werd 3 maart). Voor
+  // een keurtermijn moet dat de LAATSTE dag van de doelmaand worden (28 feb),
+  // nooit doorschieten naar de maand erna. Daarom: eerst naar dag 1, maanden
+  // optellen, dan de dag vastklemmen op wat de doelmaand aankan.
   const d = new Date(date);
+  const day = d.getDate();
+  d.setDate(1);
   d.setMonth(d.getMonth() + months);
+  const daysInTargetMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  d.setDate(Math.min(day, daysInTargetMonth));
   return d;
 }
 

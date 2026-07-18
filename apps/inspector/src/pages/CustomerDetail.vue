@@ -289,7 +289,12 @@ async function remove() {
     showDelete.value = false
     router.push('/customers')
   } catch (e) {
-    error.value = errorMessage(e)
+    // Nette melding i.p.v. rauwe databasefout (code review 2026-07-18, punt
+    // 15): een klant met keurhistorie mag niet weg (de FK van
+    // inspection_items/inspections blokkeert dat bewust -- keurrapporten zijn
+    // een wettelijk bewijsstuk). Postgres-code 23503 = foreign key violation.
+    const code = (e as { code?: string } | null)?.code
+    error.value = code === '23503' ? t('customers.detail.deleteBlockedHistory') : errorMessage(e)
     showDelete.value = false
   } finally {
     deleting.value = false

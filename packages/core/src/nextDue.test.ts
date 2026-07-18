@@ -33,4 +33,23 @@ describe("calcNextDue", () => {
     // eol = 2026-01, next_due would be 2027-01 → capped at 2026-01
     expect(result <= new Date("2026-06-01")).toBe(true);
   });
+
+  it("clamps month-end instead of overflowing (31 Jan + 6 mo = 31 Jul, 31 Aug + 6 mo = 28 Feb)", () => {
+    // Voor de fix werd 31 aug + 6 maanden "3 maart" (setMonth-overloop).
+    const a = calcNextDue({
+      inspection_date: new Date(2026, 7, 31), // 31 aug 2026, lokale tijd
+      country_code: "NL",
+      product_type: "ppe",
+      article_interval_override_months: 6,
+    });
+    expect([a.getFullYear(), a.getMonth(), a.getDate()]).toEqual([2027, 1, 28]); // 28 feb 2027
+
+    const b = calcNextDue({
+      inspection_date: new Date(2026, 0, 31), // 31 jan 2026
+      country_code: "NL",
+      product_type: "ppe",
+      article_interval_override_months: 6,
+    });
+    expect([b.getFullYear(), b.getMonth(), b.getDate()]).toEqual([2026, 6, 31]); // 31 jul 2026
+  });
 });

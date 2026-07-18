@@ -96,7 +96,8 @@
       "notFound": "Customer not found",
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
-      "inviteCode": "Customer app invite code"
+      "inviteCode": "Customer app invite code",
+      "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
     }
   },
   "members": {
