@@ -1,12 +1,17 @@
 <template>
   <section class="ca">
-    <div class="ca__head">
-      <h2>{{ $t('articles.title') }}</h2>
+    <!-- Inklapbaar, standaard dicht (wens Jos 2026-07-18): zo hoef je op de
+         klantpagina niet langs alle artikelen te scrollen. Aantal in de kop
+         zodat je zonder openklappen ziet hoeveel er zijn. -->
+    <div class="ca__head" role="button" @click="open = !open">
+      <span class="ca__chev">{{ open ? '▾' : '▸' }}</span>
+      <h2>{{ $t('articles.title') }}<span v-if="!loading && !error" class="ca__count">({{ articles.length }})</span></h2>
       <div class="ca__head-actions">
-        <button v-if="!showAdd" class="ca__add" @click="openAdd">+ {{ $t('articles.add') }}</button>
+        <button v-if="open && !showAdd" class="ca__add" @click.stop="openAdd">+ {{ $t('articles.add') }}</button>
       </div>
     </div>
 
+    <template v-if="open">
     <div v-if="loading" class="ca__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="ca__state ca__state--error">{{ error }}</div>
     <p v-else-if="articles.length === 0 && !showAdd" class="ca__state">{{ $t('articles.empty') }}</p>
@@ -205,6 +210,7 @@
       @close="partFor = null"
     />
 
+  </template>
   </section>
 </template>
 
@@ -236,6 +242,7 @@ interface Article {
 }
 
 const articles = ref<Article[]>([])
+const open = ref(false)
 const loading = ref(true)
 const error = ref('')
 
@@ -591,7 +598,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 
 <style scoped>
 .ca { margin-top: 1.5rem; }
-.ca__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.ca__head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; cursor: pointer; }
+.ca__head h2 { flex: 1; }
+.ca__chev { font-size: 0.9rem; color: #888; width: 1rem; }
+.ca__count { font-weight: normal; color: #888; margin-left: 0.35rem; }
 .ca__head h2 { font-size: 1rem; margin: 0; }
 .ca__head-actions { display: flex; align-items: center; gap: 0.85rem; }
 .ca__add { background: none; border: none; color: #16a34a; font-weight: 600; font-size: 0.95rem; cursor: pointer; }

@@ -738,5 +738,11 @@
       "name_search": "Via naam-zoeken",
       "switch": "Overstap"
     }
+  },
+  "certList": {
+    "title": "Certificaten",
+    "empty": "Nog geen certificaten",
+    "onlineOnly": "Alleen online beschikbaar",
+    "openPdf": "Certificaat-PDF openen"
   }
 }

@@ -1,10 +1,15 @@
 <template>
   <section class="cm">
-    <div class="cm__head">
-      <h2>{{ $t('members.title') }}</h2>
-      <button v-if="!showForm && isOnline" class="cm__add" @click="openAdd">+ {{ $t('members.add') }}</button>
+    <!-- Inklapbaar, standaard dicht (wens Jos 2026-07-18): zo hoef je op de
+         klantpagina niet langs alle medewerkers te scrollen. Aantal in de kop
+         zodat je zonder openklappen ziet of er iets staat. -->
+    <div class="cm__head" role="button" @click="open = !open">
+      <span class="cm__chev">{{ open ? '▾' : '▸' }}</span>
+      <h2>{{ $t('members.title') }}<span v-if="!loading && !error" class="cm__count">({{ members.length }})</span></h2>
+      <button v-if="open && !showForm && isOnline" class="cm__add" @click.stop="openAdd">+ {{ $t('members.add') }}</button>
     </div>
 
+    <template v-if="open">
     <div v-if="loading" class="cm__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="cm__state cm__state--error">{{ error }}</div>
     <p v-else-if="members.length === 0 && !showForm" class="cm__state">{{ $t('members.empty') }}</p>
@@ -60,6 +65,7 @@
         </div>
       </div>
     </div>
+  </template>
   </section>
 </template>
 
@@ -84,6 +90,7 @@ interface Member {
 }
 
 const members = ref<Member[]>([])
+const open = ref(false)
 const loading = ref(true)
 const error = ref('')
 
@@ -197,7 +204,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 
 <style scoped>
 .cm { margin-top: 1.5rem; }
-.cm__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+.cm__head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.5rem; cursor: pointer; }
+.cm__head h2 { flex: 1; }
+.cm__chev { font-size: 0.9rem; color: #888; width: 1rem; }
+.cm__count { font-weight: normal; color: #888; margin-left: 0.35rem; }
 .cm__head h2 { font-size: 1rem; margin: 0; }
 .cm__add { background: none; border: none; color: #16a34a; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
 .cm__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }

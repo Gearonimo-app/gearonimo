@@ -60,6 +60,9 @@
           <li v-for="i in completed" :key="i.id" class="il__item" @click="$router.push(`/inspections/${i.id}`)">
             <div class="il__name">{{ i.customer?.name }}</div>
             <div class="il__meta">{{ formatDate(i.completed_at ?? i.inspection_date) }}</div>
+            <!-- Certificaatnummer zichtbaar in de lijst (wens Jos 2026-07-18):
+                 zo is een certificaat direct op nummer terug te vinden. -->
+            <div v-if="i.certificate_number" class="il__meta il__meta--number">{{ i.certificate_number }}</div>
             <span class="il__arrow">›</span>
           </li>
         </ul>
@@ -83,6 +86,7 @@ interface InspectionRow {
   customer_id: string
   inspection_date: string
   completed_at: string | null
+  certificate_number: string | null
   status: string
   customer: { name: string } | null
 }
@@ -100,7 +104,7 @@ const filtered = computed(() => {
   const q = query.value.toLowerCase().trim()
   if (!q) return inspections.value
   return inspections.value.filter(i =>
-    [i.customer?.name, formatDate(i.inspection_date), i.completed_at ? formatDate(i.completed_at) : '']
+    [i.customer?.name, i.certificate_number, formatDate(i.inspection_date), i.completed_at ? formatDate(i.completed_at) : '']
       .some(v => v?.toLowerCase().includes(q))
   )
 })
@@ -139,7 +143,7 @@ async function load() {
     const inspector = await ensureInspector()
     const { data, error: err } = await supabase
       .from('inspections')
-      .select('id, customer_id, inspection_date, completed_at, status, customer:customers(name)')
+      .select('id, customer_id, inspection_date, completed_at, certificate_number, status, customer:customers(name)')
       .eq('company_id', inspector.company_id)
       .order('inspection_date', { ascending: false })
     if (err) throw err
@@ -189,6 +193,8 @@ onMounted(load)
 .il__item:active { background: #f9fafb; }
 .il__name { font-weight: 600; flex: 1; }
 .il__meta { font-size: 0.85rem; color: #666; flex: 1; }
+/* Certificaatnummer: monospace zodat nummers goed scanbaar zijn in de lijst. */
+.il__meta--number { flex: none; font-family: ui-monospace, monospace; font-size: 0.8rem; color: #888; }
 .il__arrow { color: #999; font-size: 1.4rem; margin-left: 0.5rem; }
 .il__delete {
   border: none; background: transparent; cursor: pointer;

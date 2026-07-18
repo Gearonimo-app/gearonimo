@@ -738,5 +738,11 @@
       "name_search": "Via name search",
       "switch": "Switch"
     }
+  },
+  "certList": {
+    "title": "Certificates",
+    "empty": "No certificates yet",
+    "onlineOnly": "Only available online",
+    "openPdf": "Open certificate PDF"
   }
 }
