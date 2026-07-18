@@ -27,6 +27,8 @@ export interface Inspector {
   id: string
   company_id: string
   can_curate_catalog?: boolean
+  // Beheerder van het keurbedrijf (ensure_inspector geeft de hele rij terug).
+  is_admin?: boolean
 }
 
 let cached: Inspector | null = null

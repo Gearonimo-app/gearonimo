@@ -36,7 +36,7 @@
       <CustomerArticles :customer-id="id" />
       <!-- Certificatenoverzicht per klant (wens Jos 2026-07-18). -->
       <CustomerCertificates :customer-id="id" />
-      <button class="cd__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
+      <button v-if="isCompanyAdmin" class="cd__delete" @click="showDelete = true">{{ $t('common.delete') }}</button>
     </div>
 
     <!-- Bewerken -->
@@ -102,6 +102,7 @@ import CustomerCertificates from '../components/CustomerCertificates.vue'
 import ArticleScopeDialog from '../components/ArticleScopeDialog.vue'
 import { fetchCustomer, updateCustomer, deleteCustomer } from '../composables/useCustomers'
 import {
+  ensureInspector,
   findDraftInspection,
   fetchArticleScope,
   fetchInspectionArticleIds,
@@ -141,6 +142,9 @@ const saving = ref(false)
 const deleting = ref(false)
 const formError = ref('')
 const showDelete = ref(false)
+// Klant verwijderen is beheerder-werk (besluit Jos 2026-07-18); de database
+// dwingt dit af (migratie 20260739), de knop verbergen we hier.
+const isCompanyAdmin = ref(false)
 const form = ref<Record<string, string>>({})
 const draftInspection = ref<{ id: string; inspection_date: string } | null>(null)
 const startingInspection = ref(false)
@@ -303,6 +307,11 @@ async function remove() {
 
 onMounted(async () => {
   await load()
+  try {
+    isCompanyAdmin.value = !!(await ensureInspector()).is_admin
+  } catch {
+    isCompanyAdmin.value = false
+  }
   // Vanaf het import-eindscherm: ?startInspection=1 start meteen de "Nieuwe
   // keuring"-flow (incl. concept-detectie en artikelkeuze), dezelfde als de
   // knop op deze pagina. Query direct opruimen zodat een refresh of

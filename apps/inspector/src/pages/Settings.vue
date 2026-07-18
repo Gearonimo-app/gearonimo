@@ -72,12 +72,21 @@ const canCurateCatalog = ref(false)
 // 20260714_platform_hero_and_dashboard_stat.sql.
 const isPlatformAdmin = ref(false)
 
+// Beheerdersrechten per keurbedrijf (besluit Jos 2026-07-18): de database
+// dwingt dit af (migratie 20260739); hier verbergen we de menukeuzes zodat
+// een gewone keurmeester geen deuren ziet die toch op slot zitten.
+const isCompanyAdmin = ref(false)
+
 const sections = computed<SectionDef[]>(() => {
+  // Beheerder-secties (afkeurcodes, certificaat, keurmeesters, vermelding)
+  // alleen tonen voor een beheerder; importeren mag elke keurmeester.
   const base: SectionDef[] = [
-    { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
-    { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
-    { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
-    { key: 'listing',     icon: '📍', title: 'settings.listing.menuTitle',     desc: 'settings.listing.menuDesc',     ready: true },
+    ...(isCompanyAdmin.value ? [
+      { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
+      { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
+      { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
+      { key: 'listing',     icon: '📍', title: 'settings.listing.menuTitle',     desc: 'settings.listing.menuDesc',     ready: true },
+    ] as SectionDef[] : []),
     { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true },
   ]
   if (canCurateCatalog.value) {
@@ -109,6 +118,7 @@ function open(s: SectionDef) {
 onMounted(async () => {
   const inspector = await ensureInspector()
   canCurateCatalog.value = !!inspector.can_curate_catalog
+  isCompanyAdmin.value = !!inspector.is_admin
   const { data } = await supabase.rpc('is_platform_admin')
   isPlatformAdmin.value = !!data
 })
