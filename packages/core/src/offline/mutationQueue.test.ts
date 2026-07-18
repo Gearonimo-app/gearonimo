@@ -60,11 +60,14 @@ describe("mutation queue", () => {
     expect(rows).toHaveLength(2);
   });
 
-  it("counts only pending/failed mutations", async () => {
+  it("counts pending, failed AND stuck-syncing mutations as open work", async () => {
+    // "syncing" telt sinds de code review (2026-07-18) bewust mee: een crash
+    // midden in een sync laat die status achter, en de opruimlogica mag dan
+    // niet denken dat alles verzonden is.
     await enqueueMutation({ customerId: "c2", table: "inspections", op: "insert", payload: { id: "i2" } });
     const [row] = await listPendingMutationsForCustomer("c2");
     await markMutationStatus(row.id!, "syncing");
-    expect(await countPendingForCustomer("c2")).toBe(0);
+    expect(await countPendingForCustomer("c2")).toBe(1);
 
     await markMutationStatus(row.id!, "failed", "netwerkfout");
     expect(await countPendingForCustomer("c2")).toBe(1);

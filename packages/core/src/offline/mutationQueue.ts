@@ -62,7 +62,33 @@ export async function listPendingMutationsForCustomer(customerId: string): Promi
 
 export async function countPendingForCustomer(customerId: string): Promise<number> {
   const rows = await listPendingMutationsForCustomer(customerId);
-  return rows.filter((r) => r.status === "pending" || r.status === "failed").length;
+  // "syncing" telt bewust mee als openstaand werk (code review 2026-07-18):
+  // crasht de app midden in een sync, dan blijft die status achter. Zou hij
+  // hier niet meetellen, dan kon de opruimlogica (cleanupSyncedDownloads) een
+  // download verwijderen terwijl er nog een niet-verzonden mutatie in zat.
+  return rows.filter((r) => r.status === "pending" || r.status === "failed" || r.status === "syncing").length;
+}
+
+/** Herstelt mutaties die op "syncing" zijn blijven staan (app gecrasht of
+ * gesloten midden in een sync-ronde) terug naar "pending", zodat de volgende
+ * ronde ze gewoon weer oppakt. Wordt aan het begin van syncAll aangeroepen --
+ * op dat moment loopt er geen andere sync (app-laag bewaakt dat met de
+ * `syncing`-vlag), dus elke "syncing"-status die we hier tegenkomen is per
+ * definitie een achtergebleven rest. Zonder dit herstel werd zo'n mutatie
+ * nooit meer geprobeerd én nooit opgeruimd: onzichtbaar verloren werk. */
+export async function recoverStuckSyncing(): Promise<number> {
+  const db = await getOfflineDb();
+  const all = await db.getAll("mutations");
+  let recovered = 0;
+  for (const m of all) {
+    if (m.status === "syncing") {
+      m.status = "pending";
+      m.lastError = "Hersteld na afgebroken synchronisatie.";
+      await db.put("mutations", m);
+      recovered += 1;
+    }
+  }
+  return recovered;
 }
 
 /** Alle openstaande mutaties, in volgorde -- gebruikt door de sync-engine

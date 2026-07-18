@@ -321,7 +321,9 @@
       "snRetired": "Retired",
       "snReinstateConfirm": "\"{name}\" has been retired{info}. Reinstate it and add it to this inspection?",
       "snLastPassed": "passed {date}",
-      "snLastRejected": "rejected {date}"
+      "snLastRejected": "rejected {date}",
+      "saveRowFailed": "The result for \"{name}\" was NOT saved. Please try again.",
+      "finishBlockedUnsaved": "A result was not saved (see the message above). Save it again before finishing."
     },
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."

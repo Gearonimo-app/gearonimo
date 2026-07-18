@@ -29,12 +29,23 @@ export function headerSignature(headerRow: RawRow): string {
   return headerRow.map((c) => String(c ?? '').trim().toLowerCase()).join('|')
 }
 
+/** Datum → 'yyyy-mm-dd' op basis van de LOKALE datum (code review 2026-07-18).
+ * Niet toISOString(): die rekent om naar UTC, en een Excel-datum staat op
+ * lokale middernacht -- in Nederland (UTC+1/+2) werd dat de VORIGE dag,
+ * waardoor elke geïmporteerde keurdatum één dag te vroeg kon staan. */
+function localISODate(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 /** Zet een cel om naar een ISO-datum (yyyy-mm-dd) of null. Geen fuzzy gokwerk:
  * herkent de gangbare NL/EN-notaties en Excel-datumobjecten (xlsx levert die
  * al als JS Date als de cel een datumformaat heeft). */
 export function parseToISODate(value: string | number | Date | null): string | null {
   if (value === null || value === '') return null
-  if (value instanceof Date) return value.toISOString().slice(0, 10)
+  if (value instanceof Date) return localISODate(value)
   const s = String(value).trim()
   if (!s) return null
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10)
@@ -45,7 +56,7 @@ export function parseToISODate(value: string | number | Date | null): string | n
     return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
   }
   const parsed = Date.parse(s)
-  if (!isNaN(parsed)) return new Date(parsed).toISOString().slice(0, 10)
+  if (!isNaN(parsed)) return localISODate(new Date(parsed))
   return null
 }
 

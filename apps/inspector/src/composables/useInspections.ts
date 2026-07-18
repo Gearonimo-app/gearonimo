@@ -7,6 +7,7 @@ import {
   getCompanySettings,
   cacheInspectorContext,
   getCachedInspectorContext,
+  clearCachedInspectorContext,
   enqueueMutation,
   putInspection,
   putInspectionItems,
@@ -30,8 +31,35 @@ export interface Inspector {
 
 let cached: Inspector | null = null
 
+// De cache hoort bij PRECIES één ingelogd account (code review 2026-07-18).
+// Zonder deze koppeling bleef `cached` (en de schijf-kopie) staan na
+// uitloggen: logde daarna een ándere keurmeester in op hetzelfde toestel
+// zonder herladen, dan werkte die stil onder de identiteit van de vorige.
+// We volgen de auth-status: wisselt de gebruiker (of logt hij uit), dan gaat
+// de geheugen-cache leeg; bij uitloggen ook de schijf-kopie (de versleutelde
+// klantdata en de mutatiewachtrij blijven bewust staan -- niet-
+// gesynchroniseerd werk mag nooit door uitloggen verloren gaan).
+let cachedForUserId: string | null | undefined = undefined // undefined = nog geen auth-event gezien
+supabase.auth.onAuthStateChange((_event, session) => {
+  const uid = session?.user?.id ?? null
+  if (cachedForUserId !== undefined && uid !== cachedForUserId) {
+    cached = null
+    if (uid === null) void clearCachedInspectorContext()
+  }
+  cachedForUserId = uid
+})
+
 function requireOfflineKey(): CryptoKey {
   return useOfflineSession().getKey()
+}
+
+/** Vandaag als 'yyyy-mm-dd' op basis van de LOKALE datum (niet UTC). */
+function localToday(): string {
+  const d = new Date()
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 // De inspectors-tabel heeft nog geen beheerscherm; deze RPC zet automatisch
@@ -230,7 +258,10 @@ export async function startInspectionWithArticles(customerId: string, articleIds
     company_id: inspector.company_id,
     inspector_id: inspector.id,
     status: 'draft',
-    inspection_date: new Date().toISOString().slice(0, 10),
+    // Lokale datum, niet toISOString() (code review 2026-07-18): die geeft de
+    // UTC-datum, waardoor een keuring die 's nachts (voor 01:00/02:00 NL-tijd)
+    // gestart werd de datum van GISTEREN kreeg.
+    inspection_date: localToday(),
   }
   await putInspection(key, inspectionRow)
   await enqueueMutation({ customerId, table: 'inspections', op: 'insert', payload: inspectionRow })

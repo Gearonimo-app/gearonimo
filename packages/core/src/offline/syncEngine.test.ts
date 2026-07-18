@@ -43,7 +43,7 @@ vi.mock("../supabase", () => {
   };
 });
 
-import { enqueueMutation, listPendingMutationsForCustomer, listAllPendingMutations } from "./mutationQueue";
+import { enqueueMutation, listPendingMutationsForCustomer, listAllPendingMutations, countPendingForCustomer } from "./mutationQueue";
 import { syncAll, isDownloadStale, STALE_WARNING_DAYS } from "./syncEngine";
 import { removeDownload } from "./download";
 import { getOfflineDb } from "./db";
@@ -254,6 +254,35 @@ describe("syncAll", () => {
     expect(await listAllPendingMutations()).toHaveLength(2);
     await syncAll();
     expect(await listAllPendingMutations()).toHaveLength(0);
+  });
+
+  it("recovers a mutation stuck on 'syncing' (app crashed mid-sync) and uploads it", async () => {
+    // Nabootsen van een crash midden in een eerdere sync-ronde: de mutatie
+    // staat in de database met status "syncing" en zou zonder herstel nooit
+    // meer opgepakt worden (listAllPendingMutations ziet alleen
+    // pending/failed).
+    await enqueueMutation({ customerId: "c11", table: "inspections", op: "insert", payload: { id: "stuck-1" } });
+    const db = await getOfflineDb();
+    const [record] = await db.getAll("mutations");
+    record.status = "syncing";
+    await db.put("mutations", record);
+    expect(await listAllPendingMutations()).toHaveLength(0); // het gat dat we dichten
+
+    const summary = await syncAll();
+
+    expect(summary.synced).toBe(1);
+    expect(calls.map((c) => c.arg)).toEqual([{ id: "stuck-1" }]);
+    expect(await listPendingMutationsForCustomer("c11")).toHaveLength(0);
+  });
+
+  it("counts a stuck 'syncing' mutation as pending work (protects download cleanup)", async () => {
+    await enqueueMutation({ customerId: "c12", table: "articles", op: "insert", payload: { id: "art-1" } });
+    const db = await getOfflineDb();
+    const [record] = await db.getAll("mutations");
+    record.status = "syncing";
+    await db.put("mutations", record);
+
+    expect(await countPendingForCustomer("c12")).toBe(1);
   });
 });
 

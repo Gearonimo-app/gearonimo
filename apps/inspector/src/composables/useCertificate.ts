@@ -779,7 +779,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
+      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -791,6 +791,22 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     result: string
     next_due: string | null
     comment: string | null
+    // Bevroren artikelrij van het keurmoment (code review 2026-07-18, punt 7):
+    // deze gaat vóór de live artikelrij, zodat een later gewijzigd serienummer
+    // of omschrijving niet stiekem op een (opnieuw gegenereerd) certificaat
+    // belandt. De live rij blijft als vangnet voor oude items van vóór de
+    // snapshot-kolom, en levert de productgegevens (merk/naam uit de catalogus).
+    article_snapshot: {
+      serial_number?: string | null
+      free_brand?: string | null
+      free_description?: string | null
+      free_category?: string | null
+      free_norm?: string | null
+      free_mbs?: string | null
+      manufacture_year?: number | null
+      manufacture_month?: number | null
+      assigned_user_name?: string | null
+    } | null
     article: {
       serial_number: string | null
       free_brand: string | null
@@ -809,8 +825,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     rejection_code: { label: string } | null
   }
   const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
-    const a = r.article
-    const p = a?.product
+    // Snapshot eerst, live artikel als vangnet.
+    const a = { ...(r.article ?? {}), ...(r.article_snapshot ?? {}) } as NonNullable<ItemRow['article_snapshot']>
+    const p = r.article?.product
     return {
       result: r.result,
       brand: (p ? p.brand : a?.free_brand) ?? null,
@@ -829,15 +846,32 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   })
 
   const verifyToken = crypto.randomUUID()
-  // Geverifieerd voor offline-first (BOUWPLAN slice 5): dit nummer is volledig
-  // deterministisch (datum + klantnaam), geen oplopend volgnummer. Twee
-  // keurmeesters die dezelfde dag bij dezelfde klant onafhankelijk offline een
-  // certificaat genereren, krijgen dus toch hetzelfde nummer (zoals het ook nu
-  // al zou gebeuren als dat online tweemaal op één dag gebeurde) -- maar dat
-  // is een bestaand edge-case-gedrag, geen nieuw offline-risico. Een
-  // vooraf-reservering van nummers (zoals BLAUWDRUK §8.1 noemt voor een
-  // sequentieel schema) is met dit schema niet nodig.
-  const number = `${inspection.inspection_date.replace(/-/g, '')}-${slugify(inspection.customer.name)}`
+  // Certificaatnummer (code review 2026-07-18, keuze Jos): base = datum +
+  // klantnaam, met een server-side volgnummer als dezelfde base al bestaat
+  // (20260718-BOOMWERK, dan 20260718-BOOMWERK-2, ...). Kan veilig server-side:
+  // dit hele pad draait altijd online (de Storage-upload hieronder heeft
+  // sowieso netwerk nodig; offline keuringen komen hier pas bij de sync).
+  // Bij REGENERATIE (bv. na een half mislukte poging) hergebruiken we het
+  // eerder toegekende nummer -- anders zou elke nieuwe poging de teller
+  // ophogen en het nummer op het certificaat veranderen.
+  const numberBase = `${inspection.inspection_date.replace(/-/g, '')}-${slugify(inspection.customer.name)}`
+  const { data: existingCert, error: existingErr } = await supabase
+    .from('certificates')
+    .select('number')
+    .eq('inspection_id', inspection.id)
+    .maybeSingle()
+  if (existingErr) throw existingErr
+  let number: string
+  if (existingCert?.number) {
+    number = existingCert.number
+  } else {
+    const { data: allocated, error: allocErr } = await supabase.rpc('allocate_certificate_number', {
+      p_company_id: inspection.company_id,
+      p_base: numberBase,
+    })
+    if (allocErr) throw allocErr
+    number = allocated as string
+  }
   const verifyUrl = `${window.location.origin}/verify/${verifyToken}`
 
   const company = inspection.company
@@ -868,7 +902,12 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     .upload(storagePath, pdfBytes, { contentType: 'application/pdf', upsert: true })
   if (uploadErr) throw uploadErr
 
-  await supabase.from('certificates').delete().eq('inspection_id', inspection.id)
+  // Fouten hier NIET negeren (code review 2026-07-18, punt 11): mislukt de
+  // delete stil, dan faalt de insert erna op een verwarrende manier; mislukt
+  // de update stil, dan mist het nummer op de keuring terwijl het certificaat
+  // wél bestaat.
+  const { error: delErr } = await supabase.from('certificates').delete().eq('inspection_id', inspection.id)
+  if (delErr) throw delErr
   const { error: certErr } = await supabase.from('certificates').insert({
     inspection_id: inspection.id,
     number,
@@ -879,7 +918,8 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   })
   if (certErr) throw certErr
 
-  await supabase.from('inspections').update({ certificate_number: number }).eq('id', inspection.id)
+  const { error: updErr } = await supabase.from('inspections').update({ certificate_number: number }).eq('id', inspection.id)
+  if (updErr) throw updErr
 
   return { verifyToken, storagePath }
 }

@@ -321,7 +321,9 @@
       "snRetired": "Afgevoerd",
       "snReinstateConfirm": "\"{name}\" is afgevoerd{info}. Weer in gebruik nemen en toevoegen aan deze keuring?",
       "snLastPassed": "goedgekeurd {date}",
-      "snLastRejected": "afgekeurd {date}"
+      "snLastRejected": "afgekeurd {date}",
+      "saveRowFailed": "Resultaat van \"{name}\" is NIET opgeslagen. Probeer het opnieuw.",
+      "finishBlockedUnsaved": "Er is een resultaat niet opgeslagen (zie de melding hierboven). Sla dat eerst opnieuw op voordat je afrondt."
     },
     "deleteDraft": "Concept verwijderen",
     "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan."

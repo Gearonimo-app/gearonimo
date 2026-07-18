@@ -436,6 +436,8 @@
 
         <p v-if="addError" class="iw__error">{{ addError }}</p>
 
+        <p v-if="rowSaveError" class="iw__error">{{ rowSaveError }}</p>
+
         <p v-if="completeError" class="iw__error">{{ completeError }}</p>
         <button class="iw__next" :disabled="completing" @click="finish">
           {{ completing ? $t('common.saving') : $t('inspections.table.finish') }}
@@ -627,6 +629,9 @@ const certificateUrl = ref('')
 // Offline afgerond, certificaat volgt pas na synchronisatie (zie finish()).
 const awaitingSync = ref(false)
 const addError = ref('')
+// Fout bij het opslaan van een keurresultaat (saveRow, online). Los van
+// addError: wordt leeggemaakt zodra een volgende save slaagt.
+const rowSaveError = ref('')
 
 const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
 const sortDir = ref<1 | -1>(1)
@@ -1242,7 +1247,13 @@ function rowWarning(it: Item): { icon: string; text: string } | null {
 }
 
 function toIsoDate(d: Date) {
-  return d.toISOString().slice(0, 10)
+  // Lokale datum, niet toISOString() (code review 2026-07-18): die rekent om
+  // naar UTC, waardoor een voorgestelde next_due tussen middernacht en de
+  // NL-tijdzoneverschuiving één dag te vroeg op het certificaat kon komen.
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
 }
 
 interface Row {
@@ -1920,7 +1931,13 @@ async function saveRow(it: Item) {
     }
     return
   }
-  await supabase.from('inspection_items').update(patch).eq('id', it.id)
+  // Fout NIET negeren (code review 2026-07-18): dit is het keurresultaat
+  // zelf -- mislukt de update stil, dan denkt de keurmeester dat het staat
+  // terwijl het er niet staat. Eigen ref (niet addError): de melding hoort
+  // weer te verdwijnen zodra een volgende save wél slaagt, zonder een
+  // eventuele losstaande toevoeg-fout mee te wissen.
+  const { error: err } = await supabase.from('inspection_items').update(patch).eq('id', it.id)
+  rowSaveError.value = err ? t('inspections.table.saveRowFailed', { name: itemLabel(it) }) + ' ' + err.message : ''
 }
 
 async function finish() {
@@ -1928,6 +1945,13 @@ async function finish() {
   // horen niet in deze waarschuwing: die blijven niet "bij de klant staan voor
   // een volgende keer" -- ze zijn al vervangen/uit dienst. De tabel filtert ze
   // om diezelfde reden al weg (zie rows), deze check moet dat spiegelen.
+  // Niet afronden zolang een resultaat niet is opgeslagen (zie saveRow): het
+  // certificaat wordt van de server gelezen en zou anders het OUDE resultaat
+  // tonen. De keurmeester moet eerst de mislukte save opnieuw doen.
+  if (rowSaveError.value) {
+    completeError.value = t('inspections.table.finishBlockedUnsaved')
+    return
+  }
   const notAssessed = items.value.filter((i) => i.result === 'not_assessed' && !i.article.retired)
   if (notAssessed.length) {
     const names = notAssessed.map((i) => itemLabel(i)).join('\n - ')

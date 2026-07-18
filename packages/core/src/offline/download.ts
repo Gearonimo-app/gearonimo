@@ -42,6 +42,17 @@ export async function getCachedInspectorContext(): Promise<InspectorContext | un
   return (await db.get("meta", "inspectorContext")) as InspectorContext | undefined;
 }
 
+/** Wist de lokaal bewaarde keurmeester-identiteit. Aangeroepen bij uitloggen
+ * (code review 2026-07-18): zonder dit bleef de identiteit van de vorige
+ * gebruiker op schijf staan, en zou een volgende gebruiker op hetzelfde
+ * toestel offline onder die oude identiteit kunnen werken. Alleen dit ene
+ * meta-record -- de versleutelde klantdata en de mutatiewachtrij blijven
+ * staan (niet-gesynchroniseerd werk mag nooit bij een uitlog-actie sneuvelen). */
+export async function clearCachedInspectorContext(): Promise<void> {
+  const db = await getOfflineDb();
+  await db.delete("meta", "inspectorContext");
+}
+
 export interface DownloadSummary {
   customerId: string;
   customerName: string;

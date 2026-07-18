@@ -5,6 +5,7 @@ import {
   countPendingForCustomer,
   markMutationStatus,
   deleteMutation,
+  recoverStuckSyncing,
 } from "./mutationQueue";
 import { markDownloadSynced, removeDownload } from "./download";
 import { hasInspectionsPendingCompletionForCustomer } from "./inspectionCache";
@@ -50,6 +51,10 @@ async function applyMutation(m: MutationRecord): Promise<void> {
  * volgorde al (zie useInspections.ts: eerst de keuring enqueuen, dan de
  * items), dit speelt ze gewoon in diezelfde volgorde sequentieel af. */
 export async function syncAll(): Promise<SyncSummary> {
+  // Eerst achtergebleven "syncing"-statussen herstellen (app eerder gecrasht
+  // of gesloten midden in een ronde) -- anders zijn die mutaties voorgoed
+  // onzichtbaar voor listAllPendingMutations. Zie recoverStuckSyncing.
+  await recoverStuckSyncing();
   const pending = await listAllPendingMutations();
   const summary: SyncSummary = { synced: 0, failed: 0, errors: [] };
   const touchedCustomers = new Set<string>();
