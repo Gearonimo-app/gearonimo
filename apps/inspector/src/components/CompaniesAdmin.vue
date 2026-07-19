@@ -116,28 +116,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage, useAuth } from '@gearonimo/core'
 
-const { t, te } = useI18n()
+const { t, locale } = useI18n()
 const { signInWithMagicLink } = useAuth()
 
-// Volledige landnaam op het scherm (wens Jos 2026-07-19); de ISO-code blijft
-// de opgeslagen waarde. Onbekende code (bv. ooit handmatig ingevoerd in de
-// DB) valt terug op de code zelf i.p.v. een lege string.
+// Alle ISO 3166-1 alpha-2 landcodes; de uitgeschreven namen komen uit de
+// ingebouwde browservertaling (Intl.DisplayNames) in de taal van de app --
+// geen eigen vertaaltabel nodig. Elk land is kiesbaar (wens Jos 2026-07-19:
+// geen beperkte lijst, Spanje/Luxemburg/... moeten gewoon kunnen).
+// Wettelijke keurtermijn-regimes bestaan alleen voor NL/GB
+// (packages/core/regimes.ts); elders valt de termijn terug op 12 maanden of
+// de eigen bedrijfsinstelling en blijft de wetsverwijzing op het certificaat
+// leeg tot dat regime gebouwd is (BOUWPLAN fase 5). Het PDF is bovendien
+// nog Nederlandstalig (En-GB-vertaling = fase 5).
+const ISO_COUNTRIES = ['AD','AE','AF','AG','AI','AL','AM','AO','AQ','AR','AS','AT','AU','AW','AX','AZ','BA','BB','BD','BE','BF','BG','BH','BI','BJ','BL','BM','BN','BO','BQ','BR','BS','BT','BV','BW','BY','BZ','CA','CC','CD','CF','CG','CH','CI','CK','CL','CM','CN','CO','CR','CU','CV','CW','CX','CY','CZ','DE','DJ','DK','DM','DO','DZ','EC','EE','EG','EH','ER','ES','ET','FI','FJ','FK','FM','FO','FR','GA','GB','GD','GE','GF','GG','GH','GI','GL','GM','GN','GP','GQ','GR','GS','GT','GU','GW','GY','HK','HM','HN','HR','HT','HU','ID','IE','IL','IM','IN','IO','IQ','IR','IS','IT','JE','JM','JO','JP','KE','KG','KH','KI','KM','KN','KP','KR','KW','KY','KZ','LA','LB','LC','LI','LK','LR','LS','LT','LU','LV','LY','MA','MC','MD','ME','MF','MG','MH','MK','ML','MM','MN','MO','MP','MQ','MR','MS','MT','MU','MV','MW','MX','MY','MZ','NA','NC','NE','NF','NG','NI','NL','NO','NP','NR','NU','NZ','OM','PA','PE','PF','PG','PH','PK','PL','PM','PN','PR','PS','PT','PW','PY','QA','RE','RO','RS','RU','RW','SA','SB','SC','SD','SE','SG','SH','SI','SJ','SK','SL','SM','SN','SO','SR','SS','ST','SV','SX','SY','SZ','TC','TD','TF','TG','TH','TJ','TK','TL','TM','TN','TO','TR','TT','TV','TW','TZ','UA','UG','UM','US','UY','UZ','VA','VC','VE','VG','VI','VN','VU','WF','WS','YE','YT','ZA','ZM','ZW']
+
+const regionNames = computed(() => new Intl.DisplayNames([locale.value], { type: 'region' }))
+
 function countryName(code: string): string {
-  const key = `settings.companies.countries.${code}`
-  return te(key) ? t(key) : code
+  try {
+    return regionNames.value.of(code) ?? code
+  } catch {
+    return code
+  }
 }
 
-// Wettelijke keurtermijn-regimes bestaan vandaag alleen voor NL/GB
-// (packages/core/regimes.ts); voor de overige landen valt de termijn terug
-// op 12 maanden (of de eigen bedrijfsinstelling) en blijft de
-// wetsverwijzing op het certificaat leeg tot dat regime gebouwd is
-// (BOUWPLAN fase 5). Het certificaat-PDF is bovendien nog Nederlandstalig
-// (En-GB-vertaling = fase 5).
-const COUNTRY_OPTIONS = ['NL', 'BE', 'DE', 'GB', 'CA'] as const
+// Gesorteerd op de vertaalde naam; de bouwplan-markten (NL/BE/DE/GB/CA)
+// staan bovenaan voor snel kiezen.
+const PRIORITY = ['NL', 'BE', 'DE', 'GB', 'CA']
+const COUNTRY_OPTIONS = computed(() => {
+  const rest = ISO_COUNTRIES.filter((c) => !PRIORITY.includes(c))
+    .sort((a, b) => countryName(a).localeCompare(countryName(b), locale.value))
+  return [...PRIORITY, ...rest]
+})
 
 interface Company {
   id: string

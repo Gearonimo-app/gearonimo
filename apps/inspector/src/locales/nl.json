@@ -673,13 +673,6 @@
       "inviteSent": "Uitnodiging verstuurd. Zodra die persoon de link opent, is de koppeling meteen actief.",
       "curator": "Catalogus-curator",
       "logoHint": "Logo, huiskleur en kop-/voettekst regelt het bedrijf zelf via Instellingen → Certificaat-template, zodra er een beheerder gekoppeld is.",
-      "countries": {
-        "NL": "Nederland",
-        "BE": "België",
-        "DE": "Duitsland",
-        "GB": "Verenigd Koninkrijk",
-        "CA": "Canada"
-      },
       "fields": {
         "name": "Naam",
         "country": "Land",
