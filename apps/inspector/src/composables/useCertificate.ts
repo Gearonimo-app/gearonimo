@@ -912,7 +912,10 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     inspection_id: inspection.id,
     number,
     storage_path: storagePath,
-    language: company.country_code === 'GB' ? 'en' : 'nl',
+    // Metadata-veld: het PDF zelf is vandaag nog Nederlandstalig (En-GB =
+    // fase 5). NL/BE = Nederlands; alle andere landen krijgen 'en' zodat
+    // bestaande certificaten niet herlabeld hoeven zodra de vertaling er is.
+    language: ['NL', 'BE'].includes(company.country_code) ? 'nl' : 'en',
     pdf_hash: pdfHash,
     verify_token: verifyToken,
   })

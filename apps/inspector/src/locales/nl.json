@@ -680,7 +680,11 @@
         "phone": "Telefoon",
         "address": "Adres",
         "postalCode": "Postcode",
-        "city": "Plaats"
+        "city": "Plaats",
+        "province": "Provincie/staat",
+        "provincePh": "Optioneel, bijv. voor Canada",
+        "registrationNumber": "KvK-/registratienummer",
+        "vatNumber": "BTW-nummer"
       },
       "errors": {
         "nameRequired": "Naam is verplicht.",

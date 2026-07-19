@@ -53,6 +53,14 @@
           <label class="ca__field ca__field--grow"><span>{{ $t('settings.companies.fields.city') }}</span>
             <input v-model="addForm.city" class="ca__input" /></label>
         </div>
+        <label class="ca__field"><span>{{ $t('settings.companies.fields.province') }}</span>
+          <input v-model="addForm.province" class="ca__input" :placeholder="$t('settings.companies.fields.provincePh')" /></label>
+        <div class="ca__row">
+          <label class="ca__field ca__field--grow"><span>{{ $t('settings.companies.fields.registrationNumber') }}</span>
+            <input v-model="addForm.registration_number" class="ca__input" /></label>
+          <label class="ca__field ca__field--grow"><span>{{ $t('settings.companies.fields.vatNumber') }}</span>
+            <input v-model="addForm.vat_number" class="ca__input" /></label>
+        </div>
         <p class="ca__hint">{{ $t('settings.companies.logoHint') }}</p>
         <p v-if="formError" class="ca__error">{{ formError }}</p>
         <div class="ca__actions">
@@ -115,10 +123,13 @@ import { supabase, errorMessage, useAuth } from '@gearonimo/core'
 const { t } = useI18n()
 const { signInWithMagicLink } = useAuth()
 
-// Regimes bestaan vandaag alleen voor NL/GB (packages/core/regimes.ts) --
-// meer landen komen erbij zodra er een regime voor gebouwd is (BOUWPLAN
-// fase 5).
-const COUNTRY_OPTIONS = ['NL', 'GB'] as const
+// Wettelijke keurtermijn-regimes bestaan vandaag alleen voor NL/GB
+// (packages/core/regimes.ts); voor de overige landen valt de termijn terug
+// op 12 maanden (of de eigen bedrijfsinstelling) en blijft de
+// wetsverwijzing op het certificaat leeg tot dat regime gebouwd is
+// (BOUWPLAN fase 5). Het certificaat-PDF is bovendien nog Nederlandstalig
+// (En-GB-vertaling = fase 5).
+const COUNTRY_OPTIONS = ['NL', 'BE', 'DE', 'GB', 'CA'] as const
 
 interface Company {
   id: string
@@ -147,6 +158,7 @@ const formError = ref('')
 const addForm = reactive({
   name: '', country_code: 'NL',
   email: '', phone: '', address: '', postal_code: '', city: '',
+  province: '', registration_number: '', vat_number: '',
 })
 
 const inspectors = ref<CompanyInspector[]>([])
@@ -179,6 +191,9 @@ function openAdd() {
   addForm.address = ''
   addForm.postal_code = ''
   addForm.city = ''
+  addForm.province = ''
+  addForm.registration_number = ''
+  addForm.vat_number = ''
   formError.value = ''
   showAdd.value = true
 }
@@ -195,6 +210,9 @@ async function createCompany() {
       p_address: addForm.address.trim() || null,
       p_postal_code: addForm.postal_code.trim() || null,
       p_city: addForm.city.trim() || null,
+      p_province: addForm.province.trim() || null,
+      p_registration_number: addForm.registration_number.trim() || null,
+      p_vat_number: addForm.vat_number.trim() || null,
     })
     if (err) throw err
     showAdd.value = false

@@ -680,7 +680,11 @@
         "phone": "Phone",
         "address": "Address",
         "postalCode": "Postal code",
-        "city": "City"
+        "city": "City",
+        "province": "Province/state",
+        "provincePh": "Optional, e.g. for Canada",
+        "registrationNumber": "Registration number",
+        "vatNumber": "VAT number"
       },
       "errors": {
         "nameRequired": "Name is required.",
