@@ -758,6 +758,21 @@
     "toHome": "Naar het hoofdmenu",
     "mismatch": "De wachtwoorden komen niet overeen."
   },
+  "cheatSheet": {
+    "title": "Spiekbriefje — dag/week & SN-referentie",
+    "tabDayWeek": "Dag / week",
+    "tabSnRef": "SN-referentie",
+    "dayToDate": "Dag van het jaar → datum",
+    "dayPh": "Dag (1-366)",
+    "weekToRange": "Weeknummer → datumbereik",
+    "weekPh": "Week (1-53)",
+    "invalidDay": "Bestaat niet in dit jaar",
+    "filterPh": "Filter op merk...",
+    "legend": "Y = jaar · M = maand · D = dagnummer · W = week · x = overig cijfer · # = letter",
+    "example": "Voorbeeld",
+    "format": "Formaat",
+    "manualLink": "Uitleg fabrikant →"
+  },
   "catalogSuggest": {
     "title": "Aanmelden voor de catalogus",
     "intro": "Vul de productgegevens zo compleet mogelijk in. Na jouw aanmelding controleert de catalogusbeheerder ze en zet ze om in een echt catalogusproduct.",

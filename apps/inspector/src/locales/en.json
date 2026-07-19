@@ -758,6 +758,21 @@
     "toHome": "Go to the home screen",
     "mismatch": "The passwords do not match."
   },
+  "cheatSheet": {
+    "title": "Cheat sheet — day/week & serial reference",
+    "tabDayWeek": "Day / week",
+    "tabSnRef": "Serial reference",
+    "dayToDate": "Day of year → date",
+    "dayPh": "Day (1-366)",
+    "weekToRange": "Week number → date range",
+    "weekPh": "Week (1-53)",
+    "invalidDay": "Does not exist in this year",
+    "filterPh": "Filter by brand...",
+    "legend": "Y = year · M = month · D = day number · W = week · x = other digit · # = letter",
+    "example": "Example",
+    "format": "Format",
+    "manualLink": "Manufacturer info →"
+  },
   "catalogSuggest": {
     "title": "Suggest for the catalogue",
     "intro": "Fill in the product details as completely as you can. After you submit, the catalogue curator reviews them and turns them into a real catalogue product.",

@@ -12,6 +12,9 @@
       </button>
     </div>
 
+    <!-- Spiekbriefje (dag/week + SN-referentie, uit klimkeurpro). -->
+    <div class="ss__cheatsheet"><SerialCheatSheet /></div>
+
     <!-- ===================== SERIENUMMER ZOEKEN ===================== -->
     <template v-if="mode === 'serial'">
       <div class="ss__search">
@@ -206,6 +209,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import SerialCheatSheet from '../components/SerialCheatSheet.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -529,6 +533,7 @@ onMounted(async () => {
 
 /* Modus-schakelaar */
 .ss__modes { display: flex; background: #1a3a2a; padding: 0 1.25rem 0.75rem; gap: 0.5rem; }
+.ss__cheatsheet { padding: 0.75rem 1.25rem 0; }
 .ss__mode {
   flex: 1; padding: 0.55rem; border-radius: 8px; border: none; cursor: pointer;
   font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85);

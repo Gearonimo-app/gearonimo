@@ -42,6 +42,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > Geverifieerd met een render-script (beide talen gecontroleerd op alle
 > teksten). Geen migratie nodig.
 >
+> **Besluiten Jos (2026-07-19, tweede ronde, raken fase 5):**
+> - **Zelf-aanmelding blijft open** — geen invite-slot bouwen; wie zichzelf
+>   aanmeldt is welkom (klantenbinding), gratis gebruikers in beide apps
+>   tijdens de testfase.
+> - **Capacitor/stores pas na ±6 maanden uitgebreide testfase** — eerst
+>   zeker weten dat alles goed is.
+> - **Kwalificaties keurmeesters:** NIET op het certificaat; wél
+>   doorklikbaar naar de kwalificatie-PDF's van de keurmeester, via de
+>   QR/verify-pagina en/of in de app. Nog te bouwen.
+> - **Testplan:** Jos heeft ~4 dagen getest en liep tegen zaken aan die
+>   later gebouwd zouden worden (veel inmiddels gefixt). Eerst de app "echt
+>   klaar" maken, dan pas een nieuwe volledige testronde.
+> - **Spiekbriefje** (uit klimkeurpro, gemist in gearonimo): dag/week-
+>   omrekenaar + SN-referentie per merk — gebouwd in deze sessie, zie
+>   hieronder.
+>
 > **Besluiten Jos (2026-07-19), raken fase 4:** geen DB-naar-DB-migratie
 > van de oude klimkeurpro-data nodig — alles staat dubbel op de zaak (incl.
 > PDF's), testklanten krijgen gewoon een uitnodigingscode en beginnen leeg

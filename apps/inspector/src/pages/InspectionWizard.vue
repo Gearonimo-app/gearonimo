@@ -22,6 +22,8 @@
 
     <template v-else>
       <div class="iw__body">
+        <!-- Spiekbriefje (dag/week + SN-referentie, uit klimkeurpro). -->
+        <SerialCheatSheet />
         <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
              hieronder; staat een artikel er niet bij, vul de overige velden
              aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
@@ -457,6 +459,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import SerialCheatSheet from '../components/SerialCheatSheet.vue'
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
