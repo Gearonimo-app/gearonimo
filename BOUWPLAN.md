@@ -1260,8 +1260,14 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 
 ## Fase 5 — Commercieel en de stores (±3–4 bouwsessies)
 
+> **Herzien 2026-07-19 (besluit Jos):** de app blijft voorlopig (±het
+> eerste jaar) **gratis voor iedereen** en is **op uitnodiging** tijdens
+> een uitgebreide testfase. Stripe schuift daarmee naar achteren; de
+> En-GB-vertaling + het activeren van het VK-regime worden juist naar
+> voren gehaald als eerstvolgende fase-5-werk.
+
 - Stripe: abonnement per keurmeester + metered tikken met staffel
-  (blauwdruk §7).
+  (blauwdruk §7) — **uitgesteld, zie hierboven**.
 - Capacitor-builds; store-registraties (App Store / Play Store) voor beide
   apps; marketing-/aanmeldsite op gearcert.com.
 - En-GB vertaling afronden + VK-regime activeren; kwalificatie-uploads
