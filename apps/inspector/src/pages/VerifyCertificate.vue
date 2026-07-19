@@ -11,7 +11,22 @@
         <div><dt>{{ $t('verify.customer') }}</dt><dd>{{ data.customer_name }}</dd></div>
         <div><dt>{{ $t('verify.date') }}</dt><dd>{{ formatDate(data.inspection_date) }}</dd></div>
         <div><dt>{{ $t('verify.issuedAt') }}</dt><dd>{{ formatDate(data.issued_at) }}</dd></div>
+        <div v-if="data.inspector_name"><dt>{{ $t('verify.inspector') }}</dt><dd>{{ data.inspector_name }}</dd></div>
       </dl>
+
+      <!-- Alleen bewust gedeelde kwalificaties (public_path gezet) komen uit
+           de RPC; de privé-bucket blijft dicht. -->
+      <template v-if="data.qualifications?.length">
+        <h2>{{ $t('verify.qualifications') }}</h2>
+        <ul class="vc__quals">
+          <li v-for="(q, i) in data.qualifications" :key="i">
+            <span class="vc__qual-name">{{ q.name }}</span>
+            <span v-if="q.number" class="vc__qual-meta">{{ $t('verify.qualNumber') }}: {{ q.number }}</span>
+            <span v-if="q.valid_until" class="vc__qual-meta">{{ $t('verify.qualValidUntil') }}: {{ formatDate(q.valid_until) }}</span>
+            <a :href="qualUrl(q)" target="_blank" rel="noopener" class="vc__qual-link">{{ $t('verify.qualView') }}</a>
+          </li>
+        </ul>
+      </template>
 
       <h2>{{ $t('verify.items') }}</h2>
       <!-- Expliciet op 'rejected' toetsen i.p.v. "alles wat niet passed is":
@@ -38,6 +53,13 @@ import { supabase } from '@gearonimo/core'
 const route = useRoute()
 const token = route.params.token as string
 
+interface VerifyQualification {
+  name: string
+  number: string | null
+  valid_until: string | null
+  public_path: string
+}
+
 interface VerifyResult {
   number: string
   issued_at: string
@@ -46,6 +68,8 @@ interface VerifyResult {
   company_name: string
   customer_name: string
   inspection_date: string
+  inspector_name: string | null
+  qualifications: VerifyQualification[] | null
   items: { label: string; serial_number: string | null; result: string; next_due: string | null }[]
 }
 
@@ -54,6 +78,10 @@ const loading = ref(true)
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function qualUrl(q: VerifyQualification): string {
+  return supabase.storage.from('branding').getPublicUrl(q.public_path).data.publicUrl
 }
 
 onMounted(async () => {
@@ -79,4 +107,9 @@ onMounted(async () => {
 .vc__item--fail { color: #b91c1c; }
 .vc__sn { color: #6b7280; font-size: 0.85rem; margin-left: 0.5rem; }
 .vc__hash { color: #9ca3af; font-size: 0.8rem; margin-top: 1.25rem; }
+.vc__quals { list-style: none; margin: 0; padding: 0; }
+.vc__quals li { padding: 0.5rem 0; border-bottom: 1px solid #eee; display: flex; flex-wrap: wrap; gap: 0.35rem 0.75rem; align-items: baseline; }
+.vc__qual-name { font-weight: 600; }
+.vc__qual-meta { color: #6b7280; font-size: 0.82rem; }
+.vc__qual-link { color: #16a34a; font-weight: 600; font-size: 0.85rem; margin-left: auto; white-space: nowrap; }
 </style>

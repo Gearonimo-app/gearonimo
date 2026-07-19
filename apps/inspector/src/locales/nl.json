@@ -338,6 +338,11 @@
     "customer": "Klant",
     "date": "Keuringsdatum",
     "issuedAt": "Uitgegeven",
+    "inspector": "Keurmeester",
+    "qualifications": "Kwalificaties keurmeester",
+    "qualNumber": "Nr.",
+    "qualValidUntil": "Geldig tot",
+    "qualView": "Bekijk bewijs →",
     "items": "Gekeurde artikelen",
     "hash": "Bestandshash"
   },
@@ -458,6 +463,8 @@
       "expired": "verlopen",
       "expiringSoon": "verloopt binnenkort",
       "viewFile": "Bekijk bestand",
+      "shareLabel": "Zichtbaar bij verificatie",
+      "shareHint": "Aan = een openbare kopie van dit bewijs is te bekijken via de QR-code op het certificaat. Uit = alleen intern zichtbaar.",
       "deleteTitle": "Keurmeester verwijderen?",
       "deleteBody": "Dit verwijdert de keurmeester en zijn kwalificaties. Dit kan niet ongedaan worden gemaakt. Keuringen die deze keurmeester heeft uitgevoerd blijven bestaan.",
       "fields": {

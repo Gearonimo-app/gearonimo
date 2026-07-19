@@ -338,6 +338,11 @@
     "customer": "Customer",
     "date": "Inspection date",
     "issuedAt": "Issued",
+    "inspector": "Inspector",
+    "qualifications": "Inspector qualifications",
+    "qualNumber": "No.",
+    "qualValidUntil": "Valid until",
+    "qualView": "View document →",
     "items": "Inspected items",
     "hash": "File hash"
   },
@@ -458,6 +463,8 @@
       "expired": "expired",
       "expiringSoon": "expiring soon",
       "viewFile": "View file",
+      "shareLabel": "Visible on verification",
+      "shareHint": "On = a public copy of this document can be viewed via the QR code on the certificate. Off = internal only.",
       "deleteTitle": "Delete inspector?",
       "deleteBody": "This removes the inspector and their qualifications. This cannot be undone. Inspections carried out by this inspector are kept.",
       "fields": {

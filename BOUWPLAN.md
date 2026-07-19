@@ -49,8 +49,14 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Capacitor/stores pas na ±6 maanden uitgebreide testfase** — eerst
 >   zeker weten dat alles goed is.
 > - **Kwalificaties keurmeesters:** NIET op het certificaat; wél
->   doorklikbaar naar de kwalificatie-PDF's van de keurmeester, via de
->   QR/verify-pagina en/of in de app. Nog te bouwen.
+>   doorklikbaar naar de kwalificatie-PDF's van de keurmeester via de
+>   QR/verify-pagina. Gebouwd (zelfde sessie, migratie 20260746): per
+>   kwalificatie een expliciete "Zichtbaar bij verificatie"-schakelaar in
+>   Instellingen → Keurmeesters — aanzetten kopieert het bewijs naar de
+>   publieke branding-bucket, uitzetten haalt de kopie weg; de privé-bucket
+>   blijft dicht en de verify-RPC toont alléén gedeelde kwalificaties
+>   (naam/nummer/geldig-tot + link). Verify-pagina toont nu ook de
+>   keurmeester-naam.
 > - **Testplan:** Jos heeft ~4 dagen getest en liep tegen zaken aan die
 >   later gebouwd zouden worden (veel inmiddels gefixt). Eerst de app "echt
 >   klaar" maken, dan pas een nieuwe volledige testronde.

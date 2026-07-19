@@ -100,6 +100,10 @@
           </div>
           <div class="ins__qactions" @click.stop>
             <button v-if="q.storage_path" class="ins__link" :disabled="opening === q.id" @click="openFile(q)">📄 {{ $t('settings.inspectors.viewFile') }}</button>
+            <label v-if="q.storage_path" class="ins__share" :title="$t('settings.inspectors.shareHint')">
+              <input type="checkbox" :checked="!!q.public_path" :disabled="sharing === q.id" @change="toggleShare(q, $event)" />
+              {{ $t('settings.inspectors.shareLabel') }}
+            </label>
             <button class="ins__link ins__link--del" @click="removeQual(q)">{{ $t('common.delete') }}</button>
           </div>
         </li>
@@ -160,6 +164,9 @@ interface Qualification {
   number: string | null
   valid_until: string | null
   storage_path: string | null
+  // Pad van de openbare kopie in de branding-bucket; null = niet gedeeld.
+  // Zie migratie 20260746: delen = bewuste keuze per document.
+  public_path: string | null
 }
 
 const loading = ref(true)
@@ -288,9 +295,12 @@ async function deleteInspector() {
   if (!selected.value) return
   deleting.value = true
   try {
-    // Eerst de geüploade kwalificatiebestanden opruimen (rijen gaan via cascade).
+    // Eerst de geüploade kwalificatiebestanden opruimen (rijen gaan via cascade),
+    // inclusief eventuele openbare kopieën in de branding-bucket.
     const paths = quals.value.map((q) => q.storage_path).filter(Boolean) as string[]
     if (paths.length) await supabase.storage.from('qualifications').remove(paths)
+    const publicPaths = quals.value.map((q) => q.public_path).filter(Boolean) as string[]
+    if (publicPaths.length) await supabase.storage.from('branding').remove(publicPaths)
     if (selected.value.signature_path) await supabase.storage.from('branding').remove([selected.value.signature_path])
     const { error: err } = await supabase.from('inspectors').delete().eq('id', selected.value.id)
     if (err) throw err
@@ -310,7 +320,7 @@ async function loadQuals(inspectorId: string) {
   qualLoading.value = true
   const { data, error: err } = await supabase
     .from('inspector_qualifications')
-    .select('id, inspector_id, name, number, valid_until, storage_path')
+    .select('id, inspector_id, name, number, valid_until, storage_path, public_path')
     .eq('inspector_id', inspectorId)
     .order('created_at', { ascending: false })
   qualLoading.value = false
@@ -363,9 +373,46 @@ async function addQual() {
 }
 async function removeQual(q: Qualification) {
   if (q.storage_path) await supabase.storage.from('qualifications').remove([q.storage_path])
+  if (q.public_path) await supabase.storage.from('branding').remove([q.public_path])
   const { error: err } = await supabase.from('inspector_qualifications').delete().eq('id', q.id)
   if (err) { qualError.value = err.message; return }
   if (selected.value) await loadQuals(selected.value.id)
+}
+
+// Delen aan/uit (besluit Jos 2026-07-19, migratie 20260746): aanzetten
+// kopieert het bestand naar de publieke branding-bucket zodat de
+// verificatiepagina (QR, anoniem) erbij kan; uitzetten haalt die kopie weg.
+// Het origineel blijft altijd in de privé-bucket staan.
+const sharing = ref<string | null>(null)
+async function toggleShare(q: Qualification, e: Event) {
+  const on = (e.target as HTMLInputElement).checked
+  qualError.value = ''
+  sharing.value = q.id
+  try {
+    if (on) {
+      if (!q.storage_path) return
+      const { data: file, error: dlErr } = await supabase.storage.from('qualifications').download(q.storage_path)
+      if (dlErr || !file) throw dlErr ?? new Error('Download mislukt')
+      const publicPath = `${companyId.value}/qualifications/${q.id}-${sanitize(q.storage_path.split('/').pop() || 'bewijs')}`
+      const { error: upErr } = await supabase.storage
+        .from('branding')
+        .upload(publicPath, file, { contentType: file.type || 'application/pdf', upsert: true })
+      if (upErr) throw upErr
+      const { error: err } = await supabase.from('inspector_qualifications').update({ public_path: publicPath }).eq('id', q.id)
+      if (err) throw err
+      q.public_path = publicPath
+    } else {
+      if (q.public_path) await supabase.storage.from('branding').remove([q.public_path])
+      const { error: err } = await supabase.from('inspector_qualifications').update({ public_path: null }).eq('id', q.id)
+      if (err) throw err
+      q.public_path = null
+    }
+  } catch (err) {
+    qualError.value = errorMessage(err)
+    ;(e.target as HTMLInputElement).checked = !!q.public_path
+  } finally {
+    sharing.value = null
+  }
 }
 async function openFile(q: Qualification) {
   if (!q.storage_path) return
@@ -481,6 +528,7 @@ onMounted(load)
 .ins__valid--expired { color: #b91c1c; font-weight: 600; }
 .ins__qactions { display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-end; }
 .ins__link { background: none; border: none; color: #2563eb; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; white-space: nowrap; }
+.ins__share { display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: #374151; cursor: pointer; white-space: nowrap; }
 .ins__link--del { color: #dc2626; }
 .ins__link:disabled { opacity: 0.6; }
 
