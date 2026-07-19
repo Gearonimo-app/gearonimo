@@ -111,6 +111,22 @@
           <button v-else class="ca__btn ca__btn--save" :disabled="linking" @click="addInspector">{{ linking ? $t('common.saving') : $t('settings.companies.link') }}</button>
         </div>
       </div>
+
+      <div class="ca__dangerzone">
+        <button class="ca__btn ca__btn--danger-ghost" @click="showDelete = true">{{ $t('settings.companies.delete') }}</button>
+        <p v-if="deleteError" class="ca__error">{{ deleteError }}</p>
+      </div>
+
+      <div v-if="showDelete" class="ca__overlay" @click.self="showDelete = false">
+        <div class="ca__dialog">
+          <h2>{{ $t('settings.companies.deleteTitle') }}</h2>
+          <p>{{ $t('settings.companies.deleteBody', { name: selected.name }) }}</p>
+          <div class="ca__actions">
+            <button class="ca__btn ca__btn--cancel" @click="showDelete = false">{{ $t('common.cancel') }}</button>
+            <button class="ca__btn ca__btn--danger" :disabled="deleting" @click="deleteCompany">{{ $t('common.delete') }}</button>
+          </div>
+        </div>
+      </div>
     </template>
   </section>
 </template>
@@ -191,6 +207,10 @@ const linkForm = reactive({ email: '', is_admin: true })
 const noAccountFound = ref(false)
 const inviteSent = ref(false)
 
+const showDelete = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
+
 async function load() {
   loading.value = true
   error.value = ''
@@ -258,6 +278,26 @@ async function select(c: Company) {
 function deselect() {
   selected.value = null
   inspectors.value = []
+  showDelete.value = false
+  deleteError.value = ''
+}
+
+async function deleteCompany() {
+  if (!selected.value) return
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    const { error: err } = await supabase.rpc('platform_admin_delete_company', { p_company_id: selected.value.id })
+    if (err) throw err
+    showDelete.value = false
+    deselect()
+    await load()
+  } catch (e) {
+    deleteError.value = errorMessage(e)
+    showDelete.value = false
+  } finally {
+    deleting.value = false
+  }
 }
 
 async function loadInspectors() {
@@ -394,5 +434,13 @@ onMounted(load)
 .ca__btn { flex: 1; padding: 0.8rem; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; }
 .ca__btn--cancel { background: #f3f4f6; color: #374151; }
 .ca__btn--save { background: #16a34a; color: #fff; }
+.ca__btn--danger { background: #dc2626; color: #fff; }
+.ca__btn--danger-ghost { background: #fff; color: #dc2626; border: 1px solid #fecaca; }
 .ca__btn:disabled { opacity: 0.6; }
+
+.ca__dangerzone { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.ca__overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100; }
+.ca__dialog { background: #fff; border-radius: 16px; padding: 1.5rem; width: 100%; max-width: 360px; }
+.ca__dialog h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+.ca__dialog p { margin: 0 0 0.5rem; color: #4b5563; }
 </style>

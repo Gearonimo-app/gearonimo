@@ -672,6 +672,9 @@
       "invite": "Invite and link",
       "inviteSent": "Invite sent. As soon as that person opens the link, the link-up is active right away.",
       "curator": "Catalog curator",
+      "delete": "Delete company",
+      "deleteTitle": "Delete company?",
+      "deleteBody": "{name} will be deleted permanently, including inspector links and settings. This is only possible while the company has not performed any inspections yet; customer companies themselves remain.",
       "logoHint": "Logo, brand color and header/footer text are managed by the company itself via Settings → Certificate template, once an admin is linked.",
       "fields": {
         "name": "Name",

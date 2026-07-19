@@ -672,6 +672,9 @@
       "invite": "Uitnodigen en koppelen",
       "inviteSent": "Uitnodiging verstuurd. Zodra die persoon de link opent, is de koppeling meteen actief.",
       "curator": "Catalogus-curator",
+      "delete": "Bedrijf verwijderen",
+      "deleteTitle": "Bedrijf verwijderen?",
+      "deleteBody": "{name} wordt definitief verwijderd, inclusief keurmeester-koppelingen en instellingen. Dit kan alleen zolang het bedrijf nog geen keuringen heeft uitgevoerd; klantbedrijven zelf blijven bestaan.",
       "logoHint": "Logo, huiskleur en kop-/voettekst regelt het bedrijf zelf via Instellingen → Certificaat-template, zodra er een beheerder gekoppeld is.",
       "fields": {
         "name": "Naam",
