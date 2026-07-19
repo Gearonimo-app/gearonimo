@@ -28,6 +28,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > keurmeester-rij van info@gearonimo bij Safety Green blijft staan tot
 > daar een andere beheerder is (vangnet); daarna op inactief zetten.
 >
+> **Fase 5 gestart (zelfde sessie, 2026-07-19):** het **VK-regime is
+> actief** in de keuring-wizard — de voorgestelde volgende-keuringsdatum
+> valt nu, ná artikel-/product-override en bedrijfsinstelling, terug op het
+> wettelijke regime van het land van het keurbedrijf (GB = 6 mnd voor
+> PBM/hijsmateriaal per LOLER/PUWER; NL = 12 mnd; onbekend = 12). Voor
+> NL-bedrijven verandert er niets. En het **certificaat-PDF is tweetalig**:
+> alle vaste teksten (titel, kolomkoppen, datums, voetblok,
+> paginanummering) volgen het land van het keurbedrijf (NL/BE = nl, rest =
+> en — zelfde regel als het language-metadataveld), inclusief de live
+> preview. Bewust een eigen label-tabel in useCertificate.ts, niet i18n:
+> de certificaattaal volgt het bedrijf, niet de UI-taal van de keurmeester.
+> Geverifieerd met een render-script (beide talen gecontroleerd op alle
+> teksten). Geen migratie nodig.
+>
 > **Besluiten Jos (2026-07-19), raken fase 4:** geen DB-naar-DB-migratie
 > van de oude klimkeurpro-data nodig — alles staat dubbel op de zaak (incl.
 > PDF's), testklanten krijgen gewoon een uitnodigingscode en beginnen leeg
