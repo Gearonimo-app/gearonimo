@@ -111,16 +111,72 @@ export interface CertData {
   items: CertItem[]
   /** Ingebedde handtekening-PNG/JPG van de keurmeester, of null. */
   signature: Uint8Array | null
+  /**
+   * Taal van de vaste PDF-teksten (fase 5, 2026-07-19). Afgeleid van het
+   * land van het keurbedrijf: NL/BE = nl, al het andere = en — dezelfde
+   * regel als het language-metadataveld op certificates. Optioneel zodat
+   * bestaande aanroepen (preview) zonder wijziging Nederlands blijven.
+   */
+  language?: CertLanguage
 }
+
+export type CertLanguage = 'nl' | 'en'
+
+export function certLanguageForCountry(countryCode: string | null): CertLanguage {
+  return ['NL', 'BE'].includes(countryCode ?? 'NL') ? 'nl' : 'en'
+}
+
+// Vaste PDF-teksten per taal. De afkeurcode-labels zelf komen uit de eigen
+// codes van het keurbedrijf en blijven zoals het bedrijf ze invoerde.
+const CERT_LABELS = {
+  nl: {
+    dateLocale: 'nl-NL',
+    title: 'Keuringscertificaat',
+    number: 'Certificaatnummer',
+    customer: 'Klant',
+    inspectionDate: 'Keuringsdatum',
+    inspector: 'Keurmeester',
+    signature: 'Handtekening',
+    issued: 'Uitgegeven',
+    scanToVerify: 'Scan om te verifiëren',
+    verifiedWith: 'geverifieerd met gearonimo',
+    page: (n: number, total: number) => `Pagina ${n} van ${total}`,
+    cols: {
+      article: 'Artikel', brand: 'Merk', category: 'Categorie',
+      sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
+      year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS',
+      note: 'Afkeurcode / opmerking',
+    } as Record<string, string>,
+  },
+  en: {
+    dateLocale: 'en-GB',
+    title: 'Inspection certificate',
+    number: 'Certificate number',
+    customer: 'Customer',
+    inspectionDate: 'Inspection date',
+    inspector: 'Inspector',
+    signature: 'Signature',
+    issued: 'Issued',
+    scanToVerify: 'Scan to verify',
+    verifiedWith: 'verified with gearonimo',
+    page: (n: number, total: number) => `Page ${n} of ${total}`,
+    cols: {
+      article: 'Item', brand: 'Brand', category: 'Category',
+      sn: 'Serial number', status: 'Status', next: 'Next inspection',
+      year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS',
+      note: 'Rejection code / comment',
+    } as Record<string, string>,
+  },
+} as const
 
 // ----------------------------------------------------------------------------
 // Hulpfuncties
 // ----------------------------------------------------------------------------
 
-function formatDate(d: string | Date): string {
+function formatDate(d: string | Date, locale = 'nl-NL'): string {
   const date = typeof d === 'string' ? new Date(d) : d
   if (isNaN(date.getTime())) return String(d)
-  return date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return date.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function slugify(s: string): string {
@@ -467,7 +523,17 @@ export async function renderCertificatePdf(
   const margin = 50
   let tableSize = 9.5
   const items = data.items
-  const cols = activeColumns(items, layout.columns)
+  // Vaste teksten in de taal van het keurbedrijf; kolomkoppen en de
+  // datumnotatie van de Volgende keuring-kolom worden hier al vertaald zodat
+  // ook de breedteberekening met de juiste teksten meet.
+  const L = CERT_LABELS[data.language ?? 'nl']
+  const cols = activeColumns(items, layout.columns).map((c) => ({
+    ...c,
+    header: L.cols[c.key] ?? c.header,
+    value: c.key === 'next'
+      ? (it: CertItem) => (it.next_due ? formatDate(it.next_due, L.dateLocale) : '')
+      : c.value,
+  }))
 
   // Oriëntatie bepalen. Auto = staand, tenzij de tabel echt te breed wordt om
   // nog netjes in staand te passen (dan liggend). Staand is de natuurlijke keuze
@@ -579,14 +645,14 @@ export async function renderCertificatePdf(
 
     // Certificaatgegevens tekenen (rechts uitgelijnd als ze aan de rechterkant staan).
     let certY = startY
-    const titleW = bold.widthOfTextAtSize('Keuringscertificaat', 13)
-    page.drawText('Keuringscertificaat', { x: lineX(titleW, certOnRight), y: certY - 13, size: 13, font: bold, color: accent })
+    const titleW = bold.widthOfTextAtSize(L.title, 13)
+    page.drawText(L.title, { x: lineX(titleW, certOnRight), y: certY - 13, size: 13, font: bold, color: accent })
     certY -= 13 + 8
     const meta = [
-      `Certificaatnummer: ${data.number}`,
-      `Klant: ${data.customerName}`,
-      `Keuringsdatum: ${formatDate(data.inspectionDate)}`,
-      `Keurmeester: ${data.inspectorName || '—'}`,
+      `${L.number}: ${data.number}`,
+      `${L.customer}: ${data.customerName}`,
+      `${L.inspectionDate}: ${formatDate(data.inspectionDate, L.dateLocale)}`,
+      `${L.inspector}: ${data.inspectorName || '—'}`,
     ]
     for (const m of meta) {
       const w = font.widthOfTextAtSize(m, 10)
@@ -664,7 +730,7 @@ export async function renderCertificatePdf(
   // QR-grootte = breedte van de groene "geverifieerd"-regel, zodat QR en tekst
   // eronder netjes uitlijnen (wens Jos 2026-06-26). Begrensd voor een redelijk
   // formaat.
-  const verifyCaption = 'geverifieerd met gearonimo'
+  const verifyCaption = L.verifiedWith
   const qrSize = Math.max(82, Math.min(118, Math.round(bold.widthOfTextAtSize(verifyCaption, 6.5))))
   const sigBlockHeight = 30 + footerLines.length * 11 + qrSize + 18
   if (y - sigBlockHeight < margin) {
@@ -689,7 +755,7 @@ export async function renderCertificatePdf(
     const mw = (gearMark.width / gearMark.height) * mh
     page.drawImage(gearMark, { x: bcx - mw / 2, y: bcy - mh / 2, width: mw, height: mh })
   }
-  page.drawText('Scan om te verifiëren', { x: qrX, y: fy - 9, size: 7, font, color: grey })
+  page.drawText(L.scanToVerify, { x: qrX, y: fy - 9, size: 7, font, color: grey })
   page.drawText(verifyCaption, { x: qrX, y: fy - 18, size: 6.5, font: bold, color: gearGreen })
   // Handtekeningvlak links. Een geüploade handtekening wordt boven de lijn
   // ingebed (proportioneel geschaald, breedte tot de lijnlengte, hoogte tot ~34);
@@ -703,9 +769,9 @@ export async function renderCertificatePdf(
     if (sw > sigLineWidth) { sw = sigLineWidth; sh = sigLineWidth / ratio }
     page.drawImage(signature, { x: margin, y: fy + 32, width: sw, height: sh })
   }
-  page.drawText(`Keurmeester: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
+  page.drawText(`${L.inspector}: ${data.inspectorName || '—'}`, { x: margin, y: fy + 12, size: 9, font, color: rgb(0, 0, 0) })
   page.drawLine({ start: { x: margin, y: fy + 30 }, end: { x: margin + sigLineWidth, y: fy + 30 }, thickness: 0.6, color: rgb(0.6, 0.6, 0.6) })
-  page.drawText('Handtekening', { x: margin, y: fy, size: 7, font, color: grey })
+  page.drawText(L.signature, { x: margin, y: fy, size: 7, font, color: grey })
 
   fy += qrSize + 14
   if (footerLines.length) {
@@ -714,12 +780,12 @@ export async function renderCertificatePdf(
       fy += 11
     }
   }
-  page.drawText(`Uitgegeven: ${formatDate(new Date())}`, { x: margin, y: fy + 2, size: 8, font, color: grey })
+  page.drawText(`${L.issued}: ${formatDate(new Date(), L.dateLocale)}`, { x: margin, y: fy + 2, size: 8, font, color: grey })
 
   // ---- Paginanummers op elke pagina ----
   const pages = doc.getPages()
   pages.forEach((p, i) => {
-    const label = `Pagina ${i + 1} van ${pages.length}`
+    const label = L.page(i + 1, pages.length)
     const w = font.widthOfTextAtSize(label, 8)
     p.drawText(label, { x: (pageWidth - w) / 2, y: 22, size: 8, font, color: grey })
   })
@@ -879,6 +945,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const logoBytes = await fetchLogoBytes(company.logo_path)
   const signatureBytes = await fetchSignatureBytes(inspection.inspector?.signature_path ?? null)
 
+  const certLanguage = certLanguageForCountry(company.country_code)
   const data: CertData = {
     company,
     customerName: inspection.customer.name,
@@ -888,6 +955,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     verifyUrl,
     items,
     signature: signatureBytes,
+    language: certLanguage,
   }
 
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)
@@ -912,10 +980,8 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     inspection_id: inspection.id,
     number,
     storage_path: storagePath,
-    // Metadata-veld: het PDF zelf is vandaag nog Nederlandstalig (En-GB =
-    // fase 5). NL/BE = Nederlands; alle andere landen krijgen 'en' zodat
-    // bestaande certificaten niet herlabeld hoeven zodra de vertaling er is.
-    language: ['NL', 'BE'].includes(company.country_code) ? 'nl' : 'en',
+    // Zelfde taal als de vaste PDF-teksten (fase 5, 2026-07-19).
+    language: certLanguage,
     pdf_hash: pdfHash,
     verify_token: verifyToken,
   })

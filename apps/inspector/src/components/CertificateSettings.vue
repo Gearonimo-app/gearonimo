@@ -154,6 +154,7 @@ import {
   renderCertificatePdf,
   resolveLayout,
   fetchLogoBytes,
+  certLanguageForCountry,
   type CertLayout,
   type CertData,
 } from '../composables/useCertificate'
@@ -167,6 +168,7 @@ const saveError = ref('')
 const rendering = ref(false)
 
 const companyId = ref('')
+const countryCode = ref('NL')
 const form = reactive({
   name: '',
   address: '',
@@ -201,7 +203,7 @@ async function load() {
     companyId.value = inspector.company_id
     const { data, error: err } = await supabase
       .from('inspection_companies')
-      .select('name, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout')
+      .select('name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout')
       .eq('id', inspector.company_id)
       .single()
     if (err) throw err
@@ -216,6 +218,7 @@ async function load() {
     form.vat_number = data.vat_number ?? ''
     form.cert_header = data.cert_header ?? ''
     form.cert_footer = data.cert_footer ?? ''
+    countryCode.value = data.country_code ?? 'NL'
     Object.assign(layout, resolveLayout(data.cert_layout))
     logoPath.value = data.logo_path ?? null
     if (logoPath.value) {
@@ -272,6 +275,8 @@ function sampleData(): CertData {
     inspectorName: t('settings.certificate.sampleInspector'),
     number: '20260625-VOORBEELD',
     verifyUrl: window.location.origin + '/verify/voorbeeld',
+    // Preview in dezelfde taal als het echte certificaat (land van het bedrijf).
+    language: certLanguageForCountry(countryCode.value),
     items: [
       { result: 'passed', brand: 'Petzl', name: 'Avao Bod Fast harnasgordel', serial_number: '21A0001234', manufacture_year: 2021, manufacture_month: 3, category: 'Harnasgordel', norm: 'EN 361', mbs: '15 kN', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
       { result: 'passed', brand: 'Petzl', name: 'Astro Bod Fast', serial_number: '20B0007777', manufacture_year: 2020, manufacture_month: null, category: 'Harnasgordel', norm: 'EN 813', mbs: '15 kN', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
