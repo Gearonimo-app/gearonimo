@@ -22,8 +22,6 @@
 
     <template v-else>
       <div class="iw__body">
-        <!-- Spiekbriefje (dag/week + SN-referentie, uit klimkeurpro). -->
-        <SerialCheatSheet />
         <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
              hieronder; staat een artikel er niet bij, vul de overige velden
              aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
@@ -232,6 +230,16 @@
           />
           <span v-if="weekHintMonth" class="iw__cheatsheet-result">→ {{ monthName(weekHintMonth) }}</span>
           <button v-if="weekHintMonth" class="iw__cheatsheet-apply" @click="newMonth = weekHintMonth">{{ $t('inspections.table.useMonth') }}</button>
+          <span class="iw__cheatsheet-sep">·</span>
+          <!-- SN-referentie per merk als uitklap op deze zelfde regel
+               (besluit Jos 2026-07-19; de dag/week-invoer hierboven bestond
+               al en blijft zoals hij was). -->
+          <button class="iw__cheatsheet-toggle" @click="showSnRef = !showSnRef">
+            {{ $t('cheatSheet.tabSnRef') }} {{ showSnRef ? '▴' : '▾' }}
+          </button>
+        </div>
+        <div v-if="showSnRef" class="iw__snref">
+          <SnReferencePanel />
         </div>
 
         <div class="iw__table-wrap">
@@ -459,7 +467,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
-import SerialCheatSheet from '../components/SerialCheatSheet.vue'
+import SnReferencePanel from '../components/SnReferencePanel.vue'
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -900,6 +908,7 @@ function copyLastArticle() {
 // keurmeester past 'm zelf toe op Maand, zodat "3" nooit stilzwijgend als
 // "3 juni" wordt opgeslagen.
 const dayHint = ref<number | null>(null)
+const showSnRef = ref(false)
 const weekHint = ref<number | null>(null)
 const MONTH_NAMES_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
 function monthName(m: number) { return MONTH_NAMES_NL[m - 1] }
@@ -2126,6 +2135,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   font-size: 0.8rem; color: #6b7280; margin-bottom: 0.85rem; padding: 0 0.25rem;
 }
 .iw__cheatsheet .iw__input { flex: 0 0 4rem; min-width: 3.5rem; padding: 0.35rem 0.5rem; }
+.iw__cheatsheet-toggle {
+  background: none; border: none; color: #16a34a; font-weight: 600;
+  font-size: 0.8rem; cursor: pointer; padding: 0;
+}
+.iw__snref { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; }
 .iw__cheatsheet-label { white-space: nowrap; }
 .iw__cheatsheet-result { font-weight: 600; color: #16a34a; white-space: nowrap; }
 .iw__cheatsheet-apply { border: 1px solid #16a34a; color: #16a34a; background: #fff; border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.75rem; cursor: pointer; }

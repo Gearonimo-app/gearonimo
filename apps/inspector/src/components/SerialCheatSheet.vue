@@ -1,8 +1,9 @@
 <!-- Spiekbriefje (uit klimkeurpro, wens Jos 2026-07-19): inklapbaar paneel
-     met twee tabs -- (1) dag-/weeknummer omrekenen naar een datum (voor het
-     aflezen van bouwjaren uit serienummers als Petzl YYDDD), (2) de
-     SN-referentie per merk (voorbeeld + formaat). Zit in de keuring-wizard
-     en op de SN-zoeken-pagina; dit component is de ene gedeelde bron. -->
+     met twee tabs -- (1) dag-/weeknummer omrekenen naar een datum, (2) de
+     SN-referentie per merk (SnReferencePanel). Alleen op de
+     SN-zoeken-pagina; de keuring-wizard heeft zijn eigen inline
+     dag/week-regel en klapt daar alleen de SN-referentie uit
+     (besluit Jos 2026-07-19: geen dubbele dag/week-invoer). -->
 <template>
   <details class="scs">
     <summary class="scs__summary">{{ $t('cheatSheet.title') }}</summary>
@@ -40,17 +41,7 @@
 
       <!-- Tab 2: SN-referentie per merk -->
       <div v-else class="scs__panel">
-        <input v-model="filter" class="scs__input scs__filter" :placeholder="$t('cheatSheet.filterPh')" />
-        <p class="scs__legend">{{ $t('cheatSheet.legend') }}</p>
-        <div class="scs__cards">
-          <div v-for="(s, i) in filtered" :key="i" class="scs__card">
-            <div class="scs__brand">{{ s.brand }}</div>
-            <div class="scs__line">{{ $t('cheatSheet.example') }}: <code>{{ s.example }}</code></div>
-            <div v-if="s.format" class="scs__line">{{ $t('cheatSheet.format') }}: <code>{{ s.format }}</code></div>
-            <div v-if="s.note" class="scs__note">{{ s.note }}</div>
-            <a v-if="s.link" :href="s.link" target="_blank" rel="noopener" class="scs__link">{{ $t('cheatSheet.manualLink') }}</a>
-          </div>
-        </div>
+        <SnReferencePanel />
       </div>
     </div>
   </details>
@@ -59,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { SN_REFERENCE } from '../data/snReference'
+import SnReferencePanel from './SnReferencePanel.vue'
 
 const { t, locale } = useI18n()
 
@@ -92,14 +83,6 @@ const weekResult = computed(() => {
   sunday.setDate(monday.getDate() + 6)
   return `${fmt(monday)} – ${fmt(sunday)}`
 })
-
-// ---- SN-referentie ----
-const filter = ref('')
-const filtered = computed(() => {
-  const q = filter.value.trim().toLowerCase()
-  if (!q) return SN_REFERENCE
-  return SN_REFERENCE.filter((s) => s.brand.toLowerCase().includes(q))
-})
 </script>
 
 <style scoped>
@@ -130,14 +113,4 @@ const filtered = computed(() => {
 .scs__input--year { width: 5rem; }
 .scs__eq { color: #9ca3af; font-size: 0.85rem; }
 .scs__result { font-size: 0.9rem; font-weight: 700; color: #16a34a; min-width: 7rem; }
-
-.scs__filter { max-width: 16rem; margin-bottom: 0.6rem; display: block; }
-.scs__legend { font-size: 0.75rem; color: #9ca3af; margin: 0 0 0.6rem; }
-.scs__cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0.6rem; }
-.scs__card { padding: 0.6rem 0.8rem; background: #f9fafb; border: 1px solid #eee; border-radius: 8px; }
-.scs__brand { font-weight: 700; font-size: 0.88rem; color: #166534; margin-bottom: 0.2rem; }
-.scs__line { font-size: 0.78rem; color: #6b7280; }
-.scs__line code { font-family: ui-monospace, monospace; color: #111827; font-size: 0.78rem; }
-.scs__note { font-size: 0.72rem; color: #b45309; margin-top: 0.25rem; }
-.scs__link { display: inline-block; margin-top: 0.3rem; font-size: 0.75rem; color: #16a34a; font-weight: 600; }
 </style>
