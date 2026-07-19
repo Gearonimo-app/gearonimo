@@ -667,13 +667,20 @@
       "inspectorCount": "{n} inspector(s)",
       "noInspectors": "No inspectors at this company yet.",
       "addInspector": "Link inspector",
-      "addInspectorHint": "The person must have logged in at least once already (magic link or password). They'll be moved to this company if they were already an inspector elsewhere.",
+      "addInspectorHint": "If an account already exists for this email, it links right away. If not, a button appears to send an invite (magic link). They'll be moved to this company if they were already an inspector elsewhere.",
       "link": "Link",
+      "invite": "Invite and link",
+      "inviteSent": "Invite sent. As soon as that person opens the link, the link-up is active right away.",
       "curator": "Catalog curator",
+      "logoHint": "Logo, brand color and header/footer text are managed by the company itself via Settings → Certificate template, once an admin is linked.",
       "fields": {
         "name": "Name",
-        "country": "Country (ISO code)",
-        "email": "Email address"
+        "country": "Country",
+        "email": "Email address",
+        "phone": "Phone",
+        "address": "Address",
+        "postalCode": "Postal code",
+        "city": "City"
       },
       "errors": {
         "nameRequired": "Name is required.",

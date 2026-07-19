@@ -37,7 +37,23 @@
         <label class="ca__field"><span>{{ $t('settings.companies.fields.name') }}</span>
           <input v-model="addForm.name" class="ca__input" /></label>
         <label class="ca__field"><span>{{ $t('settings.companies.fields.country') }}</span>
-          <input v-model="addForm.country_code" class="ca__input" placeholder="NL" /></label>
+          <select v-model="addForm.country_code" class="ca__input">
+            <option v-for="c in COUNTRY_OPTIONS" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </label>
+        <label class="ca__field"><span>{{ $t('settings.companies.fields.email') }}</span>
+          <input v-model="addForm.email" type="email" class="ca__input" /></label>
+        <label class="ca__field"><span>{{ $t('settings.companies.fields.phone') }}</span>
+          <input v-model="addForm.phone" class="ca__input" /></label>
+        <label class="ca__field"><span>{{ $t('settings.companies.fields.address') }}</span>
+          <input v-model="addForm.address" class="ca__input" /></label>
+        <div class="ca__row">
+          <label class="ca__field"><span>{{ $t('settings.companies.fields.postalCode') }}</span>
+            <input v-model="addForm.postal_code" class="ca__input" /></label>
+          <label class="ca__field ca__field--grow"><span>{{ $t('settings.companies.fields.city') }}</span>
+            <input v-model="addForm.city" class="ca__input" /></label>
+        </div>
+        <p class="ca__hint">{{ $t('settings.companies.logoHint') }}</p>
         <p v-if="formError" class="ca__error">{{ formError }}</p>
         <div class="ca__actions">
           <button class="ca__btn ca__btn--cancel" @click="showAdd = false">{{ $t('common.cancel') }}</button>
@@ -79,8 +95,12 @@
           <input v-model="linkForm.email" type="email" class="ca__input" placeholder="naam@voorbeeld.nl" /></label>
         <label class="ca__check"><input type="checkbox" v-model="linkForm.is_admin" /> {{ $t('settings.inspectors.fields.admin') }}</label>
         <p v-if="linkError" class="ca__error">{{ linkError }}</p>
+        <p v-if="inviteSent" class="ca__ok">{{ $t('settings.companies.inviteSent') }}</p>
         <div class="ca__actions">
-          <button class="ca__btn ca__btn--save" :disabled="linking" @click="addInspector">{{ linking ? $t('common.saving') : $t('settings.companies.link') }}</button>
+          <button v-if="noAccountFound" class="ca__btn ca__btn--save" :disabled="linking" @click="inviteAndLink">
+            {{ linking ? $t('common.saving') : $t('settings.companies.invite') }}
+          </button>
+          <button v-else class="ca__btn ca__btn--save" :disabled="linking" @click="addInspector">{{ linking ? $t('common.saving') : $t('settings.companies.link') }}</button>
         </div>
       </div>
     </template>
@@ -90,9 +110,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, useAuth } from '@gearonimo/core'
 
 const { t } = useI18n()
+const { signInWithMagicLink } = useAuth()
+
+// Regimes bestaan vandaag alleen voor NL/GB (packages/core/regimes.ts) --
+// meer landen komen erbij zodra er een regime voor gebouwd is (BOUWPLAN
+// fase 5).
+const COUNTRY_OPTIONS = ['NL', 'GB'] as const
 
 interface Company {
   id: string
@@ -118,13 +144,18 @@ const selected = ref<Company | null>(null)
 const showAdd = ref(false)
 const saving = ref(false)
 const formError = ref('')
-const addForm = reactive({ name: '', country_code: 'NL' })
+const addForm = reactive({
+  name: '', country_code: 'NL',
+  email: '', phone: '', address: '', postal_code: '', city: '',
+})
 
 const inspectors = ref<CompanyInspector[]>([])
 const inspLoading = ref(false)
 const linking = ref(false)
 const linkError = ref('')
 const linkForm = reactive({ email: '', is_admin: true })
+const noAccountFound = ref(false)
+const inviteSent = ref(false)
 
 async function load() {
   loading.value = true
@@ -143,6 +174,11 @@ async function load() {
 function openAdd() {
   addForm.name = ''
   addForm.country_code = 'NL'
+  addForm.email = ''
+  addForm.phone = ''
+  addForm.address = ''
+  addForm.postal_code = ''
+  addForm.city = ''
   formError.value = ''
   showAdd.value = true
 }
@@ -153,7 +189,12 @@ async function createCompany() {
   try {
     const { error: err } = await supabase.rpc('platform_admin_create_company', {
       p_name: addForm.name.trim(),
-      p_country_code: addForm.country_code.trim() || 'NL',
+      p_country_code: addForm.country_code,
+      p_email: addForm.email.trim() || null,
+      p_phone: addForm.phone.trim() || null,
+      p_address: addForm.address.trim() || null,
+      p_postal_code: addForm.postal_code.trim() || null,
+      p_city: addForm.city.trim() || null,
     })
     if (err) throw err
     showAdd.value = false
@@ -170,6 +211,8 @@ async function select(c: Company) {
   linkForm.email = ''
   linkForm.is_admin = true
   linkError.value = ''
+  noAccountFound.value = false
+  inviteSent.value = false
   await loadInspectors()
 }
 function deselect() {
@@ -194,6 +237,8 @@ async function loadInspectors() {
 async function addInspector() {
   if (!selected.value) return
   linkError.value = ''
+  noAccountFound.value = false
+  inviteSent.value = false
   if (!linkForm.email.trim()) { linkError.value = t('settings.companies.errors.emailRequired'); return }
   linking.value = true
   try {
@@ -206,6 +251,45 @@ async function addInspector() {
     linkForm.email = ''
     await loadInspectors()
     await load()
+  } catch (e) {
+    const msg = errorMessage(e)
+    // Herkenbaar aan de tekst uit platform_admin_add_inspector (20260740):
+    // geen account = nog geen auth.users-rij, dan bieden we uitnodigen aan
+    // i.p.v. alleen een doodlopende foutmelding.
+    if (msg.includes('Geen account gevonden')) {
+      noAccountFound.value = true
+    } else {
+      linkError.value = msg
+    }
+  } finally {
+    linking.value = false
+  }
+}
+
+// Stuurt een magic-link (maakt meteen een auth.users-rij aan, ook vóórdat
+// de uitnodiging is aangeklikt -- zelfde mechanisme als de bestaande
+// klant-onboarding). Probeert daarna meteen te koppelen; lukt dat nog niet
+// (race condition met de e-mail-verwerking), dan blijft de "Uitnodigen"-knop
+// staan zodat het opnieuw geprobeerd kan worden.
+async function inviteAndLink() {
+  if (!selected.value) return
+  linkError.value = ''
+  inviteSent.value = false
+  linking.value = true
+  try {
+    await signInWithMagicLink(linkForm.email.trim())
+    inviteSent.value = true
+    const { error: err } = await supabase.rpc('platform_admin_add_inspector', {
+      p_company_id: selected.value.id,
+      p_email: linkForm.email.trim(),
+      p_is_admin: linkForm.is_admin,
+    })
+    if (!err) {
+      noAccountFound.value = false
+      linkForm.email = ''
+      await loadInspectors()
+      await load()
+    }
   } catch (e) {
     linkError.value = errorMessage(e)
   } finally {
@@ -259,9 +343,12 @@ onMounted(load)
 .ca__hint { font-size: 0.82rem; color: #6b7280; margin: 0; }
 .ca__field { display: flex; flex-direction: column; gap: 0.25rem; }
 .ca__field > span { font-size: 0.8rem; color: #374151; font-weight: 600; }
+.ca__field--grow { flex: 1; }
+.ca__row { display: flex; gap: 0.6rem; }
 .ca__input { padding: 0.65rem 0.75rem; border-radius: 8px; border: 1px solid #ddd; font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit; }
 .ca__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
 .ca__error { color: #dc2626; font-size: 0.9rem; margin: 0; }
+.ca__ok { color: #16a34a; font-size: 0.9rem; margin: 0; }
 
 .ca__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }
 .ca__btn { flex: 1; padding: 0.8rem; border-radius: 10px; border: none; font-size: 0.95rem; font-weight: 600; cursor: pointer; }

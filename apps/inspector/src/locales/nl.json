@@ -667,13 +667,20 @@
       "inspectorCount": "{n} keurmeester(s)",
       "noInspectors": "Nog geen keurmeesters bij dit bedrijf.",
       "addInspector": "Keurmeester koppelen",
-      "addInspectorHint": "De persoon moet al minstens één keer zijn ingelogd (magic-link of wachtwoord). Diegene wordt verplaatst naar dit bedrijf als hij al ergens anders keurmeester was.",
+      "addInspectorHint": "Bestaat er al een account bij dit e-mailadres, dan koppelt het meteen. Bestaat er nog geen account, dan verschijnt een knop om een uitnodiging (magic-link) te sturen. Diegene wordt verplaatst naar dit bedrijf als hij al ergens anders keurmeester was.",
       "link": "Koppelen",
+      "invite": "Uitnodigen en koppelen",
+      "inviteSent": "Uitnodiging verstuurd. Zodra die persoon de link opent, is de koppeling meteen actief.",
       "curator": "Catalogus-curator",
+      "logoHint": "Logo, huiskleur en kop-/voettekst regelt het bedrijf zelf via Instellingen → Certificaat-template, zodra er een beheerder gekoppeld is.",
       "fields": {
         "name": "Naam",
-        "country": "Land (ISO-code)",
-        "email": "E-mailadres"
+        "country": "Land",
+        "email": "E-mailadres",
+        "phone": "Telefoon",
+        "address": "Adres",
+        "postalCode": "Postcode",
+        "city": "Plaats"
       },
       "errors": {
         "nameRequired": "Naam is verplicht.",
