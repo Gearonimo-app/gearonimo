@@ -105,6 +105,9 @@
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.user" /> {{ $t('settings.certificate.columns.user') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.next" /> {{ $t('settings.certificate.columns.next') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.note" /> {{ $t('settings.certificate.columns.note') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.swl" /> {{ $t('settings.certificate.columns.swl') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.previous" /> {{ $t('settings.certificate.columns.previous') }}</label>
+          <p v-if="countryCode === 'GB'" class="cs__hint">{{ $t('settings.certificate.columns.gbForced') }}</p>
 
           <h3>{{ $t('settings.certificate.texts') }}</h3>
           <label class="cs__field">

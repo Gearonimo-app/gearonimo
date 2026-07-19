@@ -121,12 +121,46 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > `logoOffsetY`, `headerOffsetY` (gegevens verticaal nudgen), `companyInfo`
 > (gegevens links/rechts), `showAddress`, `showContact`, `showRegistration`,
 > `accent` (hex), en `columns` (per keurbedrijf aan/uit te zetten
-> tabelkolommen: `category`/`norm`/`mbs`/`user`/`next`/`note`; de vaste
-> kolommen status/merk/artikel/bouwjaar/serienummer staan altijd aan). Een
-> kolom verschijnt alleen als hij aan staat én er data voor is; `norm` =
+> tabelkolommen: `category`/`norm`/`mbs`/`user`/`next`/`note`/`swl`/`previous`;
+> de vaste kolommen status/merk/artikel/bouwjaar/serienummer staan altijd aan).
+> Een kolom verschijnt alleen als hij aan staat én er data voor is; `norm` =
 > `products.standard`, `mbs` = `products.breaking_strength` (catalogus), of
 > `articles.free_norm`/`free_mbs` (vrij artikel — migratie
-> `20260701_articles_free_norm_mbs.sql`). Die vrije-invoervelden verschijnen in
+> `20260701_articles_free_norm_mbs.sql`); `swl` idem via
+> `products.working_load_limit`/`articles.free_working_load_limit`.
+>
+> **GB/LOLER Schedule 1 (fase 5-vervolg, 2026-07-19):** voor keurbedrijven met
+> `country_code = 'GB'` staan `swl` en `previous` altijd aan, ongeacht deze
+> instelling (`force`-set in `activeColumns()`,
+> `apps/inspector/src/composables/useCertificate.ts`) — Schedule 1 vraagt SWL
+> en de datum van de vorige keuring verplicht, dat is geen smaakkeuze. Het
+> certificaat toont daarnaast (alleen GB) een "veilig voor voortgezet
+> gebruik"-verklaring (afgeleid uit de resultaten, niet apart ingevoerd — geldt
+> feitelijk voor elk certificaat, niet alleen GB) en, in de voettekst, de
+> **gedeelde** kwalificaties van de keurmeester (dezelfde set als de
+> verificatiepagina, `inspector_qualifications.public_path is not null`).
+> Bewuste uitzondering op het besluit van 2026-07-19 dat kwalificaties niet op
+> het certificaat horen (zie `inspector_qualifications` hieronder): dat besluit
+> gold voor de algemene lay-out, maar LOLER Schedule 1 vraagt kwalificaties
+> letterlijk *op het rapport* — daarom alleen voor GB een uitzondering, niet
+> een generieke aanpassing. **Nog niet gebouwd:** `inspection_items.rejection_code_id`
+> koppelen aan een ernstniveau anders dan de losse `immediate_danger`-vlag
+> (zie hieronder) — dat blijft bewust een simpele boolean i.p.v. een taxonomie
+> zolang er geen tweede gebruik voor is.
+>
+> Ook toegevoegd (zelfde sessie): `inspections.location`/`examination_type`
+> bestonden al als kolom (migratie `20260624_inspections.sql`) maar werden
+> nergens ingevuld of getoond — nu een invoerveld bovenaan de keuringswizard
+> (`saveMeta()` in `InspectionWizard.vue`, met offline-mutatiequeue) en op het
+> certificaat (alleen getoond als ingevuld). "Datum vorige keuring" per item
+> kreeg bewust **geen nieuwe kolom** — hergebruikt dezelfde, al bestaande
+> `findPreviousResults()`-query als de "vorige keuring"-hint in de wizard.
+> Migratie `20260748_loler_schedule1_fields.sql`: `inspection_items.immediate_danger`
+> (boolean, default false — Category 1/"onmiddellijk gevaar", eigen checkbox
+> naast de afkeurcode) en `articles.free_working_load_limit` (SWL voor een vrij
+> artikel, naast de bestaande `free_norm`/`free_mbs`).
+>
+> Die vrije-invoervelden verschijnen in
 > de keuring-wizard en het klantartikelformulier **alleen** als het keurbedrijf
 > de betreffende kolom heeft aangezet (`fetchFreeInputFields`). Leeg =
 > `DEFAULT_CERT_LAYOUT` in
@@ -425,6 +459,7 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 | free_manufacturer_code, free_manual_url | text? | idem, alleen bij vrij artikel — verplicht zodra `suggest_for_catalog=true` (zie hieronder) |
 | free_recall_flag | boolean | **toegevoegd 2026-06-26** — handmatige recall-vlag voor een vrij artikel (geen `product_id`); de keurmeester zet deze zelf aan/uit in de keuringstabel, met een prompt voor `free_recall_url`. Catalogusproducten hebben dit niet nodig: die gebruiken het bestaande `products.recall_url` |
 | free_recall_url | text? | idem, het bijbehorende recall-bericht-linkje bij een vrij artikel |
+| free_working_load_limit | text? | SWL van een vrij artikel (LOLER Schedule 1) — toegevoegd 2026-07-19, migratie `20260748_loler_schedule1_fields.sql`, naast de bestaande `free_norm`/`free_mbs` |
 | serial_number | text? | |
 | manufacture_year | int? | |
 | manufacture_month | int? | |
@@ -557,8 +592,8 @@ voorkomen.
 | inspector_id | FK → inspectors | |
 | certificate_number | text | |
 | inspection_date | date | |
-| location | text? | locatie van de keuring (LOLER/WAHR-rapportveld) |
-| examination_type | text | `periodic` / `interim` / `after_event` / `pre_first_use` (BetrSichV §14, INDG367) |
+| location | text? | locatie van de keuring (LOLER/WAHR-rapportveld). Kolom bestond al sinds 20260624 maar kreeg pas 2026-07-19 een invoerveld (wizard) en een plek op het certificaat |
+| examination_type | text | `periodic` / `interim` / `after_event` / `pre_first_use` (BetrSichV §14, INDG367). Zelfde inhaalslag 2026-07-19 als `location` |
 | status | text | `draft` / `completed` — na completed onveranderlijk |
 | completed_at | timestamptz? | |
 | notes | text? | |
@@ -574,6 +609,7 @@ voorkomen.
 | next_due | date? | "volgende keuring uiterlijk" (maandprecisie) — bewust níet "goed tot": een keuring is een momentopname, geen garantie. Soms verloopt de levensduur vóór het interval; systeem stelt automatisch de vroegste voor van (keuringsdatum + interval) en (einde levensduur uit productdata: bouwjaar + max. leeftijd, of eerste gebruik + max. gebruiksduur); keurmeester kan handmatig aanpassen |
 | rejection_code_id | FK? → rejection_codes | |
 | comment | text? | |
+| immediate_danger | boolean | "ernstig defect, onmiddellijk gevaar" (LOLER Schedule 1, Category 1) — eigen checkbox naast de afkeurcode, default false. Toegevoegd 2026-07-19, migratie `20260748_loler_schedule1_fields.sql` |
 
 > **Implementatie fase 2.4 (2026-06-24, inspector-app):** `inspections` en
 > `inspection_items` zijn nu gebouwd zoals hierboven, inclusief de

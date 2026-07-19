@@ -2,6 +2,7 @@ import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFIm
 import QRCode from 'qrcode'
 import { supabase } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
+import { findPreviousResults } from './useInspections'
 
 // Genereert het certificaat-PDF bij het afronden van een keuring
 // (DATAMODEL §certificates). Client-side gebouwd; de PDF wordt eenmalig
@@ -37,6 +38,8 @@ export interface CertLayout {
     user: boolean
     next: boolean
     note: boolean
+    swl: boolean
+    previous: boolean
   }
 }
 
@@ -52,7 +55,10 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   showContact: true,
   showRegistration: true,
   accent: '#1a3a2a',
-  columns: { year: false, category: true, norm: false, mbs: false, user: true, next: true, note: true },
+  // swl/previous staan hier standaard uit -- NL/DE-bedrijven zien geen
+  // ongevraagde nieuwe kolommen; GB-bedrijven krijgen ze sowieso via de
+  // `force`-set in activeColumns(), ongeacht deze default.
+  columns: { year: false, category: true, norm: false, mbs: false, user: true, next: true, note: true, swl: false, previous: false },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
@@ -99,6 +105,14 @@ export interface CertItem {
   next_due: string | null
   rejection_code_label: string | null
   comment: string | null
+  /**
+   * LOLER Schedule 1-velden (fase 5-vervolg, 2026-07-19: Grok-lijst nagerekend
+   * tegen de wet, zie ONDERZOEK-CERTIFICAATEISEN.md). Optioneel zodat
+   * bestaande CertItem-literals (preview-voorbeelddata) niet breken.
+   */
+  swl?: string | null
+  previousDate?: string | null
+  immediateDanger?: boolean
 }
 
 export interface CertData {
@@ -118,6 +132,18 @@ export interface CertData {
    * bestaande aanroepen (preview) zonder wijziging Nederlands blijven.
    */
   language?: CertLanguage
+  /**
+   * LOLER Schedule 1-velden (fase 5-vervolg, 2026-07-19). `countryCode`
+   * bepaalt de GB-specifieke onderdelen (SWL/vorige-keuring-kolom altijd
+   * aan, kwalificaties in de voettekst) — niet `language`, want dat dekt
+   * ook toekomstige andere Engelstalige markten zonder LOLER-plicht.
+   */
+  location?: string | null
+  examinationType?: string | null
+  customerAddress?: string | null
+  countryCode?: string | null
+  /** Alleen gevuld (en alleen getoond) voor GB — zie besluit hieronder. */
+  qualifications?: { name: string; number: string | null }[] | null
 }
 
 export type CertLanguage = 'nl' | 'en'
@@ -141,11 +167,22 @@ const CERT_LABELS = {
     scanToVerify: 'Scan om te verifiëren',
     verifiedWith: 'geverifieerd met gearonimo',
     page: (n: number, total: number) => `Pagina ${n} van ${total}`,
+    location: 'Locatie van de keuring',
+    examinationType: 'Soort keuring',
+    examinationTypeLabels: {
+      periodic: 'Periodieke keuring',
+      interim: 'Tussentijdse keuring',
+      after_event: 'Na uitzonderlijke gebeurtenis',
+      pre_first_use: 'Eerste keuring na installatie',
+    } as Record<string, string>,
+    continueSafeAll: 'Op basis van dit onderzoek is de gekeurde uitrusting veilig voor voortgezet gebruik.',
+    continueSafeSome: 'Let op: niet alle uitrusting op dit certificaat is veilig voor voortgezet gebruik — zie de afgekeurde items hierboven voor de vereiste actie.',
+    qualificationsHeading: 'Kwalificaties keurmeester',
     cols: {
       article: 'Artikel', brand: 'Merk', category: 'Categorie',
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
       year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS',
-      note: 'Afkeurcode / opmerking',
+      note: 'Afkeurcode / opmerking', swl: 'SWL', previous: 'Vorige keuring',
     } as Record<string, string>,
   },
   en: {
@@ -160,11 +197,22 @@ const CERT_LABELS = {
     scanToVerify: 'Scan to verify',
     verifiedWith: 'verified with gearonimo',
     page: (n: number, total: number) => `Page ${n} of ${total}`,
+    location: 'Location of examination',
+    examinationType: 'Type of examination',
+    examinationTypeLabels: {
+      periodic: 'Periodic examination',
+      interim: 'Interim examination',
+      after_event: 'Following exceptional circumstances',
+      pre_first_use: 'First examination after installation',
+    } as Record<string, string>,
+    continueSafeAll: 'Based on this examination, the equipment listed is safe for continued use.',
+    continueSafeSome: 'Note: not all equipment on this certificate is safe for continued use — see the rejected items above for the required action.',
+    qualificationsHeading: 'Inspector qualifications',
     cols: {
       article: 'Item', brand: 'Brand', category: 'Category',
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
       year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS',
-      note: 'Rejection code / comment',
+      note: 'Rejection code / comment', swl: 'SWL', previous: 'Previous examination',
     } as Record<string, string>,
   },
 } as const
@@ -221,12 +269,15 @@ function sanitizeWinAnsi(s: string): string {
 // Maak een kopie van de certificaatdata waarin alle getekende tekstvelden
 // WinAnsi-veilig zijn. De verify-URL (alleen QR, geen lettertype) blijft intact.
 function sanitizeCertData(data: CertData): CertData {
-  const S = (v: string | null) => (v == null ? v : sanitizeWinAnsi(v))
+  const S = (v: string | null | undefined): string | null => (v == null ? null : sanitizeWinAnsi(v))
   return {
     ...data,
     customerName: sanitizeWinAnsi(data.customerName),
     inspectorName: S(data.inspectorName),
     number: sanitizeWinAnsi(data.number),
+    location: S(data.location),
+    customerAddress: S(data.customerAddress),
+    qualifications: data.qualifications?.map((q) => ({ name: sanitizeWinAnsi(q.name), number: S(q.number) ?? null })),
     company: {
       ...data.company,
       name: sanitizeWinAnsi(data.company.name),
@@ -252,6 +303,7 @@ function sanitizeCertData(data: CertData): CertData {
       user: S(it.user),
       rejection_code_label: S(it.rejection_code_label),
       comment: S(it.comment),
+      swl: S(it.swl),
     })),
   }
 }
@@ -368,9 +420,14 @@ function yearStr(it: CertItem): string {
     ? `${it.manufacture_year}/${String(it.manufacture_month).padStart(2, '0')}`
     : String(it.manufacture_year)
 }
+// "⚠ CAT.1" markeert een ernstig defect met onmiddellijk gevaar (LOLER
+// Schedule 1: zo'n defect moet apart herkenbaar zijn en gaat naar de
+// toezichthouder). Bewust een taalneutraal symbool i.p.v. een vertaalde
+// zin — geen extra plumbing nodig door de kolomdefinitie heen.
 function noteStr(it: CertItem): string {
   if (it.result === 'passed') return ''
-  return [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
+  const text = [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
+  return it.immediateDanger ? `⚠ CAT.1 — ${text}` : text
 }
 
 // Alle mogelijke kolommen in vaste volgorde. Vaste kolommen
@@ -394,15 +451,22 @@ const ALL_COLUMNS: ColDef[] = [
   { key: 'user',     header: 'Gebruiker',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.user || '' },
   { key: 'norm',     header: 'Norm',                   optional: true,  flex: false, min: 56, cap: 120, value: (it) => it.norm || '' },
   { key: 'mbs',      header: 'MBS',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.mbs || '' },
+  { key: 'swl',      header: 'SWL',                    optional: true,  flex: false, min: 50, cap: 90,  value: (it) => it.swl || '' },
+  { key: 'previous', header: 'Vorige keuring',         optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.previousDate ? formatDate(it.previousDate) : '') },
   { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
 const CELL_PAD = 6
 
 // Welke kolommen daadwerkelijk getekend worden: aan + (status of er is data).
-function activeColumns(items: CertItem[], cols: CertLayout['columns']): ColDef[] {
+// `force` negeert de per-bedrijf aan/uit-schakelaar: SWL en vorige-keuring
+// zijn in GB geen smaakkeuze maar een Schedule 1-verplichting (besluit
+// 2026-07-19, zie ONDERZOEK-CERTIFICAATEISEN.md) — die staan voor GB-bedrijven
+// altijd aan, ook als de instelling ze uitzet.
+function activeColumns(items: CertItem[], cols: CertLayout['columns'], force: Set<ColumnKey> = new Set()): ColDef[] {
   return ALL_COLUMNS.filter((col) => {
-    const enabled = col.optional ? !!cols[col.key as ColumnKey] : true
+    const key = col.key as ColumnKey
+    const enabled = col.optional ? (!!cols[key] || force.has(key)) : true
     if (!enabled) return false
     if (col.key === 'status') return true
     return items.some((it) => col.value(it).trim() !== '')
@@ -527,11 +591,14 @@ export async function renderCertificatePdf(
   // datumnotatie van de Volgende keuring-kolom worden hier al vertaald zodat
   // ook de breedteberekening met de juiste teksten meet.
   const L = CERT_LABELS[data.language ?? 'nl']
-  const cols = activeColumns(items, layout.columns).map((c) => ({
+  const forceColumns: Set<ColumnKey> = data.countryCode === 'GB' ? new Set(['swl', 'previous']) : new Set()
+  const cols = activeColumns(items, layout.columns, forceColumns).map((c) => ({
     ...c,
     header: L.cols[c.key] ?? c.header,
     value: c.key === 'next'
       ? (it: CertItem) => (it.next_due ? formatDate(it.next_due, L.dateLocale) : '')
+      : c.key === 'previous'
+      ? (it: CertItem) => (it.previousDate ? formatDate(it.previousDate, L.dateLocale) : '')
       : c.value,
   }))
 
@@ -648,10 +715,17 @@ export async function renderCertificatePdf(
     const titleW = bold.widthOfTextAtSize(L.title, 13)
     page.drawText(L.title, { x: lineX(titleW, certOnRight), y: certY - 13, size: 13, font: bold, color: accent })
     certY -= 13 + 8
+    // LOLER Schedule 1 vraagt om het adres van de klant (werkgever) en de
+    // locatie van de keuring apart van elkaar; soort keuring alleen tonen als
+    // hij is ingevuld (fase 5-vervolg, 2026-07-19).
     const meta = [
       `${L.number}: ${data.number}`,
-      `${L.customer}: ${data.customerName}`,
+      `${L.customer}: ${data.customerName}${data.customerAddress ? ' — ' + data.customerAddress : ''}`,
+      ...(data.location ? [`${L.location}: ${data.location}`] : []),
       `${L.inspectionDate}: ${formatDate(data.inspectionDate, L.dateLocale)}`,
+      ...(data.examinationType
+        ? [`${L.examinationType}: ${L.examinationTypeLabels[data.examinationType] ?? data.examinationType}`]
+        : []),
       `${L.inspector}: ${data.inspectorName || '—'}`,
     ]
     for (const m of meta) {
@@ -725,7 +799,20 @@ export async function renderCertificatePdf(
   }
 
   // ---- Voetblok (bij elkaar gehouden, onderaan de laatste pagina vastgepind) ----
-  const footerText = data.company.cert_footer || ''
+  // "Veilig voor voortgezet gebruik"-verklaring (LOLER Schedule 1-item, maar
+  // een eerlijke uitspraak voor elk certificaat): afgeleid van de resultaten,
+  // niet apart ingevoerd. Kwalificaties van de keurmeester alleen voor GB
+  // (besluit 2026-07-19: elders blijven ze bewust van het certificaat af,
+  // alleen doorklikbaar via de verificatie-QR — zie BOUWPLAN.md).
+  const allPassed = items.length > 0 && items.every((it) => it.result === 'passed')
+  const statusStatement = items.length ? (allPassed ? L.continueSafeAll : L.continueSafeSome) : ''
+  const qualificationsLine =
+    data.countryCode === 'GB' && data.qualifications?.length
+      ? `${L.qualificationsHeading}: ${data.qualifications.map((q) => (q.number ? `${q.name} (${q.number})` : q.name)).join('; ')}`
+      : ''
+  const footerText = [statusStatement, qualificationsLine, data.company.cert_footer || '']
+    .filter(Boolean)
+    .join('\n\n')
   const footerLines = footerText ? wrapText(footerText, font, 8, contentWidth) : []
   // QR-grootte = breedte van de groene "geverifieerd"-regel, zodat QR en tekst
   // eronder netjes uitlijnen (wens Jos 2026-06-26). Begrensd voor een redelijk
@@ -823,11 +910,29 @@ interface CompanyRow extends CertCompany {
   cert_layout: unknown
 }
 
+// Klantadres (werkgever/duty holder in LOLER-termen) samenstellen uit de
+// opgesplitste velden van `customers` (zie DATAMODEL §customers — `address`
+// is legacy en niet meer gebruikt sinds 2026-06-23).
+function composeCustomerAddress(c: {
+  street: string | null
+  house_number: string | null
+  house_number_addition: string | null
+  postal_code: string | null
+  city: string | null
+  province: string | null
+  country: string | null
+}): string | null {
+  const line1 = [c.street, [c.house_number, c.house_number_addition].filter(Boolean).join('')].filter(Boolean).join(' ')
+  const line2 = [c.postal_code, c.city].filter(Boolean).join(' ')
+  const parts = [line1, line2, c.province, c.country].filter(Boolean)
+  return parts.length ? parts.join(', ') : null
+}
+
 export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name, signature_path)'
+      'id, customer_id, company_id, inspector_id, inspection_date, location, examination_type, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province, country), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -836,8 +941,20 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     id: string
     customer_id: string
     company_id: string
+    inspector_id: string | null
     inspection_date: string
-    customer: { name: string }
+    location: string | null
+    examination_type: string | null
+    customer: {
+      name: string
+      street: string | null
+      house_number: string | null
+      house_number_addition: string | null
+      postal_code: string | null
+      city: string | null
+      province: string | null
+      country: string | null
+    }
     company: CompanyRow
     inspector: { name: string | null; signature_path: string | null }
   }
@@ -845,7 +962,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
+      'article_id, result, next_due, comment, immediate_danger, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit)), rejection_code:rejection_codes(label)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -854,9 +971,11 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   // Niet-beoordeelde artikelen (vergeten/kwijt op de keurdag) horen niet op
   // het certificaat — ze blijven wel bij de klant staan voor een volgende keer.
   interface ItemRow {
+    article_id: string
     result: string
     next_due: string | null
     comment: string | null
+    immediate_danger: boolean
     // Bevroren artikelrij van het keurmoment (code review 2026-07-18, punt 7):
     // deze gaat vóór de live artikelrij, zodat een later gewijzigd serienummer
     // of omschrijving niet stiekem op een (opnieuw gegenereerd) certificaat
@@ -869,6 +988,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_category?: string | null
       free_norm?: string | null
       free_mbs?: string | null
+      free_working_load_limit?: string | null
       manufacture_year?: number | null
       manufacture_month?: number | null
       assigned_user_name?: string | null
@@ -880,17 +1000,26 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_category: string | null
       free_norm: string | null
       free_mbs: string | null
+      free_working_load_limit: string | null
       manufacture_year: number | null
       manufacture_month: number | null
       assigned_user_name: string | null
       product: {
         brand: string | null; name: string | null; category: string | null
-        standard: string | null; breaking_strength: string | null
+        standard: string | null; breaking_strength: string | null; working_load_limit: string | null
       } | null
     } | null
     rejection_code: { label: string } | null
   }
-  const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
+  const assessedRows = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed')
+  // Datum vorige keuring per artikel (LOLER Schedule 1): dezelfde, al
+  // geteste query als de "vorige keuring"-hint in de wizard (useInspections.ts),
+  // hier gebatcht voor alle artikelen op dit certificaat in één keer.
+  const previousByArticle = await findPreviousResults(
+    assessedRows.map((r) => r.article_id),
+    inspectionId
+  )
+  const items: CertItem[] = assessedRows.map((r) => {
     // Snapshot eerst, live artikel als vangnet.
     const a = { ...(r.article ?? {}), ...(r.article_snapshot ?? {}) } as NonNullable<ItemRow['article_snapshot']>
     const p = r.article?.product
@@ -904,10 +1033,13 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       category: (p ? p.category : a?.free_category) ?? null,
       norm: (p ? p.standard : a?.free_norm) ?? null,
       mbs: (p ? p.breaking_strength : a?.free_mbs) ?? null,
+      swl: (p ? p.working_load_limit : a?.free_working_load_limit) ?? null,
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,
       comment: r.comment,
+      immediateDanger: r.immediate_danger,
+      previousDate: previousByArticle[r.article_id]?.inspection_date ?? null,
     }
   })
 
@@ -946,6 +1078,24 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const signatureBytes = await fetchSignatureBytes(inspection.inspector?.signature_path ?? null)
 
   const certLanguage = certLanguageForCountry(company.country_code)
+
+  // Kwalificaties van de keurmeester op het certificaat zelf: alleen voor GB
+  // (LOLER Schedule 1 vraagt dit letterlijk op het rapport; elders koos Jos
+  // op 2026-07-19 bewust voor "niet op het certificaat, wel doorklikbaar via
+  // de verificatie-QR" -- zie BOUWPLAN.md). Alleen kwalificaties die de
+  // keurmeester al deelde bij verificatie (public_path gezet) tellen ook hier
+  // mee, dezelfde grens als de verify-pagina.
+  let qualifications: { name: string; number: string | null }[] | null = null
+  if (company.country_code === 'GB' && inspection.inspector_id) {
+    const { data: quals, error: qualErr } = await supabase
+      .from('inspector_qualifications')
+      .select('name, number')
+      .eq('inspector_id', inspection.inspector_id)
+      .not('public_path', 'is', null)
+    if (qualErr) throw qualErr
+    qualifications = quals
+  }
+
   const data: CertData = {
     company,
     customerName: inspection.customer.name,
@@ -956,6 +1106,11 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     items,
     signature: signatureBytes,
     language: certLanguage,
+    location: inspection.location,
+    examinationType: inspection.examination_type,
+    customerAddress: composeCustomerAddress(inspection.customer),
+    countryCode: company.country_code,
+    qualifications,
   }
 
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)

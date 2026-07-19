@@ -22,6 +22,31 @@
 
     <template v-else>
       <div class="iw__body">
+        <!-- Locatie + soort keuring (LOLER Schedule 1-velden, fase 5-vervolg
+             2026-07-19): bestonden al in de database maar werden nooit
+             getoond/ingevuld -- staan hier bovenaan zodat ze meteen bij het
+             openen van de keuring meegenomen worden. -->
+        <div class="iw__meta-bar">
+          <label class="iw__meta-field">
+            <span>{{ $t('inspections.meta.location') }}</span>
+            <input
+              v-model="metaLocation"
+              class="iw__input iw__input--sm"
+              :placeholder="$t('inspections.meta.locationPlaceholder')"
+              @blur="saveMeta"
+            />
+          </label>
+          <label class="iw__meta-field">
+            <span>{{ $t('inspections.meta.examinationType') }}</span>
+            <select v-model="metaExaminationType" class="iw__select iw__select--sm" @change="saveMeta">
+              <option value="periodic">{{ $t('inspections.meta.examinationTypes.periodic') }}</option>
+              <option value="interim">{{ $t('inspections.meta.examinationTypes.interim') }}</option>
+              <option value="after_event">{{ $t('inspections.meta.examinationTypes.after_event') }}</option>
+              <option value="pre_first_use">{{ $t('inspections.meta.examinationTypes.pre_first_use') }}</option>
+            </select>
+          </label>
+        </div>
+
         <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
              hieronder; staat een artikel er niet bij, vul de overige velden
              aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
@@ -404,6 +429,10 @@
                         :placeholder="$t('inspections.commentPlaceholder')"
                         @blur="saveRow(row.it)"
                       />
+                      <label v-if="row.it.result === 'rejected'" class="iw__danger-flag">
+                        <input type="checkbox" v-model="row.it.immediate_danger" @change="saveRow(row.it)" />
+                        {{ $t('inspections.table.immediateDanger') }}
+                      </label>
                     </div>
                   </td>
                   <td :data-label="$t('inspections.table.colNextDue')">
@@ -477,6 +506,7 @@ import {
   useOnline,
   useOfflineSession,
   getInspection,
+  putInspection,
   getCustomer,
   getCompanySettings,
   getInspectionItems,
@@ -547,6 +577,9 @@ interface Item {
   next_due: string | null
   rejection_code_id: string | null
   comment: string | null
+  // LOLER Schedule 1: "ernstig defect, onmiddellijk gevaar" (Category 1),
+  // apart van de gewone afkeurcode/opmerking (fase 5-vervolg, 2026-07-19).
+  immediate_danger: boolean
   article: Article
 }
 
@@ -560,11 +593,50 @@ interface InspectionRecord {
     default_interval_ppe_months: number | null
     default_interval_rigging_months: number | null
   } | null
+  // LOLER Schedule 1-velden (fase 5-vervolg, 2026-07-19): bestonden al als
+  // kolom (migratie 20260624) maar werden nooit ingevuld/getoond.
+  location: string | null
+  examination_type: string | null
 }
 const inspection = ref<InspectionRecord | null>(null)
 const items = ref<Item[]>([])
 const loading = ref(true)
 const error = ref('')
+
+// LOLER Schedule 1-metadata (fase 5-vervolg, 2026-07-19): locatie en soort
+// keuring, bewust apart van `inspection` (ref-identiteit) zodat typen in het
+// invoerveld de load()-watcher niet opnieuw triggert. Volgt inspection.value
+// bij elke (her)load, ongeacht online/offline pad.
+const metaLocation = ref('')
+const metaExaminationType = ref('periodic')
+watch(inspection, (v) => {
+  if (!v) return
+  metaLocation.value = v.location ?? ''
+  metaExaminationType.value = v.examination_type ?? 'periodic'
+}, { immediate: true })
+
+async function saveMeta() {
+  if (!inspection.value) return
+  const patch = {
+    location: metaLocation.value.trim() || null,
+    examination_type: metaExaminationType.value,
+  }
+  inspection.value.location = patch.location
+  inspection.value.examination_type = patch.examination_type
+  if (!isOnline.value) {
+    try {
+      const key = useOfflineSession().getKey()
+      const current = await getInspection<{ id: string; customer_id: string; status: string } & Record<string, unknown>>(key, id)
+      if (current) await putInspection(key, { ...current, ...patch })
+      await enqueueMutation({ customerId: inspection.value.customer_id, table: 'inspections', op: 'update', payload: { id, ...patch } })
+    } catch (e) {
+      addError.value = errorMessage(e)
+    }
+    return
+  }
+  const { error: err } = await supabase.from('inspections').update(patch).eq('id', id)
+  if (err) addError.value = err.message
+}
 
 // Aanmelden voor de catalogus via het gedeelde formulier-dialoog. De dialoog
 // schrijft zelf weg; hier alleen de lokale rij-status bijwerken zodat het
@@ -1012,7 +1084,7 @@ async function addCustomerArticle(articleId: string) {
   const { data: item, error: itemErr } = await supabase
     .from('inspection_items')
     .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed' })
-    .select('id, article_id, result, next_due, rejection_code_id, comment')
+    .select('id, article_id, result, next_due, rejection_code_id, comment, immediate_danger')
     .single()
   if (itemErr || !item) { addError.value = itemErr?.message ?? ''; return }
   const newItem = { ...item, article } as Item
@@ -1059,6 +1131,7 @@ async function addCustomerArticleOffline(articleId: string) {
       next_due: itemRow.next_due,
       rejection_code_id: itemRow.rejection_code_id,
       comment: itemRow.comment,
+      immediate_danger: false,
       article,
     }
     items.value.push(newItem)
@@ -1430,7 +1503,7 @@ async function load() {
 
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, comment, article:articles(*, product:products(*))')
+    .select('id, article_id, result, next_due, rejection_code_id, comment, immediate_danger, article:articles(*, product:products(*))')
     .eq('inspection_id', id)
     .order('created_at')
   if (itemsErr) { error.value = itemsErr.message; loading.value = false; return }
@@ -1538,6 +1611,8 @@ async function loadOffline() {
       customer_id: string
       company_id: string
       status: string
+      location: string | null
+      examination_type: string | null
     }>(key, id)
     if (!insp) {
       error.value = t('offline.notCachedInspection')
@@ -1565,6 +1640,11 @@ async function loadOffline() {
             default_interval_rigging_months: company.default_interval_rigging_months ?? null,
           }
         : null,
+      // Offline-gecachete keuringen van vóór deze velden hebben ze niet --
+      // dan blijft het invoerveld leeg, prima (zie saveMeta: schrijft pas
+      // weer bij de eerstvolgende wijziging).
+      location: insp.location ?? null,
+      examination_type: insp.examination_type ?? null,
     }
 
     const rawItems = await getInspectionItems<{
@@ -1574,6 +1654,7 @@ async function loadOffline() {
       next_due: string | null
       rejection_code_id: string | null
       comment: string | null
+      immediate_danger: boolean | null
     }>(key, id)
     const cachedArticles = await getArticlesForCustomer<Article & { product_id: string | null }>(key, insp.customer_id)
     const articleById = new Map(cachedArticles.map((a) => [a.id, a]))
@@ -1591,6 +1672,7 @@ async function loadOffline() {
         next_due: it.next_due,
         rejection_code_id: it.rejection_code_id,
         comment: it.comment,
+        immediate_danger: it.immediate_danger ?? false,
         article: { ...(article as Article), product },
       }
     }) as Item[]
@@ -1709,7 +1791,7 @@ async function addRow() {
         rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
         comment: newComment.value.trim() || null,
       })
-      .select('id, article_id, result, next_due, rejection_code_id, comment')
+      .select('id, article_id, result, next_due, rejection_code_id, comment, immediate_danger')
       .single()
     if (itemErr) throw itemErr
 
@@ -1812,6 +1894,7 @@ async function addRowOffline() {
     next_due: itemRow.next_due,
     rejection_code_id: itemRow.rejection_code_id,
     comment: itemRow.comment,
+    immediate_danger: false,
     article: articleWithProduct,
   })
   previousResults.value[articleId] = null
@@ -1934,6 +2017,7 @@ async function saveRow(it: Item) {
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
     comment: it.comment,
+    immediate_danger: !!it.immediate_danger,
   }
   if (!isOnline.value) {
     // Offline: lokale weergave bijwerken + de wijziging in de mutatiewachtrij
@@ -2212,6 +2296,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__result-btn--fail.iw__result-btn--active { background: #dc2626; color: #fff; border-color: #dc2626; }
 .iw__result-cell { min-width: 11rem; }
 .iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
+.iw__danger-flag { display: flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: #b91c1c; font-weight: 600; white-space: nowrap; flex: 1 1 100%; }
 .iw__actions-cell { text-align: center; }
 .iw__part-btn { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.5; margin-right: 0.35rem; }
 .iw__part-btn:hover { opacity: 1; }
@@ -2223,6 +2308,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   padding: 0.6rem 0.85rem; margin-bottom: 0.5rem; font-size: 0.9rem;
 }
 .iw__link-cancel { border: none; background: none; color: #1e40af; cursor: pointer; font-size: 1rem; margin-left: auto; }
+.iw__meta-bar { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.6rem; }
+.iw__meta-field { display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.78rem; color: #6b7280; flex: 1 1 14rem; }
 .iw__retired-badge { opacity: 0.5; }
 .iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
 .iw__cell-input {

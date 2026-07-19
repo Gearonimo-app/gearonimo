@@ -5,6 +5,61 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-19, LOLER Schedule 1-check)
+
+> **Sessie 2026-07-19 (tweede) — Grok's Schedule 1-lijst nagerekend, gaten
+> gedicht:** Jos vroeg na of een door Grok aangeleverde lijst met 12
+> LOLER-verplichte certificaatvelden klopte, en waarom "vorige keuring" en
+> "locatie" er niet op stonden. Antwoord: de lijst klopt (bevestigd de
+> reconstructie uit `ONDERZOEK-CERTIFICAATEISEN.md` §7 van 2026-06-13); de
+> twee gaten waren wél in het datamodel voorzien (`inspections.location`/
+> `examination_type`, migratie 20260624) maar nooit afgemaakt — geen
+> invoerveld in de wizard, geen query in het certificaat. Gefixt, plus drie
+> velden die zelfs in het schema nog ontbraken:
+> - **Locatie + soort keuring**: nieuw invoerveld bovenaan de keuringswizard
+>   (`saveMeta()`, met offline-mutatiequeue), en op het certificaat getoond
+>   (alleen als ingevuld).
+> - **Datum vorige keuring** per item op het certificaat — geen nieuwe kolom,
+>   hergebruikt de bestaande `findPreviousResults()`-query (dezelfde als de
+>   "vorige keuring"-hint in de wizard), nu gebatcht voor alle certificaatitems.
+> - **SWL** als eigen kolom (naast MBS, die iets anders is): `products.working_load_limit`
+>   bestond al in de catalogus maar was nergens gekoppeld; vrije artikelen
+>   kregen een nieuw veld `free_working_load_limit` (migratie
+>   `20260748_loler_schedule1_fields.sql`, **nog door Jos uit te voeren**).
+> - **Category 1-defect ("onmiddellijk gevaar")**: nieuwe checkbox naast de
+>   afkeurcode/opmerking (`inspection_items.immediate_danger`, zelfde
+>   migratie), zichtbaar op het certificaat als "⚠ CAT.1"-markering.
+> - **Werkgeversadres**: het certificaat toonde alleen de klantnaam, niet het
+>   adres — nu samengesteld uit de al bestaande, opgesplitste adresvelden op
+>   `customers`.
+> - **"Veilig voor voortgezet gebruik"-verklaring**: afgeleide zin onderaan
+>   elk certificaat (alle markten), gebaseerd op de resultaten, niet apart
+>   ingevoerd.
+>
+> SWL/vorige-keuring staan voor **GB-bedrijven altijd aan** op het
+> certificaat (niet via de bestaande aan/uit-kolomschakelaar in
+> Instellingen → Certificaat — die blijft voor NL/DE/overig gewoon uit
+> tenzij het bedrijf hem zelf aanzet); zo kregen bestaande bedrijven geen
+> ongevraagde nieuwe kolommen.
+>
+> **Eigen besluit, niet aan Jos voorgelegd — graag bevestigen:** Jos koos op
+> 2026-07-19 (eerdere sessie) expliciet om keurmeester-kwalificaties **niet**
+> op het certificaat te zetten, alleen doorklikbaar via de verificatie-QR.
+> LOLER Schedule 1 vraagt kwalificaties echter letterlijk *op het rapport*.
+> Opgelost door voor **GB-bedrijven specifiek** een uitzondering te maken: de
+> al gedeelde kwalificaties (`inspector_qualifications.public_path` gezet —
+> dezelfde set als op de verify-pagina) komen bij een GB-certificaat ook in de
+> voettekst. Voor NL/DE/overig verandert er niets. Wil je dit zo, of moet het
+> anders (bv. altijd tonen, of nooit, ook niet voor GB)?
+>
+> **Nog niet gebouwd / bewust uitgesteld:** locatie wordt niet automatisch
+> voorgesteld vanuit het klantadres (leeg invoerveld, geen query erbij);
+> Category 1 is een simpele boolean, geen aparte ernst-taxonomie per
+> afkeurcode. Build (`vue-tsc` + `vite`, beide apps) en de bestaande
+> testsuite (68 tests, `packages/core` + `packages/ui`) zijn groen. **Migratie
+> `20260748_loler_schedule1_fields.sql` moet Jos nog uitvoeren** in de
+> Supabase SQL-editor voordat deze velden in productie werken.
+
 ## Voortgang (bijgewerkt 2026-07-19)
 
 > **Sessie 2026-07-19 — platform-admin en bedrijvenbeheer (fase 4

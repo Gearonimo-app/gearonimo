@@ -216,6 +216,17 @@
     "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen."
   },
   "inspections": {
+    "meta": {
+      "location": "Locatie van de keuring",
+      "locationPlaceholder": "bv. adres van de klant of het werkterrein",
+      "examinationType": "Soort keuring",
+      "examinationTypes": {
+        "periodic": "Periodieke keuring",
+        "interim": "Tussentijdse keuring",
+        "after_event": "Na uitzonderlijke gebeurtenis",
+        "pre_first_use": "Eerste keuring na installatie"
+      }
+    },
     "newTitle": "Nieuwe keuring",
     "listTitle": "Keuringen",
     "startNew": "Nieuwe keuring starten",
@@ -295,6 +306,7 @@
       "colResult": "Resultaat",
       "colNextDue": "Volgende keuring",
       "colWarning": "",
+      "immediateDanger": "Onmiddellijk gevaar (Category 1)",
       "pass": "Goed",
       "fail": "Afkeur",
       "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
@@ -433,7 +445,10 @@
         "mbs": "MBS / breeksterkte",
         "user": "Gebruiker",
         "next": "Volgende keuring",
-        "note": "Afkeurcode / opmerking"
+        "note": "Afkeurcode / opmerking",
+        "swl": "SWL (veilige werklast)",
+        "previous": "Vorige keuring",
+        "gbForced": "Voor GB-bedrijven staan SWL en Vorige keuring altijd aan (LOLER Schedule 1), ongeacht deze instelling."
       }
     },
     "inspectors": {

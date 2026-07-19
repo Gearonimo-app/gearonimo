@@ -216,6 +216,17 @@
     "resetSent": "Check your email — we sent you a link to set a new password."
   },
   "inspections": {
+    "meta": {
+      "location": "Location of examination",
+      "locationPlaceholder": "e.g. the customer's address or worksite",
+      "examinationType": "Type of examination",
+      "examinationTypes": {
+        "periodic": "Periodic examination",
+        "interim": "Interim examination",
+        "after_event": "Following exceptional circumstances",
+        "pre_first_use": "First examination after installation"
+      }
+    },
     "newTitle": "New inspection",
     "listTitle": "Inspections",
     "startNew": "Start new inspection",
@@ -295,6 +306,7 @@
       "colResult": "Result",
       "colNextDue": "Next inspection",
       "colWarning": "",
+      "immediateDanger": "Immediate danger (Category 1)",
       "pass": "Pass",
       "fail": "Fail",
       "totals": "{passed} passed · {rejected} rejected · {open} open",
@@ -433,7 +445,10 @@
         "mbs": "MBS / breaking strength",
         "user": "User",
         "next": "Next inspection",
-        "note": "Rejection code / comment"
+        "note": "Rejection code / comment",
+        "swl": "SWL (safe working load)",
+        "previous": "Previous examination",
+        "gbForced": "For GB companies, SWL and Previous examination are always shown (LOLER Schedule 1), regardless of this setting."
       }
     },
     "inspectors": {
