@@ -5,6 +5,39 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-19)
+
+> **Sessie 2026-07-19 — platform-admin en bedrijvenbeheer (fase 4
+> vooruitgetrokken):** Gat gedicht dat platform_admin nergens echte
+> rechten had. Nieuwe Instellingen-tegel **Bedrijven** (alleen
+> platform-admin): keurbedrijven aanmaken (naam, land uit een volledige
+> uitgeschreven landenlijst via Intl.DisplayNames — NL/BE/DE/GB/CA
+> bovenaan — plus e-mail/telefoon/adres/postcode/plaats/provincie/KvK/BTW),
+> eerste beheerder koppelen op e-mailadres (bestaat er nog geen account,
+> dan een **uitnodiging via magic-link**), curator-vinkje per keurmeester
+> platform-breed, en **bedrijf verwijderen** (alleen zonder
+> keuringen/import-historie; het laatste-beheerder-vangnet kreeg daarvoor
+> een transactie-lokaal ontsnappingsluik). Daarnaast **platform-admin
+> volledig losgekoppeld van keurmeester-zijn** (besluit Jos: platformbeheer
+> en keuren gescheiden — info@gearonimo.net beheert, keuren gebeurt straks
+> met een eigen jos@safetygreen-account): router laat een platform-admin
+> zonder keurmeester-rij door naar /settings, het hoofdmenu toont dan een
+> platformbeheerder-melding, is_catalog_curator() geldt ook voor
+> platform-admins en de catalogus-wachtrij kreeg platform-admin-policies.
+> Migraties 20260740 t/m 20260745, alle door Jos uitgevoerd. NB: de
+> keurmeester-rij van info@gearonimo bij Safety Green blijft staan tot
+> daar een andere beheerder is (vangnet); daarna op inactief zetten.
+>
+> **Besluiten Jos (2026-07-19), raken fase 4:** geen DB-naar-DB-migratie
+> van de oude klimkeurpro-data nodig — alles staat dubbel op de zaak (incl.
+> PDF's), testklanten krijgen gewoon een uitnodigingscode en beginnen leeg
+> (bij de eerstvolgende keuring is hun status weer actueel); wie historie
+> wil kan per klant via de bestaande Excel/CSV-import. NAS-back-up wacht op
+> het aansluiten van de NAS zelf (hardware, actie Jos). Certificaattaal-
+> metadata gefixt (NL/BE = nl, rest = en); het PDF zelf is nog
+> Nederlandstalig en het VK-regime (6 mnd) is nog niet actief in de wizard
+> — beide expliciet fase 5.
+
 ## Voortgang (bijgewerkt 2026-07-18)
 
 > **Sessie 2026-07-18 — grote code review + afronding openstaande punten:**
@@ -1210,13 +1243,19 @@ Privé en zakelijk gescheiden vanaf dag één (besluit Jos 2026-06-12):
 
 ## Fase 4 — Migratie en overstap Safety Green (±2 bouwsessies)
 
-- Migratiescript: huidige Supabase-data (klanten, producten, keuringen,
-  keuring_items, klant-accounts) → nieuw schema; artikelen afleiden door
-  groeperen op klant + serienummer (DATAMODEL §8).
-- Proefmigratie + controle door Jos (kloppen aantallen, historie,
-  certificaatnummers?); daarna definitieve overstap.
-- Catalogus-wachtrij + god-rol actief; NAS-back-up ingeregeld
-  (blauwdruk §8).
+> **Herzien 2026-07-19 (besluit Jos):** het DB-naar-DB-migratiescript is
+> **geschrapt** — alle oude data staat dubbel op de zaak (incl. PDF's).
+> Testklanten krijgen een uitnodigingscode en beginnen leeg; historie kan
+> desgewenst per klant via de bestaande Excel/CSV-import. De
+> catalogus-wachtrij + god-rol zijn al actief (2026-07-03/19, incl.
+> platform-admin los van een keurbedrijf en de Bedrijven-tegel).
+
+- ~~Migratiescript oude Supabase → nieuw schema~~ — geschrapt, zie boven.
+- ~~Catalogus-wachtrij + god-rol actief~~ — af (2026-07-03/19).
+- NAS-back-up ingeregeld (blauwdruk §8) — **wacht op het aansluiten van de
+  NAS (hardware, actie Jos)**.
+- Overstap in de praktijk: jos@safetygreen-account aanmaken als beheerder
+  bij Safety Green, info@gearonimo daar op inactief; testklanten uitnodigen.
 - **De oude apps blijven als noodrem beschikbaar** (alleen-lezen).
 
 ## Fase 5 — Commercieel en de stores (±3–4 bouwsessies)
