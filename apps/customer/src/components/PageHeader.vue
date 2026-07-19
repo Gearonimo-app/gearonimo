@@ -10,13 +10,13 @@
     <button v-if="back" class="ph__back" :title="$t('common.back')" @click="router.push('/')"><GIcon name="back" class="ph__glyph" /></button>
     <span v-else></span>
     <router-link to="/" class="ph__brand">{{ $t('home.title') }}</router-link>
-    <span class="ph__side"><slot>{{ title }}</slot></span>
+    <span class="ph__side"><slot>{{ title }}</slot><LangToggle /></span>
   </header>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from "vue-router";
-import { GIcon } from "@gearonimo/ui";
+import { GIcon, LangToggle } from "@gearonimo/ui";
 
 const router = useRouter();
 defineProps<{ title?: string; back?: boolean; plain?: boolean }>();

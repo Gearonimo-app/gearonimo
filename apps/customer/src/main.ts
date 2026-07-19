@@ -6,11 +6,13 @@ import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
 import { useAuth, supabase } from "@gearonimo/core";
+import { initialLocale } from "@gearonimo/ui";
 
 const i18n = createI18n({
   legacy: false,
   globalInjection: true,
-  locale: "nl",
+  // Onthouden voorkeur (LangToggle in de kopbalk), anders de browsertaal.
+  locale: initialLocale(),
   fallbackLocale: "en",
   messages: { nl, en },
 });

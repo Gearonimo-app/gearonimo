@@ -21,6 +21,7 @@
     </div>
     <div class="apphdr__side apphdr__side--right">
       <slot />
+      <LangToggle />
     </div>
   </header>
 </template>
@@ -28,7 +29,7 @@
 <script setup lang="ts">
 import { getCurrentInstance } from 'vue'
 import { useRouter } from 'vue-router'
-import { GIcon } from '@gearonimo/ui'
+import { GIcon, LangToggle } from '@gearonimo/ui'
 
 const router = useRouter()
 const props = withDefaults(

@@ -2,3 +2,5 @@
 export * from "./useFieldSuggest";
 export * from "./fuzzyMatch";
 export * from "./GIcon";
+export * from "./locale";
+export * from "./LangToggle";

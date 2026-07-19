@@ -1,5 +1,6 @@
 <template>
   <div class="lg">
+    <div class="lg__lang"><LangToggle variant="light" /></div>
     <div class="lg__card">
       <h1 class="lg__brand">{{ $t("login.title") }}</h1>
 
@@ -46,6 +47,7 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useAuth, errorMessage } from "@gearonimo/core";
+import { LangToggle } from "@gearonimo/ui";
 
 const { signInWithEmail, resetPasswordForEmail } = useAuth();
 const router = useRouter();
@@ -93,7 +95,9 @@ async function handleForgot() {
 .lg {
   min-height: 100vh; background: #f0f4f8;
   display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  position: relative;
 }
+.lg__lang { position: absolute; top: 1rem; right: 1rem; }
 .lg__card {
   background: #fff; border-radius: 16px; padding: 2rem 1.5rem;
   width: 100%; max-width: 380px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);

@@ -5,6 +5,7 @@
     <!-- Header: app-naam groot en gecentreerd (UX-FLOW §7, de app-naam is
          overal de home-knop). Uitloggen rechtsboven, account eronder klein. -->
     <header class="home__header">
+      <span class="home__lang"><LangToggle /></span>
       <button class="home__signout" @click="onSignOut">{{ $t('home.signOut') }}</button>
       <h1 class="home__app-name">{{ $t('home.appName') }}</h1>
       <span v-if="user?.email" class="home__account" :title="user.email">👤 {{ user.email }}</span>
@@ -60,7 +61,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth, supabase } from '@gearonimo/core'
-import { GIcon } from '@gearonimo/ui'
+import { GIcon, LangToggle } from '@gearonimo/ui'
 import { ensureInspector } from '../composables/useInspections'
 
 const router = useRouter()
@@ -202,6 +203,11 @@ function navigate(route: string | null) {
   color: #cfe3d6;
   cursor: pointer;
   font-size: 0.9rem;
+}
+.home__lang {
+  position: absolute;
+  top: 1.15rem;
+  left: 1.5rem;
 }
 .home__wrong-app {
   position: relative;
