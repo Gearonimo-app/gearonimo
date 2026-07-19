@@ -478,6 +478,9 @@ import {
   enqueueMutation,
   touchDownloadActivity,
   markInspectionPendingCompletion,
+  getRegime,
+  type ProductType,
+  type CountryCode,
 } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
@@ -1202,16 +1205,28 @@ function addMonths(date: Date, months: number): Date {
 }
 
 // Standaard keuringsinterval: artikel-override > product-override >
-// bedrijfsinstelling per producttype (PPE/rigging, standaard 12 mnd). Bewust
-// NIET gekapt op de levensduur — de keurmeester bepaalt zelf de datum; de
-// levensduur-waarschuwing (zie rowWarning) is alleen advies.
+// bedrijfsinstelling per producttype (PPE/rigging) > wettelijk regime van
+// het land van het keurbedrijf (VK-regime geactiveerd 2026-07-19, fase 5:
+// GB = 6 mnd voor PBM/hijsmateriaal per LOLER/PUWER; NL = 12 mnd;
+// onbekend land/type valt in getRegime terug op 12). Bewust NIET gekapt op
+// de levensduur — de keurmeester bepaalt zelf de datum; de levensduur-
+// waarschuwing (zie rowWarning) is alleen advies.
 function defaultIntervalMonths(it: Item): number {
   const a = it.article
   if (a.interval_override_months != null) return a.interval_override_months
   if (a.product?.interval_override_months != null) return a.product.interval_override_months
   const type = a.product?.product_type
-  if (type === 'rigging') return inspection.value?.company?.default_interval_rigging_months ?? 12
-  return inspection.value?.company?.default_interval_ppe_months ?? 12
+  const company = inspection.value?.company
+  if (type === 'rigging' && company?.default_interval_rigging_months != null) {
+    return company.default_interval_rigging_months
+  }
+  if (type !== 'rigging' && company?.default_interval_ppe_months != null) {
+    return company.default_interval_ppe_months
+  }
+  return getRegime(
+    (type as ProductType | undefined) ?? 'ppe',
+    (company?.country_code as CountryCode | null) ?? 'NL'
+  )
 }
 
 function suggestedNextDue(it: Item): Date {
