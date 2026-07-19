@@ -30,6 +30,7 @@
       <CompanyListing v-else-if="section === 'listing'" />
       <CatalogSettings v-else-if="section === 'catalog'" />
       <PlatformHeroSettings v-else-if="section === 'hero'" />
+      <CompaniesAdmin v-else-if="section === 'companies'" />
     </div>
   </div>
 </template>
@@ -46,13 +47,14 @@ import ImportWizard from '../components/ImportWizard.vue'
 import CompanyListing from '../components/CompanyListing.vue'
 import CatalogSettings from '../components/CatalogSettings.vue'
 import PlatformHeroSettings from '../components/PlatformHeroSettings.vue'
+import CompaniesAdmin from '../components/CompaniesAdmin.vue'
 import { ensureInspector } from '../composables/useInspections'
 import { supabase } from '@gearonimo/core'
 
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero'
+type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero' | 'companies'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -94,6 +96,7 @@ const sections = computed<SectionDef[]>(() => {
   }
   if (isPlatformAdmin.value) {
     base.push({ key: 'hero', icon: '🖼️', title: 'settings.hero.menuTitle', desc: 'settings.hero.menuDesc', ready: true })
+    base.push({ key: 'companies', icon: '🏢', title: 'settings.companies.menuTitle', desc: 'settings.companies.menuDesc', ready: true })
   }
   return base
 })
@@ -108,6 +111,7 @@ const headerTitle = computed(() => {
   if (section.value === 'listing') return t('settings.listing.menuTitle')
   if (section.value === 'catalog') return t('settings.catalog.menuTitle')
   if (section.value === 'hero') return t('settings.hero.menuTitle')
+  if (section.value === 'companies') return t('settings.companies.menuTitle')
   return t('settings.title')
 })
 

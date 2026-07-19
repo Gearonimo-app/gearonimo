@@ -656,6 +656,29 @@
       "overlay": "Donkering",
       "overlayHint": "Meer donkering = beter leesbare tekst op drukke of lichte foto's. Geldt voor het hoofdmenu én de kopstrook.",
       "saved": "Opgeslagen."
+    },
+    "companies": {
+      "menuTitle": "Bedrijven",
+      "menuDesc": "Keurbedrijven aanmaken en beheerders koppelen",
+      "intro": "Maak een nieuw keurbedrijf aan en koppel er een eerste beheerder aan. Daarna regelt dat bedrijf zijn eigen keurmeesters en klanten zelf via Instellingen → Keurmeesters.",
+      "title": "Keurbedrijven",
+      "add": "Nieuw bedrijf",
+      "backToList": "Terug naar bedrijven",
+      "inspectorCount": "{n} keurmeester(s)",
+      "noInspectors": "Nog geen keurmeesters bij dit bedrijf.",
+      "addInspector": "Keurmeester koppelen",
+      "addInspectorHint": "De persoon moet al minstens één keer zijn ingelogd (magic-link of wachtwoord). Diegene wordt verplaatst naar dit bedrijf als hij al ergens anders keurmeester was.",
+      "link": "Koppelen",
+      "curator": "Catalogus-curator",
+      "fields": {
+        "name": "Naam",
+        "country": "Land (ISO-code)",
+        "email": "E-mailadres"
+      },
+      "errors": {
+        "nameRequired": "Naam is verplicht.",
+        "emailRequired": "E-mailadres is verplicht."
+      }
     }
   },
   "offline": {

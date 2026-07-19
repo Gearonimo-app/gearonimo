@@ -656,6 +656,29 @@
       "overlay": "Darkening",
       "overlayHint": "More darkening = more legible text on busy or bright photos. Applies to the main menu and the header strip.",
       "saved": "Saved."
+    },
+    "companies": {
+      "menuTitle": "Companies",
+      "menuDesc": "Create inspection companies and link admins",
+      "intro": "Create a new inspection company and link a first admin. After that, the company manages its own inspectors and customers via Settings → Inspectors.",
+      "title": "Inspection companies",
+      "add": "New company",
+      "backToList": "Back to companies",
+      "inspectorCount": "{n} inspector(s)",
+      "noInspectors": "No inspectors at this company yet.",
+      "addInspector": "Link inspector",
+      "addInspectorHint": "The person must have logged in at least once already (magic link or password). They'll be moved to this company if they were already an inspector elsewhere.",
+      "link": "Link",
+      "curator": "Catalog curator",
+      "fields": {
+        "name": "Name",
+        "country": "Country (ISO code)",
+        "email": "Email address"
+      },
+      "errors": {
+        "nameRequired": "Name is required.",
+        "emailRequired": "Email address is required."
+      }
     }
   },
   "offline": {
