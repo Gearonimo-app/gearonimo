@@ -673,6 +673,13 @@
       "inviteSent": "Invite sent. As soon as that person opens the link, the link-up is active right away.",
       "curator": "Catalog curator",
       "logoHint": "Logo, brand color and header/footer text are managed by the company itself via Settings → Certificate template, once an admin is linked.",
+      "countries": {
+        "NL": "Netherlands",
+        "BE": "Belgium",
+        "DE": "Germany",
+        "GB": "United Kingdom",
+        "CA": "Canada"
+      },
       "fields": {
         "name": "Name",
         "country": "Country",

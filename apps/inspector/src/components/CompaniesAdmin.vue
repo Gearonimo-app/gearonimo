@@ -26,7 +26,7 @@
         <li v-for="c in companies" :key="c.id" class="ca__item" @click="select(c)">
           <div class="ca__body">
             <div class="ca__name">{{ c.name }}</div>
-            <div class="ca__meta">{{ c.country_code }} · {{ $t('settings.companies.inspectorCount', { n: c.inspector_count }) }}</div>
+            <div class="ca__meta">{{ countryName(c.country_code) }} · {{ $t('settings.companies.inspectorCount', { n: c.inspector_count }) }}</div>
           </div>
           <span class="ca__chev">›</span>
         </li>
@@ -38,7 +38,7 @@
           <input v-model="addForm.name" class="ca__input" /></label>
         <label class="ca__field"><span>{{ $t('settings.companies.fields.country') }}</span>
           <select v-model="addForm.country_code" class="ca__input">
-            <option v-for="c in COUNTRY_OPTIONS" :key="c" :value="c">{{ c }}</option>
+            <option v-for="c in COUNTRY_OPTIONS" :key="c" :value="c">{{ countryName(c) }}</option>
           </select>
         </label>
         <label class="ca__field"><span>{{ $t('settings.companies.fields.email') }}</span>
@@ -120,8 +120,16 @@ import { ref, reactive, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage, useAuth } from '@gearonimo/core'
 
-const { t } = useI18n()
+const { t, te } = useI18n()
 const { signInWithMagicLink } = useAuth()
+
+// Volledige landnaam op het scherm (wens Jos 2026-07-19); de ISO-code blijft
+// de opgeslagen waarde. Onbekende code (bv. ooit handmatig ingevoerd in de
+// DB) valt terug op de code zelf i.p.v. een lege string.
+function countryName(code: string): string {
+  const key = `settings.companies.countries.${code}`
+  return te(key) ? t(key) : code
+}
 
 // Wettelijke keurtermijn-regimes bestaan vandaag alleen voor NL/GB
 // (packages/core/regimes.ts); voor de overige landen valt de termijn terug
