@@ -584,7 +584,8 @@
       "menuDesc": "Productcatalogus beheren en de aanmeld-wachtrij controleren",
       "tabs": {
         "queue": "Wachtrij",
-        "manage": "Catalogus"
+        "manage": "Catalogus",
+        "snref": "SN-referentie"
       },
       "queue": {
         "intro": "Vrije artikelen die een keurmeester heeft aangemeld voor de catalogus. Vul de ontbrekende velden aan en zet ze om in een echt catalogusproduct, of wijs af.",
@@ -665,6 +666,20 @@
       "overlay": "Donkering",
       "overlayHint": "Meer donkering = beter leesbare tekst op drukke of lichte foto's. Geldt voor het hoofdmenu én de kopstrook.",
       "saved": "Opgeslagen."
+    },
+    "snref": {
+      "add": "Merk toevoegen",
+      "edit": "Merk bewerken",
+      "empty": "Nog geen merken in de SN-referentie.",
+      "formatPh": "bijv. YYDDDxxxx#",
+      "fields": {
+        "brand": "Merk",
+        "note": "Opmerking",
+        "link": "Uitleg-link (fabrikant)"
+      },
+      "errors": {
+        "brandRequired": "Merk is verplicht."
+      }
     },
     "companies": {
       "menuTitle": "Bedrijven",

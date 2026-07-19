@@ -18,14 +18,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { SN_REFERENCE } from '../data/snReference'
+import { ref, computed, onMounted } from 'vue'
+import { fetchSnReference, type SnRefRow } from '../composables/useSnReference'
 
+const entries = ref<SnRefRow[]>([])
 const filter = ref('')
 const filtered = computed(() => {
   const q = filter.value.trim().toLowerCase()
-  if (!q) return SN_REFERENCE
-  return SN_REFERENCE.filter((s) => s.brand.toLowerCase().includes(q))
+  if (!q) return entries.value
+  return entries.value.filter((s) => s.brand.toLowerCase().includes(q))
+})
+
+onMounted(async () => {
+  entries.value = await fetchSnReference()
 })
 </script>
 

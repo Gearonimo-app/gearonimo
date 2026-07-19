@@ -584,7 +584,8 @@
       "menuDesc": "Manage the product catalogue and review the submission queue",
       "tabs": {
         "queue": "Queue",
-        "manage": "Catalogue"
+        "manage": "Catalogue",
+        "snref": "Serial reference"
       },
       "queue": {
         "intro": "Free-text articles an inspector has submitted for the catalogue. Complete the missing fields and turn them into a real catalogue product, or reject.",
@@ -665,6 +666,20 @@
       "overlay": "Darkening",
       "overlayHint": "More darkening = more legible text on busy or bright photos. Applies to the main menu and the header strip.",
       "saved": "Saved."
+    },
+    "snref": {
+      "add": "Add brand",
+      "edit": "Edit brand",
+      "empty": "No brands in the serial reference yet.",
+      "formatPh": "e.g. YYDDDxxxx#",
+      "fields": {
+        "brand": "Brand",
+        "note": "Note",
+        "link": "Manufacturer info link"
+      },
+      "errors": {
+        "brandRequired": "Brand is required."
+      }
     },
     "companies": {
       "menuTitle": "Companies",

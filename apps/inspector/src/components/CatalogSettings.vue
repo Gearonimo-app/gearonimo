@@ -7,9 +7,13 @@
       <button class="cs__tab" :class="{ 'cs__tab--active': tab === 'manage' }" @click="tab = 'manage'">
         {{ $t('settings.catalog.tabs.manage') }}
       </button>
+      <button class="cs__tab" :class="{ 'cs__tab--active': tab === 'snref' }" @click="tab = 'snref'">
+        {{ $t('settings.catalog.tabs.snref') }}
+      </button>
     </div>
     <CatalogQueue v-if="tab === 'queue'" />
-    <CatalogManager v-else />
+    <CatalogManager v-else-if="tab === 'manage'" />
+    <SnReferenceManager v-else />
   </section>
 </template>
 
@@ -17,8 +21,9 @@
 import { ref } from 'vue'
 import CatalogQueue from './CatalogQueue.vue'
 import CatalogManager from './CatalogManager.vue'
+import SnReferenceManager from './SnReferenceManager.vue'
 
-const tab = ref<'queue' | 'manage'>('queue')
+const tab = ref<'queue' | 'manage' | 'snref'>('queue')
 </script>
 
 <style scoped>
