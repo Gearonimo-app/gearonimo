@@ -73,7 +73,9 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    await ensureInspector()
+    // Niet-fataal: een platform-admin zonder keurmeester-rij mag de wachtrij
+    // ook beheren (besluit Jos 2026-07-19); RLS bewaakt de data zelf.
+    await ensureInspector().catch(() => undefined)
     const { data, error: err } = await supabase
       .from('articles')
       .select(

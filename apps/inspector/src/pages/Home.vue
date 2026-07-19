@@ -13,7 +13,11 @@
     <!-- Klant-account in de Pro-app beland (zelfde domein, gedeelde sessie):
          duidelijk zeggen wat er aan de hand is i.p.v. lege lijsten en vage
          fouten -- met de weg naar de juiste app en een uitlogknop. -->
-    <div v-if="notInspector" class="home__wrong-app">
+    <div v-if="notInspector && isPlatformAdmin" class="home__wrong-app">
+      <p>{{ $t('home.platformAdmin') }}</p>
+      <router-link class="home__wrong-app-link" to="/settings">{{ $t('home.goToSettings') }}</router-link>
+    </div>
+    <div v-else-if="notInspector" class="home__wrong-app">
       <p>{{ $t('home.notInspector') }}</p>
       <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
     </div>
@@ -62,6 +66,7 @@ import { ensureInspector } from '../composables/useInspections'
 const router = useRouter()
 const { signOut, user } = useAuth()
 const notInspector = ref(false)
+const isPlatformAdmin = ref(false)
 const pendingRequests = ref(0)
 const upcomingReinspections = ref(0)
 
@@ -105,6 +110,10 @@ onMounted(async () => {
     await ensureInspector()
   } catch {
     notInspector.value = true
+    // Platform-admin zonder keurmeester-rij (besluit Jos 2026-07-19): geen
+    // klant-account-melding maar een doorgang naar Instellingen.
+    const { data } = await supabase.rpc('is_platform_admin')
+    isPlatformAdmin.value = !!data
     return
   }
   // Openstaande keuring-aanvragen (leadmotor): tel ze voor de badge op de tegel.

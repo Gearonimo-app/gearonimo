@@ -155,10 +155,31 @@ router.beforeEach(async (to) => {
     try {
       await ensureInspector();
     } catch {
+      // Platform-admin zonder keurmeester-rij (besluit Jos 2026-07-19:
+      // platformbeheer los van elk keurbedrijf) mag wél naar Instellingen
+      // (Bedrijven/Hero/Catalogus); de rest blijft keurmeester-terrein.
+      if (to.path === "/settings" && (await isPlatformAdminOnce())) {
+        return;
+      }
       return "/";
     }
   }
 });
+
+// Cache per sessie zodat de guard niet bij elke navigatie een RPC doet;
+// leeggemaakt bij elke auth-wissel (alleen een variabele resetten -- géén
+// supabase-aanroep in de callback, zie CLAUDE.md-landmijn).
+let platformAdminCached: boolean | null = null;
+supabase.auth.onAuthStateChange(() => {
+  platformAdminCached = null;
+});
+async function isPlatformAdminOnce(): Promise<boolean> {
+  if (platformAdminCached === null) {
+    const { data } = await supabase.rpc("is_platform_admin");
+    platformAdminCached = !!data;
+  }
+  return platformAdminCached;
+}
 
 // Zelfherstel bij een verouderde lazy-chunk na een deploy: de pagina's worden
 // lui geladen (import()), met een gehashte bestandsnaam. Na een nieuwe deploy

@@ -26,6 +26,8 @@
     "signOut": "Uitloggen",
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
     "goToCustomerApp": "Ga naar de klantomgeving →",
+    "platformAdmin": "Je bent ingelogd als platformbeheerder. Dit account keurt niet zelf; beheer bedrijven, catalogus en hero-foto via Instellingen.",
+    "goToSettings": "Ga naar Instellingen →",
     "reinspectionStatLabel": "artikelen te herkeuren binnen 30 dagen"
   },
   "serialSearch": {

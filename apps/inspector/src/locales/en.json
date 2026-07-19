@@ -26,6 +26,8 @@
     "signOut": "Sign out",
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
     "goToCustomerApp": "Go to the customer app →",
+    "platformAdmin": "You are signed in as the platform admin. This account does not inspect itself; manage companies, the catalog and the hero photo via Settings.",
+    "goToSettings": "Go to Settings →",
     "reinspectionStatLabel": "items to reinspect within 30 days"
   },
   "serialSearch": {
