@@ -110,6 +110,7 @@
           <p v-if="countryCode === 'GB'" class="cs__hint">{{ $t('settings.certificate.columns.gbForced') }}</p>
 
           <h3>{{ $t('settings.certificate.texts') }}</h3>
+          <p v-if="countryCode === 'GB'" class="cs__hint">{{ $t('settings.certificate.legalReferenceTip') }}</p>
           <label class="cs__field">
             <span>
               {{ $t('settings.certificate.fields.header') }}

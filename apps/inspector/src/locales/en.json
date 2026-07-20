@@ -409,6 +409,7 @@
       "showContact": "Show email/phone",
       "accent": "Accent colour",
       "texts": "Texts",
+      "legalReferenceTip": "Tip: you may want to mention the legal basis in the header or footer text, e.g. \"This examination was carried out in accordance with LOLER 1998 / PUWER 1998.\"",
       "preview": "Preview",
       "rendering": "updating…",
       "previewNote": "Live preview with sample data. Updates as you change settings.",

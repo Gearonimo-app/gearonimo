@@ -59,6 +59,33 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > testsuite (68 tests, `packages/core` + `packages/ui`) zijn groen. **Migratie
 > `20260748_loler_schedule1_fields.sql` moet Jos nog uitvoeren** in de
 > Supabase SQL-editor voordat deze velden in productie werken.
+>
+> **Vervolgvraag Jos: "zijn er nog andere punten die we over het hoofd
+> zien?"** — de rest van de originele checklist (§6 van
+> `ONDERZOEK-CERTIFICAATEISEN.md`) nagelopen tegen de code i.p.v. tegen het
+> document. Bevindingen:
+> - `articles.purchase_date`, `severe_use`/`severe_use_interval_months`:
+>   volledig aangesloten (schema + UI + next_due-berekening) — geen gat.
+> - Audit-trail (`certificates.issued_at`/`pdf_hash`/`verify_token`) en
+>   "nooit verwijderen" (FK blokkeert klant-verwijderen met historie,
+>   afgeronde keuring is niet te verwijderen/heropenen): in orde.
+> - `inspection_regimes.legal_reference` / `getLegalReference()`
+>   (`packages/core/src/regimes.ts`) werd nergens aangeroepen in de
+>   certificaat-PDF — anders dan de andere gaten hoort dit veld bij
+>   "bron: praktijk", geen concrete wetseis. **Besluit Jos: niet
+>   automatiseren** — bedrijven kunnen dit al zelf in hun eigen
+>   `cert_header`/`cert_footer` (vrije tekst) zetten; dat dekt ook het geval
+>   van een certificaat met gemengde producttypes (PBM + machine) beter dan
+>   één automatisch ingevulde wet zou kunnen. Toegevoegd: een tip-tekstje
+>   (géén vooraf ingevulde tekst) bij de kop-/voettekstvelden in
+>   Instellingen → Certificaat, **alleen zichtbaar voor GB-bedrijven**, dat
+>   wijst op LOLER 1998 / PUWER 1998 als mogelijke vermelding.
+> - **Nieuw gevonden, niet uit de checklist:** `certLanguageForCountry()`
+>   geeft Nederlandse certificaattekst bij `country_code` NL **of BE**, maar
+>   `REGIMES` (interval + wettelijke basis) kent alleen NL en GB. Een
+>   Belgisch keurbedrijf zou dus wél NL-teksten krijgen maar geen passend
+>   interval/wettelijke basis. Niet opgelost (nog geen BE-klanten actief) —
+>   actie zodra dat verandert.
 
 ## Voortgang (bijgewerkt 2026-07-19)
 

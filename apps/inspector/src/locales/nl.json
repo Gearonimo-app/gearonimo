@@ -409,6 +409,7 @@
       "showContact": "E-mail/telefoon tonen",
       "accent": "Accentkleur",
       "texts": "Teksten",
+      "legalReferenceTip": "Tip: je kunt in de kop- of voettekst desgewenst de wettelijke basis vermelden, bijv. \"Deze keuring is uitgevoerd conform LOLER 1998 / PUWER 1998.\"",
       "preview": "Voorbeeld",
       "rendering": "bijwerken…",
       "previewNote": "Live voorbeeld met fictieve gegevens. Beweegt mee terwijl je instelt.",
