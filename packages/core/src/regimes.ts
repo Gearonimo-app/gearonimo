@@ -4,6 +4,7 @@
  */
 export type ProductType =
   | "ppe"
+  | "no_ppe"
   | "rigging"
   | "aerial_platform"
   | "machine"
@@ -32,6 +33,18 @@ export const REGIMES: Regime[] = [
     interval_months: 6,
     severe_use_interval_months: 3,
     legal_reference: "LOLER 1998 / PUWER 1998",
+  },
+  {
+    product_type: "no_ppe",
+    country_code: "NL",
+    interval_months: 12,
+    legal_reference: "Arbobesluit art. 7.4a",
+  },
+  {
+    product_type: "no_ppe",
+    country_code: "GB",
+    interval_months: 12,
+    legal_reference: "PUWER 1998",
   },
   {
     product_type: "rigging",
