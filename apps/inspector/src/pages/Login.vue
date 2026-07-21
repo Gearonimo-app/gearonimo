@@ -2,7 +2,8 @@
   <div class="lg">
     <div class="lg__lang"><LangToggle variant="light" /></div>
     <div class="lg__card">
-      <h1 class="lg__brand">{{ $t("login.title") }}</h1>
+      <h1 class="lg__brand">Gearonimo Pro</h1>
+      <div class="lg__applabel-wrap"><span class="lg__applabel lg__applabel--inspector">{{ $t("login.appLabel") }}</span></div>
 
       <form v-if="mode === 'login'" @submit.prevent="handleLogin">
         <label class="lg__label">{{ $t("login.email") }}</label>
@@ -102,7 +103,10 @@ async function handleForgot() {
   background: #fff; border-radius: 16px; padding: 2rem 1.5rem;
   width: 100%; max-width: 380px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
-.lg__brand { margin: 0 0 1.5rem; color: #1a3a2a; font-size: 1.6rem; text-align: center; }
+.lg__brand { margin: 0 0 0.5rem; color: #1a3a2a; font-size: 1.6rem; text-align: center; }
+.lg__applabel-wrap { text-align: center; margin: 0 0 1.5rem; }
+.lg__applabel { display: inline-block; font-size: 0.78rem; font-weight: 600; border-radius: 999px; padding: 0.2rem 0.7rem; }
+.lg__applabel--inspector { background: #dcfce7; color: #166534; }
 .lg__sub { margin: 0 0 1.25rem; color: #6b7280; text-align: center; font-size: 0.9rem; }
 .lg__label { display: block; font-size: 0.85rem; color: #6b7280; margin-bottom: 0.35rem; }
 .lg__input {

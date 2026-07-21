@@ -22,6 +22,7 @@
   },
   "login": {
     "title": "Inloggen",
+    "appLabel": "Klantportaal · voor klanten",
     "subtitle": "Jouw materiaal, altijd in orde",
     "email": "E-mailadres",
     "submit": "Stuur inloglink",

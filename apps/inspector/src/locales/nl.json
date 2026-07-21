@@ -205,6 +205,7 @@
   },
   "login": {
     "title": "Inloggen",
+    "appLabel": "Keurder-app · voor keurmeesters",
     "email": "E-mailadres",
     "password": "Wachtwoord",
     "submit": "Inloggen",
@@ -695,6 +696,10 @@
       "link": "Koppelen",
       "invite": "Uitnodigen en koppelen",
       "inviteSent": "Uitnodiging verstuurd. Zodra die persoon de link opent, is de koppeling meteen actief.",
+      "setPassword": "Wachtwoord instellen",
+      "setPasswordHint": "Kies een wachtwoord voor deze keurmeester (min. 8 tekens). Handig als de uitnodigingsmail niet aankomt: geef het wachtwoord door, dan kan diegene direct inloggen met e-mailadres + wachtwoord.",
+      "setPasswordPh": "Nieuw wachtwoord (min. 8 tekens)",
+      "setPasswordDone": "Wachtwoord ingesteld. Geef het samen met het e-mailadres door aan de keurmeester.",
       "curator": "Catalogus-curator",
       "delete": "Bedrijf verwijderen",
       "deleteTitle": "Bedrijf verwijderen?",
@@ -715,8 +720,20 @@
       },
       "errors": {
         "nameRequired": "Naam is verplicht.",
-        "emailRequired": "E-mailadres is verplicht."
+        "emailRequired": "E-mailadres is verplicht.",
+        "passwordTooShort": "Wachtwoord moet minstens 8 tekens zijn."
       }
+    },
+    "security": {
+      "menuTitle": "Wachtwoord",
+      "menuDesc": "Kies of wijzig je eigen wachtwoord",
+      "intro": "Stel hier een wachtwoord in zodat je op elk toestel met je e-mailadres + wachtwoord kunt inloggen (geen e-maillink nodig).",
+      "newPassword": "Nieuw wachtwoord",
+      "confirm": "Herhaal wachtwoord",
+      "save": "Wachtwoord opslaan",
+      "saved": "Wachtwoord opgeslagen. Vanaf nu kun je inloggen met je e-mailadres + wachtwoord.",
+      "tooShort": "Wachtwoord moet minstens 8 tekens zijn.",
+      "mismatch": "De twee wachtwoorden zijn niet gelijk."
     }
   },
   "offline": {

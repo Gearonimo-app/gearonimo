@@ -31,6 +31,7 @@
       <CatalogSettings v-else-if="section === 'catalog'" />
       <PlatformHeroSettings v-else-if="section === 'hero'" />
       <CompaniesAdmin v-else-if="section === 'companies'" />
+      <PasswordSettings v-else-if="section === 'security'" />
     </div>
   </div>
 </template>
@@ -48,13 +49,14 @@ import CompanyListing from '../components/CompanyListing.vue'
 import CatalogSettings from '../components/CatalogSettings.vue'
 import PlatformHeroSettings from '../components/PlatformHeroSettings.vue'
 import CompaniesAdmin from '../components/CompaniesAdmin.vue'
+import PasswordSettings from '../components/PasswordSettings.vue'
 import { ensureInspector } from '../composables/useInspections'
 import { supabase } from '@gearonimo/core'
 
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero' | 'companies'
+type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero' | 'companies' | 'security'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -99,6 +101,9 @@ const sections = computed<SectionDef[]>(() => {
       { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true },
     ] as SectionDef[] : []),
   ]
+  // Eigen wachtwoord: voor iedereen die hier komt (keurmeester én
+  // platform-admin) -- je eigen account, geen beheerdersrecht nodig.
+  base.push({ key: 'security', icon: '🔒', title: 'settings.security.menuTitle', desc: 'settings.security.menuDesc', ready: true })
   if (canCurateCatalog.value || isPlatformAdmin.value) {
     base.push({ key: 'catalog', icon: '📚', title: 'settings.catalog.menuTitle', desc: 'settings.catalog.menuDesc', ready: true })
   }
@@ -120,6 +125,7 @@ const headerTitle = computed(() => {
   if (section.value === 'catalog') return t('settings.catalog.menuTitle')
   if (section.value === 'hero') return t('settings.hero.menuTitle')
   if (section.value === 'companies') return t('settings.companies.menuTitle')
+  if (section.value === 'security') return t('settings.security.menuTitle')
   return t('settings.title')
 })
 

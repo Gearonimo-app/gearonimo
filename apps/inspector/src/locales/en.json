@@ -205,6 +205,7 @@
   },
   "login": {
     "title": "Log in",
+    "appLabel": "Inspector app · for inspectors",
     "email": "Email address",
     "password": "Password",
     "submit": "Log in",
@@ -695,6 +696,10 @@
       "link": "Link",
       "invite": "Invite and link",
       "inviteSent": "Invite sent. As soon as that person opens the link, the link-up is active right away.",
+      "setPassword": "Set password",
+      "setPasswordHint": "Choose a password for this inspector (min. 8 characters). Handy if the invite email doesn't arrive: share the password and they can log in straight away with their email address + password.",
+      "setPasswordPh": "New password (min. 8 characters)",
+      "setPasswordDone": "Password set. Share it together with the email address with the inspector.",
       "curator": "Catalog curator",
       "delete": "Delete company",
       "deleteTitle": "Delete company?",
@@ -715,8 +720,20 @@
       },
       "errors": {
         "nameRequired": "Name is required.",
-        "emailRequired": "Email address is required."
+        "emailRequired": "Email address is required.",
+        "passwordTooShort": "Password must be at least 8 characters."
       }
+    },
+    "security": {
+      "menuTitle": "Password",
+      "menuDesc": "Set or change your own password",
+      "intro": "Set a password here so you can log in on any device with your email address + password (no email link needed).",
+      "newPassword": "New password",
+      "confirm": "Repeat password",
+      "save": "Save password",
+      "saved": "Password saved. From now on you can log in with your email address + password.",
+      "tooShort": "Password must be at least 8 characters.",
+      "mismatch": "The two passwords don't match."
     }
   },
   "offline": {

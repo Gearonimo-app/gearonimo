@@ -77,19 +77,39 @@
 
       <div v-if="inspLoading" class="ca__state">{{ $t('common.loading') }}</div>
       <ul v-else class="ca__list">
-        <li v-for="i in inspectors" :key="i.id" class="ca__item ca__item--static">
-          <div class="ca__body">
-            <div class="ca__name">{{ i.name || i.email || '—' }}</div>
-            <div class="ca__meta">{{ i.email }}</div>
-            <div class="ca__badges">
-              <span v-if="i.is_admin" class="ca__badge ca__badge--admin">{{ $t('settings.inspectors.adminBadge') }}</span>
-              <span v-if="!i.active" class="ca__badge">{{ $t('settings.inspectors.inactiveBadge') }}</span>
+        <li v-for="i in inspectors" :key="i.id" class="ca__item ca__item--static ca__item--col">
+          <div class="ca__row-main">
+            <div class="ca__body">
+              <div class="ca__name">{{ i.name || i.email || '—' }}</div>
+              <div class="ca__meta">{{ i.email }}</div>
+              <div class="ca__badges">
+                <span v-if="i.is_admin" class="ca__badge ca__badge--admin">{{ $t('settings.inspectors.adminBadge') }}</span>
+                <span v-if="!i.active" class="ca__badge">{{ $t('settings.inspectors.inactiveBadge') }}</span>
+              </div>
             </div>
+            <label class="ca__curator">
+              <input type="checkbox" :checked="i.can_curate_catalog" @change="toggleCurator(i, $event)" />
+              {{ $t('settings.companies.curator') }}
+            </label>
           </div>
-          <label class="ca__curator">
-            <input type="checkbox" :checked="i.can_curate_catalog" @change="toggleCurator(i, $event)" />
-            {{ $t('settings.companies.curator') }}
-          </label>
+
+          <!-- Wachtwoord instellen: vangnet voor als de uitnodigingsmail niet
+               aankomt (besluit Jos 2026-07-21). Alleen mogelijk als er al een
+               account is (i.email gevuld). -->
+          <div v-if="i.email" class="ca__pw">
+            <button v-if="pwFor !== i.id" class="ca__pw-toggle" @click="openPw(i)">{{ $t('settings.companies.setPassword') }}</button>
+            <div v-else class="ca__pw-form">
+              <p class="ca__hint">{{ $t('settings.companies.setPasswordHint') }}</p>
+              <input v-model="pwValue" type="text" class="ca__input" autocomplete="new-password"
+                     :placeholder="$t('settings.companies.setPasswordPh')" />
+              <p v-if="pwError" class="ca__error">{{ pwError }}</p>
+              <div class="ca__actions">
+                <button class="ca__btn ca__btn--cancel" @click="pwFor = null">{{ $t('common.cancel') }}</button>
+                <button class="ca__btn ca__btn--save" :disabled="pwBusy" @click="savePassword(i)">{{ pwBusy ? $t('common.saving') : $t('common.save') }}</button>
+              </div>
+            </div>
+            <p v-if="pwDoneFor === i.id" class="ca__ok">{{ $t('settings.companies.setPasswordDone') }}</p>
+          </div>
         </li>
         <li v-if="inspectors.length === 0" class="ca__state">{{ $t('settings.companies.noInspectors') }}</li>
       </ul>
@@ -357,7 +377,10 @@ async function inviteAndLink() {
   inviteSent.value = false
   linking.value = true
   try {
-    await signInWithMagicLink(linkForm.email.trim())
+    // Expliciet terug naar de keurder-app (deze app draait op de root, history-
+    // router). Zonder dit valt Supabase terug op de Site URL en belandde een
+    // uitgenodigde keurmeester in de klant-app (/portal/) i.p.v. hier.
+    await signInWithMagicLink(linkForm.email.trim(), window.location.origin + '/')
     inviteSent.value = true
     const { error: err } = await supabase.rpc('platform_admin_add_inspector', {
       p_company_id: selected.value.id,
@@ -374,6 +397,41 @@ async function inviteAndLink() {
     linkError.value = errorMessage(e)
   } finally {
     linking.value = false
+  }
+}
+
+// Wachtwoord instellen per keurmeester (vangnet als de uitnodigingsmail niet
+// aankomt). Roept de security-definer-RPC uit migratie 20260748 aan, die het
+// wachtwoord op het bestaande auth-account zet en het e-mailadres bevestigt.
+const pwFor = ref<string | null>(null)
+const pwValue = ref('')
+const pwBusy = ref(false)
+const pwError = ref('')
+const pwDoneFor = ref<string | null>(null)
+
+function openPw(i: CompanyInspector) {
+  pwFor.value = i.id
+  pwValue.value = ''
+  pwError.value = ''
+  pwDoneFor.value = null
+}
+async function savePassword(i: CompanyInspector) {
+  pwError.value = ''
+  if (pwValue.value.length < 8) { pwError.value = t('settings.companies.errors.passwordTooShort'); return }
+  pwBusy.value = true
+  try {
+    const { error: err } = await supabase.rpc('platform_admin_set_inspector_password', {
+      p_inspector_id: i.id,
+      p_password: pwValue.value,
+    })
+    if (err) throw err
+    pwDoneFor.value = i.id
+    pwFor.value = null
+    pwValue.value = ''
+  } catch (e) {
+    pwError.value = errorMessage(e)
+  } finally {
+    pwBusy.value = false
   }
 }
 
@@ -417,6 +475,12 @@ onMounted(load)
 .ca__badge--admin { background: #dcfce7; color: #166534; }
 .ca__chev { color: #9ca3af; font-size: 1.4rem; }
 .ca__curator { display: flex; align-items: center; gap: 0.4rem; font-size: 0.82rem; color: #374151; white-space: nowrap; }
+.ca__item--col { flex-direction: column; align-items: stretch; gap: 0.6rem; }
+.ca__row-main { display: flex; align-items: center; gap: 0.75rem; }
+.ca__row-main .ca__body { flex: 1; }
+.ca__pw { display: flex; flex-direction: column; gap: 0.5rem; }
+.ca__pw-toggle { align-self: flex-start; background: none; border: none; color: #2563eb; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; }
+.ca__pw-form { display: flex; flex-direction: column; gap: 0.5rem; background: #f9fafb; border-radius: 8px; padding: 0.75rem; }
 
 .ca__form { background: #fff; border-radius: 12px; padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem; }
 .ca__form h3 { margin: 0 0 0.25rem; font-size: 1rem; }

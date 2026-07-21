@@ -3,6 +3,7 @@
     <div class="lg__lang"><LangToggle variant="light" /></div>
     <div class="lg__card">
       <h1 class="lg__brand">Gearonimo</h1>
+      <div class="lg__applabel-wrap"><span class="lg__applabel">{{ $t('login.appLabel') }}</span></div>
       <p class="lg__sub">{{ $t('login.subtitle') }}</p>
 
       <div v-if="!sent">
@@ -105,7 +106,9 @@ async function handleLogin() {
   background: #fff; border-radius: 16px; padding: 2rem 1.5rem;
   width: 100%; max-width: 380px; box-shadow: 0 4px 16px rgba(0,0,0,0.06);
 }
-.lg__brand { margin: 0 0 0.25rem; color: #1a3a2a; font-size: 1.6rem; text-align: center; }
+.lg__brand { margin: 0 0 0.4rem; color: #1a3a2a; font-size: 1.6rem; text-align: center; }
+.lg__applabel-wrap { text-align: center; margin: 0 0 0.6rem; }
+.lg__applabel { display: inline-block; font-size: 0.78rem; font-weight: 600; border-radius: 999px; padding: 0.2rem 0.7rem; background: #dbeafe; color: #1e40af; }
 .lg__sub { margin: 0 0 1.5rem; color: #6b7280; text-align: center; }
 .lg__label { display: block; font-size: 0.85rem; color: #6b7280; margin-bottom: 0.35rem; }
 .lg__input {

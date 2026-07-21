@@ -5,6 +5,39 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-21)
+
+> **Sessie 2026-07-21 — keurmeester-onboarding & login:** Jos liep erop vast
+> dat uitnodigingsmails voor keurmeesters niet aankwamen. Uitgezocht: het
+> ligt niet aan de app of Zoho (Zoho's leveringslogboek toont alles als
+> "Gelukt"). Gmail ontvangt wél, Microsoft 365 (safetygreen.nl) houdt de
+> Supabase-"Confirm your email address"-mail stil tegen (quarantaine, geen
+> bounce, niet in spam). Dat is filtering aan ontvangerskant; een custom
+> auth-domein zou helpen maar zit niet in het gratis Supabase-plan.
+> Daarom vier aanpassingen gebouwd:
+> - **Redirect-bug gefixt:** een keurmeester-uitnodiging (CompaniesAdmin.vue
+>   `inviteAndLink`) gaf geen `redirectTo` mee en landde daardoor via de Site
+>   URL in de klant-app. Nu expliciet `window.location.origin + '/'` (keurder-
+>   app, history-router op de root). **Actie Jos:** controleer dat die URL in
+>   Supabase → Auth → URL Configuration → Redirect URLs staat (Site URL van de
+>   keurder-app volstaat meestal al).
+> - **Platform-admin kan een wachtwoord instellen** per keurmeester
+>   (vangnet als de mail niet aankomt): knop "Wachtwoord instellen" in het
+>   Bedrijven-scherm → nieuwe RPC `platform_admin_set_inspector_password`
+>   (migratie **20260748**, nog door Jos uit te voeren). Die schrijft in
+>   `auth.users` (bcrypt via pgcrypto) + bevestigt het e-mailadres. **Raakt de
+>   auth-interne tabel** — na uitvoeren op één account testen (instellen →
+>   uitloggen → inloggen met e-mail+wachtwoord).
+> - **Zelf-service wachtwoord** in de keurder-app: nieuwe Instellingen-sectie
+>   "Wachtwoord" (PasswordSettings.vue, voor elke ingelogde gebruiker) waarmee
+>   een via magic-link binnengekomen keurmeester zelf een wachtwoord kiest
+>   (`updatePassword`, geen mail nodig). De keurder-app hád al wachtwoord-
+>   login; alleen kreeg een uitgenodigd account nog geen wachtwoord.
+> - **Inlogschermen gelabeld:** duidelijk pil-label "Keurder-app · voor
+>   keurmeesters" (groen) vs "Klantportaal · voor klanten" (blauw), zodat
+>   meteen zichtbaar is in welke app je inlogt.
+> Builds (inspector+customer) en tests groen. Migratie 20260748 nog uitvoeren.
+
 ## Voortgang (bijgewerkt 2026-07-19)
 
 > **Sessie 2026-07-19 — platform-admin en bedrijvenbeheer (fase 4

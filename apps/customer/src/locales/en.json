@@ -22,6 +22,7 @@
   },
   "login": {
     "title": "Sign in",
+    "appLabel": "Customer portal · for customers",
     "subtitle": "Your gear, always in order",
     "email": "Email address",
     "submit": "Send sign-in link",
