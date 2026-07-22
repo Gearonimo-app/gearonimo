@@ -62,10 +62,12 @@ export function parseToISODate(value: string | number | Date | null): string | n
 
 export function normalizeResult(value: string | number | null): 'passed' | 'rejected' | 'not_assessed' {
   const s = String(value ?? '').trim().toLowerCase()
-  // 'x'/'✓'/'v': veel certificaten hebben een "Goed"-kolom met alleen een
-  // kruisje of vinkje per goedgekeurd artikel — dat is een uitslag, geen
-  // ontbrekende waarde.
-  if (['goed', 'ok', 'pass', 'passed', 'akkoord', 'goedgekeurd', 'x', '✓', 'v', 'ja', 'yes'].includes(s)) return 'passed'
+  // 'x'/'✓'/'v'/'*': veel certificaten hebben een "Goed"-kolom met alleen een
+  // teken per goedgekeurd artikel — een kruisje, vinkje of sterretje. Dat is
+  // een uitslag (goedgekeurd), geen ontbrekende waarde. Eén of meer sterretjes
+  // ("*", "**") tellen dus als goedgekeurd.
+  if (/^\*+$/.test(s)) return 'passed'
+  if (['goed', 'ok', 'pass', 'passed', 'akkoord', 'goedgekeurd', 'x', '✓', '✔', '☑', 'v', 'ja', 'yes'].includes(s)) return 'passed'
   if (['afgekeurd', 'nok', 'fail', 'rejected', 'afkeur'].includes(s)) return 'rejected'
   return 'not_assessed'
 }
@@ -95,6 +97,18 @@ export interface CommitOptions {
    * de dropdown in stap 3). Leeg = de ingelogde keurmeester. De import-batch
    * zelf blijft altijd op naam van de ingelogde gebruiker (audit). */
   inspectorId?: string
+  /** Voortgangs-callback zodat de wizard "Bestand uploaden…" en "Rij x van y…"
+   * kan tonen i.p.v. één statische regel — bij honderden rijen (elk meerdere
+   * DB-calls) lijkt een stille regel al snel bevroren. */
+  onProgress?: (p: ImportProgress) => void
+}
+
+export interface ImportProgress {
+  /** 'upload' = het originele bestand gaat naar Storage; 'rows' = rijen wegschrijven. */
+  phase: 'upload' | 'rows'
+  /** Bij 'rows': de rij die nu verwerkt wordt (1-gebaseerd). Bij 'upload': 0. */
+  current: number
+  total: number
 }
 
 export interface CommitResult {
@@ -138,6 +152,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   }
   const customerIdsSeen = new Set<string>()
 
+  opts.onProgress?.({ phase: 'upload', current: 0, total: opts.rows.length })
   const storagePath = `${inspector.company_id}/${Date.now()}-${opts.file.name}`
   const { error: uploadErr } = await supabase.storage.from('imports').upload(storagePath, opts.file)
   if (uploadErr) { result.errors.push(uploadErr.message); return result }
@@ -167,7 +182,10 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   let imported = 0
   let skipped = 0
 
+  let rowIndex = 0
   for (const row of opts.rows) {
+    rowIndex++
+    opts.onProgress?.({ phase: 'rows', current: rowIndex, total: opts.rows.length })
     try {
       const customerName = opts.fixedCustomerName?.trim() || cellsForField(opts.mapping, 'customerName', row)
       const serial = cellsForField(opts.mapping, 'serialNumber', row)

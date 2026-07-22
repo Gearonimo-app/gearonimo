@@ -5,6 +5,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-22)
+
+> **Sessie 2026-07-22 — eerste import bij echte klant:** Jos deed de eerste
+> import met een echt klantbestand (~270 rijen). Twee dingen bijgesteld:
+> - **`*` als "goedgekeurd" herkend.** Het bestand markeerde goedgekeurde
+>   artikelen met een sterretje in de "Goed"-kolom; `normalizeResult`
+>   (`useImportCommit.ts`) kende `x`/`✓`/`v` wél maar `*` niet, waardoor de
+>   uitslag op *nog te doen* bleef staan (scherm: "0 goed · 20 afgekeurd ·
+>   250 nog te doen"). Nu tellen één of meer sterretjes (`*`, `**`) als
+>   goedgekeurd; ook `✔`/`☑` toegevoegd naast het bestaande `✓`.
+> - **Voortgang tijdens de import.** Stap 5 toonde één statische regel
+>   "Bezig met importeren…" en leek daardoor bevroren bij honderden rijen
+>   (elke rij = meerdere DB-calls). `commitImport` geeft nu voortgang terug
+>   via een `onProgress`-callback; de wizard toont "Bestand uploaden…" en
+>   daarna "Rij x van y…" met een balk.
+> - **Nog open:** de al geïmporteerde keuring staat nog met de oude uitslagen
+>   in de database — die 250 items zijn niet met terugwerkende kracht
+>   bijgewerkt. Optie: die importbatch verwijderen en opnieuw importeren nu de
+>   `*` wél telt (dedup op naam + serienummer vangt dubbele klanten/artikelen
+>   af). Met Jos afstemmen.
+
 ## Voortgang (bijgewerkt 2026-07-21)
 
 > **Sessie 2026-07-21 — keurmeester-onboarding & login:** Jos liep erop vast

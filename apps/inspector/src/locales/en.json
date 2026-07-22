@@ -541,6 +541,8 @@
       "step5Hint": "{count} rows will be imported. The original file is kept unchanged as evidence; no new certificate PDF is generated for historical inspections.",
       "startImport": "Start import",
       "importing": "Importing…",
+      "importingUpload": "Uploading file…",
+      "importingRow": "Row {current} of {total}…",
       "done": "Import finished.",
       "sumCustomers": "{count} new customer(s) created",
       "sumArticlesCreated": "{count} new article(s) created",

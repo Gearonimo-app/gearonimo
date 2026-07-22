@@ -541,6 +541,8 @@
       "step5Hint": "{count} rijen worden geïmporteerd. Het originele bestand wordt ongewijzigd bewaard als bewijs; er wordt geen nieuw certificaat-PDF aangemaakt voor historische keuringen.",
       "startImport": "Start import",
       "importing": "Bezig met importeren…",
+      "importingUpload": "Bestand uploaden…",
+      "importingRow": "Rij {current} van {total}…",
       "done": "Import afgerond.",
       "sumCustomers": "{count} nieuwe klant(en) aangemaakt",
       "sumArticlesCreated": "{count} nieuwe artikel(en) aangemaakt",

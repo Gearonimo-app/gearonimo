@@ -250,7 +250,16 @@
         <p class="imp__hint">{{ $t('settings.import.step5Hint', { count: dataRows.length }) }}</p>
         <button class="imp__btn" @click="runCommit">{{ $t('settings.import.startImport') }}</button>
       </div>
-      <p v-else-if="committing" class="imp__hint">{{ $t('settings.import.importing') }}</p>
+      <div v-else-if="committing" class="imp__progress">
+        <p class="imp__hint imp__progresslabel">
+          {{ commitPhase === 'upload'
+            ? $t('settings.import.importingUpload')
+            : $t('settings.import.importingRow', { current: commitCurrent, total: commitTotal }) }}
+        </p>
+        <div v-if="commitPhase === 'rows' && commitTotal" class="imp__progressbar">
+          <div class="imp__progressfill" :style="{ width: commitPercent + '%' }"></div>
+        </div>
+      </div>
       <div v-else-if="commitResult">
         <p class="imp__ok">{{ $t('settings.import.done') }}</p>
         <ul class="imp__summary">
@@ -488,6 +497,15 @@ const skipDuplicateSerials = ref(true)
 const saveProfile = ref(true)
 const committing = ref(false)
 const commitResult = ref<CommitResult | null>(null)
+// Voortgang tijdens de commit, zodat stap 5 "Bestand uploaden…" en
+// "Rij x van y…" toont i.p.v. één statische regel (leek bevroren bij honderden
+// rijen).
+const commitPhase = ref<'upload' | 'rows' | null>(null)
+const commitCurrent = ref(0)
+const commitTotal = ref(0)
+const commitPercent = computed(() =>
+  commitTotal.value ? Math.round((commitCurrent.value / commitTotal.value) * 100) : 0
+)
 
 // Tijdens het laden van een bestand zetten we koprij/mapping eerst op een gok en
 // daarna mogelijk op een opgeslagen profiel. De onderstaande watchers her-gokken
@@ -714,6 +732,9 @@ watch(selectedSheet, () => {
 async function runCommit() {
   if (!file.value) return
   committing.value = true
+  commitPhase.value = 'upload'
+  commitCurrent.value = 0
+  commitTotal.value = dataRows.value.length
   try {
     if (saveProfile.value) {
       await saveImportProfile(headerRow.value, headerRowIndex.value, mapping.value)
@@ -728,9 +749,15 @@ async function runCommit() {
       fixedCustomerId: selectedCustomerId.value ?? undefined,
       fixedInspectionDate: fixedInspectionDate.value,
       inspectorId: selectedInspectorId.value || undefined,
+      onProgress: (p) => {
+        commitPhase.value = p.phase
+        commitCurrent.value = p.current
+        commitTotal.value = p.total
+      },
     })
   } finally {
     committing.value = false
+    commitPhase.value = null
   }
 }
 </script>
@@ -800,6 +827,11 @@ async function runCommit() {
    dicht en schuiven de voorbeeldwaarden eronder een regel omhoog — dan lijkt
    bijv. een "X" (goedgekeurd) bij het verkeerde artikel te horen. */
 .imp__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
+
+.imp__progress { margin-top: 0.5rem; }
+.imp__progresslabel { font-variant-numeric: tabular-nums; }
+.imp__progressbar { height: 8px; background: #e5e7eb; border-radius: 999px; overflow: hidden; margin-top: 0.15rem; max-width: 320px; }
+.imp__progressfill { height: 100%; background: #059669; border-radius: 999px; transition: width 0.2s ease; }
 
 .imp__checkbox { display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; margin-top: 0.6rem; }
 .imp__summary { font-size: 0.9rem; padding-left: 1.2rem; }
