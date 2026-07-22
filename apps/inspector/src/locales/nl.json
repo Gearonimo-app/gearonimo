@@ -210,8 +210,8 @@
     "password": "Wachtwoord",
     "submit": "Inloggen",
     "busy": "Bezig...",
-    "forgotPassword": "Wachtwoord vergeten?",
-    "forgotHint": "Vul je e-mailadres in, dan sturen we een link waarmee je een nieuw wachtwoord kunt instellen.",
+    "forgotPassword": "Wachtwoord instellen of vergeten",
+    "forgotHint": "Nog geen wachtwoord, of vergeten? Vul je e-mailadres in, dan sturen we een link waarmee je een wachtwoord kunt instellen.",
     "sendReset": "Stuur reset-link",
     "backToLogin": "Terug naar inloggen",
     "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen."

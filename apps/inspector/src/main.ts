@@ -145,7 +145,9 @@ router.beforeEach(async (to) => {
     });
   }
   if (to.meta.requiresAuth && !isLoggedIn.value) {
-    return "/login";
+    // Query meenemen (o.a. ?email= uit een uitnodiging) zodat het inlogscherm
+    // het e-mailadres alvast kan invullen.
+    return { path: "/login", query: to.query };
   }
   // Klant-account op dit domein (gedeelde sessie met /portal/): alleen het
   // hoofdmenu mag getoond worden (die toont zelf de melding + link naar

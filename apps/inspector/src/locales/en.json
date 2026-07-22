@@ -210,8 +210,8 @@
     "password": "Password",
     "submit": "Log in",
     "busy": "Please wait...",
-    "forgotPassword": "Forgot password?",
-    "forgotHint": "Enter your email address and we'll send you a link to set a new password.",
+    "forgotPassword": "Set or reset password",
+    "forgotHint": "No password yet, or forgot it? Enter your email address and we'll send you a link to set a password.",
     "sendReset": "Send reset link",
     "backToLogin": "Back to sign in",
     "resetSent": "Check your email — we sent you a link to set a new password."

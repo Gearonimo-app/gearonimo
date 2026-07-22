@@ -379,8 +379,11 @@ async function inviteAndLink() {
   try {
     // Expliciet terug naar de keurder-app (deze app draait op de root, history-
     // router). Zonder dit valt Supabase terug op de Site URL en belandde een
-    // uitgenodigde keurmeester in de klant-app (/portal/) i.p.v. hier.
-    await signInWithMagicLink(linkForm.email.trim(), window.location.origin + '/')
+    // uitgenodigde keurmeester in de klant-app (/portal/) i.p.v. hier. Het
+    // e-mailadres gaat mee als query, zodat het inlogscherm het alvast invult
+    // als de link niet meteen inlogt (verlopen/al gescande magic-link).
+    const email = linkForm.email.trim()
+    await signInWithMagicLink(email, `${window.location.origin}/?email=${encodeURIComponent(email)}`)
     inviteSent.value = true
     const { error: err } = await supabase.rpc('platform_admin_add_inspector', {
       p_company_id: selected.value.id,

@@ -46,15 +46,18 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useAuth, errorMessage } from "@gearonimo/core";
 import { LangToggle } from "@gearonimo/ui";
 
 const { signInWithEmail, resetPasswordForEmail } = useAuth();
 const router = useRouter();
+const route = useRoute();
 
 const mode = ref<"login" | "forgot">("login");
-const email = ref("");
+// Vooraf ingevuld vanuit een uitnodiging (?email=...), zodat een nieuwe
+// keurmeester alleen nog een wachtwoord hoeft in te vullen.
+const email = ref(typeof route.query.email === "string" ? route.query.email : "");
 const password = ref("");
 const error = ref("");
 const busy = ref(false);
