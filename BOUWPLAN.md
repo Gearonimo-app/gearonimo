@@ -5,6 +5,30 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-22, deel 2)
+
+> **Sessie 2026-07-22 (deel 2) — artikelpagina verrijken na de import:** Na de
+> eerste import staan alle artikelen als "vrij artikel" (schrijfwijze op het
+> oude certificaat matcht niet exact een catalogusnaam). Jos wil ze vanaf de
+> artikelpagina kunnen koppelen. Gebouwd:
+> - **"Bedoelt u"-productkoppeling op de artikelpagina.** Een vrij artikel
+>   toont een fuzzy-gesorteerde suggestielijst (hergebruik `fuzzyScore` uit
+>   `packages/ui`) van catalogusproducten; één klik koppelt het artikel
+>   (`product_id` gezet, vrije velden geleegd), waarna keurtermijn/recall/
+>   handleiding vanzelf van het product komen. Zoekterm is voorgevuld met de
+>   vrije schrijfwijze.
+> - **Keurtermijn (maanden) als bewerkbaar veld** op het artikel
+>   (`interval_override_months`, bestond al als kolom sinds `20260623`). Zo is
+>   de volgende-keuringstermijn per artikel bij te stellen.
+> - **Import zet voortaan een standaard volgende-keuringsdatum.** Afgeronde
+>   geïmporteerde keuringen zonder eigen "volgende keuring"-kolom krijgen
+>   `keurdatum + 12 mnd` (GB 6 mnd, o.b.v. `inspection_companies.country_code`).
+>   Bewust aan de strenge kant (besluit Jos). Géén backfill van de al
+>   geïmporteerde 278 artikelen — alleen nieuwe imports (keuze Jos).
+> - `addMonths` geëxporteerd uit `packages/core` zodat de import dezelfde
+>   maandeinde-veilige rekenwijze gebruikt als de keur-wizard.
+> - Geen nieuwe migratie nodig.
+
 ## Voortgang (bijgewerkt 2026-07-22)
 
 > **Sessie 2026-07-22 — eerste import bij echte klant:** Jos deed de eerste

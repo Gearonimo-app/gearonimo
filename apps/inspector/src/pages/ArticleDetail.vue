@@ -25,6 +25,32 @@
           </div>
         </template>
       </dl>
+      <!-- Vrij artikel koppelen aan een catalogusproduct ("bedoelt u: …") -->
+      <section v-if="isFreeArticle && isOnline && !article.retired" class="ad__link">
+        <h2 class="ad__link-title">{{ $t('articles.detail.linkTitle') }}</h2>
+        <p class="ad__link-hint">{{ $t('articles.detail.linkHint') }}</p>
+        <input
+          v-model="productQuery"
+          class="ad__input"
+          :placeholder="$t('articles.detail.linkPlaceholder')"
+        />
+        <p v-if="productQuery.trim()" class="ad__link-suggest-label">{{ $t('articles.detail.linkSuggest') }}</p>
+        <div v-if="productSuggestions.length" class="ad__suggest">
+          <button
+            v-for="p in productSuggestions"
+            :key="p.id"
+            type="button"
+            class="ad__suggest-item"
+            :disabled="linking"
+            @click="linkProduct(p)"
+          >
+            <span class="ad__suggest-name">{{ productLabel(p) }}</span>
+            <span v-if="p.category" class="ad__suggest-cat">{{ p.category }}</span>
+          </button>
+        </div>
+        <p v-else-if="productQuery.trim()" class="ad__link-none">{{ $t('articles.detail.linkNone') }}</p>
+      </section>
+
       <button v-if="!article.retired && isOnline" class="ad__retire" @click="openRetire">
         {{ $t('articles.detail.retire') }}
       </button>
@@ -81,7 +107,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
-import { GIcon } from '@gearonimo/ui'
+import { GIcon, fuzzyScore } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -112,6 +138,7 @@ const fieldDefs: FieldDef[] = [
   { col: 'manufacture_month', label: 'articles.detail.fields.manufactureMonth', type: 'number' },
   { col: 'purchase_date', label: 'articles.detail.fields.purchaseDate', type: 'date' },
   { col: 'severe_use', label: 'articles.detail.fields.severeUse', type: 'checkbox' },
+  { col: 'interval_override_months', label: 'articles.detail.fields.intervalOverride', type: 'number' },
   { col: 'notes', label: 'articles.fields.notes', textarea: true },
 ]
 
@@ -152,6 +179,50 @@ const brandLabel = computed(() => {
     : [a.free_brand, a.free_description].filter(Boolean).join(' ')
 })
 const articleLabel = computed(() => brandLabel.value || t('articles.untitled'))
+
+// --- Koppelen aan een catalogusproduct ---------------------------------------
+// Geïmporteerde artikelen komen bijna altijd binnen als "vrij artikel": de
+// schrijfwijze op het oude certificaat ("distel alu kort") matcht niet exact
+// een catalogusnaam. Hier bieden we een fuzzy "bedoelt u"-lijst aan zodat de
+// keurmeester het vrije artikel met één klik aan het echte product koppelt —
+// dan kloppen keurtermijn (regime), recall en handleiding vanzelf.
+interface CatalogProduct { id: string; brand: string | null; name: string | null; category: string | null; product_type: string | null }
+const products = ref<CatalogProduct[]>([])
+const productQuery = ref('')
+const linking = ref(false)
+const isFreeArticle = computed(() => !!article.value && !article.value.product_id)
+
+function productLabel(p: CatalogProduct): string {
+  return [p.brand, p.name].filter(Boolean).join(' ')
+}
+
+const productSuggestions = computed(() => {
+  const q = productQuery.value.trim()
+  if (!q) return [] as CatalogProduct[]
+  return products.value
+    .map((p) => ({ p, s: fuzzyScore(q, productLabel(p)) }))
+    .filter((x) => x.s > 0)
+    .sort((a, b) => b.s - a.s || productLabel(a.p).localeCompare(productLabel(b.p)))
+    .slice(0, 8)
+    .map((x) => x.p)
+})
+
+async function linkProduct(p: CatalogProduct) {
+  linking.value = true
+  const { data, error: err } = await supabase
+    .from('articles')
+    // Bij het koppelen vervallen de vrije velden: het product is nu de bron
+    // van merk/omschrijving/categorie (voorkomt dat oude vrije tekst blijft
+    // "spoken" naast de catalogusnaam).
+    .update({ product_id: p.id, free_brand: null, free_description: null, free_category: null })
+    .eq('id', id)
+    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .single()
+  linking.value = false
+  if (err) { error.value = err.message; return }
+  article.value = data
+  productQuery.value = ''
+}
 
 function label(key: string) {
   return t(key).replace(' *', '')
@@ -203,8 +274,21 @@ async function load() {
   else {
     article.value = data
     customerName.value = (data?.customer as { name: string | null } | null)?.name ?? null
+    // Zoekterm alvast vullen met de vrije schrijfwijze, zodat de "bedoelt
+    // u"-lijst meteen relevante producten toont zonder overtypen.
+    if (isFreeArticle.value && !productQuery.value) productQuery.value = brandLabel.value
   }
   loading.value = false
+}
+
+// Catalogus (bedrijfsbreed via RLS) voor de "bedoelt u"-koppeling. Online-only:
+// offline is koppelen sowieso niet aan de orde (net als bewerken/afvoeren).
+async function loadProducts() {
+  if (!isOnline.value) return
+  const { data } = await supabase
+    .from('products')
+    .select('id, brand, name, category, product_type')
+  products.value = (data ?? []) as CatalogProduct[]
 }
 
 function startEdit() {
@@ -310,7 +394,7 @@ function back() {
   }
 }
 
-onMounted(load)
+onMounted(() => { load(); loadProducts() })
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {
@@ -351,6 +435,26 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ad__view-row:last-child { border-bottom: none; }
 .ad__view-row dt { color: #6b7280; font-size: 0.85rem; }
 .ad__view-row dd { margin: 0; font-weight: 600; text-align: right; word-break: break-word; }
+/* Koppelblok voor vrije artikelen */
+.ad__link {
+  margin-top: 1.25rem; background: #fff; border-radius: 12px; padding: 1rem;
+  border: 1px solid #e5e7eb;
+}
+.ad__link-title { font-size: 1rem; margin: 0 0 0.25rem; }
+.ad__link-hint { color: #6b7280; font-size: 0.85rem; margin: 0 0 0.75rem; }
+.ad__link-suggest-label { font-size: 0.8rem; color: #6b7280; margin: 0.75rem 0 0.35rem; }
+.ad__suggest { display: flex; flex-direction: column; gap: 0.4rem; }
+.ad__suggest-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  width: 100%; text-align: left; padding: 0.7rem 0.85rem; border-radius: 8px;
+  border: 1px solid #d1d5db; background: #f9fafb; cursor: pointer; font: inherit;
+}
+.ad__suggest-item:hover { background: #ecfdf5; border-color: #059669; }
+.ad__suggest-item:disabled { opacity: 0.6; cursor: default; }
+.ad__suggest-name { font-weight: 600; }
+.ad__suggest-cat { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
+.ad__link-none { color: #6b7280; font-size: 0.85rem; margin: 0.5rem 0 0; }
+
 .ad__retire {
   margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;
   border: 1px solid #fecaca; background: #fff; color: #dc2626;

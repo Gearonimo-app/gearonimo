@@ -1,4 +1,4 @@
-import { supabase } from '@gearonimo/core'
+import { supabase, addMonths } from '@gearonimo/core'
 import { ensureInspector, fetchRejectionCodes } from './useInspections'
 import { parseMonth, parseYearMonth, type FieldKey, type RawRow } from './useImportMapping'
 
@@ -138,6 +138,18 @@ export interface CommitResult {
 export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   const inspector = await ensureInspector()
   const inspectionInspectorId = opts.inspectorId || inspector.id
+
+  // Standaard keurtermijn voor geïmporteerde keuringen zónder eigen
+  // volgende-keuring-kolom: het land van het keurbedrijf bepaalt de termijn
+  // (GB = 6 mnd per LOLER/PUWER, overige landen 12 mnd — bewust aan de
+  // strenge kant, zie besluit Jos 2026-07-22). Per artikel later bij te
+  // stellen via de keurtermijn-override op de artikelpagina.
+  const { data: company } = await supabase
+    .from('inspection_companies')
+    .select('country_code')
+    .eq('id', inspector.company_id)
+    .maybeSingle()
+  const defaultIntervalMonths = company?.country_code === 'GB' ? 6 : 12
   const result: CommitResult = {
     customersCreated: 0,
     articlesCreated: 0,
@@ -325,11 +337,17 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
         let itemResult = normalizeResult(cellsForField(opts.mapping, 'result', row))
         if (rawCode && itemResult === 'not_assessed') itemResult = 'rejected'
 
+        // Volgende-keuringsdatum: eerst een expliciete kolom uit het bestand;
+        // ontbreekt die, dan de standaardtermijn vanaf de keurdatum, zodat een
+        // geïmporteerd artikel meteen een herkeurmoment krijgt (en op het
+        // dashboard meetelt) i.p.v. onbekend te blijven.
+        const mappedNextDue = parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null)
+        const nextDue = mappedNextDue ?? localISODate(addMonths(new Date(inspectionDate), defaultIntervalMonths))
         const { error: itemErr } = await supabase.from('inspection_items').insert({
           inspection_id: inspectionId,
           article_id: articleId,
           result: itemResult,
-          next_due: parseToISODate(cellsForField(opts.mapping, 'nextDue', row) || null),
+          next_due: nextDue,
           rejection_code_id: rejectionCodeId,
           comment: commentParts.length ? commentParts.join(' — ') : null,
         })

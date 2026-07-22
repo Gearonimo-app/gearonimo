@@ -163,11 +163,17 @@
       "deleteTitle": "Artikel verwijderen?",
       "deleteNeverInspectedBody": "Dit artikel heeft nog nooit op een afgerond certificaat gestaan en wordt definitief verwijderd.",
       "retiredBadge": "Afgevoerd",
+      "linkTitle": "Koppel aan catalogusproduct",
+      "linkHint": "Dit is nu een vrij artikel. Koppel het aan het bedoelde product, dan kloppen keurtermijn, recall en handleiding automatisch.",
+      "linkPlaceholder": "Zoek product (merk, type, naam)…",
+      "linkSuggest": "Bedoelt u:",
+      "linkNone": "Geen passend product in de catalogus gevonden.",
       "fields": {
         "manufactureYear": "Bouwjaar",
         "manufactureMonth": "Bouwmaand",
         "purchaseDate": "Aankoopdatum",
-        "severeUse": "Zwaar gebruik"
+        "severeUse": "Zwaar gebruik",
+        "intervalOverride": "Keurtermijn (maanden)"
       }
     }
   },

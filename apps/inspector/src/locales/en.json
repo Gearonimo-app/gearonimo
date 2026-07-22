@@ -163,11 +163,17 @@
       "deleteTitle": "Delete article?",
       "deleteNeverInspectedBody": "This article has never been on a completed certificate and will be permanently deleted.",
       "retiredBadge": "Retired",
+      "linkTitle": "Link to catalogue product",
+      "linkHint": "This is a free article. Link it to the intended product so the inspection interval, recall and manual are filled in automatically.",
+      "linkPlaceholder": "Search product (brand, type, name)…",
+      "linkSuggest": "Did you mean:",
+      "linkNone": "No matching product found in the catalogue.",
       "fields": {
         "manufactureYear": "Manufacture year",
         "manufactureMonth": "Manufacture month",
         "purchaseDate": "Purchase date",
-        "severeUse": "Severe use"
+        "severeUse": "Severe use",
+        "intervalOverride": "Inspection interval (months)"
       }
     }
   },

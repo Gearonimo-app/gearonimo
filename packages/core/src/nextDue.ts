@@ -29,7 +29,7 @@ export interface NextDueInput {
   max_age_use_years?: number | null;
 }
 
-function addMonths(date: Date, months: number): Date {
+export function addMonths(date: Date, months: number): Date {
   // Code review 2026-07-18, punt 10: setMonth() loopt over bij maandeindes
   // (31 jan + 1 maand werd 3 maart, 31 aug + 6 maanden werd 3 maart). Voor
   // een keurtermijn moet dat de LAATSTE dag van de doelmaand worden (28 feb),
