@@ -5,6 +5,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-22, deel 3)
+
+> **Sessie 2026-07-22 (deel 3) — import ongedaan maken:** In stap 1 van de
+> importwizard staat nu een lijst "Eerdere imports" (per keurbedrijf, nieuwste
+> eerst) met een verwijderknop + inline bevestiging.
+> - `listImportBatches()` / `deleteImportBatch()` in `useImportCommit.ts`.
+> - Verwijderen haalt de keuringen van de batch weg (inspection_items →
+>   inspections via `import_batch_id`), het originele bestand uit Storage en de
+>   batchrij. **Artikelen en klanten blijven bewust staan** — ze zijn niet aan
+>   de batch gekoppeld (`articles` heeft geen `import_batch_id`) en kunnen
+>   inmiddels bewerkt/gekoppeld zijn; de dedup (klantnaam + serienummer)
+>   hergebruikt ze bij opnieuw importeren.
+> - Bedoeld pad voor de Weijtmans-import: batch verwijderen → opnieuw
+>   importeren, nu met de *-fix (telt als goed) én de standaard 12-mnd-datum.
+> - Let op-randje: artikelen zónder serienummer worden bij opnieuw importeren
+>   niet herkend door de dedup en kunnen dan dubbel ontstaan (bestaande
+>   dedup-beperking, niet nieuw).
+
 ## Voortgang (bijgewerkt 2026-07-22, deel 2)
 
 > **Sessie 2026-07-22 (deel 2) — artikelpagina verrijken na de import:** Na de

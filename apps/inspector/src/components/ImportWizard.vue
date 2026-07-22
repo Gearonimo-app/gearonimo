@@ -24,6 +24,30 @@
           <option v-for="name in sheetNames" :key="name" :value="name">{{ name }}</option>
         </select>
       </div>
+
+      <!-- Eerdere imports ongedaan maken (bijv. na een verkeerde mapping) -->
+      <div v-if="batches.length" class="imp__history">
+        <h3 class="imp__history-title">{{ $t('settings.import.historyTitle') }}</h3>
+        <ul class="imp__historylist">
+          <li v-for="b in batches" :key="b.id" class="imp__historyrow">
+            <div class="imp__historyinfo">
+              <span class="imp__historyname" :title="b.original_filename">{{ b.original_filename }}</span>
+              <span class="imp__historymeta">{{ formatBatchDate(b.created_at) }} · {{ $t('settings.import.historyCount', { count: b.imported_count }) }}</span>
+            </div>
+            <div v-if="confirmDeleteBatchId === b.id" class="imp__historyconfirm">
+              <span class="imp__historywarn">{{ $t('settings.import.historyConfirm') }}</span>
+              <button type="button" class="imp__linkbtn imp__linkbtn--danger" :disabled="deletingBatchId === b.id" @click="removeBatch(b.id)">
+                {{ deletingBatchId === b.id ? $t('settings.import.historyDeleting') : $t('settings.import.historyConfirmYes') }}
+              </button>
+              <button type="button" class="imp__linkbtn" @click="confirmDeleteBatchId = null">{{ $t('settings.import.back') }}</button>
+            </div>
+            <button v-else type="button" class="imp__historydel" @click="confirmDeleteBatchId = b.id">
+              {{ $t('settings.import.historyDelete') }}
+            </button>
+          </li>
+        </ul>
+        <p class="imp__hint">{{ $t('settings.import.historyHint') }}</p>
+      </div>
     </section>
 
     <!-- Stap 2: koprij aanwijzen -->
@@ -325,11 +349,14 @@ import {
 } from '../composables/useImportMapping'
 import {
   commitImport,
+  deleteImportBatch,
   fetchColumnMemory,
   findImportProfile,
+  listImportBatches,
   parseToISODate,
   saveImportProfile,
   type CommitResult,
+  type ImportBatchSummary,
 } from '../composables/useImportCommit'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import { ensureInspector } from '../composables/useInspections'
@@ -470,7 +497,34 @@ async function loadInspectors() {
     // geen verbinding: dropdown blijft verborgen, import valt terug op de ingelogde keurmeester
   }
 }
-onMounted(() => { loadCustomers(); loadInspectors() })
+// --- Eerdere imports (ongedaan maken) ----------------------------------------
+const batches = ref<ImportBatchSummary[]>([])
+const confirmDeleteBatchId = ref<string | null>(null)
+const deletingBatchId = ref<string | null>(null)
+
+async function loadBatches() {
+  try { batches.value = await listImportBatches() } catch { batches.value = [] }
+}
+
+async function removeBatch(id: string) {
+  deletingBatchId.value = id
+  try {
+    await deleteImportBatch(id)
+    confirmDeleteBatchId.value = null
+    await loadBatches()
+  } catch (e) {
+    error.value = (e as Error).message
+  } finally {
+    deletingBatchId.value = null
+  }
+}
+
+function formatBatchDate(iso: string): string {
+  const d = new Date(iso)
+  return isNaN(d.getTime()) ? '' : d.toLocaleDateString()
+}
+
+onMounted(() => { loadCustomers(); loadInspectors(); loadBatches() })
 
 function selectCustomer(c: CustomerListItem) {
   selectedCustomerId.value = c.id
@@ -827,6 +881,20 @@ async function runCommit() {
    dicht en schuiven de voorbeeldwaarden eronder een regel omhoog — dan lijkt
    bijv. een "X" (goedgekeurd) bij het verkeerde artikel te horen. */
 .imp__sample { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 1.2em; }
+
+/* Eerdere imports */
+.imp__history { margin-top: 1.5rem; border-top: 1px solid #e5e7eb; padding-top: 1rem; }
+.imp__history-title { font-size: 0.95rem; margin: 0 0 0.5rem; }
+.imp__historylist { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
+.imp__historyrow { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.55rem 0.7rem; border: 1px solid #e5e7eb; border-radius: 8px; background: #f9fafb; }
+.imp__historyinfo { min-width: 0; display: flex; flex-direction: column; }
+.imp__historyname { font-weight: 600; font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 320px; }
+.imp__historymeta { color: #6b7280; font-size: 0.75rem; }
+.imp__historydel { background: none; border: 1px solid #fecaca; color: #dc2626; border-radius: 6px; padding: 0.3rem 0.7rem; font: inherit; font-size: 0.8rem; cursor: pointer; white-space: nowrap; }
+.imp__historydel:hover { background: #fef2f2; }
+.imp__historyconfirm { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+.imp__historywarn { color: #92400e; font-size: 0.8rem; }
+.imp__linkbtn--danger { color: #dc2626; font-weight: 600; }
 
 .imp__progress { margin-top: 0.5rem; }
 .imp__progresslabel { font-variant-numeric: tabular-nums; }

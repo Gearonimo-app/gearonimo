@@ -415,6 +415,68 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   return result
 }
 
+export interface ImportBatchSummary {
+  id: string
+  original_filename: string
+  created_at: string
+  row_count: number
+  imported_count: number
+  skipped_count: number
+}
+
+/** Recente importbatches van het eigen keurbedrijf, nieuwste eerst. */
+export async function listImportBatches(): Promise<ImportBatchSummary[]> {
+  const inspector = await ensureInspector()
+  const { data } = await supabase
+    .from('import_batches')
+    .select('id, original_filename, created_at, row_count, imported_count, skipped_count')
+    .eq('company_id', inspector.company_id)
+    .order('created_at', { ascending: false })
+    .limit(20)
+  return (data ?? []) as ImportBatchSummary[]
+}
+
+/** Maakt een import ongedaan: verwijdert de keuringen (inspections +
+ * inspection_items) die deze batch heeft aangemaakt, het originele bestand uit
+ * Storage en de batch zelf. De aangemaakte artikelen en klanten blijven bewust
+ * staan — ze zijn niet aan de batch gekoppeld en kunnen inmiddels bewerkt of
+ * aan een product gekoppeld zijn; bij opnieuw importeren hergebruikt de dedup
+ * (klantnaam + serienummer) ze gewoon. */
+export async function deleteImportBatch(batchId: string): Promise<void> {
+  const inspector = await ensureInspector()
+  const { data: batch, error: bErr } = await supabase
+    .from('import_batches')
+    .select('id, storage_path')
+    .eq('id', batchId)
+    .eq('company_id', inspector.company_id)
+    .maybeSingle()
+  if (bErr) throw bErr
+  if (!batch) throw new Error('Importbatch niet gevonden')
+
+  const { data: insps, error: iErr } = await supabase
+    .from('inspections')
+    .select('id')
+    .eq('import_batch_id', batchId)
+  if (iErr) throw iErr
+  const ids = (insps ?? []).map((r) => String(r.id))
+
+  if (ids.length) {
+    const { error: itemErr } = await supabase.from('inspection_items').delete().in('inspection_id', ids)
+    if (itemErr) throw itemErr
+    const { error: insErr } = await supabase.from('inspections').delete().in('id', ids)
+    if (insErr) throw insErr
+  }
+
+  // Best-effort: een achtergebleven bestand mag de rest van de opschoning niet
+  // blokkeren (de batchrij is leidend voor "is deze import weg?").
+  if (batch.storage_path) {
+    await supabase.storage.from('imports').remove([batch.storage_path])
+  }
+
+  const { error: delErr } = await supabase.from('import_batches').delete().eq('id', batchId)
+  if (delErr) throw delErr
+}
+
 export interface SavedProfile {
   header_row_index: number
   mapping: Record<number, FieldKey>
