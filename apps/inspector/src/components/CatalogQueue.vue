@@ -133,7 +133,7 @@ async function createProduct(form: ProductFormModel) {
         max_age_mfr_years: form.max_age_mfr_years,
         breaking_strength: form.breaking_strength.trim() || null,
         working_load_limit: form.working_load_limit.trim() || null,
-        max_user_weight_kg: form.max_user_weight_kg,
+        max_user_weight_kg: form.max_user_weight_kg.trim() || null,
         rope_diameter_min_mm: form.rope_diameter_min_mm,
         rope_diameter_max_mm: form.rope_diameter_max_mm,
         serial_number_location: form.serial_number_location.trim() || null,

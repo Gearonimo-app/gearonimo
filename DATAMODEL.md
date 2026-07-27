@@ -283,7 +283,7 @@ keurbedrijf B.
 | max_age_mfr_years | int? | fabrikantentermijn (`max_leeftijd_mfr`) |
 | breaking_strength | text? | breuksterkte |
 | working_load_limit | text? | maximale werklast (WLL) |
-| max_user_weight_kg | int? | maximaal gebruikersgewicht in kg |
+| max_user_weight_kg | text? | maximaal gebruikersgewicht in kg. **Tekst, niet int** (besloten 2026-07-27) — zie toelichting onder de tabel |
 | rope_diameter_min_mm | numeric? | minimale touwdiameter in mm (voor apparaten die op touw werken) |
 | rope_diameter_max_mm | numeric? | maximale touwdiameter in mm |
 | serial_number_location | text? | waar het serienummer te vinden is op het product, bijv. "label aan binnenkant gordel" |
@@ -296,6 +296,34 @@ keurbedrijf B.
 | interval_override_months | int? | wijkt af van het regime voor dit product |
 | status | text | `approved` / `pending` (wachtrij) / `rejected` / `archived` |
 | created_by | FK → users | wie hem aandroeg (klant of curator) |
+
+**`max_user_weight_kg` van int naar text (besloten 2026-07-27):** de
+bronlijst-import van 2294 producten klapte op
+`invalid input syntax for type integer: "190.5"` — 117 Miller H700-harnassen
+hebben een rating van 420 lbs = 190,5 kg. Afronden zou de fout wegpoetsen
+maar niet oplossen: een maximaal gebruikersgewicht is niet altijd één geheel
+getal. Jos: *"soms is een gebruikersgewicht afhankelijk van een touwdiameter,
+dit klopt dus gewoon"* — de bronlijst bevat legitiem `130-150` (bereik) en
+`100 (bij EN 12841/B, 10.5-13mm touw)` (voorwaardelijke rating). Daarom text,
+net als `breaking_strength` en `working_load_limit` die om dezelfde reden al
+text zijn. Er wordt nergens op dit veld gerekend of gesorteerd.
+Migratie: `20260727_products_max_user_weight_text.sql`.
+
+**`product_type` is het regime, niet de categorie (bevestigd 2026-07-27):**
+bij de bronlijst-import bleek `product_type` bij 156 van de 2294 rijen (6,8%)
+gevuld met een fijne artikeltaxonomie (`Locking Carabiner (Screw-Lock)`,
+`Rigging Plate`, …) in plaats van een regimewaarde. Dat is stil gevaarlijk:
+`getRegime()` (`packages/core/src/regimes.ts`) herkent zo'n waarde niet en valt
+terug op 12 maanden — in NL toevallig goed, maar **GB moet voor PPE op 6
+maanden**. `product_type` hoort dus uitsluitend `ppe` / `no_ppe` / `rigging` /
+`aerial_platform` / `machine` / `other` te bevatten; de fijne omschrijving
+hoort in `category`. Gecorrigeerd in de bron, niet in de importcode.
+
+**`interval_override_months` bewust leeg bij bulkimport (besloten 2026-07-27):**
+Gearonimo gaat uit van de nationale regelgeving (GB 6 maanden, overige 12) via
+`REGIMES`. De `inspection_interval_years`-kolom uit de bronlijst wordt daarom
+niet meer overgenomen; een override is een bewuste handmatige uitzondering per
+product, geen bulkdata.
 
 **`max_age_years` verwijderd (besloten 2026-07-09):** kalenderleeftijd zonder
 mfr/use-onderscheid; de next_due-berekening (`packages/core/nextDue.ts`) las

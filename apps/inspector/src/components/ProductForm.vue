@@ -66,7 +66,9 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.maxUserWeightKg') }}</span>
-        <input v-model.number="form.max_user_weight_kg" type="number" min="0" class="pf__input" />
+        <!-- Vrij tekstveld: mag een bereik of voorwaarde bevatten
+             ('130-150', '100 (bij EN 12841/B, 10.5-13mm touw)'). -->
+        <input v-model="form.max_user_weight_kg" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.intervalOverride') }}</span>

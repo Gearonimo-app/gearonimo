@@ -13,7 +13,10 @@ export interface ProductFormModel {
   max_age_mfr_years: number | null
   breaking_strength: string
   working_load_limit: string
-  max_user_weight_kg: number | null
+  // Tekst, niet number: een maximaal gebruikersgewicht is niet altijd één
+  // geheel getal ('130-150', '100 (bij EN 12841/B, 10.5-13mm touw)', 190,5 kg
+  // = 420 lbs). Zie migratie 20260727_products_max_user_weight_text.sql.
+  max_user_weight_kg: string
   rope_diameter_min_mm: number | null
   rope_diameter_max_mm: number | null
   serial_number_location: string
@@ -30,7 +33,7 @@ export function emptyProductForm(): ProductFormModel {
     brand: '', name: '', product_type: '', category: '', material: '', standard: '',
     manufacturer_code: '',
     max_age_use_years: null, max_age_mfr_years: null,
-    breaking_strength: '', working_load_limit: '', max_user_weight_kg: null,
+    breaking_strength: '', working_load_limit: '', max_user_weight_kg: '',
     rope_diameter_min_mm: null, rope_diameter_max_mm: null,
     serial_number_location: '',
     interval_override_months: null,
@@ -40,7 +43,7 @@ export function emptyProductForm(): ProductFormModel {
 
 const STRING_FIELDS = [
   'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code',
-  'breaking_strength', 'working_load_limit', 'serial_number_location',
+  'breaking_strength', 'working_load_limit', 'max_user_weight_kg', 'serial_number_location',
   'manual_url', 'product_page_url', 'recall_url', 'inspection_notice_url', 'notes',
 ] as const satisfies readonly (keyof ProductFormModel)[]
 
