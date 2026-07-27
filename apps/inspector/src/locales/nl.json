@@ -167,6 +167,7 @@
       "linkHint": "Dit is nu een vrij artikel. Koppel het aan het bedoelde product, dan kloppen keurtermijn, recall en handleiding automatisch.",
       "linkPlaceholder": "Zoek product (merk, type, naam)…",
       "linkSuggest": "Bedoelt u:",
+      "linkOriginal": "Originele omschrijving",
       "linkNone": "Geen passend product in de catalogus gevonden.",
       "fields": {
         "manufactureYear": "Bouwjaar",
@@ -272,6 +273,7 @@
     "saveFinish": "OK – OPSLAAN",
     "certificateReady": "Certificaat gegenereerd en gearchiveerd",
     "certificateAwaitingSync": "Keuring afgerond, offline opgeslagen. Het certificaat wordt gegenereerd zodra er weer verbinding is.",
+    "certificateImported": "Geïmporteerd uit een oud certificaat. Er is geen nieuw certificaat aangemaakt — het originele document blijft de bron.",
     "downloadCertificate": "Certificaat downloaden",
     "backToCustomer": "Terug naar klant",
     "table": {

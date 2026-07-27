@@ -29,26 +29,42 @@
       <section v-if="isFreeArticle && isOnline && !article.retired" class="ad__link">
         <h2 class="ad__link-title">{{ $t('articles.detail.linkTitle') }}</h2>
         <p class="ad__link-hint">{{ $t('articles.detail.linkHint') }}</p>
-        <input
-          v-model="productQuery"
-          class="ad__input"
-          :placeholder="$t('articles.detail.linkPlaceholder')"
-        />
-        <p v-if="productQuery.trim()" class="ad__link-suggest-label">{{ $t('articles.detail.linkSuggest') }}</p>
-        <div v-if="productSuggestions.length" class="ad__suggest">
-          <button
-            v-for="p in productSuggestions"
-            :key="p.id"
-            type="button"
-            class="ad__suggest-item"
-            :disabled="linking"
-            @click="linkProduct(p)"
-          >
-            <span class="ad__suggest-name">{{ productLabel(p) }}</span>
-            <span v-if="p.category" class="ad__suggest-cat">{{ p.category }}</span>
-          </button>
+        <!-- De originele (vrije) schrijfwijze blijft als referentie in beeld, ook
+             terwijl de keurmeester in het zoekveld typt om het juiste product te
+             vinden (wens Jos 2026-07-27). -->
+        <p class="ad__link-original">
+          <span class="ad__link-original-label">{{ $t('articles.detail.linkOriginal') }}</span>
+          <span class="ad__link-original-value">{{ brandLabel || '—' }}</span>
+        </p>
+        <label class="ad__link-suggest-label">{{ $t('articles.detail.linkSuggest') }}</label>
+        <!-- Zoek-dropdown zoals elders in de app (klant-/serienummer-picker):
+             typen filtert, de lijst klapt onder het veld uit. mousedown.prevent
+             zodat de keuze telt vóór blur de lijst sluit. -->
+        <div class="ad__combo">
+          <input
+            v-model="productQuery"
+            class="ad__input"
+            :placeholder="$t('articles.detail.linkPlaceholder')"
+            @focus="productListOpen = true"
+            @blur="closeProductListSoon"
+          />
+          <div v-if="productListOpen && productSuggestions.length" class="ad__combolist">
+            <button
+              v-for="p in productSuggestions"
+              :key="p.id"
+              type="button"
+              class="ad__comboitem"
+              :disabled="linking"
+              @mousedown.prevent="linkProduct(p)"
+            >
+              <span class="ad__suggest-name">{{ productLabel(p) }}</span>
+              <span v-if="p.category" class="ad__suggest-cat">{{ p.category }}</span>
+            </button>
+          </div>
         </div>
-        <p v-else-if="productQuery.trim()" class="ad__link-none">{{ $t('articles.detail.linkNone') }}</p>
+        <p v-if="productListOpen && productQuery.trim() && !productSuggestions.length" class="ad__link-none">
+          {{ $t('articles.detail.linkNone') }}
+        </p>
       </section>
 
       <button v-if="!article.retired && isOnline" class="ad__retire" @click="openRetire">
@@ -189,8 +205,15 @@ const articleLabel = computed(() => brandLabel.value || t('articles.untitled'))
 interface CatalogProduct { id: string; brand: string | null; name: string | null; category: string | null; product_type: string | null }
 const products = ref<CatalogProduct[]>([])
 const productQuery = ref('')
+const productListOpen = ref(false)
 const linking = ref(false)
 const isFreeArticle = computed(() => !!article.value && !article.value.product_id)
+
+function closeProductListSoon() {
+  // Korte vertraging zodat een klik op een item nog telt (mousedown vóór blur),
+  // net als de klant-picker in de importwizard.
+  window.setTimeout(() => { productListOpen.value = false }, 150)
+}
 
 function productLabel(p: CatalogProduct): string {
   return [p.brand, p.name].filter(Boolean).join(' ')
@@ -222,6 +245,7 @@ async function linkProduct(p: CatalogProduct) {
   if (err) { error.value = err.message; return }
   article.value = data
   productQuery.value = ''
+  productListOpen.value = false
 }
 
 function label(key: string) {
@@ -442,15 +466,29 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .ad__link-title { font-size: 1rem; margin: 0 0 0.25rem; }
 .ad__link-hint { color: #6b7280; font-size: 0.85rem; margin: 0 0 0.75rem; }
-.ad__link-suggest-label { font-size: 0.8rem; color: #6b7280; margin: 0.75rem 0 0.35rem; }
-.ad__suggest { display: flex; flex-direction: column; gap: 0.4rem; }
-.ad__suggest-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-  width: 100%; text-align: left; padding: 0.7rem 0.85rem; border-radius: 8px;
-  border: 1px solid #d1d5db; background: #f9fafb; cursor: pointer; font: inherit;
+/* Originele schrijfwijze als vaste referentie boven het zoekveld */
+.ad__link-original {
+  display: flex; flex-direction: column; gap: 0.15rem; margin: 0 0 0.75rem;
+  background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 0.6rem 0.75rem;
 }
-.ad__suggest-item:hover { background: #ecfdf5; border-color: #059669; }
-.ad__suggest-item:disabled { opacity: 0.6; cursor: default; }
+.ad__link-original-label { font-size: 0.75rem; color: #6b7280; }
+.ad__link-original-value { font-weight: 600; word-break: break-word; }
+.ad__link-suggest-label { display: block; font-size: 0.8rem; color: #6b7280; margin: 0 0 0.35rem; }
+/* Zoek-dropdown */
+.ad__combo { position: relative; }
+.ad__combolist {
+  position: absolute; z-index: 5; left: 0; right: 0; top: 100%;
+  background: #fff; border: 1px solid #d1d5db; border-radius: 0 0 8px 8px;
+  max-height: 260px; overflow-y: auto; box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.ad__comboitem {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  width: 100%; text-align: left; padding: 0.7rem 0.85rem;
+  border: none; border-bottom: 1px solid #f0f0f0; background: none; cursor: pointer; font: inherit;
+}
+.ad__comboitem:last-child { border-bottom: none; }
+.ad__comboitem:hover { background: #ecfdf5; }
+.ad__comboitem:disabled { opacity: 0.6; cursor: default; }
 .ad__suggest-name { font-weight: 600; }
 .ad__suggest-cat { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
 .ad__link-none { color: #6b7280; font-size: 0.85rem; margin: 0.5rem 0 0; }

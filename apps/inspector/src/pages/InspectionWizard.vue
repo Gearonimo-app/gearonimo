@@ -10,6 +10,11 @@
     <template v-else-if="finished">
       <div class="iw__body iw__cert-done">
         <p v-if="awaitingSync" class="iw__cert-pending">⏳ {{ $t('inspections.certificateAwaitingSync') }}</p>
+        <!-- Geïmporteerde keuring: er is bewust nooit een certificaat-PDF voor
+             gegenereerd (het originele document is de bron). Zonder deze tak
+             claimde het scherm ten onrechte "Certificaat gegenereerd en
+             gearchiveerd" terwijl er geen certificaat bestaat. -->
+        <p v-else-if="isImported" class="iw__cert-imported">📄 {{ $t('inspections.certificateImported') }}</p>
         <p v-else class="iw__cert-ok">✅ {{ $t('inspections.certificateReady') }}</p>
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
@@ -554,6 +559,8 @@ interface InspectionRecord {
   id: string
   customer_id: string
   company_id: string
+  // 'import' = uit een oud certificaat geïmporteerd (geen eigen certificaat-PDF).
+  source: string | null
   customer: { name: string } | null
   company: {
     country_code: string | null
@@ -642,6 +649,10 @@ const finished = ref(false)
 const certificateUrl = ref('')
 // Offline afgerond, certificaat volgt pas na synchronisatie (zie finish()).
 const awaitingSync = ref(false)
+// Geïmporteerde keuring (uit een oud certificaat): heeft géén eigen
+// certificaat-PDF, dus het afrondscherm mag niet claimen dat er een certificaat
+// is aangemaakt.
+const isImported = computed(() => inspection.value?.source === 'import')
 const addError = ref('')
 // Fout bij het opslaan van een keurresultaat (saveRow, online). Los van
 // addError: wordt leeggemaakt zodra een volgende save slaagt.
@@ -1538,6 +1549,7 @@ async function loadOffline() {
       customer_id: string
       company_id: string
       status: string
+      source: string | null
     }>(key, id)
     if (!insp) {
       error.value = t('offline.notCachedInspection')
@@ -1557,6 +1569,7 @@ async function loadOffline() {
       id: insp.id,
       customer_id: insp.customer_id,
       company_id: insp.company_id,
+      source: insp.source ?? null,
       customer: customer ? { name: customer.name } : null,
       company: company
         ? {
@@ -2252,6 +2265,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__cert-done { display: flex; flex-direction: column; gap: 0.75rem; margin-top: 1rem; }
 .iw__cert-ok { font-weight: 600; color: #16a34a; margin: 0; }
 .iw__cert-pending { font-weight: 600; color: #92400e; background: #fffbeb; border-radius: 8px; padding: 0.75rem; margin: 0; }
+.iw__cert-imported { font-weight: 600; color: #1e3a5f; background: #eff6ff; border-radius: 8px; padding: 0.75rem; margin: 0; }
 .iw__cert-link { text-align: center; text-decoration: none; display: block; }
 
 /* ── Telefoon & tablet: keurtabel als kaartjes ────────────────────────────

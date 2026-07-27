@@ -167,6 +167,7 @@
       "linkHint": "This is a free article. Link it to the intended product so the inspection interval, recall and manual are filled in automatically.",
       "linkPlaceholder": "Search product (brand, type, name)…",
       "linkSuggest": "Did you mean:",
+      "linkOriginal": "Original description",
       "linkNone": "No matching product found in the catalogue.",
       "fields": {
         "manufactureYear": "Manufacture year",
@@ -272,6 +273,7 @@
     "saveFinish": "OK – SAVE",
     "certificateReady": "Certificate generated and archived",
     "certificateAwaitingSync": "Inspection completed, saved offline. The certificate will be generated once you're back online.",
+    "certificateImported": "Imported from an old certificate. No new certificate was created — the original document remains the source.",
     "downloadCertificate": "Download certificate",
     "backToCustomer": "Back to customer",
     "table": {

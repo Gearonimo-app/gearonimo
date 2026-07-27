@@ -5,6 +5,29 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-27)
+
+> **Sessie 2026-07-27 — geïmporteerde keuring + "bedoelt u"-dropdown (wensen Jos):**
+> - **Geen valse certificaat-melding meer.** Een geïmporteerde keuring
+>   (`inspections.source = 'import'`) heeft bewust géén certificaat-PDF (het
+>   originele document is de bron). Bij het openen van zo'n afgeronde keuring
+>   toonde de keuring-wizard tóch "✅ Certificaat gegenereerd en gearchiveerd".
+>   Nu is er een aparte tak (`isImported`): "📄 Geïmporteerd uit een oud
+>   certificaat. Er is geen nieuw certificaat aangemaakt — het originele
+>   document blijft de bron." (`InspectionWizard.vue`, i18n `certificateImported`).
+>   Sluit aan op de klantpagina die terecht "Certificaten (0)" toont.
+> - **"Bedoelt u"-koppeling is nu een zoek-dropdown** (artikelpagina, vrij
+>   artikel → catalogusproduct). De originele vrije omschrijving blijft als
+>   vaste referentie in beeld ("Originele omschrijving"), zodat die leesbaar
+>   blijft terwijl de keurmeester in het zoekveld het juiste product opzoekt.
+>   De suggesties klappen onder het veld uit (mousedown.prevent + close-on-blur),
+>   zelfde patroon als de klant-picker in de importwizard. (`ArticleDetail.vue`,
+>   i18n `linkOriginal`.)
+>   - *Shortcut/nette werk:* de dropdown is inline gebouwd volgens het bestaande
+>     picker-patroon i.p.v. een gedeeld combobox-component. Een echt gedeelde
+>     `GCombobox` zou de klant-picker (importwizard), SN-/merk-dropdowns
+>     (keuring-wizard) én deze koppeling kunnen bundelen — losse vervolgstap.
+
 ## Voortgang (bijgewerkt 2026-07-22, deel 3)
 
 > **Sessie 2026-07-22 (deel 3) — import ongedaan maken:** In stap 1 van de
