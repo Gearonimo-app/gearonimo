@@ -51,10 +51,16 @@ const STRING_FIELDS = [
 // belooft ProductFormModel altijd een string. Data van buitenaf (bewerken,
 // kopiëren, catalog_suggestion-JSON) moet hierdoorheen voordat 'm in het
 // formulier komt, anders crasht het opslaan op `null.trim()`.
+//
+// Niet-strings worden ook omgezet, niet alleen null: max_user_weight_kg is
+// per 2026-07-27 een tekstveld, maar zolang de bijbehorende migratie nog niet
+// gedraaid is levert de database er een getal voor terug. Zonder deze omzetting
+// crasht het opslaan dan op `(100).trim is not a function`. Zo maakt de
+// volgorde van deploy en migratie niet uit.
 export function toFormModel(row: Partial<Record<keyof ProductFormModel, unknown>>): ProductFormModel {
   const merged = { ...emptyProductForm(), ...row } as ProductFormModel
   for (const key of STRING_FIELDS) {
-    if (merged[key] == null) merged[key] = ''
+    merged[key] = merged[key] == null ? '' : String(merged[key])
   }
   return merged
 }
