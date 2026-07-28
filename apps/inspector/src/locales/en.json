@@ -621,11 +621,14 @@
         "empty": "No products found.",
         "export": "Export to Excel",
         "import": "Import from Excel",
-        "previewSummary": "{create} new, {update} updated, {skip} skipped (error). Review and confirm.",
+        "previewSummary": "{create} new, {update} updated, {duplicate} already present (skipped), {skip} failed. Review and confirm.",
         "importConfirm": "Confirm import",
         "errorMissing": "Row {line}: brand and name are required.",
         "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",
-        "readError": "Could not read the file."
+        "readError": "Could not read the file.",
+        "duplicateSkipped": "Row {line}: {product} is already in the catalogue.",
+        "andMore": "… and {count} more.",
+        "importProgress": "{done} of {total} added…"
       },
       "fields": {
         "brand": "Brand",

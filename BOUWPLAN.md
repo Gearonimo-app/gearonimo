@@ -5,6 +5,34 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28, deel 2)
+
+> **Sessie 2026-07-28 (deel 2) — catalogus stond dubbel, import kan het niet
+> meer:** Na de fix hierboven bleek de export ~5699 producten te bevatten in
+> plaats van ~2294, vrijwel alles in dubbele paren: de bronlijst-import is meer
+> dan één keer uitgevoerd en de import had géén dubbelcheck (rijen zonder `id`
+> werden altijd als nieuw ingevoegd).
+> - **Besluit Jos:** niet per stuk opruimen maar catalogus leeg + opnieuw
+>   importeren. "Er gaat geen echte data verloren, die staat elders ook."
+> - **Migratie `20260749_catalog_reset_and_unique.sql`** (idempotent, door Jos
+>   te draaien): (1) artikelen ontkoppelen — mét terugschrijven van merk/naam/
+>   categorie naar de vrije velden, want `articles.product_id` heeft een FK
+>   zonder ON DELETE én bij koppelen worden de vrije velden geleegd, dus anders
+>   blijft er een naamloos artikel over; (2) `delete from products`; (3) unieke
+>   index op `lower(btrim(brand)), lower(btrim(name))` — die wordt alleen
+>   aangemaakt als er écht geen dubbelen meer zijn, anders een `notice` i.p.v.
+>   een harde fout.
+> - **Import doet de dubbelcheck nu zelf** (`CatalogManager.vue`): tegen de
+>   bestaande catalogus én binnen het bestand, op merk + naam zonder hoofdletter-
+>   /spatieverschillen — dezelfde regel als de unieke index. Preview meldt
+>   "{n} stond er al (overgeslagen)". Opnieuw dezelfde lijst uploaden voegt dus
+>   niets meer toe.
+> - **Insert in blokken van 500** i.p.v. één reuzen-insert: één foute waarde
+>   sloopt niet langer de hele batch (vgl. de 190,5 kg-crash), en de import is
+>   herhaalbaar — wat al binnen is, wordt overgeslagen. Voortgang in beeld.
+> - i18n nl+en: `duplicateSkipped`, `andMore`, `importProgress`,
+>   `previewSummary` uitgebreid.
+
 ## Voortgang (bijgewerkt 2026-07-28)
 
 > **Sessie 2026-07-28 — "bedoelt u"-zoekveld vond de halve catalogus niet:**

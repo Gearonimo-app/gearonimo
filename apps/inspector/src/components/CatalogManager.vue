@@ -24,15 +24,32 @@
         {{ $t('settings.catalog.manager.previewSummary', {
           create: importPreview.toCreate.length,
           update: importPreview.toUpdate.length,
+          duplicate: importPreview.duplicates.length,
           skip: importPreview.errors.length,
         }) }}
       </p>
-      <ul v-if="importPreview.errors.length" class="cm__preview-errors">
-        <li v-for="(e, i) in importPreview.errors" :key="i">{{ e }}</li>
+      <!-- Bij een tweede upload van dezelfde lijst zijn dit er duizenden;
+           daarom alleen de eerste paar plus een telling. -->
+      <ul v-if="importPreview.duplicates.length" class="cm__preview-dups">
+        <li v-for="(d, i) in importPreview.duplicates.slice(0, 5)" :key="i">{{ d }}</li>
+        <li v-if="importPreview.duplicates.length > 5">
+          {{ $t('settings.catalog.manager.andMore', { count: importPreview.duplicates.length - 5 }) }}
+        </li>
       </ul>
+      <ul v-if="importPreview.errors.length" class="cm__preview-errors">
+        <li v-for="(e, i) in importPreview.errors.slice(0, 20)" :key="i">{{ e }}</li>
+        <li v-if="importPreview.errors.length > 20">
+          {{ $t('settings.catalog.manager.andMore', { count: importPreview.errors.length - 20 }) }}
+        </li>
+      </ul>
+      <p v-if="importProgress" class="cm__state">{{ importProgress }}</p>
       <div class="cm__actions">
         <button class="cm__btn cm__btn--cancel" @click="importPreview = null">{{ $t('common.cancel') }}</button>
-        <button class="cm__btn cm__btn--save" :disabled="importing" @click="commitImport">
+        <button
+          class="cm__btn cm__btn--save"
+          :disabled="importing || (!importPreview.toCreate.length && !importPreview.toUpdate.length)"
+          @click="commitImport"
+        >
           {{ importing ? $t('common.saving') : $t('settings.catalog.manager.importConfirm') }}
         </button>
       </div>
@@ -227,12 +244,24 @@ function exportExcel() {
 interface ImportPreview {
   toCreate: ReturnType<typeof toRow>[]
   toUpdate: { id: string; row: ReturnType<typeof toRow> }[]
+  /** Rijen die al in de catalogus staan (merk + naam) — bewust overgeslagen. */
+  duplicates: string[]
   errors: string[]
+}
+
+/**
+ * Sleutel waarop "hetzelfde product" wordt herkend: merk + naam, zonder
+ * hoofdletter- of spatieverschillen. Dezelfde regel als de unieke index in
+ * migratie 20260749, zodat de preview belooft wat de database afdwingt.
+ */
+function productKey(brand: string, name: string): string {
+  return `${brand.trim().toLowerCase()} ${name.trim().toLowerCase()}`
 }
 
 const importPreview = ref<ImportPreview | null>(null)
 const importing = ref(false)
 const importError = ref('')
+const importProgress = ref('')
 
 function onFilePicked(e: Event) {
   importError.value = ''
@@ -259,8 +288,14 @@ function onFilePicked(e: Event) {
 
 function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
   const byId = new Map(products.value.map((p) => [p.id, p]))
+  // Wat al in de catalogus staat, plus wat we binnen dit bestand al gezien
+  // hebben: allebei nodig, want een tweede upload van dezelfde lijst gaf
+  // eerder gewoon alles nóg een keer (Jos, 2026-07-28: ~5699 producten i.p.v.
+  // ~2294, alles in dubbele paren).
+  const known = new Set(products.value.map((p) => productKey(p.brand ?? '', p.name ?? '')))
   const toCreate: ReturnType<typeof toRow>[] = []
   const toUpdate: { id: string; row: ReturnType<typeof toRow> }[] = []
+  const duplicates: string[] = []
   const errors: string[] = []
 
   rows.forEach((raw, i) => {
@@ -301,11 +336,17 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
       }
       toUpdate.push({ id, row: toRow(f) })
     } else {
+      const key = productKey(f.brand, f.name)
+      if (known.has(key)) {
+        duplicates.push(t('settings.catalog.manager.duplicateSkipped', { line, product: `${f.brand} ${f.name}` }))
+        return
+      }
+      known.add(key)
       toCreate.push(toRow(f))
     }
   })
 
-  return { toCreate, toUpdate, errors }
+  return { toCreate, toUpdate, duplicates, errors }
 }
 
 function numOrNull(v: unknown): number | null {
@@ -314,15 +355,29 @@ function numOrNull(v: unknown): number | null {
   return Number.isFinite(n) ? n : null
 }
 
+/**
+ * In stukken wegschrijven i.p.v. één reuzen-insert. Eén foute waarde sloopte
+ * eerder de hele batch van 2294 rijen (de 190,5 kg-crash); nu blijft het al
+ * geschreven deel staan en is opnieuw importeren veilig — wat er al in zit
+ * wordt immers als duplicaat overgeslagen.
+ */
+const IMPORT_CHUNK = 500
+
 async function commitImport() {
   if (!importPreview.value) return
   importing.value = true
   importError.value = ''
+  importProgress.value = ''
   try {
     const { toCreate, toUpdate } = importPreview.value
-    if (toCreate.length) {
-      const { error: err } = await supabase.from('products').insert(toCreate)
+    for (let i = 0; i < toCreate.length; i += IMPORT_CHUNK) {
+      const chunk = toCreate.slice(i, i + IMPORT_CHUNK)
+      const { error: err } = await supabase.from('products').insert(chunk)
       if (err) throw err
+      importProgress.value = t('settings.catalog.manager.importProgress', {
+        done: Math.min(i + IMPORT_CHUNK, toCreate.length),
+        total: toCreate.length,
+      })
     }
     for (const { id, row } of toUpdate) {
       const { error: err } = await supabase.from('products').update(row).eq('id', id)
@@ -334,6 +389,7 @@ async function commitImport() {
     importError.value = errorMessage(e)
   } finally {
     importing.value = false
+    importProgress.value = ''
   }
 }
 
@@ -357,6 +413,8 @@ onMounted(load)
 }
 .cm__preview p { margin: 0 0 0.5rem; }
 .cm__preview-errors { margin: 0 0 0.5rem; padding-left: 1.1rem; color: #dc2626; font-size: 0.85rem; }
+/* Duplicaten zijn geen fout maar een gerustellende melding: neutraal grijs. */
+.cm__preview-dups { margin: 0 0 0.5rem; padding-left: 1.1rem; color: #6b7280; font-size: 0.85rem; }
 .cm__list { list-style: none; margin: 0; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
 .cm__item { padding: 0.85rem 1rem; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; }
 .cm__item:last-child { border-bottom: none; }

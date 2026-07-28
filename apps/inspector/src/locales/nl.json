@@ -621,11 +621,14 @@
         "empty": "Geen producten gevonden.",
         "export": "Exporteren naar Excel",
         "import": "Importeren uit Excel",
-        "previewSummary": "{create} nieuw, {update} bijgewerkt, {skip} overgeslagen (fout). Controleer en bevestig.",
+        "previewSummary": "{create} nieuw, {update} bijgewerkt, {duplicate} stond er al (overgeslagen), {skip} fout. Controleer en bevestig.",
         "importConfirm": "Importeren bevestigen",
         "errorMissing": "Rij {line}: merk en naam zijn verplicht.",
         "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
-        "readError": "Bestand kon niet gelezen worden."
+        "readError": "Bestand kon niet gelezen worden.",
+        "duplicateSkipped": "Rij {line}: {product} staat al in de catalogus.",
+        "andMore": "… en nog {count}.",
+        "importProgress": "{done} van {total} toegevoegd…"
       },
       "fields": {
         "brand": "Merk",
