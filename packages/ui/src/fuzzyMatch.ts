@@ -61,6 +61,39 @@ export function fuzzyScore(typed: string, candidate: string): number {
 }
 
 /**
+ * Zoekt in een lijst objecten op hun label, met een "steeds korter"-vangnet.
+ *
+ * Alle zoekwoorden moeten matchen (AND). Dat is precies wat je wilt terwijl
+ * iemand tikt, maar niet wanneer het veld is voorgevuld met de vrije
+ * schrijfwijze van een oud certificaat: "Distel Alu kort" levert dan niets op,
+ * want "kort" staat in geen enkele catalogusnaam. Daarom vallen we terug op
+ * steeds minder woorden (laatste woord eraf) tot er wél suggesties zijn —
+ * "Distel Alu kort" → "Distel Alu" → Distel Alu 3.1 / Distel Alu Plus.
+ * De keurmeester ziet zo altijd de dichtstbijzijnde kandidaten in plaats van
+ * een lege lijst die hij eerst moet leegvegen.
+ */
+export function fuzzySearch<T>(
+  items: T[],
+  typed: string,
+  labelOf: (item: T) => string,
+  limit = 8,
+): T[] {
+  let tokens = typed.trim().split(/\s+/).filter(Boolean);
+  while (tokens.length) {
+    const q = tokens.join(" ");
+    const hits = items
+      .map((item) => ({ item, s: fuzzyScore(q, labelOf(item)) }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s || labelOf(a.item).localeCompare(labelOf(b.item)))
+      .slice(0, limit)
+      .map((x) => x.item);
+    if (hits.length) return hits;
+    tokens = tokens.slice(0, -1);
+  }
+  return [];
+}
+
+/**
  * Filtert en sorteert een lijst op relevantie t.o.v. de getypte tekst.
  * Lege invoer geeft de (al gesorteerde) lijst ongewijzigd terug.
  */

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fuzzyFilter, fuzzyScore } from "./fuzzyMatch";
+import { fuzzyFilter, fuzzyScore, fuzzySearch } from "./fuzzyMatch";
 
 const catalogus = [
   "OK TriactLock",
@@ -40,5 +40,40 @@ describe("fuzzyFilter", () => {
   it("scoort 0 als er geen match is en >0 als die er wel is", () => {
     expect(fuzzyScore("xyz", "OK TriactLock")).toBe(0);
     expect(fuzzyScore("ok tl", "OK TriactLock")).toBeGreaterThan(0);
+  });
+});
+
+describe("fuzzySearch", () => {
+  // Zoals de "bedoelt u"-koppeling ze aanbiedt: objecten met een label.
+  const producten = [
+    { id: "1", label: "Distel Alu 3.1" },
+    { id: "2", label: "Distel Alu Plus" },
+    { id: "3", label: "Distel Carbon 3.1" },
+    { id: "4", label: "Petzl Grillon" },
+  ];
+  const zoek = (q: string, limit?: number) =>
+    fuzzySearch(producten, q, (p) => p.label, limit).map((p) => p.label);
+
+  it("vindt de producten bij een begin-treffer (Dis)", () => {
+    expect(zoek("Dis")).toEqual([
+      "Distel Alu 3.1",
+      "Distel Alu Plus",
+      "Distel Carbon 3.1",
+    ]);
+  });
+
+  it("valt terug op minder woorden als de hele zoekterm niets oplevert", () => {
+    // De vrije schrijfwijze van een oud certificaat: "kort" staat in geen
+    // enkele catalogusnaam, maar "Distel Alu" wel.
+    expect(zoek("Distel Alu kort")).toEqual(["Distel Alu 3.1", "Distel Alu Plus"]);
+  });
+
+  it("geeft niets terug als geen enkel woord matcht", () => {
+    expect(zoek("xyz qqq")).toEqual([]);
+  });
+
+  it("respecteert de limiet en lege invoer", () => {
+    expect(zoek("Dis", 2)).toHaveLength(2);
+    expect(zoek("   ")).toEqual([]);
   });
 });

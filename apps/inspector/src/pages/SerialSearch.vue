@@ -213,7 +213,7 @@ import SerialCheatSheet from '../components/SerialCheatSheet.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 
 interface Product {
@@ -516,8 +516,13 @@ onMounted(async () => {
   await nextTick()
   inputEl.value?.focus()
 
-  const { data: prods } = await supabase.from('products').select('brand, name, category')
-  catalog.value = prods ?? []
+  // Gepagineerd: zonder dit bevatte de merk-/naamlijst maar de eerste 1000
+  // producten (Supabase Max rows), waardoor de suggesties gaten hadden.
+  try {
+    catalog.value = await fetchAllRows<{ brand: string | null; name: string | null; category: string | null }>((from, to) =>
+      supabase.from('products').select('brand, name, category').order('brand').order('name').range(from, to),
+    )
+  } catch { /* suggesties blijven leeg; zoeken zelf werkt gewoon */ }
 })
 </script>
 

@@ -62,7 +62,10 @@
             </button>
           </div>
         </div>
-        <p v-if="productListOpen && productQuery.trim() && !productSuggestions.length" class="ad__link-none">
+        <!-- Een mislukte catalogus-aanroep zag er tot nu toe uit als "niets
+             gevonden"; die twee zijn nu uit elkaar te houden. -->
+        <p v-if="productsError" class="ad__error">{{ productsError }}</p>
+        <p v-else-if="productListOpen && productQuery.trim() && !productSuggestions.length" class="ad__link-none">
           {{ $t('articles.detail.linkNone') }}
         </p>
       </section>
@@ -123,7 +126,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
-import { GIcon, fuzzyScore } from '@gearonimo/ui'
+import { GIcon, fuzzySearch } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -135,6 +138,7 @@ import {
   getProducts,
   getCustomer,
   errorMessage,
+  fetchAllRows,
 } from '@gearonimo/core'
 
 const route = useRoute()
@@ -206,6 +210,7 @@ interface CatalogProduct { id: string; brand: string | null; name: string | null
 const products = ref<CatalogProduct[]>([])
 const productQuery = ref('')
 const productListOpen = ref(false)
+const productsError = ref('')
 const linking = ref(false)
 const isFreeArticle = computed(() => !!article.value && !article.value.product_id)
 
@@ -220,14 +225,10 @@ function productLabel(p: CatalogProduct): string {
 }
 
 const productSuggestions = computed(() => {
-  const q = productQuery.value.trim()
-  if (!q) return [] as CatalogProduct[]
-  return products.value
-    .map((p) => ({ p, s: fuzzyScore(q, productLabel(p)) }))
-    .filter((x) => x.s > 0)
-    .sort((a, b) => b.s - a.s || productLabel(a.p).localeCompare(productLabel(b.p)))
-    .slice(0, 8)
-    .map((x) => x.p)
+  if (!productQuery.value.trim()) return [] as CatalogProduct[]
+  // fuzzySearch valt terug op steeds minder zoekwoorden, zodat de voorgevulde
+  // vrije schrijfwijze ("Distel Alu kort") niet in een lege lijst eindigt.
+  return fuzzySearch(products.value, productQuery.value, productLabel)
 })
 
 async function linkProduct(p: CatalogProduct) {
@@ -307,12 +308,27 @@ async function load() {
 
 // Catalogus (bedrijfsbreed via RLS) voor de "bedoelt u"-koppeling. Online-only:
 // offline is koppelen sowieso niet aan de orde (net als bewerken/afvoeren).
+//
+// Gepagineerd via fetchAllRows: de catalogus is inmiddels groter dan Supabase's
+// "Max rows" (1000). Zonder paginering kwam er stil een willekeurige 1000 terug
+// en vond dit veld "Distel …" helemaal niet, terwijl het catalogusoverzicht die
+// producten wél toonde (Jos, 2026-07-28).
 async function loadProducts() {
   if (!isOnline.value) return
-  const { data } = await supabase
-    .from('products')
-    .select('id, brand, name, category, product_type')
-  products.value = (data ?? []) as CatalogProduct[]
+  productsError.value = ''
+  try {
+    products.value = await fetchAllRows<CatalogProduct>((from, to) =>
+      supabase
+        .from('products')
+        .select('id, brand, name, category, product_type')
+        .order('brand')
+        .order('name')
+        .range(from, to),
+    )
+  } catch (e) {
+    // Niet stil slikken: zonder catalogus lijkt het veld "niets te vinden".
+    productsError.value = errorMessage(e)
+  }
 }
 
 function startEdit() {

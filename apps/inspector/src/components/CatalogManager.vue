@@ -75,7 +75,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows } from '@gearonimo/core'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
 
@@ -107,13 +107,17 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const { data, error: err } = await supabase
-      .from('products')
-      .select(COLUMNS.join(', '))
-      .order('brand')
-      .order('name')
-    if (err) throw err
-    products.value = (data ?? []) as unknown as Product[]
+    // Gepagineerd: de catalogus is groter dan Supabase's "Max rows" (1000).
+    // Zonder paginering ontbrak de staart van het alfabet in deze lijst én in
+    // "Exporteren naar Excel" — zonder enige melding (Jos, 2026-07-28).
+    products.value = await fetchAllRows<Product>((from, to) =>
+      supabase
+        .from('products')
+        .select(COLUMNS.join(', '))
+        .order('brand')
+        .order('name')
+        .range(from, to),
+    )
   } catch (e) {
     error.value = errorMessage(e)
   } finally {

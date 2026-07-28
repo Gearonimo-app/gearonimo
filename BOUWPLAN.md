@@ -5,6 +5,34 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28)
+
+> **Sessie 2026-07-28 — "bedoelt u"-zoekveld vond de halve catalogus niet:**
+> Melding Jos (desktop): typen van "Dis" bij *Bedoelt u* gaf "Geen passend
+> product in de catalogus gevonden", terwijl het catalogusoverzicht met
+> dezelfde zoekterm gewoon vier Distel-producten liet zien.
+> - **Oorzaak: Supabase kapt elk antwoord stil af op "Max rows" (1000).** Sinds
+>   de bronlijst-import telt de catalogus 2294 producten. De artikelpagina haalde
+>   ze zónder sortering of paginering op en kreeg dus een willekeurige 1000 rijen
+>   — zonder foutmelding. Het catalogusoverzicht sorteerde op merk, dus de D's
+>   zaten daar toevallig nog binnen de grens; vandaar het verschil.
+> - **Gedeelde `fetchAllRows` in `packages/core`** (`fetchAll.ts`): herhaalt een
+>   query met `.range()` tot de tabel op is, en gooit een fout dóór in plaats van
+>   hem te slikken. Nu gebruikt door de artikelpagina, `CatalogManager`,
+>   `CustomerArticles` en `SerialSearch` — alle vier zaten stil op 1000.
+>   **Dit repareerde ook "Exporteren naar Excel"**, dat een onvolledige catalogus
+>   wegschreef zonder dat te melden.
+> - **`fuzzySearch` in `packages/ui`**: de suggesties vallen nu terug op steeds
+>   minder zoekwoorden. Het veld is voorgevuld met de vrije schrijfwijze van het
+>   oude certificaat, en "Distel Alu kort" matchte niets omdat "kort" in geen
+>   enkele catalogusnaam staat → nu "Distel Alu" → Distel Alu 3.1 / Alu Plus.
+> - Een mislukte catalogus-aanroep toont voortaan de foutmelding onder het veld,
+>   in plaats van eruit te zien als "niets gevonden".
+> - Geen migratie nodig.
+> - *Nog open (niet aangeraakt):* de offline-download (`offline/download.ts`)
+>   haalt artikelen/producten ook zonder paginering op — pas een probleem bij een
+>   klant met >1000 artikelen.
+
 ## Voortgang (bijgewerkt 2026-07-27)
 
 > **Sessie 2026-07-27 — geïmporteerde keuring + "bedoelt u"-dropdown (wensen Jos):**

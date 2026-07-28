@@ -217,7 +217,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
@@ -574,10 +574,20 @@ onMounted(async () => {
   // blijven dan leeg (toevoegen is al online-only), maar de bestaande
   // artikellijst (load() hieronder) blijft wel gewoon werken uit de cache.
   if (isOnline.value) {
-    const { data: prods } = await supabase
-      .from('products')
-      .select('id, brand, name, category, manufacturer_code')
-    products.value = (prods ?? []) as Product[]
+    // Gepagineerd: de hele catalogus past niet meer in één antwoord (Max rows
+    // = 1000), en een half gevulde typeahead vindt producten stil niet.
+    // Faalt de catalogus, dan blijft de typeahead leeg maar moeten de
+    // artikellijst en sets hieronder gewoon laden.
+    try {
+      products.value = await fetchAllRows<Product>((from, to) =>
+        supabase
+          .from('products')
+          .select('id, brand, name, category, manufacturer_code')
+          .order('brand')
+          .order('name')
+          .range(from, to),
+      )
+    } catch { /* typeahead blijft leeg */ }
 
     const { data: members } = await supabase
       .from('customer_members')
