@@ -669,6 +669,28 @@
         "aerial_platform": "Hoogwerker",
         "machine": "Machine",
         "other": "Overig"
+      },
+      "placeholders": {
+        "brand": "bv. Petzl",
+        "name": "bv. OK TRIACT-LOCK",
+        "category": "bv. Harnesses, Connectors, Lanyards",
+        "material": "bv. Aluminium, Steel, Polyester",
+        "standard": "bv. EN 361, EN 1891 Type A",
+        "manufacturerCode": "bv. M33A SL of FS242-L/XL",
+        "maxAgeUseYears": "bv. 10 — of 999 bij onbeperkt",
+        "maxAgeMfrYears": "bv. 10 — of 999 bij onbeperkt",
+        "breakingStrength": "bv. 25 kN",
+        "workingLoadLimit": "bv. 10 kN",
+        "maxUserWeightKg": "bv. 150 of 130-150",
+        "intervalOverride": "leeg = wettelijke termijn",
+        "ropeDiameterMin": "bv. 10,5",
+        "ropeDiameterMax": "bv. 13",
+        "serialNumberLocation": "bv. label in de gordel, binnenkant helmschaal",
+        "manualUrl": "https://…",
+        "productPageUrl": "https://…",
+        "recallUrl": "https://…",
+        "inspectionNoticeUrl": "https://…",
+        "notes": "bv. alleen keuren met de originele karabiner"
       }
     },
     "listing": {

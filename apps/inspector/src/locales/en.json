@@ -669,6 +669,28 @@
         "aerial_platform": "Aerial platform",
         "machine": "Machine",
         "other": "Other"
+      },
+      "placeholders": {
+        "brand": "e.g. Petzl",
+        "name": "e.g. OK TRIACT-LOCK",
+        "category": "e.g. Harnesses, Connectors, Lanyards",
+        "material": "e.g. Aluminium, Steel, Polyester",
+        "standard": "e.g. EN 361, EN 1891 Type A",
+        "manufacturerCode": "e.g. M33A SL or FS242-L/XL",
+        "maxAgeUseYears": "e.g. 10 — or 999 for unlimited",
+        "maxAgeMfrYears": "e.g. 10 — or 999 for unlimited",
+        "breakingStrength": "e.g. 25 kN",
+        "workingLoadLimit": "e.g. 10 kN",
+        "maxUserWeightKg": "e.g. 150 or 130-150",
+        "intervalOverride": "empty = statutory interval",
+        "ropeDiameterMin": "e.g. 10.5",
+        "ropeDiameterMax": "e.g. 13",
+        "serialNumberLocation": "e.g. label inside the harness, inside helmet shell",
+        "manualUrl": "https://…",
+        "productPageUrl": "https://…",
+        "recallUrl": "https://…",
+        "inspectionNoticeUrl": "https://…",
+        "notes": "e.g. inspect only with the original carabiner"
       }
     },
     "listing": {

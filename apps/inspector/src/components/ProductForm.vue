@@ -7,11 +7,11 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.brand') }} *</span>
-        <input v-model="form.brand" class="pf__input" required />
+        <input v-model="form.brand" :placeholder="$t('settings.catalog.placeholders.brand')" class="pf__input" required />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.name') }} *</span>
-        <input v-model="form.name" class="pf__input" required />
+        <input v-model="form.name" :placeholder="$t('settings.catalog.placeholders.name')" class="pf__input" required />
       </label>
     </div>
     <div class="pf__row">
@@ -31,31 +31,31 @@
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.category') }}</span>
-        <input v-model="form.category" class="pf__input" />
+        <input v-model="form.category" :placeholder="$t('settings.catalog.placeholders.category')" class="pf__input" />
       </label>
     </div>
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.material') }}</span>
-        <input v-model="form.material" class="pf__input" />
+        <input v-model="form.material" :placeholder="$t('settings.catalog.placeholders.material')" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.standard') }}</span>
-        <input v-model="form.standard" class="pf__input" />
+        <input v-model="form.standard" :placeholder="$t('settings.catalog.placeholders.standard')" class="pf__input" />
       </label>
     </div>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.manufacturerCode') }}</span>
-      <input v-model="form.manufacturer_code" class="pf__input" />
+      <input v-model="form.manufacturer_code" :placeholder="$t('settings.catalog.placeholders.manufacturerCode')" class="pf__input" />
     </label>
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.maxAgeUseYears') }}</span>
-        <input v-model.number="form.max_age_use_years" type="number" min="0" class="pf__input" />
+        <input v-model.number="form.max_age_use_years" :placeholder="$t('settings.catalog.placeholders.maxAgeUseYears')" type="number" min="0" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.maxAgeMfrYears') }}</span>
-        <input v-model.number="form.max_age_mfr_years" type="number" min="0" class="pf__input" />
+        <input v-model.number="form.max_age_mfr_years" :placeholder="$t('settings.catalog.placeholders.maxAgeMfrYears')" type="number" min="0" class="pf__input" />
       </label>
     </div>
     <!-- 999 = onbeperkt (besluit Jos 2026-07-28): leeg betekent "nog opzoeken",
@@ -64,11 +64,11 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.breakingStrength') }}</span>
-        <input v-model="form.breaking_strength" class="pf__input" />
+        <input v-model="form.breaking_strength" :placeholder="$t('settings.catalog.placeholders.breakingStrength')" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.workingLoadLimit') }}</span>
-        <input v-model="form.working_load_limit" class="pf__input" />
+        <input v-model="form.working_load_limit" :placeholder="$t('settings.catalog.placeholders.workingLoadLimit')" class="pf__input" />
       </label>
     </div>
     <div class="pf__row">
@@ -76,11 +76,11 @@
         <span>{{ $t('settings.catalog.fields.maxUserWeightKg') }}</span>
         <!-- Vrij tekstveld: mag een bereik of voorwaarde bevatten
              ('130-150', '100 (bij EN 12841/B, 10.5-13mm touw)'). -->
-        <input v-model="form.max_user_weight_kg" class="pf__input" />
+        <input v-model="form.max_user_weight_kg" :placeholder="$t('settings.catalog.placeholders.maxUserWeightKg')" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.intervalOverride') }}</span>
-        <input v-model.number="form.interval_override_months" type="number" min="0" class="pf__input" />
+        <input v-model.number="form.interval_override_months" :placeholder="$t('settings.catalog.placeholders.intervalOverride')" type="number" min="0" class="pf__input" />
       </label>
     </div>
     <!-- Alleen relevant voor touwwerk (afdaalapparaten/grigri's e.d.); leeg
@@ -88,36 +88,36 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.ropeDiameterMin') }}</span>
-        <input v-model.number="form.rope_diameter_min_mm" type="number" min="0" step="0.1" class="pf__input" />
+        <input v-model.number="form.rope_diameter_min_mm" :placeholder="$t('settings.catalog.placeholders.ropeDiameterMin')" type="number" min="0" step="0.1" class="pf__input" />
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.ropeDiameterMax') }}</span>
-        <input v-model.number="form.rope_diameter_max_mm" type="number" min="0" step="0.1" class="pf__input" />
+        <input v-model.number="form.rope_diameter_max_mm" :placeholder="$t('settings.catalog.placeholders.ropeDiameterMax')" type="number" min="0" step="0.1" class="pf__input" />
       </label>
     </div>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.serialNumberLocation') }}</span>
-      <input v-model="form.serial_number_location" class="pf__input" />
+      <input v-model="form.serial_number_location" :placeholder="$t('settings.catalog.placeholders.serialNumberLocation')" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.manualUrl') }}</span>
-      <input v-model="form.manual_url" type="url" class="pf__input" />
+      <input v-model="form.manual_url" :placeholder="$t('settings.catalog.placeholders.manualUrl')" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.productPageUrl') }}</span>
-      <input v-model="form.product_page_url" type="url" class="pf__input" />
+      <input v-model="form.product_page_url" :placeholder="$t('settings.catalog.placeholders.productPageUrl')" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.recallUrl') }}</span>
-      <input v-model="form.recall_url" type="url" class="pf__input" />
+      <input v-model="form.recall_url" :placeholder="$t('settings.catalog.placeholders.recallUrl')" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.inspectionNoticeUrl') }}</span>
-      <input v-model="form.inspection_notice_url" type="url" class="pf__input" />
+      <input v-model="form.inspection_notice_url" :placeholder="$t('settings.catalog.placeholders.inspectionNoticeUrl')" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.notes') }}</span>
-      <textarea v-model="form.notes" class="pf__input" rows="2"></textarea>
+      <textarea v-model="form.notes" :placeholder="$t('settings.catalog.placeholders.notes')" class="pf__input" rows="2"></textarea>
     </label>
 
     <p v-if="error" class="pf__error">{{ error }}</p>
