@@ -17,12 +17,17 @@
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.productType') }}</span>
-        <input v-model="form.product_type" list="pf-product-types" class="pf__input" />
-        <!-- Suggesties, geen vaste lijst: brondata gebruikt niet altijd één
-             van deze termen, dus vrije invoer (en leeg) blijft mogelijk. -->
-        <datalist id="pf-product-types">
-          <option v-for="key in productTypeKeys" :key="key" :value="$t(`settings.catalog.productTypes.${key}`)" />
-        </datalist>
+        <!-- Keuzelijst, géén vrij tekstveld (Jos 2026-07-28): de kolom heeft in
+             de database een check-constraint op vaste codes. Het oude veld bood
+             de vertáálde labels als suggestie ("PBM"), en die sloeg de database
+             af met "violates check constraint products_product_type_check".
+             Nu is de waarde altijd de code, en zie je de vertaling. -->
+        <select v-model="form.product_type" class="pf__input">
+          <option value="">—</option>
+          <option v-for="key in productTypeKeys" :key="key" :value="key">
+            {{ $t(`settings.catalog.productTypes.${key}`) }}
+          </option>
+        </select>
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.category') }}</span>
