@@ -70,6 +70,21 @@
         </p>
       </section>
 
+      <!-- Doorklikken binnen de artikellijst van deze klant: na een import zijn
+           dit er honderden achter elkaar (wens Jos 2026-07-28). -->
+      <nav v-if="siblings.length > 1" class="ad__walk">
+        <button class="ad__walk-btn" :disabled="!prevId" @click="prevId && goTo(prevId)">
+          ← {{ $t('articles.detail.prev') }}
+        </button>
+        <span class="ad__walk-pos">{{ currentIndex + 1 }} / {{ siblings.length }}</span>
+        <button class="ad__walk-btn" :disabled="!nextId" @click="nextId && goTo(nextId)">
+          {{ $t('articles.detail.next') }} →
+        </button>
+      </nav>
+      <button v-if="nextFreeId" class="ad__walk-free" @click="goTo(nextFreeId)">
+        {{ $t('articles.detail.nextFree', { count: freeCount }) }} →
+      </button>
+
       <button v-if="!article.retired && isOnline" class="ad__retire" @click="openRetire">
         {{ $t('articles.detail.retire') }}
       </button>
@@ -144,7 +159,10 @@ import {
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-const id = route.params.id as string
+// Ref i.p.v. constante: de knoppen 'vorige/volgende artikel' navigeren naar
+// dezelfde route met een ander id, en dan hergebruikt Vue dit component —
+// zonder ref bleef de pagina op het oude artikel staan.
+const id = ref(route.params.id as string)
 const { isOnline } = useOnline()
 
 interface FieldDef { col: string; label: string; textarea?: boolean; type?: string }
@@ -231,6 +249,59 @@ const productSuggestions = computed(() => {
   return fuzzySearch(products.value, productQuery.value, productLabel)
 })
 
+// --- Doorklikken naar het volgende artikel van dezelfde klant ---------------
+// Na de import staan er honderden vrije artikelen klaar om gekoppeld te worden
+// (Weijtmans: 278). Terug naar het klantdetail en dáár de volgende opzoeken is
+// dan de traagste stap; deze knoppen houden je in de artikelpagina (wens Jos,
+// 2026-07-28). Zelfde volgorde als de artikellijst op het klantdetail
+// (created_at desc), zodat "volgende" is wat je in die lijst verwacht.
+interface Sibling { id: string; product_id: string | null }
+const siblings = ref<Sibling[]>([])
+
+const currentIndex = computed(() => siblings.value.findIndex((s) => s.id === id.value))
+const prevId = computed(() => (currentIndex.value > 0 ? siblings.value[currentIndex.value - 1].id : null))
+const nextId = computed(() => {
+  const i = currentIndex.value
+  return i >= 0 && i < siblings.value.length - 1 ? siblings.value[i + 1].id : null
+})
+/**
+ * Het eerstvolgende artikel dat nog niet aan de catalogus hangt. Zoekt vooruit
+ * en loopt daarna door vanaf het begin, zodat je met één knop de hele lijst
+ * rond kunt tot alles gekoppeld is.
+ */
+const nextFreeId = computed(() => {
+  const n = siblings.value.length
+  if (currentIndex.value < 0 || n === 0) return null
+  for (let k = 1; k < n; k++) {
+    const s = siblings.value[(currentIndex.value + k) % n]
+    if (!s.product_id) return s.id
+  }
+  return null
+})
+const freeCount = computed(() => siblings.value.filter((s) => !s.product_id).length)
+
+async function loadSiblings() {
+  const customerId = article.value?.customer_id
+  if (!customerId || !isOnline.value) { siblings.value = []; return }
+  try {
+    siblings.value = await fetchAllRows<Sibling>((from, to) =>
+      supabase
+        .from('articles')
+        .select('id, product_id')
+        .eq('customer_id', customerId)
+        .eq('retired', false)
+        .order('created_at', { ascending: false })
+        .range(from, to),
+    )
+  } catch {
+    siblings.value = [] // navigatie valt weg, de pagina zelf blijft werken
+  }
+}
+
+function goTo(articleId: string) {
+  router.push(`/articles/${articleId}`)
+}
+
 async function linkProduct(p: CatalogProduct) {
   linking.value = true
   const { data, error: err } = await supabase
@@ -239,7 +310,7 @@ async function linkProduct(p: CatalogProduct) {
     // van merk/omschrijving/categorie (voorkomt dat oude vrije tekst blijft
     // "spoken" naast de catalogusnaam).
     .update({ product_id: p.id, free_brand: null, free_description: null, free_category: null })
-    .eq('id', id)
+    .eq('id', id.value)
     .select('*, customer:customers(name), product:products(id, brand, name)')
     .single()
   linking.value = false
@@ -247,6 +318,10 @@ async function linkProduct(p: CatalogProduct) {
   article.value = data
   productQuery.value = ''
   productListOpen.value = false
+  // Dit artikel telt niet meer als "vrij", zodat de knop meteen naar het
+  // volgende ongekoppelde artikel wijst zonder de hele lijst opnieuw te halen.
+  const s = siblings.value.find((x) => x.id === id.value)
+  if (s) s.product_id = p.id
 }
 
 function label(key: string) {
@@ -269,7 +344,7 @@ async function load() {
   if (!isOnline.value) {
     try {
       const key = useOfflineSession().getKey()
-      const cached = await getArticle<ArticleRecord & { product_id: string | null; customer_id: string | null }>(key, id)
+      const cached = await getArticle<ArticleRecord & { product_id: string | null; customer_id: string | null }>(key, id.value)
       if (cached) {
         const product = cached.product_id
           ? ((await getProducts<{ id: string; brand: string | null; name: string | null }>(key, [cached.product_id]))[0] ?? null)
@@ -293,7 +368,7 @@ async function load() {
   const { data, error: err } = await supabase
     .from('articles')
     .select('*, customer:customers(name), product:products(id, brand, name)')
-    .eq('id', id)
+    .eq('id', id.value)
     .maybeSingle()
   if (err) error.value = err.message
   else {
@@ -355,7 +430,7 @@ async function save() {
   const { data, error: err } = await supabase
     .from('articles')
     .update(patch)
-    .eq('id', id)
+    .eq('id', id.value)
     .select('*, product:products(id, brand, name)')
     .single()
   saving.value = false
@@ -371,7 +446,7 @@ async function openRetire() {
   const { data } = await supabase
     .from('inspection_items')
     .select('id, inspections!inner(status)')
-    .eq('article_id', id)
+    .eq('article_id', id.value)
     .eq('inspections.status', 'completed')
     .limit(1)
   everCertified.value = !!(data && data.length)
@@ -380,7 +455,7 @@ async function openRetire() {
 
 async function remove() {
   retiring.value = true
-  const { error: err } = await supabase.from('articles').delete().eq('id', id)
+  const { error: err } = await supabase.from('articles').delete().eq('id', id.value)
   retiring.value = false
   showRetire.value = false
   if (err) { error.value = err.message; return }
@@ -392,7 +467,7 @@ async function retire() {
   const { data, error: err } = await supabase
     .from('articles')
     .update({ retired: true, retired_at: new Date().toISOString() })
-    .eq('id', id)
+    .eq('id', id.value)
     .select('*, product:products(id, brand, name)')
     .single()
   retiring.value = false
@@ -409,7 +484,7 @@ async function reinstate() {
   const { data, error: err } = await supabase
     .from('articles')
     .update({ retired: false, retired_at: null, retired_reason: null })
-    .eq('id', id)
+    .eq('id', id.value)
     .select('*, product:products(id, brand, name)')
     .single()
   reinstating.value = false
@@ -434,7 +509,21 @@ function back() {
   }
 }
 
-onMounted(() => { load(); loadProducts() })
+onMounted(async () => { await load(); loadSiblings(); loadProducts() })
+
+// Doorklikken naar een ander artikel houdt dezelfde route, dus Vue hergebruikt
+// dit component: zelf herladen. De buurlijst blijft staan (zelfde klant) —
+// alleen bij een andere klant wordt hij opnieuw opgehaald.
+watch(() => route.params.id, async (newId) => {
+  if (typeof newId !== 'string' || newId === id.value) return
+  id.value = newId
+  editMode.value = false
+  productQuery.value = ''
+  productListOpen.value = false
+  window.scrollTo({ top: 0 })
+  await load()
+  if (!siblings.value.some((s) => s.id === newId)) await loadSiblings()
+})
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {
@@ -508,6 +597,20 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ad__suggest-name { font-weight: 600; }
 .ad__suggest-cat { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
 .ad__link-none { color: #6b7280; font-size: 0.85rem; margin: 0.5rem 0 0; }
+
+/* Doorklikken door de artikellijst van de klant. */
+.ad__walk { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; }
+.ad__walk-btn {
+  flex: 1; padding: 0.7rem 0.5rem; border-radius: 10px; border: 1px solid #d1d5db;
+  background: #fff; color: #374151; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.ad__walk-btn:disabled { opacity: 0.45; cursor: default; }
+.ad__walk-pos { font-size: 0.8rem; color: #6b7280; white-space: nowrap; }
+.ad__walk-free {
+  margin-top: 0.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;
+  border: none; background: #16a34a; color: #fff;
+  font-size: 1rem; font-weight: 600; cursor: pointer;
+}
 
 .ad__retire {
   margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;

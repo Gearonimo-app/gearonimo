@@ -175,7 +175,10 @@
         "purchaseDate": "Purchase date",
         "severeUse": "Severe use",
         "intervalOverride": "Inspection interval (months)"
-      }
+      },
+      "prev": "Previous",
+      "next": "Next",
+      "nextFree": "Next unlinked article ({count} to go)"
     }
   },
   "sets": {

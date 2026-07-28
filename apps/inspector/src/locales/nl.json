@@ -175,7 +175,10 @@
         "purchaseDate": "Aankoopdatum",
         "severeUse": "Zwaar gebruik",
         "intervalOverride": "Keurtermijn (maanden)"
-      }
+      },
+      "prev": "Vorige",
+      "next": "Volgende",
+      "nextFree": "Volgend vrij artikel ({count} te koppelen)"
     }
   },
   "sets": {

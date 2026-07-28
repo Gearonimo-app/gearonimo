@@ -5,6 +5,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28, deel 4)
+
+> **Sessie 2026-07-28 (deel 4) — doorklikken door de artikellijst
+> (wens Jos):** Na de import staan er honderden vrije artikelen klaar om
+> gekoppeld te worden (Weijtmans: 278). Terug naar het klantdetail en daar de
+> volgende opzoeken was de traagste stap. Op de artikelpagina staan nu:
+> - **← Vorige / Volgende →** met positie ("4 / 278"), in dezelfde volgorde als
+>   de artikellijst op het klantdetail (`created_at desc`, niet-afgevoerd).
+> - **"Volgend vrij artikel (n te koppelen)"** — slaat alles over dat al aan de
+>   catalogus hangt en loopt door tot het einde en dan vanaf het begin, zodat je
+>   met één knop de hele lijst rond kunt.
+> - Na het koppelen wordt het huidige artikel meteen als "niet meer vrij"
+>   geteld, zonder de buurlijst opnieuw op te halen.
+> - *Let op bij toekomstig werk:* `id` in `ArticleDetail.vue` is nu een `ref`
+>   met een `watch` op `route.params.id`. Doorklikken houdt dezelfde route, dus
+>   Vue hergebruikt het component — zonder die watch bleef de pagina op het
+>   oude artikel staan.
+
 ## Voortgang (bijgewerkt 2026-07-28, deel 3)
 
 > **Sessie 2026-07-28 (deel 3) — bronlijst nagelopen + "onbeperkte levensduur"
