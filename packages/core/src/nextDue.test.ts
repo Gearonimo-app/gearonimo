@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { calcNextDue } from "./nextDue";
+import { calcNextDue, isUnlimitedAge, UNLIMITED_AGE_YEARS } from "./nextDue";
 
 describe("calcNextDue", () => {
   it("uses regime interval when no overrides", () => {
@@ -51,5 +51,25 @@ describe("calcNextDue", () => {
       article_interval_override_months: 6,
     });
     expect([b.getFullYear(), b.getMonth(), b.getDate()]).toEqual([2026, 6, 31]); // 31 jul 2026
+  });
+
+  it("999 jaar = onbeperkt: geen afkeurdatum op leeftijd", () => {
+    // Bronlijst zet UNL bij metaalwerk; dat wordt 999 zodat het zichtbaar
+    // ingevuld is. Dat mag de keurtermijn niet aftoppen (en al helemaal geen
+    // afkeurdatum in het jaar 3025 opleveren).
+    const d = calcNextDue({
+      inspection_date: new Date(2026, 0, 15),
+      country_code: "NL",
+      product_type: "ppe",
+      manufacture_year: 2020,
+      max_age_mfr_years: UNLIMITED_AGE_YEARS,
+      first_use_date: new Date(2020, 0, 1),
+      max_age_use_years: UNLIMITED_AGE_YEARS,
+    });
+    // Gewone jaarlijkse termijn, niet afgetopt en niet opgerekt.
+    expect([d.getFullYear(), d.getMonth()]).toEqual([2027, 0]);
+    expect(isUnlimitedAge(999)).toBe(true);
+    expect(isUnlimitedAge(10)).toBe(false);
+    expect(isUnlimitedAge(null)).toBe(false);
   });
 });

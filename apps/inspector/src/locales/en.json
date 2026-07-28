@@ -651,7 +651,8 @@
         "productPageUrl": "Manufacturer product page (link)",
         "recallUrl": "Recall notice (link)",
         "inspectionNoticeUrl": "Safety bulletin (link)",
-        "notes": "Notes"
+        "notes": "Notes",
+        "maxAgeHint": "999 = unlimited service life. Empty = not looked up yet."
       },
       "productTypes": {
         "ppe": "PPE",

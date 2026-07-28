@@ -53,6 +53,9 @@
         <input v-model.number="form.max_age_mfr_years" type="number" min="0" class="pf__input" />
       </label>
     </div>
+    <!-- 999 = onbeperkt (besluit Jos 2026-07-28): leeg betekent "nog opzoeken",
+         999 betekent "bewust geen leeftijdsgrens". -->
+    <p class="pf__hint">{{ $t('settings.catalog.fields.maxAgeHint') }}</p>
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.breakingStrength') }}</span>
@@ -149,6 +152,7 @@ function submit() {
 .pf__row { display: flex; gap: 0.6rem; }
 .pf__row .pf__field { flex: 1; min-width: 0; }
 .pf__field { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
+.pf__hint { margin: -0.25rem 0 0; font-size: 0.8rem; color: #6b7280; }
 .pf__input {
   padding: 0.6rem 0.75rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit;

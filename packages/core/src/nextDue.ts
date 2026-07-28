@@ -29,6 +29,25 @@ export interface NextDueInput {
   max_age_use_years?: number | null;
 }
 
+/**
+ * Waarde waarmee "onbeperkte levensduur" in de catalogus wordt vastgelegd.
+ *
+ * Besluit Jos 2026-07-28: de bronlijst zet `UNL` bij metaalwerk zonder
+ * leeftijdsgrens. Dat leeg laten zou kloppen (geen grens = geen afkeurdatum),
+ * maar leeg is niet te onderscheiden van "nog opzoeken". Daarom 999: zichtbaar
+ * ingevuld, en door `isUnlimitedAge` behandeld als géén grens.
+ */
+export const UNLIMITED_AGE_YEARS = 999;
+
+/**
+ * Geldt hier "geen leeftijdsgrens"? Ruim genomen (≥ 900), zodat een 9999 of
+ * 998 dat iemand intypt niet stilletjes een afkeurdatum in het jaar 3025
+ * oplevert.
+ */
+export function isUnlimitedAge(years?: number | null): boolean {
+  return years != null && years >= 900;
+}
+
 export function addMonths(date: Date, months: number): Date {
   // Code review 2026-07-18, punt 10: setMonth() loopt over bij maandeindes
   // (31 jan + 1 maand werd 3 maart, 31 aug + 6 maanden werd 3 maart). Voor
@@ -69,7 +88,7 @@ export function calcNextDue(input: NextDueInput): Date {
   let next_due = addMonths(inspection_date, interval_months);
 
   // 3. Cap: manufacture date + max age from manufacturer
-  if (manufacture_year != null && max_age_mfr_years != null) {
+  if (manufacture_year != null && max_age_mfr_years != null && !isUnlimitedAge(max_age_mfr_years)) {
     const mfr_month = manufacture_month ?? 1;
     const eol_mfr = new Date(
       manufacture_year + max_age_mfr_years,
@@ -80,7 +99,7 @@ export function calcNextDue(input: NextDueInput): Date {
   }
 
   // 4. Cap: first use date + max age from first use
-  if (first_use_date != null && max_age_use_years != null) {
+  if (first_use_date != null && max_age_use_years != null && !isUnlimitedAge(max_age_use_years)) {
     const eol_use = addMonths(first_use_date, max_age_use_years * 12);
     if (eol_use < next_due) next_due = eol_use;
   }

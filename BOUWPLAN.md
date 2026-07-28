@@ -5,6 +5,32 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28, deel 3)
+
+> **Sessie 2026-07-28 (deel 3) — bronlijst nagelopen + "onbeperkte levensduur"
+> als 999:** De 26 overgeslagen regels bleken géén echte duplicaten maar
+> varianten die alleen in `manufacturer_code` verschilden. Bronlijst
+> gecorrigeerd (2291 rijen, 0 dubbelen) en aan Jos teruggegeven:
+> - **FALL SAFE** (11 producten × 3): maat uit de code achter de naam gezet
+>   (`LITE HARNESS S/M` · `L/XL` · `XXL`). **CAMP** (2 × 2): `S-L` / `L-XXL`
+>   (maatvoering bevestigd door Jos uit de CAMP-documentatie).
+> - **Petzl OK SCREW-/TRIACT-LOCK**: de tweede regel (`M033D`, 23 kN,
+>   "EN 12275 H") was foute scrape-data — M033D bestaat niet en H is de
+>   HMS-klasse, terwijl de OK een ovaal is. Verwijderd; `M33A` (25 kN) blijft.
+> - **Petzl-blok rij 1241-1334 (94 regels, NL-site) nagelopen:** CROLL S en
+>   CROLL L hadden allebei dezelfde samengevoegde code (gesplitst naar
+>   `B16BAA` / `B016AA00`); een generieke `ASCENSION` dupliceerde de al
+>   bestaande Left/Right (verwijderd, handleiding-link overgezet); TANDEM,
+>   TANDEM SPEED en KOOTENAY hadden geen belastinggegevens (aangevuld uit de
+>   Petzl-specs die Jos aanleverde). Verder schoon.
+> - **Besluit Jos: `UNL` wordt `999`, niet leeg.** Leeg leest als "nog
+>   opzoeken", 999 als "bewust geen leeftijdsgrens". 1219 cellen omgezet.
+>   In de code: `UNLIMITED_AGE_YEARS` + `isUnlimitedAge()` (≥ 900) in
+>   `packages/core/nextDue.ts`; zowel `calcNextDue` als de
+>   levensduur-waarschuwing in de keuring-wizard slaan de afkeurdatum dan over
+>   (anders zou er een waarschuwing voor het jaar 3025 uitrollen). Hint bij het
+>   productformulier: "999 = onbeperkte levensduur. Leeg = nog niet opgezocht."
+
 ## Voortgang (bijgewerkt 2026-07-28, deel 2)
 
 > **Sessie 2026-07-28 (deel 2) — catalogus stond dubbel, import kan het niet

@@ -651,7 +651,8 @@
         "productPageUrl": "Productpagina fabrikant (link)",
         "recallUrl": "Recall-bericht (link)",
         "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
-        "notes": "Opmerkingen"
+        "notes": "Opmerkingen",
+        "maxAgeHint": "999 = onbeperkte levensduur. Leeg = nog niet opgezocht."
       },
       "productTypes": {
         "ppe": "PBM",

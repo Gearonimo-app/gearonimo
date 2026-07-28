@@ -495,6 +495,7 @@ import {
   touchDownloadActivity,
   markInspectionPendingCompletion,
   getRegime,
+  isUnlimitedAge,
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
@@ -1259,10 +1260,13 @@ function suggestedNextDue(it: Item): Date {
 function endOfLife(it: Item): Date | null {
   const a = it.article
   let eol: Date | null = null
-  if (a.manufacture_year != null && a.product?.max_age_mfr_years != null) {
+  // 999 (isUnlimitedAge) = onbeperkte levensduur: bewust ingevuld, maar géén
+  // afkeurdatum — anders zou er een leeftijdswaarschuwing voor het jaar 3025
+  // uitrollen.
+  if (a.manufacture_year != null && a.product?.max_age_mfr_years != null && !isUnlimitedAge(a.product.max_age_mfr_years)) {
     eol = new Date(a.manufacture_year + a.product.max_age_mfr_years, (a.manufacture_month ?? 1) - 1, 1)
   }
-  if (a.first_use_date && a.product?.max_age_use_years != null) {
+  if (a.first_use_date && a.product?.max_age_use_years != null && !isUnlimitedAge(a.product.max_age_use_years)) {
     const eolUse = addMonths(new Date(a.first_use_date), a.product.max_age_use_years * 12)
     if (!eol || eolUse < eol) eol = eolUse
   }
