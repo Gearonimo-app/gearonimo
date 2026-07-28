@@ -178,7 +178,12 @@
       },
       "prev": "Previous",
       "next": "Next",
-      "nextFree": "Next unlinked article ({count} to go)"
+      "nextFree": "Next unlinked article ({count} to go)",
+      "linkedTitle": "Linked catalogue product",
+      "linkedProduct": "Product",
+      "relink": "Choose another product",
+      "unlink": "Unlink",
+      "queueEdit": "On the queue — edit"
     }
   },
   "sets": {

@@ -178,7 +178,12 @@
       },
       "prev": "Vorige",
       "next": "Volgende",
-      "nextFree": "Volgend vrij artikel ({count} te koppelen)"
+      "nextFree": "Volgend vrij artikel ({count} te koppelen)",
+      "linkedTitle": "Gekoppeld catalogusproduct",
+      "linkedProduct": "Product",
+      "relink": "Ander product kiezen",
+      "unlink": "Ontkoppelen",
+      "queueEdit": "Staat op de wachtrij — aanpassen"
     }
   },
   "sets": {

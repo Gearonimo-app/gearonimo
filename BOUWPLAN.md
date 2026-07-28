@@ -5,6 +5,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28, deel 5)
+
+> **Sessie 2026-07-28 (deel 5) — koppeling herzien + wachtrij vanaf de
+> artikelpagina (wensen Jos tijdens de koppelronde):**
+> - **Een gekoppeld artikel was niet meer te corrigeren.** De "bedoelt
+>   u"-sectie verscheen alleen bij vrije artikelen, dus een misklik (Jos koos
+>   "Oranje-grijs", bedoelde "Oranje carbon") was definitief — ook het
+>   bewerk-formulier raakt het product niet. Nu toont een gekoppeld artikel
+>   "Gekoppeld catalogusproduct" met **Ander product kiezen** (opent dezelfde
+>   zoeker, voorgevuld met de huidige productnaam) en **Ontkoppelen**.
+>   Ontkoppelen schrijft merk/naam terug naar de vrije velden, anders houd je
+>   een artikel zonder omschrijving over.
+> - **Wachtrij-knop op de artikelpagina.** "Toevoegen aan productendatabase"
+>   staat nu ook ín de koppelsectie (opent het bestaande
+>   `CatalogSuggestDialog`), zodat een product dat niet in de catalogus staat
+>   direct aangemeld kan worden zonder terug naar het klantdetail. Alleen bij
+>   vrije artikelen — de wachtrij toont uitsluitend artikelen zonder
+>   `product_id` (zie `CatalogQueue.vue`).
+
 ## Voortgang (bijgewerkt 2026-07-28, deel 4)
 
 > **Sessie 2026-07-28 (deel 4) — doorklikken door de artikellijst

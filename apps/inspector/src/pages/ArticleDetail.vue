@@ -25,8 +25,26 @@
           </div>
         </template>
       </dl>
+      <!-- Al gekoppeld: laten zien wááraan, en dat kunnen herzien. Een misklik
+           in de "bedoelt u"-lijst was tot nu toe niet meer terug te draaien
+           (Jos 2026-07-28: "ik wil de naam eigenlijk aanpassen naar oranje
+           carbon"). -->
+      <section v-if="!isFreeArticle && !relinking && isOnline && !article.retired" class="ad__link">
+        <h2 class="ad__link-title">{{ $t('articles.detail.linkedTitle') }}</h2>
+        <p class="ad__link-original">
+          <span class="ad__link-original-label">{{ $t('articles.detail.linkedProduct') }}</span>
+          <span class="ad__link-original-value">{{ brandLabel }}</span>
+        </p>
+        <div class="ad__link-actions">
+          <button class="ad__walk-btn" @click="startRelink">{{ $t('articles.detail.relink') }}</button>
+          <button class="ad__walk-btn" :disabled="linking" @click="unlinkProduct">
+            {{ $t('articles.detail.unlink') }}
+          </button>
+        </div>
+      </section>
+
       <!-- Vrij artikel koppelen aan een catalogusproduct ("bedoelt u: …") -->
-      <section v-if="isFreeArticle && isOnline && !article.retired" class="ad__link">
+      <section v-if="(isFreeArticle || relinking) && isOnline && !article.retired" class="ad__link">
         <h2 class="ad__link-title">{{ $t('articles.detail.linkTitle') }}</h2>
         <p class="ad__link-hint">{{ $t('articles.detail.linkHint') }}</p>
         <!-- De originele (vrije) schrijfwijze blijft als referentie in beeld, ook
@@ -68,6 +86,20 @@
         <p v-else-if="productListOpen && productQuery.trim() && !productSuggestions.length" class="ad__link-none">
           {{ $t('articles.detail.linkNone') }}
         </p>
+
+        <!-- Staat het product niet in de catalogus? Dan hoort het op de
+             wachtrij, zónder eerst naar het klantdetail terug te moeten
+             (wens Jos 2026-07-28). Alleen voor vrije artikelen: de wachtrij
+             toont uitsluitend artikelen zonder product (CatalogQueue.vue). -->
+        <button v-if="isFreeArticle" type="button" class="ad__queue" @click="suggestOpen = true">
+          <GIcon name="plus" class="ad__queue-icon" />
+          {{ article.suggest_for_catalog
+            ? $t('articles.detail.queueEdit')
+            : $t('articles.suggestForCatalog') }}
+        </button>
+        <button v-if="relinking" type="button" class="ad__link-cancel" @click="cancelRelink">
+          {{ $t('common.cancel') }}
+        </button>
       </section>
 
       <!-- Doorklikken binnen de artikellijst van deze klant: na een import zijn
@@ -123,6 +155,16 @@
       </div>
     </div>
 
+    <!-- Aanmelden voor de catalogus-wachtrij: hetzelfde dialoog als op het
+         klantdetail en in de keuring-wizard (schrijft zelf weg). -->
+    <CatalogSuggestDialog
+      v-if="suggestOpen && article"
+      :article-id="id"
+      :label="articleLabel"
+      @saved="onSuggestSaved"
+      @close="suggestOpen = false"
+    />
+
     <!-- Afvoeren/verwijderen bevestigen -->
     <div v-if="showRetire" class="ad__overlay" @click.self="showRetire = false">
       <div class="ad__dialog">
@@ -141,6 +183,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 import { GIcon, fuzzySearch } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -302,6 +345,52 @@ function goTo(articleId: string) {
   router.push(`/articles/${articleId}`)
 }
 
+// Een al gekoppeld artikel opnieuw koppelen of losmaken. Zonder dit was een
+// misklik in de "bedoelt u"-lijst definitief.
+const relinking = ref(false)
+const suggestOpen = ref(false)
+
+function startRelink() {
+  relinking.value = true
+  // Voorgevuld met de huidige productnaam: meestal zit de juiste variant er
+  // vlak naast ("Oranje-grijs" → "Oranje carbon").
+  productQuery.value = brandLabel.value
+  productListOpen.value = true
+}
+
+function cancelRelink() {
+  relinking.value = false
+  productQuery.value = ''
+  productListOpen.value = false
+}
+
+/** Terug naar vrij artikel; merk/naam van het product blijven als vrije tekst
+ *  staan, anders houd je een artikel zonder omschrijving over. */
+async function unlinkProduct() {
+  const p = article.value?.product
+  linking.value = true
+  const { data, error: err } = await supabase
+    .from('articles')
+    .update({
+      product_id: null,
+      free_brand: p?.brand ?? null,
+      free_description: p?.name ?? null,
+    })
+    .eq('id', id.value)
+    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .single()
+  linking.value = false
+  if (err) { error.value = err.message; return }
+  article.value = data
+  const s = siblings.value.find((x) => x.id === id.value)
+  if (s) s.product_id = null
+  startRelink()
+}
+
+function onSuggestSaved(suggested: boolean) {
+  if (article.value) article.value.suggest_for_catalog = suggested
+}
+
 async function linkProduct(p: CatalogProduct) {
   linking.value = true
   const { data, error: err } = await supabase
@@ -318,6 +407,7 @@ async function linkProduct(p: CatalogProduct) {
   article.value = data
   productQuery.value = ''
   productListOpen.value = false
+  relinking.value = false
   // Dit artikel telt niet meer als "vrij", zodat de knop meteen naar het
   // volgende ongekoppelde artikel wijst zonder de hele lijst opnieuw te halen.
   const s = siblings.value.find((x) => x.id === id.value)
@@ -518,6 +608,8 @@ watch(() => route.params.id, async (newId) => {
   if (typeof newId !== 'string' || newId === id.value) return
   id.value = newId
   editMode.value = false
+  relinking.value = false
+  suggestOpen.value = false
   productQuery.value = ''
   productListOpen.value = false
   window.scrollTo({ top: 0 })
@@ -597,6 +689,18 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ad__suggest-name { font-weight: 600; }
 .ad__suggest-cat { font-size: 0.75rem; color: #6b7280; white-space: nowrap; }
 .ad__link-none { color: #6b7280; font-size: 0.85rem; margin: 0.5rem 0 0; }
+.ad__link-actions { display: flex; gap: 0.5rem; margin-top: 0.75rem; }
+.ad__queue {
+  margin-top: 0.75rem; width: 100%; padding: 0.7rem; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  border: 1px dashed #9ca3af; background: #fff; color: #374151;
+  font-size: 0.9rem; font-weight: 600; cursor: pointer;
+}
+.ad__queue-icon { width: 1.1em; height: 1.1em; }
+.ad__link-cancel {
+  margin-top: 0.5rem; width: 100%; padding: 0.6rem; border-radius: 10px;
+  border: none; background: #f3f4f6; color: #374151; font-size: 0.9rem; cursor: pointer;
+}
 
 /* Doorklikken door de artikellijst van de klant. */
 .ad__walk { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; }
