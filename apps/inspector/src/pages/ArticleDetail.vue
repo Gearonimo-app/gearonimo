@@ -76,7 +76,11 @@
               @mousedown.prevent="linkProduct(p)"
             >
               <span class="ad__suggest-name">{{ productLabel(p) }}</span>
-              <span v-if="p.category" class="ad__suggest-cat">{{ p.category }}</span>
+              <!-- Code erbij: op oude certificaten staat vaak alleen die code,
+                   dus zo zie je meteen dát het de juiste variant is. -->
+              <span v-if="p.manufacturer_code || p.category" class="ad__suggest-cat">
+                {{ [p.manufacturer_code, p.category].filter(Boolean).join(' · ') }}
+              </span>
             </button>
           </div>
         </div>
@@ -267,7 +271,10 @@ const articleLabel = computed(() => brandLabel.value || t('articles.untitled'))
 // een catalogusnaam. Hier bieden we een fuzzy "bedoelt u"-lijst aan zodat de
 // keurmeester het vrije artikel met één klik aan het echte product koppelt —
 // dan kloppen keurtermijn (regime), recall en handleiding vanzelf.
-interface CatalogProduct { id: string; brand: string | null; name: string | null; category: string | null; product_type: string | null }
+interface CatalogProduct {
+  id: string; brand: string | null; name: string | null
+  category: string | null; product_type: string | null; manufacturer_code: string | null
+}
 const products = ref<CatalogProduct[]>([])
 const productQuery = ref('')
 const productListOpen = ref(false)
@@ -285,11 +292,21 @@ function productLabel(p: CatalogProduct): string {
   return [p.brand, p.name].filter(Boolean).join(' ')
 }
 
+/**
+ * Waarop gezocht wordt. Naast merk + naam ook de artikelcode van de fabrikant:
+ * op oude certificaten staat vaak alleen die code ("Fallsafe FS242-L-XL"),
+ * terwijl het product in de catalogus "FALL SAFE LITE HARNESS L/XL" heet
+ * (Jos 2026-07-28). Zonder de code leverde zoeken op "242" niets op.
+ */
+function productSearchText(p: CatalogProduct): string {
+  return [p.brand, p.name, p.manufacturer_code].filter(Boolean).join(' ')
+}
+
 const productSuggestions = computed(() => {
   if (!productQuery.value.trim()) return [] as CatalogProduct[]
   // fuzzySearch valt terug op steeds minder zoekwoorden, zodat de voorgevulde
   // vrije schrijfwijze ("Distel Alu kort") niet in een lege lijst eindigt.
-  return fuzzySearch(products.value, productQuery.value, productLabel)
+  return fuzzySearch(products.value, productQuery.value, productSearchText)
 })
 
 // --- Doorklikken naar het volgende artikel van dezelfde klant ---------------
@@ -485,7 +502,7 @@ async function loadProducts() {
     products.value = await fetchAllRows<CatalogProduct>((from, to) =>
       supabase
         .from('products')
-        .select('id, brand, name, category, product_type')
+        .select('id, brand, name, category, product_type, manufacturer_code')
         .order('brand')
         .order('name')
         .range(from, to),

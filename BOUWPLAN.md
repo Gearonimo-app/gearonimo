@@ -5,6 +5,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-28, deel 6)
+
+> **Sessie 2026-07-28 (deel 6) — zoeken op de artikelcode van de fabrikant:**
+> Jos zocht in "bedoelt u" op "242" (artikel heet "Fallsafe FS242-L-XL" op het
+> oude certificaat) en kreeg niets: het catalogusproduct heet "FALL SAFE LITE
+> HARNESS L/XL" en de code staat in `manufacturer_code`, waar niet op gezocht
+> werd.
+> - `ArticleDetail.vue`: zoekt nu op merk + naam + `manufacturer_code`
+>   (`productSearchText`), en toont de code in de suggestieregel zodat je ziet
+>   dát het de juiste variant is.
+> - **Migratie `20260750_search_products_manufacturer_code.sql`**: dezelfde
+>   blinde vlek zat in de gedeelde `search_products`-functie (klant-app
+>   "artikel toevoegen" + SN-zoeken). Zelfde handtekening, dus `create or
+>   replace`; een exacte code-treffer sorteert bovenaan.
+
 ## Voortgang (bijgewerkt 2026-07-28, deel 5)
 
 > **Sessie 2026-07-28 (deel 5) — koppeling herzien + wachtrij vanaf de
