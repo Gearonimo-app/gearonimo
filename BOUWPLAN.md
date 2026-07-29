@@ -7,6 +7,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-29)
 
+> **Product verwijderen vanuit de app (wens Jos: "ik wil zonder sql kunnen
+> werken in de toekomst").** In `20260715` was verwijderen bewust geblokkeerd
+> omdat de FK naar `articles` het zou tegenhouden. Besluit Jos 2026-07-29: de
+> gekoppelde artikelen moeten gewoon blijven staan als vrij artikel — geen
+> aparte stap vooraf, wél een waarschuwing met het aantal ("dit product wordt
+> al 7 keer gebruikt").
+> - **Migratie `20260751_delete_product.sql`**: `product_usage_count(uuid)` en
+>   `delete_product(uuid)`, allebei `security definer` + curator-check. Bewust
+>   een functie i.p.v. een delete-policy: het ontkoppelen raakt artikelen van
+>   álle keurbedrijven (die mag de curator via RLS niet rechtstreeks
+>   bijwerken) en zo blijft het één transactie. Merk/naam/categorie gaan terug
+>   naar de vrije velden.
+> - `CatalogManager.vue`: knop "Product verwijderen" in het bewerkformulier,
+>   met een rode bevestigingsblok dat het aantal gebruiken noemt.
+
 > **Sessie 2026-07-29 — catalogus-zoekveld vond "petzl seq" niet:** Het
 > zoekveld op de Catalogus-tab eiste dat de héle zoekterm in één veld paste
 > (`[brand, name, category].some(v => v.includes(q))`), dus een combinatie van

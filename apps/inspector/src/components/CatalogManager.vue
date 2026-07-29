@@ -68,6 +68,31 @@
         @submit="save"
         @cancel="closeForm"
       />
+
+      <!-- Verwijderen alleen bij een bestaand product. Gekoppelde artikelen
+           worden meegenomen (blijven bestaan als vrij artikel), maar niet
+           zonder waarschuwing met het aantal (besluit Jos 2026-07-29). -->
+      <template v-if="editingId">
+        <button v-if="!confirmDelete" class="cm__delete" :disabled="deleting" @click="askDelete">
+          {{ $t('settings.catalog.manager.delete') }}
+        </button>
+        <div v-else class="cm__confirm">
+          <p class="cm__confirm-text">
+            {{ usageCount > 0
+              ? $t('settings.catalog.manager.deleteUsed', { count: usageCount })
+              : $t('settings.catalog.manager.deleteUnused') }}
+          </p>
+          <p v-if="deleteError" class="cm__state cm__state--error">{{ deleteError }}</p>
+          <div class="cm__actions">
+            <button class="cm__btn cm__btn--cancel" :disabled="deleting" @click="confirmDelete = false">
+              {{ $t('common.cancel') }}
+            </button>
+            <button class="cm__btn cm__btn--danger" :disabled="deleting" @click="doDelete">
+              {{ deleting ? $t('common.busy') : $t('settings.catalog.manager.deleteConfirm') }}
+            </button>
+          </div>
+        </div>
+      </template>
     </div>
 
     <ul v-else-if="!loading && !error" class="cm__list">
@@ -184,6 +209,40 @@ function openDuplicate(p: Product) {
 function closeForm() {
   showForm.value = false
   editingId.value = null
+  confirmDelete.value = false
+  deleteError.value = ''
+}
+
+// --- Product verwijderen ----------------------------------------------------
+// Het zware werk zit in de database (delete_product, migratie 20260751): dat
+// ontkoppelt de artikelen in dezelfde transactie en zet merk/naam terug als
+// vrije tekst. Hier alleen de waarschuwing met het aantal.
+const confirmDelete = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
+const usageCount = ref(0)
+
+async function askDelete() {
+  if (!editingId.value) return
+  deleteError.value = ''
+  usageCount.value = 0
+  const { data, error: err } = await supabase.rpc('product_usage_count', { p_id: editingId.value })
+  // Lukt tellen niet, dan nog steeds kunnen verwijderen -- de waarschuwing is
+  // dan alleen minder precies.
+  if (!err) usageCount.value = (data as number) ?? 0
+  confirmDelete.value = true
+}
+
+async function doDelete() {
+  if (!editingId.value) return
+  deleting.value = true
+  deleteError.value = ''
+  const { error: err } = await supabase.rpc('delete_product', { p_id: editingId.value })
+  deleting.value = false
+  if (err) { deleteError.value = errorMessage(err); return }
+  confirmDelete.value = false
+  closeForm()
+  await load()
 }
 
 function toRow(f: ProductFormModel) {
@@ -418,6 +477,14 @@ onMounted(load)
   background: #fff; border-radius: 12px; padding: 1rem; margin-bottom: 0.75rem; font-size: 0.9rem;
 }
 .cm__preview p { margin: 0 0 0.5rem; }
+.cm__delete {
+  margin-top: 0.75rem; width: 100%; padding: 0.8rem; border-radius: 10px;
+  border: 1px solid #fecaca; background: #fff; color: #dc2626;
+  font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.cm__confirm { margin-top: 0.75rem; border: 1px solid #fecaca; border-radius: 10px; padding: 0.85rem; background: #fef2f2; }
+.cm__confirm-text { margin: 0 0 0.75rem; font-size: 0.9rem; color: #7f1d1d; }
+.cm__btn--danger { background: #dc2626; color: #fff; }
 .cm__preview-errors { margin: 0 0 0.5rem; padding-left: 1.1rem; color: #dc2626; font-size: 0.85rem; }
 /* Duplicaten zijn geen fout maar een gerustellende melding: neutraal grijs. */
 .cm__preview-dups { margin: 0 0 0.5rem; padding-left: 1.1rem; color: #6b7280; font-size: 0.85rem; }

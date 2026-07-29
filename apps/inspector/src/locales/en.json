@@ -636,7 +636,11 @@
         "readError": "Could not read the file.",
         "duplicateSkipped": "Row {line}: {product} is already in the catalogue.",
         "andMore": "… and {count} more.",
-        "importProgress": "{done} of {total} added…"
+        "importProgress": "{done} of {total} added…",
+        "delete": "Delete product",
+        "deleteUnused": "Are you sure? This product is not in use anywhere and will be permanently deleted.",
+        "deleteUsed": "Careful: this product is used {count} times. Those articles stay — their brand and name remain as free text, so you can re-link them later.",
+        "deleteConfirm": "Yes, delete"
       },
       "fields": {
         "brand": "Brand",

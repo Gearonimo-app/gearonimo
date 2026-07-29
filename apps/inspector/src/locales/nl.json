@@ -636,7 +636,11 @@
         "readError": "Bestand kon niet gelezen worden.",
         "duplicateSkipped": "Rij {line}: {product} staat al in de catalogus.",
         "andMore": "… en nog {count}.",
-        "importProgress": "{done} van {total} toegevoegd…"
+        "importProgress": "{done} van {total} toegevoegd…",
+        "delete": "Product verwijderen",
+        "deleteUnused": "Weet u het zeker? Dit product staat nergens in gebruik en wordt definitief verwijderd.",
+        "deleteUsed": "Let op: dit product wordt al {count} keer gebruikt. Die artikelen blijven gewoon bestaan — merk en naam blijven er als vrije tekst op staan, zodat u ze later opnieuw kunt koppelen.",
+        "deleteConfirm": "Ja, verwijderen"
       },
       "fields": {
         "brand": "Merk",
