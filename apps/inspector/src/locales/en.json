@@ -183,7 +183,8 @@
       "linkedProduct": "Product",
       "relink": "Choose another product",
       "unlink": "Unlink",
-      "queueEdit": "On the queue — edit"
+      "queueEdit": "On the queue — edit",
+      "notesPlaceholder": "Anything notable about this article…"
     }
   },
   "sets": {

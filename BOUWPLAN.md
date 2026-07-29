@@ -7,6 +7,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-29)
 
+> **Opmerkingenveld altijd in beeld op de artikelpagina (wens Jos
+> 2026-07-29).** `notes` stond wél in `fieldDefs`, maar de bekijk-weergave
+> toont een veld alleen als het gevuld is — precies wanneer je het veld zoekt
+> (om iets te noteren) was het dus onzichtbaar, en dan moest je via het
+> potlood naar het bewerkformulier. Nu een eigen blok onder de gegevens:
+> altijd zichtbaar, meteen typbaar, met Opslaan/Annuleren zodra er iets
+> verandert. `notes` is uit `viewFieldDefs` gehaald zodat het niet dubbel
+> staat.
+
 > **Product verwijderen vanuit de app (wens Jos: "ik wil zonder sql kunnen
 > werken in de toekomst").** In `20260715` was verwijderen bewust geblokkeerd
 > omdat de FK naar `articles` het zou tegenhouden. Besluit Jos 2026-07-29: de

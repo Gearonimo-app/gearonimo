@@ -18,13 +18,35 @@
           <dt>{{ $t('articles.fields.brand') }}</dt>
           <dd>{{ brandLabel }}</dd>
         </div>
-        <template v-for="f in fieldDefs" :key="f.col">
+        <template v-for="f in viewFieldDefs" :key="f.col">
           <div v-if="article[f.col] !== null && article[f.col] !== ''" class="ad__view-row">
             <dt>{{ label(f.label) }}</dt>
             <dd>{{ displayValue(f, article[f.col]) }}</dd>
           </div>
         </template>
       </dl>
+      <!-- Opmerkingen: bewust altijd in beeld en meteen typbaar (Jos
+           2026-07-29). Het stond wel in de gegevenslijst, maar alleen als er
+           al iets ingevuld was -- precies dan zoek je het veld dus niet. -->
+      <section v-if="isOnline && !article.retired" class="ad__notes">
+        <label class="ad__notes-label" for="ad-notes">{{ $t('articles.fields.notes') }}</label>
+        <textarea
+          id="ad-notes"
+          v-model="notesDraft"
+          class="ad__input"
+          rows="2"
+          :placeholder="$t('articles.detail.notesPlaceholder')"
+        ></textarea>
+        <div v-if="notesDirty" class="ad__notes-actions">
+          <button class="ad__walk-btn" :disabled="savingNotes" @click="resetNotes">
+            {{ $t('common.cancel') }}
+          </button>
+          <button class="ad__notes-save" :disabled="savingNotes" @click="saveNotes">
+            {{ savingNotes ? $t('common.saving') : $t('common.save') }}
+          </button>
+        </div>
+      </section>
+
       <!-- Al gekoppeld: laten zien wááraan, en dat kunnen herzien. Een misklik
            in de "bedoelt u"-lijst was tot nu toe niet meer terug te draaien
            (Jos 2026-07-28: "ik wil de naam eigenlijk aanpassen naar oranje
@@ -256,6 +278,32 @@ const everCertified = ref(true)
 // niet, vandaar bewust Record<string, any> voor alleen dit formulierobject.
 const form = ref<Record<string, any>>({})
 
+// Opmerkingen krijgen een eigen blok; hier weglaten voorkomt dat ze dubbel
+// in beeld staan zodra ze gevuld zijn.
+const viewFieldDefs = fieldDefs.filter((f) => f.col !== 'notes')
+
+const notesDraft = ref('')
+const savingNotes = ref(false)
+const notesDirty = computed(() => notesDraft.value !== ((article.value?.notes as string | null) ?? ''))
+
+function resetNotes() {
+  notesDraft.value = (article.value?.notes as string | null) ?? ''
+}
+
+async function saveNotes() {
+  savingNotes.value = true
+  const { data, error: err } = await supabase
+    .from('articles')
+    .update({ notes: notesDraft.value.trim() || null })
+    .eq('id', id.value)
+    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .single()
+  savingNotes.value = false
+  if (err) { error.value = err.message; return }
+  article.value = data
+  notesDraft.value = data.notes ?? ''
+}
+
 const brandLabel = computed(() => {
   const a = article.value
   if (!a) return ''
@@ -457,6 +505,7 @@ async function load() {
           ? ((await getProducts<{ id: string; brand: string | null; name: string | null }>(key, [cached.product_id]))[0] ?? null)
           : null
         article.value = { ...cached, product }
+        notesDraft.value = (cached.notes as string | null) ?? ''
         const customer = cached.customer_id
           ? await getCustomer<{ name: string | null }>(key, cached.customer_id)
           : null
@@ -481,6 +530,7 @@ async function load() {
   else {
     article.value = data
     customerName.value = (data?.customer as { name: string | null } | null)?.name ?? null
+    notesDraft.value = (data?.notes as string | null) ?? ''
     // Zoekterm alvast vullen met de vrije schrijfwijze, zodat de "bedoelt
     // u"-lijst meteen relevante producten toont zonder overtypen.
     if (isFreeArticle.value && !productQuery.value) productQuery.value = brandLabel.value
@@ -720,6 +770,15 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 
 /* Doorklikken door de artikellijst van de klant. */
+.ad__notes { background: #fff; border-radius: 12px; padding: 1rem; margin-top: 0.75rem; }
+.ad__notes-label { display: block; font-size: 0.8rem; color: #6b7280; margin: 0 0 0.35rem; }
+.ad__notes-actions { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.ad__notes-save {
+  flex: 1; padding: 0.7rem 0.5rem; border-radius: 10px; border: none;
+  background: #16a34a; color: #fff; font-size: 0.95rem; font-weight: 600; cursor: pointer;
+}
+.ad__notes-save:disabled { opacity: 0.6; }
+
 .ad__walk { display: flex; align-items: center; gap: 0.5rem; margin-top: 1.25rem; }
 .ad__walk-btn {
   flex: 1; padding: 0.7rem 0.5rem; border-radius: 10px; border: 1px solid #d1d5db;

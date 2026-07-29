@@ -183,7 +183,8 @@
       "linkedProduct": "Product",
       "relink": "Ander product kiezen",
       "unlink": "Ontkoppelen",
-      "queueEdit": "Staat op de wachtrij — aanpassen"
+      "queueEdit": "Staat op de wachtrij — aanpassen",
+      "notesPlaceholder": "Bijzonderheden bij dit artikel…"
     }
   },
   "sets": {
