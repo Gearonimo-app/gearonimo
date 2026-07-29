@@ -5,6 +5,16 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-29)
+
+> **Sessie 2026-07-29 — catalogus-zoekveld vond "petzl seq" niet:** Het
+> zoekveld op de Catalogus-tab eiste dat de héle zoekterm in één veld paste
+> (`[brand, name, category].some(v => v.includes(q))`), dus een combinatie van
+> merk + naam gaf nul resultaten terwijl de producten er gewoon stonden.
+> Vervangen door dezelfde gedeelde `fuzzySearch` als de "bedoelt u"-koppeling,
+> over merk + naam + categorie + `manufacturer_code`. Zoeken op "petzl seq",
+> "seq 1" of een artikelcode werkt nu allemaal.
+
 ## Voortgang (bijgewerkt 2026-07-28, deel 6)
 
 > **Sessie 2026-07-28 (deel 6) — zoeken op de artikelcode van de fabrikant:**

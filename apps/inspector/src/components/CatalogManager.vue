@@ -93,6 +93,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
 import { supabase, errorMessage, fetchAllRows } from '@gearonimo/core'
+import { fuzzySearch } from '@gearonimo/ui'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
 
@@ -142,12 +143,17 @@ async function load() {
   }
 }
 
+// Zoeken over alle velden tegelijk, niet per veld (Jos 2026-07-29: "petzl seq"
+// gaf niets, want de zoekterm moest in z'n geheel in één veld passen -- "petzl"
+// staat in merk, "seq" in de naam). Zelfde fuzzy zoeker als de "bedoelt
+// u"-koppeling, inclusief de artikelcode van de fabrikant.
+function productSearchText(p: Product): string {
+  return [p.brand, p.name, p.category, p.manufacturer_code].filter(Boolean).join(' ')
+}
+
 const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  if (!q) return products.value
-  return products.value.filter((p) =>
-    [p.brand, p.name, p.category].filter(Boolean).some((v) => v!.toLowerCase().includes(q))
-  )
+  if (!search.value.trim()) return products.value
+  return fuzzySearch(products.value, search.value, productSearchText, products.value.length)
 })
 
 function openAdd() {
