@@ -118,10 +118,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   het 15mm-product bestaat wél (grube.eu 71-043-20) en de 12.5mm Ergo Grip is
 >   een apart, derde product. Regel 9 wint, dus het 15mm-item blijft ongemoeid.
 >   De Ergo Grip zit **nog niet** in de bronlijst — aanleveren.
-> - **Tree Runner Safe Vision 12.8 mm:** de gecorrigeerde 11.8mm staat er al
->   apart in (mét EN 1891 A), de oude 12.8mm-regel staat er nog naast zonder
->   norm. Dat is dus een dubbeling, geen correctie. Laten staan tot Jos
->   bevestigt dat de 12.8 weg mag.
+> - **Safe Vision opgelost via de Liros-lijst (besluit Jos 2026-07-31).** De
+>   Liros-lijst bleek `Safe Vision, 11,8mm` te bevatten, volledig ingevuld
+>   (EN 1891, 45 kN, 10/15 jaar, code `01596-0000`, serienummer op een label
+>   onder de plastic huls). **Tree Runner is het huismerk van Grube voor
+>   dezelfde touw** — bevestigd door Jos: "dat is dezelfde lijn". De bijna lege
+>   Tree Runner-regel is daarom aangevuld met de fabrikantgegevens van Liros;
+>   herkomst staat in `notes`. De eigen norm (`EN 1891 A`, specifieker dan die
+>   van Liros), de diameter en de grube-productlink bleven staan.
+> - **Safe Vision 12.8 mm verwijderd.** Liros levert die lijn alleen in 11,8mm,
+>   dus de 12.8 was een fout in de oude lijst — precies wat de notitie zei. Mijn
+>   tussentijdse advies om hem te bewaren (op grond van een eigen
+>   grube-artikelnummer) is daarmee achterhaald.
+> - **Ergo Grip 12.5mm: vervalt.** Stond alleen op de "nog toevoegen"-lijst,
+>   nooit in de catalogus. Jos: niet toevoegen. Er viel dus niets te
+>   verwijderen.
+> - **Nog open: `Tree Runner Safe Vision Static Line`** heeft norm noch
+>   diameter. Niet besproken.
 > - **Quick Cinch-specs binnen (2026-07-31, schermafdruk notchequipment.com):**
 >   17mm = `NQCCL-17mm`, SWL 15 kg; 25mm = `NQCCL-25mm`, SWL 25 kg. De 15-25 kg
 >   stond in `breaking_strength`, maar SWL is een werklast — verplaatst naar
