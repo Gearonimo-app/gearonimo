@@ -153,8 +153,10 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Ergo Grip 12.5mm: vervalt.** Stond alleen op de "nog toevoegen"-lijst,
 >   nooit in de catalogus. Jos: niet toevoegen. Er viel dus niets te
 >   verwijderen.
-> - **Nog open: `Tree Runner Safe Vision Static Line`** heeft norm noch
->   diameter. Niet besproken.
+> - **`Tree Runner Safe Vision Static Line` verwijderd** (besluit Jos
+>   2026-07-31). Had norm noch diameter, en welke Liros-lijn erachter zat was
+>   niet vast te stellen. Daarmee staan er zes producten op de werklijst om
+>   handmatig in de app weg te halen.
 > - **Quick Cinch-specs binnen (2026-07-31, schermafdruk notchequipment.com):**
 >   17mm = `NQCCL-17mm`, SWL 15 kg; 25mm = `NQCCL-25mm`, SWL 25 kg. De 15-25 kg
 >   stond in `breaking_strength`, maar SWL is een werklast — verplaatst naar
