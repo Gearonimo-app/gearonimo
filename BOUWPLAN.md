@@ -139,27 +139,29 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Materiaal op alle 10 Phoenix-producten** naar
 >   `Aramid/polyester blended sheath`, conform de fabrikantstekst *"gaine
 >   mélangée aramide/polyester"*. Stond overal als `Aramid sheath`.
-> - **⚠ De lengtes zitten mogelijk aan het verkeerde product.** Twee nieuwe
->   schermafdrukken (2026-07-31, 20:00) tonen de lengtekeuze 0.65–1.10 op de
->   pagina **"PHOENIX 10MM HITCH CORD", REF `MPKNL65C`** — dus op de 10 mm
->   *hitch cord*, terwijl de acht lengteregels hier onder `Phoenix rope sling`
->   met 8 mm staan. De tweede afdruk toont de lijst bovenaan (0.65, 0.70, 0.75,
->   0.80, 0.85, 0.90) en bevestigt dat 0.65 de kortste is.
->   Vermoedelijke werkelijkheid: de Phoenix bestaat in 8 én 10 mm, elk kant en
->   klaar in acht lengtes — dus 16 regels, benoemd per diameter. Niet
->   omgebouwd zonder bevestiging van Jos; het verschil tussen "rope sling" en
->   "hitch cord" en welke diameters welke lengtes hebben is productkennis.
-> - **⚠ Geen artikelnummers.** `manufacturer_code` is leeg op alle tien
->   Phoenix-regels. De enige bekende code is `MPKNL65C` (10 mm, 0.65 m) en die
->   bevat "65", dus hij verschilt per lengte — één code op een verzamelregel
->   zou dus sowieso fout zijn. Per lengte én per diameter aanleveren.
-> - **⚠ Openstaand: bestaat de rope sling ook in 10 mm?** De acht lengtes zijn
->   allemaal 8 mm, want dat stond op de bestaande regel en de schermafdruk toonde
->   alleen een lengtekeuze, geen diameterkeuze. De *hitch cord* (op de meter)
->   bestaat wél in 8 én 10 mm. Vraag van Jos zelf; zo ja, dan komen er acht
->   regels bij. Niet aangemaakt zonder bron.
-> - **Ook openstaand: is 1.10 m de langste?** De lijst was doorgescrold, dus
->   onderaan kan net zo goed iets zijn weggevallen als bovenaan.
+> - **Opgelost met vijf schermafdrukken van Courant (2026-07-31, 20:14).** De
+>   fabrikantstekst is eenduidig: *"available in 8mm or 10mm diameter as a
+>   lanyard with 2 stitched eyes from 65cm up to 110cm"*. De acht lengteregels
+>   stonden dus onder de verkeerde naam (`Phoenix rope sling`) én bij maar één
+>   diameter. Nu **16 regels**: `Phoenix 8mm/10mm Hitch Cord <lengte> m`, met
+>   `notes` = "Lanyard met 2 gestikte ogen". De zeven overbodige rope
+>   sling-regels zijn verwijderd; de 0.65 m behield zijn id via een hernoeming,
+>   zodat gekoppelde klantartikelen niet losraakten. 1.10 m is bevestigd als de
+>   langste, 0.65 m als de kortste.
+> - **Artikelcodes: `MNKNL` = 8 mm, `MPKNL` = 10 mm, achtervoegsel `C`.** De
+>   lengtecode ertussen wisselt van eenheid: hele decimeters krijgen het aantal
+>   dm met voorloopnul (`0.70` → `07`, `0.80` → `08`, `1.00` → `10`, `1.10` →
+>   `11`), de rest de lengte in centimeters (`0.65` → `65`, `0.75` → `75`).
+>   **Zes codes zijn van een productpagina gelezen** (`MPKNL65C`, `MPKNL07C`,
+>   `MNKNL07C`, `MNKNL75C`, `MNKNL08C`, `MNKNL10C`), de lengtecode `11` gaf Jos
+>   op, de overige tien zijn afgeleid van dat patroon. Per regel vastgelegd in
+>   de kolom `bron_artikelcode` van
+>   `catalog/inbox/2026-07-31_besluit-phoenix-lanyards.csv`; die kolom wordt
+>   niet geïmporteerd. **0.85 en 0.90 zijn nooit gecontroleerd** — de enige twee
+>   waar het patroon nog kan afwijken.
+> - **Nog open: wat zijn `Phoenix 8mm Hitch Cord` en `Phoenix 10mm Hitch Cord`
+>   zónder lengte?** Vermoedelijk de rope boxes van 100 en 200 m die de
+>   fabrikantstekst noemt. Niet aangeraakt.
 
 > **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
 > *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.
