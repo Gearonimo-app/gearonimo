@@ -301,16 +301,18 @@
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
-                    <!-- Opmerking uit de catalogus: uitklappen i.p.v. een
-                         tooltip, want een tooltip vraagt om muisaanwijzen en
-                         de keuring gebeurt op een telefoon. -->
+                    <!-- Opmerking uit de catalogus: allebei de manieren, want
+                         er wordt zowel op een telefoon als op een laptop
+                         gekeurd. Muisaanwijzen toont de tekst als tooltip,
+                         klikken klapt hem uit onder de rij -- dat laatste is
+                         de enige route op een aanraakscherm. -->
                     <button
                       v-if="itemProductNotes(row.it)"
                       type="button"
                       class="iw__notes-toggle"
                       :aria-expanded="openNotesId === row.it.id"
                       :aria-label="$t('inspections.table.productNotesFlag')"
-                      :title="$t('inspections.table.productNotesFlag')"
+                      :title="itemProductNotesTitle(row.it)!"
                       @click="toggleNotes(row.it)"
                     >ℹ️</button>
                   </td>
@@ -1220,6 +1222,16 @@ function itemNoticeTitle(it: Item): string | null {
  */
 function itemProductNotes(it: Item): string | null {
   return it.article.product?.notes?.trim() || null;
+}
+
+/**
+ * De opmerking als tooltip, zodat muisaanwijzen op laptop/pc al volstaat
+ * (Jos 2026-07-31: "keuren gebeurt ook vaak op een laptop/pc"). Klikken klapt
+ * hem uit en blijft nodig op een telefoon, waar hoveren niet bestaat.
+ */
+function itemProductNotesTitle(it: Item): string | null {
+  const notes = itemProductNotes(it);
+  return notes ? `${t("inspections.table.productNotesTitle")}: ${notes}` : null;
 }
 
 /** Welke rij zijn opmerking uitgeklapt heeft. Er staat er hooguit één open. */
