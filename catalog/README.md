@@ -105,6 +105,18 @@ bronlijst en levert altijd alle kolommen.
 Voor een paar gewijzigde producten van verschillende merken:
 `npm run catalog:export -- --ids=<id>,<id>`.
 
+**Eén bestand voor alles wat nog openstaat:**
+
+```bash
+npm run catalog:export -- --sinds=catalog/inbox/<laatste-export-uit-de-app>.xlsx
+```
+
+Dat vergelijkt de bronlijst met een eerdere export uít Gearonimo en levert
+precies wat daar nog niet in zit: nieuwe producten én gewijzigde regels, in één
+bestand. Eén import in plaats van een handvol losse bestanden in de juiste
+volgorde — daar zit de kans op fouten, niet in de import zelf. Wat ongewijzigd
+is blijft eruit, dus de wizard doet geen honderden overbodige bijwerkingen.
+
 ## Producten weghalen
 
 ```bash

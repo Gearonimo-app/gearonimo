@@ -5,6 +5,9 @@
  *   node scripts/catalog/export.mts --new-only      # alleen de nieuwe producten
  *   node scripts/catalog/export.mts --merk=Tractel  # alleen dat merk
  *   node scripts/catalog/export.mts --ids=a,b,c     # precies deze producten
+ *   node scripts/catalog/export.mts --sinds=<export.xlsx>
+ *                                                   # alles wat Gearonimo nog
+ *                                                   # niet heeft, in één bestand
  *
  * `--merk` is er omdat de import elke rij mét id apart bijwerkt, één verzoek
  * per rij. De hele lijst terugsturen voor tien gewijzigde producten betekent
@@ -37,7 +40,13 @@ import {
   CATALOG_COLUMNS,
   validateCatalog,
 } from "../../packages/core/src/catalog.ts";
-import { readSource, EXPORT_DIR, REPO_ROOT } from "./lib/bronlijst.mts";
+import {
+  readSource,
+  readAnyFile,
+  toCatalogRow,
+  EXPORT_DIR,
+  REPO_ROOT,
+} from "./lib/bronlijst.mts";
 
 const newOnly = process.argv.includes("--new-only");
 const brand = process.argv
@@ -56,8 +65,26 @@ const ids = process.argv
   .map((s) => s.trim())
   .filter(Boolean);
 
+// `--sinds=<export.xlsx>`: alles wat Gearonimo nog niet heeft, gemeten tegen
+// een eerdere export uit de app. Levert één bestand dat in één keer toevoegt
+// én bijwerkt, zodat er geen losse bestanden in de juiste volgorde gedraaid
+// hoeven te worden -- daar zit de kans op fouten, niet in de import zelf.
+const sinds = process.argv.find((a) => a.startsWith("--sinds="))?.slice(8);
+
 const all = readSource();
 let rows = newOnly ? all.filter((r) => !r.id) : all;
+
+if (sinds) {
+  const eerder = new Map(
+    readAnyFile(sinds).map(toCatalogRow).map((r) => [r.id, r])
+  );
+  rows = rows.filter((row) => {
+    if (!row.id) return true; // nieuw product
+    const was = eerder.get(row.id);
+    if (!was) return true; // stond niet in die export
+    return CATALOG_COLUMNS.some((c) => row[c].trim() !== was[c].trim());
+  });
+}
 if (brand) rows = rows.filter((r) => r.brand.trim().toLowerCase() === brand);
 if (ids) {
   const wanted = new Set(ids);
@@ -100,7 +127,7 @@ mkdirSync(EXPORT_DIR, { recursive: true });
 const date = new Date().toISOString().slice(0, 10);
 const file = resolve(
   EXPORT_DIR,
-  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}${brand ? `-${brand.replace(/\W+/g, "-")}` : ""}${ids ? "-selectie" : ""}.xlsx`
+  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}${brand ? `-${brand.replace(/\W+/g, "-")}` : ""}${ids ? "-selectie" : ""}${sinds ? "-alles-openstaand" : ""}.xlsx`
 );
 writeFileSync(file, XLSX.write(wb, { type: "buffer", bookType: "xlsx" }));
 

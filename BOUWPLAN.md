@@ -380,6 +380,16 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   20260751, die ontkoppelt de artikelen netjes). Staat als waarschuwing in
 >   `verwijder.mts` en in `catalog/README.md`.
 >
+> - **`--sinds=` voor één importbestand (2026-07-31).** Vraag Jos: *"kun jij
+>   alle regels in Gear zetten zodat ik geen fouten met importeren kan maken?"*
+>   Rechtstreeks wegschrijven kan nog steeds niet (netwerkpolicy + alleen-lezen
+>   sleutel), maar het risico zat in de vier losse bestanden. `catalog:export
+>   --sinds=<export.xlsx>` vergelijkt de bronlijst met een eerdere export uít de
+>   app en levert alles wat daar nog niet in zit in één bestand: 296
+>   toevoegingen + 25 bijwerkingen. Alleen echt gewijzigde regels, dus geen 94
+>   Tractel-rijen waarvan er 84 ongemoeid zijn. Nagelopen met een nabootsing van
+>   `buildPreview()`: 296 toevoegen, 25 bijwerken, 0 duplicaten, 0 fouten.
+>   Verwijderen blijft handwerk in de app — dat kan de import niet.
 > - **Bronlijst gevuld, geen migratie nodig.** `catalog/producten.csv` staat op
 >   2365 producten en nul fouten: de live export uit Gearonimo (2308, mét id's)
 >   als basis, plus 57 nieuwe Liros/Husqvarna-producten. Nog te importeren door
