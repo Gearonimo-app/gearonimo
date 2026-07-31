@@ -63,6 +63,8 @@ import { useRouter } from 'vue-router'
 import { useAuth, supabase } from '@gearonimo/core'
 import { GIcon, LangToggle } from '@gearonimo/ui'
 import { ensureInspector } from '../composables/useInspections'
+import { onReactivated } from '../composables/onReactivated'
+import { resetTabs } from '../composables/useTabs'
 
 const router = useRouter()
 const { signOut, user } = useAuth()
@@ -73,6 +75,9 @@ const upcomingReinspections = ref(0)
 
 async function onSignOut() {
   await signOut()
+  // Openstaande werk-tabbladen zijn van de vórige gebruiker: die mogen niet
+  // blijven staan als er straks iemand anders inlogt op dit toestel.
+  resetTabs()
   router.push('/login')
 }
 
@@ -105,8 +110,7 @@ async function loadHeroPhoto() {
 // Stil checken of dit account wel een keurmeester is: sinds de klant-app
 // (zelfde domein, gedeelde sessie) kan een klant-account hier belanden en
 // zag dan alleen lege lijsten. ensureInspector werpt dan een fout.
-onMounted(async () => {
-  loadHeroPhoto()
+async function load() {
   try {
     await ensureInspector()
   } catch {
@@ -123,7 +127,16 @@ onMounted(async () => {
 
   const { data: count } = await supabase.rpc('upcoming_reinspections_count', { days_ahead: 30 })
   upcomingReinspections.value = count ?? 0
+}
+
+onMounted(() => {
+  loadHeroPhoto()
+  load()
 })
+// Het hoofdmenu blijft als tabblad open staan terwijl je in een ander tabblad
+// werkt; de badges (aanvragen, herkeuringen) moeten dan wel bijwerken zodra je
+// terugkomt.
+onReactivated(load)
 
 const tiles = [
   { key: 'inspections',      icon: 'inspections', label: 'home.tiles.inspections',  route: '/inspections' },
@@ -141,7 +154,7 @@ function navigate(route: string | null) {
 
 <style scoped>
 .home {
-  min-height: 100vh;
+  min-height: var(--page-min-h, 100vh);
   display: flex;
   flex-direction: column;
   padding: 0;

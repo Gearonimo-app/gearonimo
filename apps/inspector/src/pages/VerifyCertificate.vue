@@ -92,7 +92,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.vc { min-height: 100vh; background: #f0f4f8; display: flex; justify-content: center; padding: 2rem 1rem; }
+.vc { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; justify-content: center; padding: 2rem 1rem; }
 .vc__state { padding: 3rem 1rem; color: #666; text-align: center; }
 .vc__state--error { color: #dc2626; }
 .vc__card { background: #fff; border-radius: 14px; padding: 1.5rem; max-width: 480px; width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }

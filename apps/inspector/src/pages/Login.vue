@@ -97,7 +97,7 @@ async function handleForgot() {
 
 <style scoped>
 .lg {
-  min-height: 100vh; background: #f0f4f8;
+  min-height: var(--page-min-h, 100vh); background: #f0f4f8;
   display: flex; align-items: center; justify-content: center; padding: 1.25rem;
   position: relative;
 }

@@ -894,5 +894,20 @@
     "empty": "Nog geen certificaten",
     "onlineOnly": "Alleen online beschikbaar",
     "openPdf": "Certificaat-PDF openen"
+  },
+  "tabs": {
+    "ariaLabel": "Open tabbladen",
+    "new": "Nieuw tabblad",
+    "close": "Tabblad sluiten",
+    "max": "Maximaal {count} tabbladen tegelijk",
+    "fallback": {
+      "home": "Hoofdmenu",
+      "customer": "Klant",
+      "article": "Artikel",
+      "inspection": "Keuring",
+      "set": "Set",
+      "import": "Certificaat importeren",
+      "page": "Pagina"
+    }
   }
 }

@@ -5,6 +5,48 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31)
+
+> **Werk-tabbladen in de keurmeester-app (wens Jos 2026-07-31):** "wanneer ik
+> een certificaat of klant open is dat het enige tabblad dat open is -- als ik
+> tijdens een keuring of het koppelen van artikelen een klant wil toevoegen of
+> naar de catalogus wil, moet ik stoppen met waar ik mee bezig was." De app
+> draait nu als een mini-browser: meerdere pagina's tegelijk open, elk met een
+> eigen levende staat.
+> - `composables/useTabs.ts` — de gedeelde bron. Houdt de tabbladen bij, hangt
+>   zichzelf aan `router.afterEach` en levert de keep-alive-sleutel
+>   `tabId|fullPath`. Die sleutel is het hart van het geheel: twee tabbladen op
+>   dezelfde pagina krijgen elk een eigen instantie, en binnen één tabblad naar
+>   een andere klant gaan geeft een vérse component (de pagina's lezen
+>   `route.params` één keer bij setup — zonder verse sleutel zou klant 2 de
+>   gegevens van klant 1 tonen). De sleutel wordt alléén in `afterEach` gezet,
+>   nooit uit (activeId, route) berekend: anders bestaat er tijdens een
+>   navigatie een tussenstand die keep-alive een wegwerp-instantie kost.
+> - `components/TabBar.vue` — de strook bovenin (vast, `position: fixed`, dus
+>   de bestaande paginahoogtes blijven ongemoeid). Actief tabblad loopt
+>   visueel over in de kopbalk eronder; plus-knop opent een nieuw tabblad op
+>   het hoofdmenu; het laatste tabblad kun je niet sluiten. Schuift horizontaal
+>   op een telefoon en scrolt het actieve tabblad in beeld. Max 8 tabbladen.
+> - **Namen van de tabbladen komen uit `AppHeader`**: dat component kent als
+>   enige de echte paginatitel ("Acme Klimhal B.V.", "Keuring 12-03"). Het
+>   meldt die mét het tabblad-id dat bij setup is vastgelegd — een pagina in
+>   een áchtergrond-tabblad leeft door, dus zonder id zou een klantnaam die
+>   later binnenkomt op het verkeerde tabblad landen.
+> - **Eén bron voor de hoogte**: `--tabbar-h` (0 op de schermen zonder strook)
+>   en `--page-min-h` in `style.css`. De 16 pagina's gebruiken
+>   `min-height: var(--page-min-h, 100vh)` en `AppHeader` plakt op
+>   `top: var(--tabbar-h)`. Geen `!important`, geen losse getallen.
+> - `composables/onReactivated.ts` — `onReactivated` (lijsten opnieuw laden als
+>   je terugkomt op een tabblad; anders staat de klantenlijst in tabblad A
+>   eeuwig verouderd nadat je in B een klant toevoegde) en `useViewVisible`
+>   (watchers op de gedeelde route uitzetten zolang een tabblad niet in beeld
+>   is — anders veranderde de artikelpagina in het ándere tabblad mee).
+> - Tabbladen overleven een herlaad via `sessionStorage` (de strook komt terug,
+>   de staat ín de pagina's niet — dat kan niet anders), en worden gewist bij
+>   uitloggen. Losstaande schermen (inloggen, wachtwoord, publieke verificatie)
+>   krijgen `meta: { noTabs: true }`: geen strook, geen keep-alive.
+> - Geen migratie nodig; de klant-app is niet gewijzigd.
+
 ## Voortgang (bijgewerkt 2026-07-29)
 
 > **Opmerkingenveld altijd in beeld op de artikelpagina (wens Jos

@@ -209,6 +209,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { useViewVisible } from '../composables/onReactivated'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 import { GIcon, fuzzySearch } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
@@ -671,7 +672,13 @@ onMounted(async () => { await load(); loadSiblings(); loadProducts() })
 // Doorklikken naar een ander artikel houdt dezelfde route, dus Vue hergebruikt
 // dit component: zelf herladen. De buurlijst blijft staan (zelfde klant) —
 // alleen bij een andere klant wordt hij opnieuw opgehaald.
+// `visible`: de route is gedeeld over alle werk-tabbladen. Zonder deze check
+// zou een artikelpagina die in een ánder tabblad open staat meeveranderen
+// zodra je hier een artikel opent -- en dan zie je bij het terugwisselen het
+// verkeerde artikel.
+const visible = useViewVisible()
 watch(() => route.params.id, async (newId) => {
+  if (!visible.value) return
   if (typeof newId !== 'string' || newId === id.value) return
   id.value = newId
   editMode.value = false
@@ -691,7 +698,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 </script>
 
 <style scoped>
-.ad { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.ad { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .ad__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;

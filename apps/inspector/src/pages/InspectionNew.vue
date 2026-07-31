@@ -203,7 +203,7 @@ onMounted(load)
 </script>
 
 <style scoped>
-.in { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.in { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .in__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;

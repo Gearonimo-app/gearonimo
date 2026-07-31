@@ -199,7 +199,7 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.od { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.od { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .od__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.25rem;

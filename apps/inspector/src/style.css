@@ -8,6 +8,24 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji",
     "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  /* Hoogte van de werk-tabbladen-strook (TabBar). App.vue zet hem op 0 op de
+     schermen zonder strook (inloggen, publieke verificatie). Alles wat ruimte
+     voor de strook moet vrijhouden rekent hiermee -- één bron, geen losse
+     getallen door de pagina's heen. */
+  --tabbar-h: 0px;
+  /* Paginahoogte: de pagina's vullen het scherm mínus de strook. Elke
+     pagina-wortel gebruikt min-height: var(--page-min-h, 100vh), zodat er
+     geen 38px overloop (en dus een onnodige scrollbalk) ontstaat. */
+  --page-min-h: calc(100vh - var(--tabbar-h));
+}
+
+/* De strook ligt vast bovenaan; hier begint de pagina-inhoud. Padding op body
+   i.p.v. margin op elke pagina: de strook dekt deze ruimte precies af, dus er
+   is nergens een zichtbare kier. */
+body {
+  margin: 0;
+  padding-top: var(--tabbar-h);
 }
 
 html {

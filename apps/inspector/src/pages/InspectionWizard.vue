@@ -2055,7 +2055,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 </script>
 
 <style scoped>
-.iw { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.iw { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .iw__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;

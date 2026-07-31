@@ -73,6 +73,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { onReactivated } from '../composables/onReactivated'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage, useOnline } from '@gearonimo/core'
@@ -156,10 +157,13 @@ async function load() {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw laden, anders blijft de lijst hangen op wat
+// er stond toen je wegging (zie onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>
-.il { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.il { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .il__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;
