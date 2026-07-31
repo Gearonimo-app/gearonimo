@@ -132,6 +132,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { PRODUCT_TYPES } from '@gearonimo/core'
 import type { ProductFormModel } from '../composables/productForm'
 
 const props = defineProps<{
@@ -142,7 +143,9 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{ (e: 'submit', value: ProductFormModel): void; (e: 'cancel'): void }>()
 
-const productTypeKeys = ['ppe', 'no_ppe', 'rigging', 'aerial_platform', 'machine', 'other']
+// Gedeeld met de controle op de bronlijst (packages/core), zodat een
+// producttype dat hier gekozen kan worden daar niet als fout geldt.
+const productTypeKeys = PRODUCT_TYPES
 
 const form = ref<ProductFormModel>({ ...props.modelValue })
 watch(() => props.modelValue, (v) => { form.value = { ...v } })

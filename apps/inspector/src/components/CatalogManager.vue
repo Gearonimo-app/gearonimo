@@ -117,7 +117,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
-import { supabase, errorMessage, fetchAllRows } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey } from '@gearonimo/core'
 import { fuzzySearch } from '@gearonimo/ui'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
@@ -139,13 +139,6 @@ const form = ref<ProductFormModel>(emptyProductForm())
 const saving = ref(false)
 const formError = ref('')
 
-const COLUMNS = [
-  'id', 'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code',
-  'max_age_use_years', 'max_age_mfr_years', 'breaking_strength', 'working_load_limit', 'max_user_weight_kg',
-  'rope_diameter_min_mm', 'rope_diameter_max_mm', 'serial_number_location',
-  'interval_override_months', 'manual_url', 'product_page_url', 'recall_url', 'inspection_notice_url', 'notes',
-] as const
-
 async function load() {
   loading.value = true
   error.value = ''
@@ -156,7 +149,7 @@ async function load() {
     products.value = await fetchAllRows<Product>((from, to) =>
       supabase
         .from('products')
-        .select(COLUMNS.join(', '))
+        .select(CATALOG_COLUMNS.join(', '))
         .order('brand')
         .order('name')
         .range(from, to),
@@ -294,8 +287,8 @@ const exporting = computed(() => exporting_)
 function exportExcel() {
   exporting_ = true
   try {
-    const rows = products.value.map((p) => Object.fromEntries(COLUMNS.map((c) => [c, p[c as keyof Product] ?? ''])))
-    const sheet = XLSX.utils.json_to_sheet(rows, { header: [...COLUMNS] })
+    const rows = products.value.map((p) => Object.fromEntries(CATALOG_COLUMNS.map((c) => [c, p[c as keyof Product] ?? ''])))
+    const sheet = XLSX.utils.json_to_sheet(rows, { header: [...CATALOG_COLUMNS] })
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, sheet, 'Catalogus')
     XLSX.writeFile(wb, `gearonimo-catalogus-${new Date().toISOString().slice(0, 10)}.xlsx`)
@@ -314,14 +307,6 @@ interface ImportPreview {
   errors: string[]
 }
 
-/**
- * Sleutel waarop "hetzelfde product" wordt herkend: merk + naam, zonder
- * hoofdletter- of spatieverschillen. Dezelfde regel als de unieke index in
- * migratie 20260749, zodat de preview belooft wat de database afdwingt.
- */
-function productKey(brand: string, name: string): string {
-  return `${brand.trim().toLowerCase()} ${name.trim().toLowerCase()}`
-}
 
 const importPreview = ref<ImportPreview | null>(null)
 const importing = ref(false)

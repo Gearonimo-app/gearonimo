@@ -42,6 +42,10 @@ bouwsels meer. Deze regels gelden voor elke sessie.
 - **Migraties** in `supabase/migrations/JJJJMMDD_naam.sql`, idempotent;
   Jos voert ze zelf uit in de Supabase SQL-editor. Vermeld in de commit en
   in chat welke migratie nog uitgevoerd moet worden.
+- **Catalogus**: `catalog/producten.csv` is de bron, niet de database en niet
+  een Excel. Aangeleverde bestanden in `catalog/inbox/`, bijhouden met
+  `npm run catalog:ingest` / `:check` / `:export` (zie `catalog/README.md`).
+  Een lege cel in een aangeleverd bestand wist nooit een bestaande waarde.
 - **Voortgang bijhouden in `BOUWPLAN.md`** (sectie Voortgang) — dit is de
   geheugenbron tussen sessies. `DATAMODEL.md` is de veldenbron; `UX-FLOW.md`
   de ontwerpbron. Besluiten van Jos dáár vastleggen, met datum.

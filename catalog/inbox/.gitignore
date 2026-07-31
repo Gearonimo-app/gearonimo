@@ -1,0 +1,3 @@
+# De ruwe aangeleverde bestanden blijven bewaard; alleen tijdelijke
+# Excel-vergrendelingsbestanden niet.
+~\$*

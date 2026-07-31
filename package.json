@@ -9,7 +9,10 @@
     "dev:inspector": "npm run dev --workspace=apps/inspector",
     "dev:customer": "npm run dev --workspace=apps/customer",
     "test": "npm run test --workspaces --if-present",
-    "build": "npm run build --workspaces --if-present"
+    "build": "npm run build --workspaces --if-present",
+    "catalog:ingest": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/ingest.mts",
+    "catalog:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/validate.mts",
+    "catalog:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/export.mts"
   },
   "devDependencies": {
     "typescript": "^5.4.0"

@@ -5,6 +5,63 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31)
+
+> **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
+> *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.
+> ik heb nu vele bestanden en ben het overzicht kwijt"*, met de vraag of Claude
+> de database niet zelf online kan bijhouden.
+>
+> - **Online bijhouden kan niet, en dat is niet op te lossen met een truc.** De
+>   sessie komt niet bij Supabase: de netwerkpolicy van de omgeving weigert
+>   `buitfeiclivzzldfdelp.supabase.co` (`403 to CONNECT`). En de enige sleutel
+>   in de repo is de publieke anon-sleutel, die de catalogus alleen mag lezen —
+>   bewerken vereist een ingelogde curator. Wil Jos dit alsnog, dan zijn er
+>   twee dingen nodig: de host openzetten in de netwerkpolicy én een
+>   `service_role`-sleutel als secret. Die sleutel omzeilt álle RLS (dus ook
+>   klantdata), daarom niet stilzwijgend gedaan — **openstaand besluit voor
+>   Jos.**
+> - **De echte oorzaak zat elders:** er stond geen enkel catalogusbestand in
+>   git. De catalogus van 2294 producten bestond alleen als losse bestanden in
+>   een chatproject en als rijen in de live database. Vandaar ook de redenering
+>   bij de reset van 2026-07-28 ("er gaat geen echte data verloren, die staat
+>   elders ook") — er was geen plek waarvan vaststond dát het de laatste versie
+>   was. Online toegang had dat niet opgelost, alleen versneld.
+> - **`catalog/producten.csv` is nu de bron**, in git. CSV en geen Excel: een
+>   `.xlsx` is een zipbestand waar git alleen "gewijzigd" van ziet, terwijl een
+>   CSV per regel te vergelijken is — `git diff` toont dus wélk product
+>   veranderde. Excel blijft aan de uiteinden: aanleveren mag in Excel,
+>   terugleveren gebeurt in Excel. Ruwe aangeleverde bestanden blijven bewaard
+>   in `catalog/inbox/`.
+> - **Drie scripts** (`npm run catalog:ingest` / `:check` / `:export`),
+>   geschreven in TypeScript en rechtstreeks door Node gedraaid — Node 22 strip
+>   types zelf, dus geen bouwstap en geen nieuwe afhankelijkheid. De Excel gaat
+>   door SheetJS, dezelfde bibliotheek als de app, en is nagelopen met een
+>   nabootsing van `buildPreview()`: bladnaam `Catalogus`, alle 22 kolommen,
+>   0 fouten.
+> - **De regel die data redt: een lege cel wist niets.** Een aangeleverde lijst
+>   met alleen merk, naam en handleiding-link laat breuksterkte en levensduur
+>   staan. Zonder die regel veegt elk gedeeltelijk lijstje stil de rest leeg —
+>   precies hoe hier eerder werk verdween. Het rapport meldt wél hoe vaak het
+>   gebeurde. Wissen kan expliciet met `--overwrite`.
+> - **De controle houdt tegen wat eerder echt misging**: dubbelen op merk+naam
+>   (de 5699-in-plaats-van-2294-ronde), een categorie in `product_type` (de
+>   stille GB-bug: onbekende waarde → terugval op 12 maanden terwijl PBM daar
+>   op 6 moet), tekst in een getalveld (wordt bij import geruisloos `null`),
+>   ontbrekend merk/naam, en onbekende kolommen. Ruim gelaten waar het hoort:
+>   `max_user_weight_kg` als tekst, `999` als onbeperkte levensduur.
+> - **Gedeelde bron `packages/core/src/catalog.ts`** (18 tests): kolomlijst,
+>   producttypes en `productKey` stonden op drie plekken los van elkaar.
+>   `CatalogManager.vue` en `ProductForm.vue` gebruiken ze nu vandaar.
+> - **Losse NUL-byte uit `CatalogManager.vue`.** Het scheidingsteken in
+>   `productKey` stond als echte NUL-byte in het bestand, waardoor git het als
+>   binair telde en `git diff` er niets van liet zien. Nu als escape (`\0`) —
+>   gedrag identiek, bestand weer gewoon tekst en vergelijkbaar.
+> - **Nog te doen door Jos:** de meest recente bronlijst aanleveren (of
+>   exporteren uit Instellingen → Catalogus). `catalog/producten.csv` staat nu
+>   leeg op de koprij; de eerste `ingest` vult hem. Er hoeft geen migratie
+>   gedraaid te worden.
+
 ## Voortgang (bijgewerkt 2026-07-29)
 
 > **Opmerkingenveld altijd in beeld op de artikelpagina (wens Jos

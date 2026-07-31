@@ -297,6 +297,13 @@ keurbedrijf B.
 | status | text | `approved` / `pending` (wachtrij) / `rejected` / `archived` |
 | created_by | FK → users | wie hem aandroeg (klant of curator) |
 
+**De bronlijst staat in de repo (2026-07-31):** `catalog/producten.csv` is de
+bron van de catalogus — niet een Excel op de zaak en niet de database. Bijhouden
+gaat via `npm run catalog:ingest` / `:check` / `:export`; zie `catalog/README.md`
+voor de werkwijze. De kolomvolgorde en de toegestane `product_type`-waarden
+staan in `packages/core/src/catalog.ts`, gedeeld met het productformulier en met
+de import/export in de app.
+
 **`max_user_weight_kg` van int naar text (besloten 2026-07-27):** de
 bronlijst-import van 2294 producten klapte op
 `invalid input syntax for type integer: "190.5"` — 117 Miller H700-harnassen
