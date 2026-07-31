@@ -32,11 +32,17 @@ Gearonimo gaat is weer een Excel. Alleen de bewaarvorm ertussenin is CSV.
 1. **Aanleveren.** Zet het bestand in `catalog/inbox/` — Excel of CSV, hele
    lijst of een paar rijen, komma's of puntkomma's. Die bestanden blijven
    bewaard in git: nooit meer een lijst die zoek is.
-2. **Invoegen.** `npm run catalog:ingest` leest alles uit de inbox en voegt het
+2. **Eerst kijken.** `npm run catalog:vergelijk -- bestand.xlsx` verandert
+   niets en beantwoordt de vraag "zit dit er al in?": wat is nieuw, wat staat
+   er al, wat vult lege velden aan, en waar spreken bestand en bronlijst
+   elkaar tegen. Dat laatste is het belangrijkst — een tegenstrijdigheid
+   betekent dat één van de twee fout is, en dat is niets voor een script om
+   te beslissen.
+3. **Invoegen.** `npm run catalog:ingest` leest alles uit de inbox en voegt het
    samen met de bronlijst. Het rapport vertelt wat er nieuw is, wat er
    veranderde (met oude → nieuwe waarde) en wat er is overgeslagen.
-3. **Controleren.** `npm run catalog:check` kijkt de hele bronlijst na.
-4. **Terugleveren.** `npm run catalog:export` maakt de Excel voor de
+4. **Controleren.** `npm run catalog:check` kijkt de hele bronlijst na.
+5. **Terugleveren.** `npm run catalog:export` maakt de Excel voor de
    importwizard in Gearonimo (Instellingen → Catalogus → Importeren).
 
 ## De regel die data redt: een lege cel wist niets
@@ -50,7 +56,7 @@ zonder die regel veegt elk gedeeltelijk lijstje stilletjes de rest van de
 catalogus leeg. Het rapport meldt wél hoe vaak dit gebeurde, zodat het geen
 verrassing is.
 
-Wil je een waarde juist wegháálen, dan kan dat expliciet:
+Wil je een waarde juist weghálen, dan kan dat expliciet:
 
 ```bash
 node scripts/catalog/ingest.mts bestand.xlsx --overwrite
@@ -83,7 +89,8 @@ De importwizard kijkt naar `id`:
 Een `id` komt uit de database, dus die heb je alleen voor producten die al in
 Gearonimo staan (via een export uit de app). Voor puur toevoegen is
 `npm run catalog:export -- --new-only` het veiligste: die levert alleen de
-rijen zonder `id`, en raakt dus niets aan wat er al staat.
+rijen zonder `id`, en raakt dus niets aan wat er al staat. Voor het bijwerken
+van één merk: `npm run catalog:export -- --merk=Tractel`.
 
 > Let op: de import weigert een `id` die niet meer in de catalogus voorkomt.
 > Is de catalogus tussentijds leeggemaakt, gebruik dan `--new-only`.

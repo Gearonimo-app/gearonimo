@@ -12,6 +12,7 @@
     "build": "npm run build --workspaces --if-present",
     "catalog:ingest": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/ingest.mts",
     "catalog:check": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/validate.mts",
+    "catalog:vergelijk": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/vergelijk.mts",
     "catalog:export": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/catalog/export.mts"
   },
   "devDependencies": {
