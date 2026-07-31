@@ -124,6 +124,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Courant Phoenix rope sling op lengte gezet (2026-07-31).** Jos leverde een
+> schermafdruk van de productpagina van Courant met de lengtekeuze. De
+> bestaande regel `Phoenix rope sling` had geen lengte; die is hernoemd naar
+> `0.65 m` (id blijft, dus gekoppelde klantartikelen raken niet los — zelfde
+> aanpak als bij de Notch Quick Cinch) en er zijn zes lengtes bijgekomen:
+> 0.75, 0.80, 0.85, 0.90, 1.00 en 1.10 m. Alle overige gegevens gekopieerd van
+> de bestaande regel (ppe, Hitch Cords, aramide mantel, 8 mm, 10 jaar).
+> - **Aanname om na te kijken:** een artikel dat eerder aan de lengteloze regel
+>   hing, hangt nu aan de 0.65 m-variant.
+> - **Openstaand: bestaat er een 0.70 m?** Jos noemde "65, 70, 75, enz", maar in
+>   de uitgeklapte lijst op de schermafdruk staat tussen 0.65 en 0.75 niets. Niet
+>   aangemaakt — een maat verzinnen is precies hoe de Petzl `M033D`-regel ontstond.
+> - **Ook opgemerkt:** de pagina zegt *"gaine mélangée aramide/polyester"*,
+>   terwijl alle drie de Phoenix-regels `Aramid sheath` als materiaal hebben.
+>   Niet aangepast; vraagt een besluit of dat op alle Phoenix-producten
+>   verfijnd moet worden.
+
 > **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
 > *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.
 > ik heb nu vele bestanden en ben het overzicht kwijt"*, met de vraag of Claude
