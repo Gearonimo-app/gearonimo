@@ -9,6 +9,7 @@ import en from "./locales/en.json";
 import { useAuth, supabase } from "@gearonimo/core";
 import { initialLocale } from "@gearonimo/ui";
 import { ensureInspector } from "./composables/useInspections";
+import { installTabs } from "./composables/useTabs";
 
 // Dev-only: maak de client bereikbaar in de DevTools-console om de sessie te
 // inspecteren (await supabase.auth.getSession()). Wordt nooit meegebouwd in prod.
@@ -111,12 +112,17 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      // noTabs: de losstaande schermen (publieke verificatie, inloggen,
+      // wachtwoord herstellen) horen niet in de werk-tabbladen thuis --
+      // daar is geen strook en geen keep-alive.
       path: "/verify/:token",
       component: () => import("./pages/VerifyCertificate.vue"),
+      meta: { noTabs: true },
     },
     {
       path: "/login",
       component: () => import("./pages/Login.vue"),
+      meta: { noTabs: true },
     },
     {
       // Landt hier vanuit de reset-wachtwoord-e-mail; geen requiresAuth
@@ -124,6 +130,7 @@ const router = createRouter({
       // maar dit is bewust los van de normale keurmeester-gate).
       path: "/reset-password",
       component: () => import("./pages/ResetPassword.vue"),
+      meta: { noTabs: true },
     },
   ],
 });
@@ -202,5 +209,9 @@ router.onError((error, to) => {
   window.location.assign(to.fullPath);
 });
 router.afterEach(() => sessionStorage.removeItem("chunkReload"));
+
+// Werk-tabbladen: hangt zichzelf aan router.afterEach, dus vóór het mounten
+// registreren zodat ook de eerste navigatie een tabblad krijgt.
+installTabs(router);
 
 createApp(App).use(i18n).use(router).mount("#app");

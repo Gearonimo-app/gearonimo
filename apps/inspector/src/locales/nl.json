@@ -27,8 +27,7 @@
     "notInspector": "Dit account is geen keurmeester-account. Je bent waarschijnlijk ingelogd met een klant-account.",
     "goToCustomerApp": "Ga naar de klantomgeving →",
     "platformAdmin": "Je bent ingelogd als platformbeheerder. Dit account keurt niet zelf; beheer bedrijven, catalogus en hero-foto via Instellingen.",
-    "goToSettings": "Ga naar Instellingen →",
-    "reinspectionStatLabel": "artikelen te herkeuren binnen 30 dagen"
+    "goToSettings": "Ga naar Instellingen →"
   },
   "serialSearch": {
     "title": "SN zoeken / Recall",
@@ -896,5 +895,20 @@
     "empty": "Nog geen certificaten",
     "onlineOnly": "Alleen online beschikbaar",
     "openPdf": "Certificaat-PDF openen"
+  },
+  "tabs": {
+    "ariaLabel": "Open tabbladen",
+    "new": "Nieuw tabblad",
+    "close": "Tabblad sluiten",
+    "max": "Maximaal {count} tabbladen tegelijk",
+    "fallback": {
+      "home": "Hoofdmenu",
+      "customer": "Klant",
+      "article": "Artikel",
+      "inspection": "Keuring",
+      "set": "Set",
+      "import": "Certificaat importeren",
+      "page": "Pagina"
+    }
   }
 }

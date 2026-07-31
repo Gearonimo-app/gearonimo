@@ -207,6 +207,22 @@
   </div>
 </template>
 
+<script lang="ts">
+// Buiten <script setup>: dit staat één keer in de app, niet per pagina.
+//
+// De buurlijst hoort bij de klant, niet bij één artikel. Sinds de
+// werk-tabbladen krijgt élk artikel een eigen, verse component (de
+// keep-alive-sleutel bevat het pad), dus zonder deze cache zou doorlopen door
+// 278 geïmporteerde artikelen 278 keer de hele lijst ophalen -- juist tijdens
+// het koppelen, vaak op mobiel internet.
+export interface Sibling { id: string; product_id: string | null }
+let siblingCache: { customerId: string; rows: Sibling[] } | null = null
+/** Aanroepen zodra de samenstelling van de lijst verandert (afvoeren/terugzetten/wissen). */
+function clearSiblingCache() {
+  siblingCache = null
+}
+</script>
+
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
@@ -228,9 +244,10 @@ import {
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
-// Ref i.p.v. constante: de knoppen 'vorige/volgende artikel' navigeren naar
-// dezelfde route met een ander id, en dan hergebruikt Vue dit component —
-// zonder ref bleef de pagina op het oude artikel staan.
+// Eén keer uitlezen bij het opbouwen van de pagina. Blijft een ref (hij wordt
+// door de hele pagina als id.value gelezen), maar hij verandert niet meer:
+// 'vorige/volgende artikel' levert sinds de werk-tabbladen een verse component
+// per artikel -- zie de LET OP-notitie onderaan.
 const id = ref(route.params.id as string)
 const { isOnline } = useOnline()
 
@@ -363,7 +380,6 @@ const productSuggestions = computed(() => {
 // dan de traagste stap; deze knoppen houden je in de artikelpagina (wens Jos,
 // 2026-07-28). Zelfde volgorde als de artikellijst op het klantdetail
 // (created_at desc), zodat "volgende" is wat je in die lijst verwacht.
-interface Sibling { id: string; product_id: string | null }
 const siblings = ref<Sibling[]>([])
 
 const currentIndex = computed(() => siblings.value.findIndex((s) => s.id === id.value))
@@ -389,10 +405,20 @@ const nextFreeId = computed(() => {
 const freeCount = computed(() => siblings.value.filter((s) => !s.product_id).length)
 
 async function loadSiblings() {
-  const customerId = article.value?.customer_id
+  // ArticleRecord is een losse index-signature (de kolommen komen uit de
+  // veldendefinities), dus het type hier vastleggen voor de cache-sleutel.
+  const customerId = article.value?.customer_id as string | undefined
   if (!customerId || !isOnline.value) { siblings.value = []; return }
+  // Zit dit artikel al in de gecachete lijst van deze klant, dan die gebruiken:
+  // bewust dezelfde array (geen kopie), zodat het bijwerken van product_id bij
+  // koppelen/ontkoppelen ook in de cache landt en "volgend vrij artikel" blijft
+  // kloppen terwijl je doorloopt.
+  if (siblingCache?.customerId === customerId && siblingCache.rows.some((r) => r.id === id.value)) {
+    siblings.value = siblingCache.rows
+    return
+  }
   try {
-    siblings.value = await fetchAllRows<Sibling>((from, to) =>
+    const rows = await fetchAllRows<Sibling>((from, to) =>
       supabase
         .from('articles')
         .select('id, product_id')
@@ -401,7 +427,10 @@ async function loadSiblings() {
         .order('created_at', { ascending: false })
         .range(from, to),
     )
+    siblingCache = { customerId, rows }
+    siblings.value = rows
   } catch {
+    siblingCache = null
     siblings.value = [] // navigatie valt weg, de pagina zelf blijft werken
   }
 }
@@ -616,6 +645,7 @@ async function remove() {
   retiring.value = false
   showRetire.value = false
   if (err) { error.value = err.message; return }
+  clearSiblingCache() // dit artikel valt uit de buurlijst van deze klant
   back()
 }
 
@@ -630,6 +660,7 @@ async function retire() {
   retiring.value = false
   showRetire.value = false
   if (err) { error.value = err.message; return }
+  clearSiblingCache() // afgevoerd = uit de buurlijst (die filtert op retired)
   article.value = data
 }
 
@@ -646,7 +677,9 @@ async function reinstate() {
     .single()
   reinstating.value = false
   if (err) { error.value = err.message; return }
+  clearSiblingCache() // staat weer in de buurlijst
   article.value = data
+  await loadSiblings()
 }
 
 function back() {
@@ -668,21 +701,19 @@ function back() {
 
 onMounted(async () => { await load(); loadSiblings(); loadProducts() })
 
-// Doorklikken naar een ander artikel houdt dezelfde route, dus Vue hergebruikt
-// dit component: zelf herladen. De buurlijst blijft staan (zelfde klant) —
-// alleen bij een andere klant wordt hij opnieuw opgehaald.
-watch(() => route.params.id, async (newId) => {
-  if (typeof newId !== 'string' || newId === id.value) return
-  id.value = newId
-  editMode.value = false
-  relinking.value = false
-  suggestOpen.value = false
-  productQuery.value = ''
-  productListOpen.value = false
-  window.scrollTo({ top: 0 })
-  await load()
-  if (!siblings.value.some((s) => s.id === newId)) await loadSiblings()
-})
+// LET OP -- hier stond een watcher op route.params.id die de pagina zelf
+// herlaadde bij "volgende artikel". Die was nodig toen Vue dit component bij
+// een ander :id hergebruikte, maar met de werk-tabbladen mag hij NIET
+// terugkomen (2026-07-31):
+//   1. Overbodig: de keep-alive-sleutel bevat het volledige pad, dus een ander
+//      artikel geeft altijd een verse component die zichzelf via onMounted
+//      laadt (inclusief schone bewerk-/koppelstand en scroll naar boven).
+//   2. Schadelijk: de route is gedeeld door álle tabbladen. Een watcher draait
+//      vóór de DOM-update, dus de wégklikkende pagina laadde nog snel het
+//      NIEUWE artikel in en werd daarna in die staat bewaard onder haar oude
+//      sleutel -- ga je terug (of stond dit artikel in een ander tabblad), dan
+//      keek je naar het verkeerde artikel.
+// Doorklikken zelf loopt gewoon via goTo() -> router.push.
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {
@@ -691,7 +722,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 </script>
 
 <style scoped>
-.ad { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.ad { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .ad__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;

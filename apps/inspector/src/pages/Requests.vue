@@ -34,6 +34,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { onReactivated } from '../composables/onReactivated'
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
@@ -100,10 +101,13 @@ async function decline(r: RequestRow) {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw laden, anders blijft de lijst hangen op wat
+// er stond toen je wegging (zie onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>
-.rq { min-height: 100vh; background: #f0f4f8; }
+.rq { min-height: var(--page-min-h, 100vh); background: #f0f4f8; }
 .rq__header {
   background: #1a3a2a; color: #fff; display: flex; align-items: center; gap: 0.75rem;
   padding: 1rem 1.25rem; position: sticky; top: 0; z-index: 10;

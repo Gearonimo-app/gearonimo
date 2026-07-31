@@ -5,7 +5,124 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31, deel 3)
+
+> **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het
+> opstarten van de PWA kwam een blokkerig grijs plaatje in beeld. Oorzaak:
+> `public/icons/icon.jpg` — één JPEG van 320x342 die in het manifest zowel als
+> 192x192 als 512x512 stond aangemeld. Android geloofde die maten, blies de
+> bitmap op naar splashscreen-formaat, en JPEG kan geen transparantie dus er
+> zat ook een wit blok omheen. Het bestand was bovendien niet vierkant.
+> - Jos leverde het echte logo aan (groene karabiner + vinkje, woordmerk
+>   eronder, 1024x1024 JPEG op wit). Staat als bron in `tools/logo/`.
+> - `tools/logo/genereer-iconen.py` maakt daar alle maten uit: witte
+>   achtergrond weg via een vulling vanaf de rand (glansplekken op de
+>   karabiner zijn óók bijna wit, maar die zitten ingesloten en blijven staan),
+>   woordmerk eraf, vierkant uitgelijnd, opgeslagen als 256-kleuren-PNG.
+>   Pillow is de enige afhankelijkheid en staat bewust niet in `package.json`:
+>   dit is handwerk bij een nieuw logo, geen buildstap.
+> - Nieuw: `icon-192.png`, `icon-512.png` (transparant),
+>   `icon-maskable-512.png` (dekkend, beeld binnen de veilige zone — Android
+>   snijdt daar zelf de themavorm uit), `apple-touch-icon.png` (dekkend, want
+>   iOS maakt transparantie zwart) en `favicon-64.png`.
+> - **Woordmerk zit bewust niet in het app-icoon**: op 48px in de appdrawer is
+>   "Gearonimo" toch onleesbaar en het maakt de karabiner alleen kleiner. Het
+>   volledige logo mét woordmerk staat transparant klaar als
+>   `tools/logo/gearonimo-logo-transparant.png` voor gebruik ín de app
+>   (inlogscherm, certificaat) — nog nergens ingehangen.
+> - `background_color` blijft `#ffffff`. Overwogen om er merkgroen of de
+>   donkere hero-kleur van te maken, maar de tekening heeft eigen donkere
+>   contouren en witte glans en staat op groen juist vlakker.
+> - De klant-app had helemaal geen icoon; die krijgt nu favicon +
+>   apple-touch-icon (relatieve paden, want hij draait onder `/portal/`).
+>   Bewust géén manifest of service worker daar — dat is een eigen besluit.
+
+## Voortgang (bijgewerkt 2026-07-31, deel 2)
+
+> **Statkaart van het hoofdmenu af (besluit Jos 2026-07-31).** De grote kaart
+> met "artikelen te herkeuren binnen 30 dagen" stond te prominent voor wat hij
+> zei. Hij telt alleen artikelen waarvan de laatste áfgeronde keuring een
+> `next_due` binnen 30 dagen heeft — alles wat net geïmporteerd maar nog niet
+> gekeurd is telt voor niets, en wat je nú keurt krijgt een datum ruim een jaar
+> vooruit. Structureel dus nog niet gevuld.
+> - Overwogen alternatieven (klanten / certificaten / concept-keuringen als
+>   rij van drie, of tellers als badge op de tegels). **Besluit Jos: voorlopig
+>   niets terugplaatsen** — "dat past meer in de schone flow die ik voor ogen
+>   heb; we plaatsen niks terug totdat we hiervoor verzoekjes krijgen."
+> - Let op bij een eventuele terugkeer: `certificates.inspection_id` is uniek,
+>   dus "aantal certificaten" is hetzelfde getal als "aantal afgeronde
+>   keuringen ooit". En er is geen overzichtsscherm met alle certificaten, dus
+>   dat getal heeft nu nergens om naartoe te klikken.
+> - `Home.vue`: statkaart + `upcoming_reinspections_count`-aanroep weg,
+>   `home.reinspectionStatLabel` uit beide locales. De badge met openstaande
+>   aanvragen op de tegel Aanvragen blijft.
+> - Desktop-indeling herzien: zonder de kaart ernaast stonden de 6 tegels als
+>   een smal 2x3-kolommetje op 170px; nu 3x2 op 200px, gecentreerd.
+> - **De databasefunctie `upcoming_reinspections_count` blijft staan** — geen
+>   migratie, en zo is de teller later zonder werk terug te halen.
+
 ## Voortgang (bijgewerkt 2026-07-31)
+
+> **Werk-tabbladen in de keurmeester-app (wens Jos 2026-07-31):** "wanneer ik
+> een certificaat of klant open is dat het enige tabblad dat open is -- als ik
+> tijdens een keuring of het koppelen van artikelen een klant wil toevoegen of
+> naar de catalogus wil, moet ik stoppen met waar ik mee bezig was." De app
+> draait nu als een mini-browser: meerdere pagina's tegelijk open, elk met een
+> eigen levende staat.
+> - `composables/useTabs.ts` — de gedeelde bron. Houdt de tabbladen bij, hangt
+>   zichzelf aan `router.afterEach` en levert de keep-alive-sleutel
+>   `tabId|fullPath`. Die sleutel is het hart van het geheel: twee tabbladen op
+>   dezelfde pagina krijgen elk een eigen instantie, en binnen één tabblad naar
+>   een andere klant gaan geeft een vérse component (de pagina's lezen
+>   `route.params` één keer bij setup — zonder verse sleutel zou klant 2 de
+>   gegevens van klant 1 tonen). De sleutel wordt alléén in `afterEach` gezet,
+>   nooit uit (activeId, route) berekend: anders bestaat er tijdens een
+>   navigatie een tussenstand die keep-alive een wegwerp-instantie kost.
+> - `components/TabBar.vue` — de strook bovenin (vast, `position: fixed`, dus
+>   de bestaande paginahoogtes blijven ongemoeid). Actief tabblad loopt
+>   visueel over in de kopbalk eronder; plus-knop opent een nieuw tabblad op
+>   het hoofdmenu; het laatste tabblad kun je niet sluiten. Schuift horizontaal
+>   op een telefoon en scrolt het actieve tabblad in beeld. Max 8 tabbladen.
+> - **Namen van de tabbladen komen uit `AppHeader`**: dat component kent als
+>   enige de echte paginatitel ("Acme Klimhal B.V.", "Keuring 12-03"). Het
+>   meldt die mét het tabblad-id dat bij setup is vastgelegd — een pagina in
+>   een áchtergrond-tabblad leeft door, dus zonder id zou een klantnaam die
+>   later binnenkomt op het verkeerde tabblad landen.
+> - **Eén bron voor de hoogte**: `--tabbar-h` (0 op de schermen zonder strook)
+>   en `--page-min-h` in `style.css`. De 16 pagina's gebruiken
+>   `min-height: var(--page-min-h, 100vh)` en `AppHeader` plakt op
+>   `top: var(--tabbar-h)`. Geen `!important`, geen losse getallen.
+> - `composables/onReactivated.ts` — `onReactivated` (lijsten opnieuw laden als
+>   je terugkomt op een tabblad; anders staat de klantenlijst in tabblad A
+>   eeuwig verouderd nadat je in B een klant toevoegde) en `useViewVisible`
+>   (watchers op de gedeelde route uitzetten zolang een tabblad niet in beeld
+>   is — anders veranderde de artikelpagina in het ándere tabblad mee).
+> - Tabbladen overleven een herlaad via `sessionStorage` (de strook komt terug,
+>   de staat ín de pagina's niet — dat kan niet anders), en worden gewist bij
+>   uitloggen. Losstaande schermen (inloggen, wachtwoord, publieke verificatie)
+>   krijgen `meta: { noTabs: true }`: geen strook, geen keep-alive.
+> - **Correctie tijdens dezelfde sessie (vraag Jos: "kan ik tijdens artikelen
+>   koppelen nog wel naar het volgende artikel klikken?").** De watcher op
+>   `route.params.id` in `ArticleDetail.vue` is nu wég in plaats van
+>   voorwaardelijk. Hij was niet alleen overbodig (de keep-alive-sleutel bevat
+>   het pad, dus elk artikel krijgt een verse component) maar ook schadelijk:
+>   een watcher draait vóór de DOM-update, dus de wegklikkende pagina laadde
+>   nog snel het nieuwe artikel in en werd daarna in díe staat bewaard onder
+>   haar oude sleutel — terug (of een ander tabblad) toonde dan het verkeerde
+>   artikel. Doorklikken loopt gewoon via `goTo()` -> `router.push`.
+> - Daarbij hoort een **buurlijst-cache op moduleniveau** in `ArticleDetail`:
+>   zonder de watcher zou doorlopen door 278 geïmporteerde artikelen 278 keer
+>   de hele lijst ophalen. De cache deelt bewust dezelfde array met `siblings`,
+>   zodat het bijwerken van `product_id` bij koppelen/ontkoppelen meegaat en
+>   "volgend vrij artikel" blijft kloppen; hij wordt gewist bij
+>   afvoeren/terugzetten/wissen.
+> - **Geverifieerd met een tijdelijk testscherm** (7 scenario's, daarna weer
+>   verwijderd): doorklikken naar het volgende artikel toont het nieuwe artikel
+>   met schone staat, terug toont het oude artikel mét zijn eigen staat, en
+>   twee tabbladen op een artikelpagina beïnvloeden elkaar niet.
+> - Geen migratie nodig; de klant-app is niet gewijzigd.
+
+## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
 > **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
 > *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.

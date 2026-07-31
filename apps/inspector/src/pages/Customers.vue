@@ -37,6 +37,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { onReactivated } from '../composables/onReactivated'
 import { GIcon } from '@gearonimo/ui'
 import { ref, computed, onMounted, watch } from 'vue'
 import { errorMessage, useOfflineSession } from '@gearonimo/core'
@@ -83,10 +84,13 @@ async function onCustomerSaved() {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw laden, anders blijft de lijst hangen op wat
+// er stond toen je wegging (zie onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>
-.customers { min-height: 100vh; background: #f0f4f8; display: flex; flex-direction: column; }
+.customers { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .customers__header {
   background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: space-between;

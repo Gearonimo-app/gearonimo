@@ -27,8 +27,7 @@
     "notInspector": "This account is not an inspector account. You are probably signed in with a customer account.",
     "goToCustomerApp": "Go to the customer app →",
     "platformAdmin": "You are signed in as the platform admin. This account does not inspect itself; manage companies, the catalog and the hero photo via Settings.",
-    "goToSettings": "Go to Settings →",
-    "reinspectionStatLabel": "items to reinspect within 30 days"
+    "goToSettings": "Go to Settings →"
   },
   "serialSearch": {
     "title": "SN search / Recall",
@@ -896,5 +895,20 @@
     "empty": "No certificates yet",
     "onlineOnly": "Only available online",
     "openPdf": "Open certificate PDF"
+  },
+  "tabs": {
+    "ariaLabel": "Open tabs",
+    "new": "New tab",
+    "close": "Close tab",
+    "max": "Up to {count} tabs at a time",
+    "fallback": {
+      "home": "Main menu",
+      "customer": "Customer",
+      "article": "Article",
+      "inspection": "Inspection",
+      "set": "Set",
+      "import": "Import certificate",
+      "page": "Page"
+    }
   }
 }

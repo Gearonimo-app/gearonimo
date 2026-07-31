@@ -27,9 +27,10 @@
 </template>
 
 <script setup lang="ts">
-import { getCurrentInstance } from 'vue'
+import { getCurrentInstance, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { GIcon, LangToggle } from '@gearonimo/ui'
+import { currentTabId, setTabLabel } from '../composables/useTabs'
 
 const router = useRouter()
 const props = withDefaults(
@@ -43,6 +44,17 @@ const props = withDefaults(
   { showBack: true, showHome: true },
 )
 defineEmits<{ back: [] }>()
+
+// Naam van het werk-tabblad: deze kop weet als enige de echte paginatitel
+// ("Acme B.V.", "Keuring 12-03"). De id wordt hier bij setup vastgelegd -- de
+// component wordt altijd in het op dat moment actieve tabblad opgebouwd, en
+// blijft daarna (in keep-alive) bij dat tabblad horen.
+const tabId = currentTabId()
+watch(
+  () => props.title,
+  (t) => setTabLabel(tabId, t ?? null),
+  { immediate: true },
+)
 
 // Back-gedrag: gebruikt de pagina @back (eigen logica, bv. Instellingen dat
 // eerst een sub-tab sluit), dan die; anders een opgegeven backTo-route;
@@ -72,7 +84,9 @@ function onBack() {
   box-sizing: border-box;
   color: #fff;
   position: sticky;
-  top: 0;
+  /* Onder de vaste tabbladen-strook blijven plakken (--tabbar-h is 0 op de
+     schermen zonder strook). */
+  top: var(--tabbar-h, 0px);
   z-index: 10;
   /* Donkergroene basis; de hero-strook (indien ingesteld) komt erbovenop met
      de instelbare donkering. Zonder --hero-strip is deze background-image

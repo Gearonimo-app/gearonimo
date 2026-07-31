@@ -36,6 +36,19 @@ eruit.
    statusindicator ("alles gesynchroniseerd" / "3 keuringen wachten op
    upload") en een handmatige sync-knop. Nooit blokkerende foutmeldingen
    omdat er geen bereik is.
+9. **Werk mag blijven staan (besloten 2026-07-31).** De keurmeester-app
+   werkt met werk-tabbladen, als een mini-browser: een lopende keuring, een
+   klantpagina en de catalogus kunnen tegelijk open staan. Iets tussendoor
+   opzoeken of toevoegen kost nooit meer je huidige scherm. De strook bovenin
+   toont de open tabbladen; de plus-knop opent een nieuw tabblad op het
+   hoofdmenu. Binnen een tabblad navigeer je gewoon door (browser-gedrag) --
+   een nieuw tabblad is altijd een bewuste keuze.
+10. **Geen cijfers op het hoofdmenu zonder aanleiding (besloten
+    2026-07-31).** Het hoofdmenu is een schone keuze uit taken: zes tegels,
+    verder niets. Tellers en statistieken komen er pas op als er vanuit de
+    praktijk om gevraagd wordt, en dan bij voorkeur als badge op de tegel waar
+    het werk ook echt zit (zoals Aanvragen dat al doet) -- niet als losse
+    kaart die om aandacht vraagt.
 
 ## 2. Keurmeester-app — kernflow "een keuringsdag"
 

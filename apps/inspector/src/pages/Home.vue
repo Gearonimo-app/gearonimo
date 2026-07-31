@@ -27,19 +27,16 @@
          klant-account krijgt hierboven al de melding + link naar /portal/. -->
     <template v-if="!notInspector">
       <div class="home__body">
-        <!-- Statkaart links: het aantal artikelen dat binnen 30 dagen
-             herkeurd moet worden. Bewust altijd het getal (ook 0) i.p.v. een
-             "alles op orde"-boodschap -- 0 verlopende keuringen zegt niets
-             over of het bestand op orde is (besluit Jos 2026-07-14). -->
-        <div class="home__stat" :class="{ 'home__stat--attention': upcomingReinspections > 0 }">
-          <span class="home__stat-value">{{ upcomingReinspections }}</span>
-          <span class="home__stat-label">{{ $t('home.reinspectionStatLabel') }}</span>
-        </div>
+        <!-- Alleen tegels. Eén consistente glas-stijl i.p.v. losse
+             regenboogkleuren -- het icoon onderscheidt de tegels, niet de
+             kleur. Geen aparte zoekbalk: die was dubbelop met Klanten en SN
+             zoeken/Recall (UX-FLOW §1.1).
 
-        <!-- Tegels rechts: 2 naast elkaar, 3 onder elkaar. Eén consistente
-             glas-stijl i.p.v. losse regenboogkleuren -- het icoon
-             onderscheidt de tegels, niet de kleur. Geen aparte zoekbalk: die
-             was dubbelop met Klanten en SN zoeken/Recall (UX-FLOW §1.1). -->
+             Hier stond tot 2026-07-31 een grote statkaart met het aantal
+             herkeuringen binnen 30 dagen. Besluit Jos: weg, en er komt niets
+             voor terug tot er vanuit de praktijk om gevraagd wordt -- het
+             hoofdmenu blijft een schone keuze uit taken. De telfunctie
+             upcoming_reinspections_count blijft in de database staan. -->
         <nav class="home__grid">
           <button
             v-for="tile in tiles"
@@ -63,16 +60,20 @@ import { useRouter } from 'vue-router'
 import { useAuth, supabase } from '@gearonimo/core'
 import { GIcon, LangToggle } from '@gearonimo/ui'
 import { ensureInspector } from '../composables/useInspections'
+import { onReactivated } from '../composables/onReactivated'
+import { resetTabs } from '../composables/useTabs'
 
 const router = useRouter()
 const { signOut, user } = useAuth()
 const notInspector = ref(false)
 const isPlatformAdmin = ref(false)
 const pendingRequests = ref(0)
-const upcomingReinspections = ref(0)
 
 async function onSignOut() {
   await signOut()
+  // Openstaande werk-tabbladen zijn van de vórige gebruiker: die mogen niet
+  // blijven staan als er straks iemand anders inlogt op dit toestel.
+  resetTabs()
   router.push('/login')
 }
 
@@ -105,8 +106,7 @@ async function loadHeroPhoto() {
 // Stil checken of dit account wel een keurmeester is: sinds de klant-app
 // (zelfde domein, gedeelde sessie) kan een klant-account hier belanden en
 // zag dan alleen lege lijsten. ensureInspector werpt dan een fout.
-onMounted(async () => {
-  loadHeroPhoto()
+async function load() {
   try {
     await ensureInspector()
   } catch {
@@ -120,10 +120,16 @@ onMounted(async () => {
   // Openstaande keuring-aanvragen (leadmotor): tel ze voor de badge op de tegel.
   const { data } = await supabase.rpc('company_inspection_requests')
   pendingRequests.value = (data ?? []).length
+}
 
-  const { data: count } = await supabase.rpc('upcoming_reinspections_count', { days_ahead: 30 })
-  upcomingReinspections.value = count ?? 0
+onMounted(() => {
+  loadHeroPhoto()
+  load()
 })
+// Het hoofdmenu blijft als tabblad open staan terwijl je in een ander tabblad
+// werkt; de badge met openstaande aanvragen moet dan wel bijwerken zodra je
+// terugkomt.
+onReactivated(load)
 
 const tiles = [
   { key: 'inspections',      icon: 'inspections', label: 'home.tiles.inspections',  route: '/inspections' },
@@ -141,7 +147,7 @@ function navigate(route: string | null) {
 
 <style scoped>
 .home {
-  min-height: 100vh;
+  min-height: var(--page-min-h, 100vh);
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -224,8 +230,7 @@ function navigate(route: string | null) {
 
 .home__body { flex: 1; display: flex; flex-direction: column; padding: 1.25rem; gap: 1.25rem; }
 
-/* Gedeelde glas-stijl voor statkaart én tegels. */
-.home__stat,
+/* Glas-stijl voor de tegels. */
 .home__tile {
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -234,19 +239,6 @@ function navigate(route: string | null) {
   box-shadow: 0 4px 16px rgba(0,0,0,0.18);
   color: #fff;
 }
-
-/* Statkaart: groot getal + label. Amber randje zodra er iets te herkeuren is
-   (ingetogen, geen rood geschreeuw -- UX-FLOW §8). */
-.home__stat {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 1.5rem;
-}
-.home__stat--attention { border-color: #f59e0b; }
-.home__stat-value { font-size: 3rem; font-weight: 800; line-height: 1; }
-.home__stat-label { font-size: 0.95rem; font-weight: 600; opacity: 0.95; }
 
 /* Tegels: vierkant (1:1) i.p.v. platte balken. */
 .home__grid {
@@ -281,27 +273,22 @@ function navigate(route: string | null) {
 .home__tile-icon { width: 34px; height: 34px; }
 .home__tile-label { font-size: 0.9rem; text-align: center; line-height: 1.2; }
 
-/* Desktop: grote titel, statkaart links van het midden (vierkant, iets
-   groter dan de tegels), 6 tegels rechts als 2 x 3. Als groep gecentreerd. */
+/* Desktop: grote titel, de 6 tegels als 3 x 2 midden op het scherm. Zonder de
+   statkaart ernaast zou 2 x 3 op 170px als een smal kolommetje links van het
+   niets staan; 3 x 2 op 200px vult de breedte en houdt de groep gecentreerd. */
 @media (min-width: 900px) {
   .home__app-name { font-size: 2.8rem; }
   .home__body {
-    flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 2rem;
     padding: 2rem 1.5rem 3rem;
   }
-  .home__stat {
-    width: 280px;
-    height: 280px;
-    flex: 0 0 auto;
-  }
-  .home__stat-value { font-size: 4rem; }
   .home__grid {
-    grid-template-columns: repeat(2, 170px);
-    grid-auto-rows: 170px;
-    flex: 0 0 auto;
+    grid-template-columns: repeat(3, 200px);
+    grid-auto-rows: 200px;
+    gap: 1.25rem;
   }
+  .home__tile-icon { width: 40px; height: 40px; }
+  .home__tile-label { font-size: 1rem; }
 }
 </style>

@@ -38,9 +38,21 @@ export default defineConfig({
         display: "standalone",
         background_color: "#ffffff",
         theme_color: "#16a34a",
+        // Deze maten moeten kloppen met de echte pixelmaat van het bestand:
+        // stond hier eerder één 320x342-JPEG voor allebei, waardoor Android
+        // hem naar splashscreen-formaat opblies en hij blokkerig in beeld
+        // kwam. De maskable-variant is de enige met een dekkende achtergrond;
+        // die snijdt Android zelf bij tot de vorm van het systeemthema.
+        // Genereren met tools/logo/genereer-iconen.py.
         icons: [
-          { src: "/icons/icon.jpg", sizes: "192x192", type: "image/jpeg" },
-          { src: "/icons/icon.jpg", sizes: "512x512", type: "image/jpeg" },
+          { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          {
+            src: "/icons/icon-maskable-512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
     }),
