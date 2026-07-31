@@ -5,6 +5,30 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31, deel 2)
+
+> **Statkaart van het hoofdmenu af (besluit Jos 2026-07-31).** De grote kaart
+> met "artikelen te herkeuren binnen 30 dagen" stond te prominent voor wat hij
+> zei. Hij telt alleen artikelen waarvan de laatste áfgeronde keuring een
+> `next_due` binnen 30 dagen heeft — alles wat net geïmporteerd maar nog niet
+> gekeurd is telt voor niets, en wat je nú keurt krijgt een datum ruim een jaar
+> vooruit. Structureel dus nog niet gevuld.
+> - Overwogen alternatieven (klanten / certificaten / concept-keuringen als
+>   rij van drie, of tellers als badge op de tegels). **Besluit Jos: voorlopig
+>   niets terugplaatsen** — "dat past meer in de schone flow die ik voor ogen
+>   heb; we plaatsen niks terug totdat we hiervoor verzoekjes krijgen."
+> - Let op bij een eventuele terugkeer: `certificates.inspection_id` is uniek,
+>   dus "aantal certificaten" is hetzelfde getal als "aantal afgeronde
+>   keuringen ooit". En er is geen overzichtsscherm met alle certificaten, dus
+>   dat getal heeft nu nergens om naartoe te klikken.
+> - `Home.vue`: statkaart + `upcoming_reinspections_count`-aanroep weg,
+>   `home.reinspectionStatLabel` uit beide locales. De badge met openstaande
+>   aanvragen op de tegel Aanvragen blijft.
+> - Desktop-indeling herzien: zonder de kaart ernaast stonden de 6 tegels als
+>   een smal 2x3-kolommetje op 170px; nu 3x2 op 200px, gecentreerd.
+> - **De databasefunctie `upcoming_reinspections_count` blijft staan** — geen
+>   migratie, en zo is de teller later zonder werk terug te halen.
+
 ## Voortgang (bijgewerkt 2026-07-31)
 
 > **Werk-tabbladen in de keurmeester-app (wens Jos 2026-07-31):** "wanneer ik

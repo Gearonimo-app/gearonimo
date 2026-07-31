@@ -43,6 +43,12 @@ eruit.
    toont de open tabbladen; de plus-knop opent een nieuw tabblad op het
    hoofdmenu. Binnen een tabblad navigeer je gewoon door (browser-gedrag) --
    een nieuw tabblad is altijd een bewuste keuze.
+10. **Geen cijfers op het hoofdmenu zonder aanleiding (besloten
+    2026-07-31).** Het hoofdmenu is een schone keuze uit taken: zes tegels,
+    verder niets. Tellers en statistieken komen er pas op als er vanuit de
+    praktijk om gevraagd wordt, en dan bij voorkeur als badge op de tegel waar
+    het werk ook echt zit (zoals Aanvragen dat al doet) -- niet als losse
+    kaart die om aandacht vraagt.
 
 ## 2. Keurmeester-app — kernflow "een keuringsdag"
 
