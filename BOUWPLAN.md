@@ -139,6 +139,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Materiaal op alle 10 Phoenix-producten** naar
 >   `Aramid/polyester blended sheath`, conform de fabrikantstekst *"gaine
 >   mélangée aramide/polyester"*. Stond overal als `Aramid sheath`.
+> - **⚠ De lengtes zitten mogelijk aan het verkeerde product.** Twee nieuwe
+>   schermafdrukken (2026-07-31, 20:00) tonen de lengtekeuze 0.65–1.10 op de
+>   pagina **"PHOENIX 10MM HITCH CORD", REF `MPKNL65C`** — dus op de 10 mm
+>   *hitch cord*, terwijl de acht lengteregels hier onder `Phoenix rope sling`
+>   met 8 mm staan. De tweede afdruk toont de lijst bovenaan (0.65, 0.70, 0.75,
+>   0.80, 0.85, 0.90) en bevestigt dat 0.65 de kortste is.
+>   Vermoedelijke werkelijkheid: de Phoenix bestaat in 8 én 10 mm, elk kant en
+>   klaar in acht lengtes — dus 16 regels, benoemd per diameter. Niet
+>   omgebouwd zonder bevestiging van Jos; het verschil tussen "rope sling" en
+>   "hitch cord" en welke diameters welke lengtes hebben is productkennis.
+> - **⚠ Geen artikelnummers.** `manufacturer_code` is leeg op alle tien
+>   Phoenix-regels. De enige bekende code is `MPKNL65C` (10 mm, 0.65 m) en die
+>   bevat "65", dus hij verschilt per lengte — één code op een verzamelregel
+>   zou dus sowieso fout zijn. Per lengte én per diameter aanleveren.
 > - **⚠ Openstaand: bestaat de rope sling ook in 10 mm?** De acht lengtes zijn
 >   allemaal 8 mm, want dat stond op de bestaande regel en de schermafdruk toonde
 >   alleen een lengtekeuze, geen diameterkeuze. De *hitch cord* (op de meter)
