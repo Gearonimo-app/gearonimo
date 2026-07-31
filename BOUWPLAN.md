@@ -140,9 +140,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   stond in `breaking_strength`, maar SWL is een werklast — verplaatst naar
 >   `working_load_limit`. `breaking_strength` bewust leeggelaten: de fabrikant
 >   geeft alleen een SWL bij verhouding 7:1 en drukt geen breuksterkte af.
->   Uitrekenen (7 × SWL = 105/175 kg) zou een getal opleveren dat nergens op het
->   product staat — **wil Jos dat toch, dan alsnog invullen.** Maten, lengtes en
->   gewicht staan in `notes`.
+>   Uitrekenen (7 × SWL) levert een getal op dat nergens op het product staat;
+>   **Jos wilde het er toch in** (2026-07-31), dus ingevuld als
+>   `105 kg (berekend: 7 x SWL)` en `175 kg (berekend: 7 x SWL)` — de herkomst
+>   staat in de waarde zelf, zodat een keurmeester het niet aanziet voor een
+>   afgedrukte fabrikantswaarde. Maten, lengtes en gewicht staan in `notes`.
 > - **`--overwrite` kan de `id` niet meer wissen.** Bij deze correctie bleek dat
 >   een aangeleverd bestand zonder id-kolom met `--overwrite` de bestaande id zou
 >   leegschrijven — daarmee is een product zijn koppeling met de database kwijt
