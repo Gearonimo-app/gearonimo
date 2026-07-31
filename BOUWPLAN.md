@@ -100,15 +100,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   apart in (mét EN 1891 A), de oude 12.8mm-regel staat er nog naast zonder
 >   norm. Dat is dus een dubbeling, geen correctie. Laten staan tot Jos
 >   bevestigt dat de 12.8 weg mag.
-> - **Courant Hulk:** staat nog als `ppe` / `Descenders`, terwijl de notitie
->   zegt dat het een lowering bollard voor takken is. Vergelijkbare producten in
->   de lijst staan als `rigging` / "rigging bollard (non-PPE)". Correctie nog
->   niet doorgevoerd — vraagt bevestiging van het producttype.
-> - **Tree Runner Abseil Figure-of-eight:** geen EN-norm gevonden, mogelijk
->   `no_ppe`. Vraag staat open.
-> - **Notch Quick Cinch Chainsaw Lanyard:** moet volgens de notitie gesplitst
->   worden in 17mm en 25mm. Die twee rijen zijn nog niet aangeleverd; de oude
->   rij staat er nog.
+> - **Besloten door Jos, doorgevoerd:** Courant Hulk → `rigging` /
+>   "Lowering Bollards"; Tree Runner Abseil Figure-of-eight → `no_ppe`
+>   ("hulpmiddel, geen ppe"); Notch Quick Cinch gesplitst in 17mm en 25mm.
+>   Bij die splitsing is de **bestaande rij hernoemd naar 17mm** in plaats van
+>   verwijderd-en-opnieuw-aangemaakt, zodat de `id` blijft en gekoppelde
+>   klantartikelen niet losraken. Gevolg: een artikel dat eerder aan de
+>   ongesplitste rij hing, hangt nu aan de 17mm-variant — **nakijken of dat
+>   voor bestaande koppelingen klopt.** De breuksterkte staat op beide rijen nog
+>   als "15-25 kg SWL (per width)"; per variant uitsplitsen is nog te doen.
+> - **⚠ De importwizard overschrijft bij een update álle kolommen.** Bij een rij
+>   mét `id` bouwt `buildPreview()` een volledige `ProductFormModel` op uit het
+>   bestand (ontbrekende kolommen worden leeg) en schrijft die met `update` weg.
+>   De "lege cel wist niets"-regel geldt dus alleen in de repo, niet in de app:
+>   een besluit- of deelbestand naar de wizard sturen maakt de rest van het
+>   product leeg. Altijd exporteren met `catalog:export` (leest uit de bronlijst,
+>   levert alle kolommen). Nieuw: `--ids=` voor een paar gewijzigde producten
+>   van verschillende merken.
 > - **Verwijderen uit de bronlijst verwijdert niets in Gearonimo.** De import
 >   voegt toe en werkt bij, meer niet. Die 4 producten moeten in de app zelf weg
 >   via Catalogus → bewerken → Product verwijderen (`delete_product`, migratie

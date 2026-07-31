@@ -95,6 +95,16 @@ van één merk: `npm run catalog:export -- --merk=Tractel`.
 > Let op: de import weigert een `id` die niet meer in de catalogus voorkomt.
 > Is de catalogus tussentijds leeggemaakt, gebruik dan `--new-only`.
 
+**Stuur nooit een besluit- of deelbestand naar de importwizard.** De regel "een
+lege cel wist niets" geldt alleen hier in de repo. De wizard in de app bouwt bij
+een rij mét `id` een volledige rij op uit het bestand en schrijft die met
+`update` weg — een kolom die in het bestand ontbreekt wordt dus leeg in de
+database. Exporteer daarom altijd met `catalog:export`; dat leest uit de
+bronlijst en levert altijd alle kolommen.
+
+Voor een paar gewijzigde producten van verschillende merken:
+`npm run catalog:export -- --ids=<id>,<id>`.
+
 ## Producten weghalen
 
 ```bash

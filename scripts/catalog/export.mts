@@ -4,6 +4,7 @@
  *   node scripts/catalog/export.mts                 # hele bronlijst
  *   node scripts/catalog/export.mts --new-only      # alleen de nieuwe producten
  *   node scripts/catalog/export.mts --merk=Tractel  # alleen dat merk
+ *   node scripts/catalog/export.mts --ids=a,b,c     # precies deze producten
  *
  * `--merk` is er omdat de import elke rij mét id apart bijwerkt, één verzoek
  * per rij. De hele lijst terugsturen voor tien gewijzigde producten betekent
@@ -12,6 +13,12 @@
  *
  * Zelfde bibliotheek, zelfde kolommen en zelfde bladnaam als de export in de
  * app, zodat dit bestand gegarandeerd door de importwizard komt.
+ *
+ * ⚠ Exporteer altijd hiermee, en stuur nooit een besluit- of deelbestand naar
+ * de importwizard. Bij een rij mét id bouwt die wizard een volledige rij op uit
+ * het bestand en schrijft die met `update` weg — kolommen die in het bestand
+ * ontbreken worden dus leeg in de database. De "lege cel wist niets"-regel geldt
+ * alleen hier in de repo, niet in de app.
  *
  * Hoe de import het leest (`CatalogManager.vue`):
  *   - rij mét id  → dat product wordt bijgewerkt
@@ -39,9 +46,27 @@ const brand = process.argv
   .trim()
   .toLowerCase();
 
+// `--ids=` voor "precies deze producten heb ik aangepast". Een merkfilter is
+// dan te grof: drie gewijzigde producten van drie merken zou anders honderden
+// overbodige bijwerkingen betekenen.
+const ids = process.argv
+  .find((a) => a.startsWith("--ids="))
+  ?.slice(6)
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+
 const all = readSource();
 let rows = newOnly ? all.filter((r) => !r.id) : all;
 if (brand) rows = rows.filter((r) => r.brand.trim().toLowerCase() === brand);
+if (ids) {
+  const wanted = new Set(ids);
+  rows = rows.filter((r) => wanted.has(r.id));
+  const missing = ids.filter((id) => !rows.some((r) => r.id === id));
+  if (missing.length > 0) {
+    console.log(`\nNiet gevonden in de bronlijst: ${missing.join(", ")}`);
+  }
+}
 
 if (rows.length === 0) {
   console.log(
@@ -75,7 +100,7 @@ mkdirSync(EXPORT_DIR, { recursive: true });
 const date = new Date().toISOString().slice(0, 10);
 const file = resolve(
   EXPORT_DIR,
-  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}${brand ? `-${brand.replace(/\W+/g, "-")}` : ""}.xlsx`
+  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}${brand ? `-${brand.replace(/\W+/g, "-")}` : ""}${ids ? "-selectie" : ""}.xlsx`
 );
 writeFileSync(file, XLSX.write(wb, { type: "buffer", bookType: "xlsx" }));
 
