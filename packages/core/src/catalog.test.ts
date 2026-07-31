@@ -115,6 +115,13 @@ describe("validateCatalog", () => {
     expect(report.errors[0].message).toContain("groter dan de maximale");
   });
 
+  it("valt niet over een minimum zonder maximum", () => {
+    // `Number("")` is 0, niet NaN: zonder aparte check op de lege cel gold
+    // EDELRID OMBILIX ADJUST (min 12, geen max) als omgekeerd bereik.
+    const report = validateCatalog([row({ rope_diameter_min_mm: "12" })]);
+    expect(report.errors).toEqual([]);
+  });
+
   it("telt rijen met en zonder id, want dat bepaalt bijwerken of toevoegen", () => {
     const report = validateCatalog([
       row({ id: "abc" }),

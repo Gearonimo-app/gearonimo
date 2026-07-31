@@ -245,9 +245,14 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
       }
     }
 
-    const min = Number((row.rope_diameter_min_mm ?? "").trim());
-    const max = Number((row.rope_diameter_max_mm ?? "").trim());
-    if (Number.isFinite(min) && Number.isFinite(max) && min > max) {
+    // Let op de lege-tekst-val: `Number("")` is 0, niet NaN. Zonder de check
+    // op een lege cel geldt een product met alleen een minimum (12 mm) als
+    // "minimum groter dan maximum", omdat het lege maximum als 0 telt.
+    const minRaw = (row.rope_diameter_min_mm ?? "").trim();
+    const maxRaw = (row.rope_diameter_max_mm ?? "").trim();
+    const min = Number(minRaw);
+    const max = Number(maxRaw);
+    if (minRaw && maxRaw && Number.isFinite(min) && Number.isFinite(max) && min > max) {
       add(
         errors,
         `minimale touwdiameter (${min}) is groter dan de maximale (${max})`,
