@@ -1,8 +1,14 @@
 /**
  * Schrijf de bronlijst weg als Excel voor de import in Gearonimo.
  *
- *   node scripts/catalog/export.mts              # hele bronlijst
- *   node scripts/catalog/export.mts --new-only   # alleen de nieuwe producten
+ *   node scripts/catalog/export.mts                 # hele bronlijst
+ *   node scripts/catalog/export.mts --new-only      # alleen de nieuwe producten
+ *   node scripts/catalog/export.mts --merk=Tractel  # alleen dat merk
+ *
+ * `--merk` is er omdat de import elke rij mét id apart bijwerkt, één verzoek
+ * per rij. De hele lijst terugsturen voor tien gewijzigde producten betekent
+ * dus ruim 2300 overbodige verzoeken; met een merkfilter blijft het bij wat
+ * er echt veranderd is.
  *
  * Zelfde bibliotheek, zelfde kolommen en zelfde bladnaam als de export in de
  * app, zodat dit bestand gegarandeerd door de importwizard komt.
@@ -27,15 +33,23 @@ import {
 import { readSource, EXPORT_DIR, REPO_ROOT } from "./lib/bronlijst.mts";
 
 const newOnly = process.argv.includes("--new-only");
+const brand = process.argv
+  .find((a) => a.startsWith("--merk="))
+  ?.slice(7)
+  .trim()
+  .toLowerCase();
 
 const all = readSource();
-const rows = newOnly ? all.filter((r) => !r.id) : all;
+let rows = newOnly ? all.filter((r) => !r.id) : all;
+if (brand) rows = rows.filter((r) => r.brand.trim().toLowerCase() === brand);
 
 if (rows.length === 0) {
   console.log(
-    newOnly
-      ? "\nGeen producten zonder id — er is niets nieuws om te importeren.\n"
-      : "\nDe bronlijst is leeg.\n"
+    brand
+      ? `\nGeen producten van merk "${brand}"${newOnly ? " zonder id" : ""}.\n`
+      : newOnly
+        ? "\nGeen producten zonder id — er is niets nieuws om te importeren.\n"
+        : "\nDe bronlijst is leeg.\n"
   );
   process.exit(0);
 }
@@ -61,7 +75,7 @@ mkdirSync(EXPORT_DIR, { recursive: true });
 const date = new Date().toISOString().slice(0, 10);
 const file = resolve(
   EXPORT_DIR,
-  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}.xlsx`
+  `gearonimo-catalogus-${date}${newOnly ? "-nieuw" : ""}${brand ? `-${brand.replace(/\W+/g, "-")}` : ""}.xlsx`
 );
 writeFileSync(file, XLSX.write(wb, { type: "buffer", bookType: "xlsx" }));
 

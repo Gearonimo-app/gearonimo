@@ -57,10 +57,31 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   `productKey` stond als echte NUL-byte in het bestand, waardoor git het als
 >   binair telde en `git diff` er niets van liet zien. Nu als escape (`\0`) —
 >   gedrag identiek, bestand weer gewoon tekst en vergelijkbaar.
-> - **Nog te doen door Jos:** de meest recente bronlijst aanleveren (of
->   exporteren uit Instellingen → Catalogus). `catalog/producten.csv` staat nu
->   leeg op de koprij; de eerste `ingest` vult hem. Er hoeft geen migratie
->   gedraaid te worden.
+> **Besluiten Jos 2026-07-31, tweede ronde (na het aanleveren van vier
+> bestanden):**
+> - **Tractel: 20 jaar vanaf productiedatum.** 84 van de 94 stonden al zo; de
+>   10 lege zijn bijgezet. Het aangeleverde Tractel-bestand had daar `999`
+>   (onbeperkt) staan — dat is dus níét overgenomen.
+> - **ART voorlopig met rust laten.** Jos heeft mailcontact met ART; die hebben
+>   al enkele PDF's op hun site aangepast en wachten zelf nog op iets dat er nog
+>   niet is. Pas aanpassen als ART klaar is, *"anders moeten we over 3 weken
+>   weer alles aanpassen"*. Dit raakt de 9 ART-producten met lopende tekst in
+>   `inspection_notice_url` (o.a. "Textile parts must be replaced after 5
+>   years…" en de `FLAG:`-notities bij BlackBird, waaronder een actieve
+>   ART-veiligheidsmelding van oktober 2025 over de bearing pin). **Niet
+>   opruimen tot Jos het sein geeft** — het ziet eruit als een fout, maar het is
+>   een bewuste wachtstand.
+> - **Openstaand: Skylotec MILAN.** Die heeft óók lopende tekst in
+>   `inspection_notice_url` ("Every 5 years: Level 2 service by authorised
+>   Skylotec partner required…") en viel bij de bespreking onder "allemaal van
+>   ART", maar is dat niet. Bewust laten staan: het veld toont een vlag aan de
+>   keurmeester tijdens de keuring, dus verplaatsen naar `notes` maakt een echte
+>   service-eis mínder zichtbaar in plaats van meer. Vraagt een besluit.
+>
+> - **Bronlijst gevuld, geen migratie nodig.** `catalog/producten.csv` staat op
+>   2365 producten en nul fouten: de live export uit Gearonimo (2308, mét id's)
+>   als basis, plus 57 nieuwe Liros/Husqvarna-producten. Nog te importeren door
+>   Jos: `-nieuw.xlsx` (57 toevoegingen) en `-tractel.xlsx` (94 bijwerkingen).
 
 ## Voortgang (bijgewerkt 2026-07-29)
 
