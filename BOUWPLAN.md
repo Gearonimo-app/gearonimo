@@ -57,6 +57,28 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   `productKey` stond als echte NUL-byte in het bestand, waardoor git het als
 >   binair telde en `git diff` er niets van liet zien. Nu als escape (`\0`) —
 >   gedrag identiek, bestand weer gewoon tekst en vergelijkbaar.
+> **CT-connectoren binnen (2026-07-31).** Vraag was of Claude ze online kon
+> opzoeken. Dat lukte niet: de omgeving laat geen uitgaand verkeer toe —
+> `climbingtechnology.com`, `grube.eu`, `petzl.com` en zelfs Wikipedia geven
+> `403 to CONNECT`, ook op de PDF-link die Jos daarna stuurde. Alleen de
+> zoekfunctie werkt (server-side), en die leverde bewijs van haar eigen
+> onbetrouwbaarheid: Q-Link en Hook It kregen woordelijk dezelfde omschrijving,
+> terwijl het twee verschillende karabiners zijn.
+> - Jos leverde daarop `CT_producten.csv` aan: **223 rijen, 0 fouten, 0
+>   waarschuwingen** — 72 connectoren, 52 lanyards, 37 harnassen, 21
+>   touwklemmen, 14 katrollen, 12 helmen, 9 valstoppers, 6 afdaalapparaten.
+>   189 waren nieuw (de 34 harnassen van eerder stonden er al identiek in).
+> - **De zoeklijst bleek precies zo onbruikbaar als gevreesd.** Zoekresultaten
+>   gaven "Pillar" en "Axis HMS"; in werkelijkheid zijn dat `PILLAR PRO SG`,
+>   `PILLAR PRO SGL`, `AXIS HMS SG`, `AXIS HMS SGL` — het achtervoegsel is het
+>   sluitingstype (SG/TG), juist wat een keurmeester onderscheidt. Eén "Pillar"
+>   uit de zoeklijst = 12 echte producten. Twee gezochte namen ("Support",
+>   "Large Steel TGB ANSI") komen in de fabrikantslijst niet voor.
+> - **Les:** zoekresultaten zijn bruikbaar om te weten *dát* er iets is, nooit
+>   om te weten *wat* het is. Voor catalogusdata blijft de fabrikantsbron nodig.
+>   Wil Jos dit wél zelf laten ophalen, dan moet de netwerkpolicy van de
+>   omgeving fabrikantensites toelaten — openstaand.
+>
 > **Besluiten Jos 2026-07-31, tweede ronde (na het aanleveren van vier
 > bestanden):**
 > - **Tractel: 20 jaar vanaf productiedatum.** 84 van de 94 stonden al zo; de

@@ -1,34 +1,27 @@
-# Climbing Technology — connectoren, onderzoekslijst (NIET ingevoegd)
+# Climbing Technology — connectoren (afgehandeld 2026-07-31)
 
-Status: **niet in de bronlijst opgenomen.** Dit is een vertrekpunt, geen data.
+**Afgerond.** Jos leverde `CT_producten.csv` aan met 223 rijen, waaronder 72
+connectoren. Die staan nu in de bronlijst; het bestand staat ernaast als
+`2026-07-31_climbing-technology-uitgebreid.csv`.
 
-## Waarom niet ingevoegd
+## Wat hier eerst stond, en waarom het weg is
 
-De omgeving waarin Claude draait laat geen enkel uitgaand verkeer toe: zowel
-`climbingtechnology.com` als `grube.eu`, `petzl.com` en zelfs Wikipedia geven
-`403 to CONNECT` op de netwerkpolicy. Alleen de zoekfunctie werkt, en die draait
-server-side — die levert zoekresultaten en een samenvatting, geen pagina die te
-controleren valt.
+Deze map bevatte een onderzoekslijst met 14 connectorfamilies, samengesteld uit
+zoekresultaten omdat de omgeving geen uitgaand verkeer toelaat
+(`climbingtechnology.com` gaf `403 to CONNECT`, net als elke andere externe
+site — ook de PDF-link die Jos later stuurde).
 
-De productnamen en URL's hieronder komen rechtstreeks uit zoekresultaten en zijn
-daarmee redelijk betrouwbaar. De technische gegevens zijn dat **niet**: de
-samenvatting gaf voor Q-Link en Hook It woordelijk dezelfde omschrijving
-("hot-forged light-alloy oval carabiner with reduced dimensions, triplex gate en
-special anodized hard anti-wear"), terwijl dat twee verschillende producten zijn.
-Dat is de samenvatter die tekst hergebruikt, geen echte productdata.
+Die lijst is vervangen door de echte data en verwijderd, want hij was
+misleidend precies zoals verwacht:
 
-Breuksterkte en EN-norm bepalen wat een keurmeester goedkeurt. Precies dit soort
-data leverde eerder de Petzl `M033D`-regel op: een product dat niet bestond, met
-23 kN en "EN 12275 H" erbij, dat een hele sessie kostte om te ontdekken. Zulke
-rijen aanmaken op basis van zoeksamenvattingen zou dezelfde fout herhalen.
+- **De namen waren onvolledig.** De zoeklijst had "Pillar" en "Axis HMS"; in
+  werkelijkheid heten ze `PILLAR PRO SG`, `PILLAR PRO SGL`, `AXIS HMS SG`,
+  `AXIS HMS SGL` — het achtervoegsel is het sluitingstype (SG = screwgate,
+  TG = triplex), en dat is nu juist wat een keurmeester onderscheidt. Eén
+  "Pillar" uit de zoeklijst blijkt 12 echte producten.
+- **Twee namen bestaan zo niet:** "Support" en "Large Steel TGB ANSI" komen in
+  de aangeleverde lijst niet voor. Mogelijk ANSI-varianten buiten het
+  EU-assortiment, mogelijk zoekruis. Niet aangemaakt.
 
-## Hoe dit wél af te maken
-
-1. **Jos levert de bron aan** — de CT-catalogus als PDF, of de technische
-   fiches per product. Dan structureer en controleer ik het, net als bij de
-   andere merken.
-2. **Of de netwerkpolicy gaat open** voor fabrikantensites. Dat is een instelling
-   van de omgeving; zie de documentatie bij Claude Code on the web.
-
-Zodra de gegevens er zijn: aanvullen in het CSV ernaast, dan
-`npm run catalog:vergelijk` en `catalog:ingest`.
+Conclusie voor volgende keer: zoekresultaten zijn bruikbaar om te weten *dat*
+er iets is, nooit om te weten *wat* het is. De fabrikantsbron blijft nodig.
