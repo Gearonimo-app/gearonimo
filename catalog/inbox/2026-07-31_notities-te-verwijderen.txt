@@ -1,0 +1,11 @@
+ISC,Small Forged Pulley 20mm (RP051-20) - bestaat niet in officieel ISC assortiment, alleen RP051@16mm bevestigd
+Courant,Kalimba - ACTIEVE TERUGROEPACTIE: alle lijnen moeten worden ingeleverd (splice niet oke). Nog volledig af te handelen qua status/inspection_notice.
+Courant,Hulk - is een lowering bollard voor takken (geen persoonlijke descender). Category gecorrigeerd naar 'Lowering Bollards', check product_type.
+Tree Runner,Safe Vision tree climbing rope 12.8 mm - NAAM GECORRIGEERD naar 11.8mm (grube.eu bevestigt 11.8mm, 12.8 was fout in oude lijst)
+Tree Runner,Abseil Figure-of-eight - product_type check: GEEN EN-norm gevonden (ook niet bij fabrikant LACD.de). Mogelijk 'no_ppe' i.p.v. huidige classificatie. Graag bevestigen.
+Tree Runner,General Purpose Rope 12 mm - LATEN VALLEN: geen normering gevonden, niet PPE-relevant.
+Tree Runner,Webbing Sling - LATEN VALLEN: niet gevonden op grube.eu/lacd.
+Tree Runner,EN1358 15 mm Steel Core Lanyard - NAAM/SPECS GECORRIGEERD naar 'Steel Core Lanyard (adjustable) 12.5 mm' (15mm bestaat niet meer volgens Jos; huidig model is 12.5mm verstelbaar, Hersteller-ID 1045)
+Tree Runner,EN1358 15 mm Steel Core Lanyard - CORRECTIE OP CORRECTIE: dit product bestaat WEL nog (grube.eu code 71-043-20, 8mm stalen kern in 15mm mantel, verlijmd). De eerdere 'naamswijziging naar 12.5mm' was FOUT - de 12.5mm Ergo Grip is een apart, DERDE product en apart toegevoegd. Graag origineel 15mm item herstellen bij merge.
+Notch,Pebble Retrieval System - LATEN VALLEN op verzoek Jos.
+Notch,Notch Quick Cinch Chainsaw Lanyard - GESPLITST in 2 varianten (17mm/25mm) i.p.v. 1 rij, oude rij vervalt bij merge.

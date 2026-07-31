@@ -95,6 +95,29 @@ van één merk: `npm run catalog:export -- --merk=Tractel`.
 > Let op: de import weigert een `id` die niet meer in de catalogus voorkomt.
 > Is de catalogus tussentijds leeggemaakt, gebruik dan `--new-only`.
 
+## Producten weghalen
+
+```bash
+node scripts/catalog/verwijder.mts catalog/inbox/besluit-....csv
+```
+
+Het besluitbestand heeft `brand` en `name` (of `id`), plus een kolom `reden`
+die in het rapport en de commit terechtkomt. Bij een catalogus die met
+keurbedrijven gedeeld wordt is "hij is weg" zonder reden onbruikbaar. Draai
+eerst met `--dry-run`.
+
+> **Dit haalt niets weg in Gearonimo.** De import voegt toe en werkt bij — hij
+> verwijdert nooit. Een product dat hier uit de bronlijst gaat, blijft in de
+> database staan tot het daar met de knop **Product verwijderen** wordt
+> weggehaald (Catalogus → product → bewerken). Die knop ontkoppelt de
+> gekoppelde artikelen in dezelfde transactie en zet merk/naam terug als vrije
+> tekst; dat kan een script hier niet, en moet het ook niet stilzwijgend doen.
+
+Let op bij lijstjes met "te verwijderen": die bevatten in de praktijk lang niet
+alleen verwijderingen. Een product met een **actieve terugroepactie** moet
+juist blíjven staan — verwijderen haalt de recall-vlag weg bij de klanten die
+het artikel hebben.
+
 ## De velden zelf
 
 `DATAMODEL.md` §2 is de veldenbron. De kolomvolgorde en de toegestane waarden

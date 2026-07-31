@@ -78,6 +78,43 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   keurmeester tijdens de keuring, dus verplaatsen naar `notes` maakt een echte
 >   service-eis mínder zichtbaar in plaats van meer. Vraagt een besluit.
 >
+> **`te_verwijderen.txt` nagelopen (2026-07-31).** Van de 11 regels bleken er
+> maar 4 een verwijdering; de rest waren correcties, een terugroepactie en twee
+> vragen. Klakkeloos opvolgen zou schade hebben gedaan.
+> - **Verwijderd (4):** ISC Small Forged Pulley 20mm (bestaat niet, alleen
+>   RP051 @ 16mm bevestigd), Tree Runner General Purpose Rope 12 mm en Webbing
+>   Sling (allebei "laten vallen"), Notch Pebble Retrieval System. Besluit +
+>   reden staan in `catalog/inbox/2026-07-31_besluit-verwijderen.csv`.
+> - **⚠ Courant Kalimba — NIET verwijderen.** Actieve terugroepactie (splice
+>   niet in orde, alle lijnen inleveren). 7 producten; 6 hebben al een
+>   `recall_url`, alle 7 een `inspection_notice_url`. Verwijderen zou juist de
+>   recall-vlag weghalen bij klanten die het product hebben — het tegenovergestelde
+>   van wat je wilt. De notitie zegt "nog volledig af te handelen qua
+>   status/inspection_notice": **openstaand.**
+> - **Regel 8 en 9 spreken elkaar tegen.** Tree Runner "EN1358 15 mm Steel Core
+>   Lanyard" zou hernoemd worden naar 12.5mm, waarna regel 9 dat terugdraait:
+>   het 15mm-product bestaat wél (grube.eu 71-043-20) en de 12.5mm Ergo Grip is
+>   een apart, derde product. Regel 9 wint, dus het 15mm-item blijft ongemoeid.
+>   De Ergo Grip zit **nog niet** in de bronlijst — aanleveren.
+> - **Tree Runner Safe Vision 12.8 mm:** de gecorrigeerde 11.8mm staat er al
+>   apart in (mét EN 1891 A), de oude 12.8mm-regel staat er nog naast zonder
+>   norm. Dat is dus een dubbeling, geen correctie. Laten staan tot Jos
+>   bevestigt dat de 12.8 weg mag.
+> - **Courant Hulk:** staat nog als `ppe` / `Descenders`, terwijl de notitie
+>   zegt dat het een lowering bollard voor takken is. Vergelijkbare producten in
+>   de lijst staan als `rigging` / "rigging bollard (non-PPE)". Correctie nog
+>   niet doorgevoerd — vraagt bevestiging van het producttype.
+> - **Tree Runner Abseil Figure-of-eight:** geen EN-norm gevonden, mogelijk
+>   `no_ppe`. Vraag staat open.
+> - **Notch Quick Cinch Chainsaw Lanyard:** moet volgens de notitie gesplitst
+>   worden in 17mm en 25mm. Die twee rijen zijn nog niet aangeleverd; de oude
+>   rij staat er nog.
+> - **Verwijderen uit de bronlijst verwijdert niets in Gearonimo.** De import
+>   voegt toe en werkt bij, meer niet. Die 4 producten moeten in de app zelf weg
+>   via Catalogus → bewerken → Product verwijderen (`delete_product`, migratie
+>   20260751, die ontkoppelt de artikelen netjes). Staat als waarschuwing in
+>   `verwijder.mts` en in `catalog/README.md`.
+>
 > - **Bronlijst gevuld, geen migratie nodig.** `catalog/producten.csv` staat op
 >   2365 producten en nul fouten: de live export uit Gearonimo (2308, mét id's)
 >   als basis, plus 57 nieuwe Liros/Husqvarna-producten. Nog te importeren door
