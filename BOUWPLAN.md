@@ -107,7 +107,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   RP051 @ 16mm bevestigd), Tree Runner General Purpose Rope 12 mm en Webbing
 >   Sling (allebei "laten vallen"), Notch Pebble Retrieval System. Besluit +
 >   reden staan in `catalog/inbox/2026-07-31_besluit-verwijderen.csv`.
-> - **⚠ Courant Kalimba — NIET verwijderen.** Actieve terugroepactie (splice
+> - **Kalimba-terugroepactie afgehandeld (2026-07-31).** Jos leverde de
+>   recall-pagina van Courant aan (schermafdruk; de pagina zelf is niet
+>   bereikbaar vanuit de omgeving). Het is een Google-formulier, maar het draagt
+>   het volledige recall-bericht van Courant: banner "PRODUCT RECALL — SPLICED
+>   KALIMBA", uitleg, en `contact@mycourant.com`. Daarmee is het een betere bron
+>   dan de `sherrilltree.com`-link die er stond (een Amerikaanse webshop).
+>   - `recall_url` op **alle zeven** regels naar de Courant-pagina. Ook het kale
+>     touw: Jos meldt *"echt alles moet terug"*. De vlag zegt "controleer of dit
+>     exemplaar eronder valt" en veroordeelt niets, dus te ruim vlaggen kost een
+>     keurmeester een halve minuut, te krap vlaggen mist een teruggeroepen touw.
+>   - `notes` op alle zeven: actie loopt, **nog geen goedgekeurde vervanging
+>     geleverd of verkrijgbaar** (Jos: "dat komt allemaal later pas"), aanmelden
+>     via het formulier, VS-klanten apart, contactadres, en "niet goedkeuren
+>     tijdens keuring zolang deze actie loopt".
+>   - `inspection_notice_url` (de AVIS-PDF van Courant) blijft ongemoeid.
+>   - **`status` bewust niet aangeraakt.** Dat veld zit sowieso niet in de 22
+>     kolommen van import/export, maar belangrijker: archiveren zou de producten
+>     uit de catalogus halen en daarmee juist de recall-vlag weghalen bij de
+>     klanten die zo'n touw hebben. Bij een lopende actie wil je ze zichtbaar
+>     houden.
+> - **~~⚠ Courant Kalimba — NIET verwijderen.~~ (afgehandeld, zie boven)** Actieve terugroepactie (splice
 >   niet in orde, alle lijnen inleveren). 7 producten; 6 hebben al een
 >   `recall_url`, alle 7 een `inspection_notice_url`. Verwijderen zou juist de
 >   recall-vlag weghalen bij klanten die het product hebben — het tegenovergestelde
