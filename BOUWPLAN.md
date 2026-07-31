@@ -5,6 +5,44 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31, deel 4)
+
+> **Nieuw testplan (ronde 2), niet-destructief (wens Jos 2026-07-31).** Het
+> A-Z-plan van 6 juli was doorlopen én verouderd: het begon met een volledige
+> reset en kende de app van nu niet meer. `TESTPLAN.md` is vervangen door een
+> plan van 97 stappen in 12 fases dat op de échte database werkt — geen reset,
+> geen klanten/keurmeesters/accounts eruit, één zelf aangemaakte testklant
+> ("ZZ Test 31-07") en verder alleen kijken en klikken. SQL alleen in fase 0.
+> Nadruk op het nieuwste werk: tabbladen (fase 2), artikel-koppelflow (fase 4),
+> catalogus (fase 6). Het oude plan staat in de git-historie.
+> - **Twee blokkades in het oude plan gevonden (waarom het niet meer te
+>   doorlopen was):** `testdata-reset.sql` doet `delete from auth.users` en
+>   `platform_admins.user_id` heeft `on delete cascade` → ná de reset is er geen
+>   platform-admin meer, dus ook geen weg om via Bedrijven een keurmeester aan
+>   te maken. En stap 8 ging uit van auto-provisioning door `ensure_inspector`,
+>   terwijl die sinds de RLS-ronde (`20260713`) juist een fout gooit bij een
+>   account zonder keurmeester-rij. Je zat na stap 3 dus buitengesloten.
+> - **⚠️ `20260749_catalog_reset_and_unique.sql` mag niet meer gedraaid worden.**
+>   Het is technisch idempotent, maar het koppelt élk artikel los van zijn
+>   product en doet `delete from products` — opnieuw draaien wist de hele
+>   koppelronde van Jos. Alleen deel 3 (het slot op dubbelen) was nog open;
+>   dat staat nu los in **migratie `20260752_products_unique_index.sql`**
+>   (**nog door Jos uit te voeren**), zonder de twee wisstappen. Veilig ook als
+>   20260749 eerder al volledig gedraaid is.
+> - **Nog uit te voeren migraties, in fase 0 van het testplan opgenomen:**
+>   `20260748` (wachtwoord instellen), `20260750` (zoeken op artikelcode in de
+>   klant-app), `20260751` (product verwijderen) en `20260752`. Alle drie de
+>   eerste zijn puur functie-definities en veilig te (her)draaien; de knoppen in
+>   de app geven zonder die migraties een foutmelding.
+> - **Hulptekst-fout gecorrigeerd:** de tooltip bij het productiedag-veld
+>   (`inspections.table.dayHelperTooltip`, nl+en) zei "123 = dag 123 van het
+>   jaar (1 mei)". Dag 123 is 3 mei (2 mei in een schrikkeljaar); de rekenaar in
+>   `SerialCheatSheet.vue` was gewoon goed, alleen de tekst was mis.
+> - Het testplan benoemt expliciet wat het níet dekt: >1000 artikelen bij één
+>   klant (de offline-download kapt daar nog stil af, `offline/download.ts` —
+>   nog te repareren), overstap tussen keurbedrijven, en het uitgestelde
+>   fase-5-werk.
+
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
 > **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het

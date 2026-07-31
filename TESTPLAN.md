@@ -1,312 +1,468 @@
-# Testplan Gearonimo — A tot Z (opgesteld 2026-07-06)
+# Testplan Gearonimo — ronde 2 (opgesteld 2026-07-31)
 
-Volledige doorloop van het hele programma vanaf een schone lei. Doe het **stap
-voor stap** en noteer per stap of het goed gaat (✅) of niet (❌ + wat je ziet).
-Elke stap heeft een **Verwacht:**-regel zodat je meteen kunt vergelijken.
+Dit plan vervangt het A-Z-testplan van 6 juli. Dat plan begon met een volledige
+reset (alle klanten, keurmeesters en accounts wissen) en kende de app van nu
+niet meer: er zijn sindsdien werk-tabbladen, een hero-foto, gedeelde
+paginakoppen, de artikel-koppelflow, de platform-admin en een opgeschoonde
+catalogus bijgekomen. Het oude plan blijft in de git-historie staan.
+
+**Twee uitgangspunten deze ronde:**
+
+1. **Niets gaat eruit.** Geen reset, geen klanten of keurmeesters verwijderen,
+   geen accounts opruimen. Je test op de echte database zoals hij nu is, met je
+   eigen account.
+2. **Zo weinig mogelijk werk.** Eén testklant die je zelf aanmaakt, en verder
+   alleen kijken en klikken. Op één plek (vooraf) is SQL nodig, daarna niet
+   meer.
+
+**Zo werkt het:** doe de stappen op nummer en noteer per stap ✅ of ❌ (met wat
+je ziet). Elke stap heeft een **Verwacht:**-regel om mee te vergelijken. Elke
+fase is een blokje van ±10 minuten; je kunt tussen fases stoppen en later
+verdergaan.
 
 - **Pro-app (keurmeester):** https://gearonimo.net
 - **Klant-app:** https://gearonimo.net/portal/
-- **Supabase:** dashboard → project `buitfeiclivzzldfdelp` → SQL editor / Authentication.
+- **Supabase:** project `buitfeiclivzzldfdelp` → SQL editor
 
-> Tip: houd de Supabase SQL-editor open in een apart tabblad; een paar stappen
-> vragen om een klein SQL-commando of een controle-query.
+> **Waar het deze ronde vooral om gaat:** de tabbladen (fase 2), de
+> artikel-koppelflow (fase 4) en de catalogus (fase 6). Dat is het nieuwste werk
+> en dus waar de kans op een gemiste hoek het grootst is. Heb je maar een half
+> uur: doe fase 0, 2 en 4.
 
 ---
 
-## Fase A — Schone lei (reset)
+## Fase 0 — Vooraf: vier migraties (eenmalig, ±5 min)
 
-1. Supabase → SQL editor → plak de inhoud van `supabase/testdata-reset.sql` en **Run**.
-   **Verwacht:** `Success`. (Je wordt hierna uitgelogd omdat álle accounts weg zijn.)
-2. Draai de controle-query onderaan dat bestand.
-   **Verwacht:** `customers`, `articles`, `inspections`, `inspectors`, `requests`, `users` = **0**; `products_KEEP` > 0; `companies_KEEP` = 1.
-3. Supabase → Authentication → Users.
-   **Verwacht:** lege lijst (geen accounts meer).
-4. SQL: `select name, listed, latitude, longitude from public.inspection_companies;`
-   **Verwacht:** Safety Green B.V., `listed = true`, latitude ≈ 51.92, longitude ≈ 5.84.
+De app is gedeployed maar deze vier stukken database staan nog open. Zonder
+deze stap geven een paar knoppen gewoon een foutmelding.
 
-## Fase B — Keurmeester-account aanmaken
+Ga naar Supabase → SQL editor, plak per stuk de inhoud van het bestand en klik
+**Run**:
 
-5. Supabase → Authentication → **Add user** → **Create new user**: e-mail `keurmeester@test.nl`, kies een wachtwoord, **Auto Confirm User** aan. Aanmaken.
-   **Verwacht:** account verschijnt in de lijst.
-6. Open https://gearonimo.net → log in met `keurmeester@test.nl` + wachtwoord.
-   **Verwacht:** je komt op het **hoofdmenu** met tegels.
-7. Bekijk de tegels.
-   **Verwacht:** Keuringen, Klanten, **Aanvragen**, Offline downloads, (zoekbalk) en Instellingen. (Nog géén Catalogus-tegel — dat is de curator.)
-8. SQL-controle: `select user_id, company_id, active, is_admin, can_curate_catalog from public.inspectors;`
-   **Verwacht:** één rij, `active = true`, gekoppeld aan Safety Green (ensure_inspector heeft 'm automatisch aangemaakt).
-9. Maak dit account meteen admin + catalogus-curator (voor de latere fases). SQL:
+1. `supabase/migrations/20260748_platform_admin_set_password.sql`
+   **Verwacht:** `Success`. (Nodig voor "Wachtwoord instellen" in Bedrijven.)
+2. `supabase/migrations/20260750_search_products_manufacturer_code.sql`
+   **Verwacht:** `Success`. (Nodig om in de klant-app op artikelcode te zoeken.)
+3. `supabase/migrations/20260751_delete_product.sql`
+   **Verwacht:** `Success`. (Nodig voor "Product verwijderen" in de catalogus.)
+4. `supabase/migrations/20260752_products_unique_index.sql`
+   **Verwacht:** `Success`, met onderin de melding
+   `Unieke index products_brand_name_uniq staat klaar.`
+   Staat er in plaats daarvan `Let op: nog N dubbele merk+naam-combinaties`, dan
+   zitten er nog dubbelen in de catalogus — geef dat aantal door, dan ruimen we
+   die eerst op.
+
+> ⚠️ **Draai `20260749_catalog_reset_and_unique.sql` NIET.** Dat bestand hoorde
+> bij de catalogus-opschoning van 28 juli: het koppelt élk artikel los van zijn
+> product en maakt de catalogus leeg. Draai je het nu, dan is je hele
+> koppelronde weg. Migratie `20260752` hierboven bevat het enige stukje dat nog
+> nodig was (het slot op dubbelen), zonder die twee wisstappen.
+
+5. Controleer de stand van de catalogus. SQL:
    ```sql
-   update public.inspectors
-   set is_admin = true, can_curate_catalog = true
-   where user_id = (select id from auth.users where email = 'keurmeester@test.nl');
+   select
+     (select count(*) from public.products)                              as producten,
+     (select count(*) from public.articles where product_id is not null) as gekoppelde_artikelen;
    ```
-   **Verwacht:** `Success. 1 row`.
-10. Ga terug naar de Pro-app en **herlaad** (F5).
-    **Verwacht:** app opent normaal, nog steeds op het hoofdmenu.
-
-## Fase C — Bedrijfsinstellingen
-
-11. Instellingen (⚙️) openen.
-    **Verwacht:** lijst met onderdelen: Afkeurcodes, Certificaat-template, Keurmeesters, **Vindbaarheid**, Excel/CSV-import, **Catalogus** (die laatste alleen omdat je nu curator bent).
-12. Instellingen → **Afkeurcodes**.
-    **Verwacht:** 8 codes (slijtage, mechanisch beschadigd, brand/smelt, roest, leeftijd/label, defecte sluiting, modificatie, anders). Voeg er testhalve één toe en zet 'm weer uit.
-13. Instellingen → **Certificaat-template**.
-    **Verwacht:** bedrijfsgegevens van Safety Green ingevuld, live PDF-preview rechts. Wijzig de accentkleur en zie de preview meebewegen. (Niet per se opslaan.)
-14. Instellingen → **Keurmeesters**.
-    **Verwacht:** jouw keurmeester in de lijst. Open 'm, upload een **handtekening** (PNG/JPG), sla op.
-15. Instellingen → **Vindbaarheid**.
-    **Verwacht:** schakelaar "Open voor nieuwe klanten" **aan**, latitude/longitude gevuld (Elst). Laat aan staan, ga terug.
-
-## Fase D — Klant + artikelen (Pro-app)
-
-16. Hoofdmenu → **Klanten** → nieuwe klant toevoegen. Vul naam (bv. "Klimvereniging De Rots"), adres, e-mail. Opslaan.
-    **Verwacht:** klant verschijnt in de lijst, je komt op het klantdetail.
-17. Op het klantdetail: zoek de **uitnodigingscode** (8 tekens). Noteer 'm — code **KLANT-1**.
-    **Verwacht:** code zichtbaar en kopieerbaar.
-18. SQL-controle: `select c.name, cl.status from customer_links cl join customers c on c.id = cl.customer_id;`
-    **Verwacht:** de klant is automatisch **active** gekoppeld aan Safety Green (de herziene trigger koppelt aan jouw bedrijf).
-19. Klant-detail → artikel toevoegen → typ een **bestaand catalogusproduct** (merk/naam die in de catalogus staat). Kies de suggestie. Vul serienummer + gebruiker. Opslaan.
-    **Verwacht:** artikel toegevoegd, gekoppeld aan het catalogusproduct (geen "vrij"-badge).
-20. Artikel toevoegen → typ een **onbekend product** (merk/omschrijving die níét in de catalogus staat), serienummer, bouwjaar. Opslaan.
-    **Verwacht:** artikel toegevoegd met een **"vrij"-badge**.
-
-## Fase E — Catalogus-aanmelding (TAAK 1)
-
-21. In de artikellijst van de klant: klik bij het **vrije artikel** op het **📚-icoon** (rechts in de rij).
-    **Verwacht:** er opent een **productformulier** (geen kaal vinkje). Merk/naam zijn voor-ingevuld met wat je typte.
-22. Vul het formulier zo compleet mogelijk: type (bv. PBM), categorie, materiaal, norm, max. leeftijden, MBS, en een handleiding-/recall-link. Klik **Aanmelden bij de catalogus**.
-    **Verwacht:** dialoog sluit, het 📚-icoon kleurt **op** (actief = aangemeld).
-23. Klik nogmaals op het 📚-icoon van hetzelfde artikel.
-    **Verwacht:** het formulier heropent met **jouw eerder ingevulde waarden** (niet leeg), plus een knop **Aanmelding intrekken**.
-24. SQL-controle: `select suggest_for_catalog, catalog_suggestion from articles where suggest_for_catalog = true;`
-    **Verwacht:** `suggest_for_catalog = true` en `catalog_suggestion` bevat je ingevulde JSON.
-25. Sluit het formulier (Annuleren).
-
-## Fase F — Keuring uitvoeren → certificaat
-
-26. Klantdetail → **Start keuring** (of via Keuringen).
-    **Verwacht:** de keuring-wizard opent met de artikelen van de klant klaargezet.
-27. Zet het eerste artikel op **Goedgekeurd**.
-    **Verwacht:** groen vinkje, veld "volgende keuring" verschijnt met een datum.
-28. Pas de **volgende-keuringsdatum** handmatig aan.
-    **Verwacht:** datum wordt overgenomen.
-29. Zet het tweede artikel op **Afgekeurd**, kies een **afkeurcode** en typ een opmerking.
-    **Verwacht:** rood kruisje, afkeurcode + opmerking opgeslagen.
-30. Controleer bij een artikel de **Gebruiker**-kolom en (indien catalogusproduct) een eventuele **recall-/handleiding-link**.
-    **Verwacht:** kolommen tonen de juiste data.
-31. Klik **Afronden**.
-    **Verwacht:** een **certificaat-PDF** wordt gegenereerd en een downloadlink verschijnt (geen RLS-fout bij de upload).
-32. Open/download de PDF.
-    **Verwacht:** kop/voettekst Safety Green, per artikel goed/afgekeurd met SN + afkeurcode, "volgende keuring uiterlijk", je **handtekening**, en een **verificatie-QR** met het Gearonimo-merk.
-33. Scan de QR (of open de link) op de telefoon.
-    **Verwacht:** de publieke **/verify**-pagina zegt dat het certificaat echt is (zonder alle klantdata te tonen).
-34. SQL-controle: `select number, storage_path from certificates;`
-    **Verwacht:** één certificaat-rij met een nummer in de vorm `JJJJMMDD-KLANTNAAM`.
-
-## Fase G — Serienummer- en recall-zoeken
-
-35. Hoofdmenu → zoekbalk bovenaan → typ (een deel van) een **serienummer** van een artikel → Enter.
-    **Verwacht:** de SN-zoekpagina opent met de treffer(s), klantnaam en status.
-36. Klik een treffer aan.
-    **Verwacht:** je komt op het artikeldetail.
-37. Op de SN-zoekpagina → schakel naar **Recall zoeken** → zoek op merk + product + een fabricagedatum-bereik.
-    **Verwacht:** een resultatenlijst; artikelen zonder bouwjaar worden getoond én gemarkeerd ("bouwjaar onbekend"). CSV-export knop aanwezig.
-
-## Fase H — Sets (samengestelde artikelen)
-
-38. Klantdetail → Sets → nieuwe set (bv. "Fliplijn compleet") → voeg 2 artikelen toe als leden.
-    **Verwacht:** set aangemaakt met de gekozen artikelen.
-39. Open het setdetail.
-    **Verwacht:** de leden staan er; je kunt een lid verwijderen/toevoegen.
-
-## Fase I — Catalogus-curator: wachtrij + beheer (TAAK 1, curatorkant)
-
-40. Instellingen → **Catalogus** → tab **Wachtrij**.
-    **Verwacht:** het in fase E aangemelde artikel staat in de wachtrij, met klantnaam en de vrije velden.
-41. Klik **Toevoegen aan catalogus** bij dat artikel.
-    **Verwacht:** het productformulier opent **voor-ingevuld met jouw aanmelding** (het ingevulde voorstel, niet alleen merk/naam).
-42. Controleer/corrigeer de velden en klik **Product aanmaken**.
-    **Verwacht:** het artikel verdwijnt uit de wachtrij; het is nu aan een echt catalogusproduct gekoppeld.
-43. SQL-controle: `select suggest_for_catalog, product_id, catalog_suggestion from articles where id = '<dat artikel>';`
-    **Verwacht:** `suggest_for_catalog = false`, `product_id` gevuld, `catalog_suggestion = null`.
-44. Catalogus → tab **Catalogus** → zoek het zojuist gemaakte product.
-    **Verwacht:** het staat in de lijst en is te bewerken.
-45. Klik **Exporteren naar Excel**.
-    **Verwacht:** een `.xlsx` met alle producten downloadt.
-46. Wijzig in dat Excel-bestand één veld van een bestaand product en importeer het terug (**Importeren uit Excel**).
-    **Verwacht:** een dryrun-preview (nieuw/bijgewerkt/overgeslagen) vóór bevestigen; na bevestigen is de wijziging doorgevoerd.
-
-## Fase J — Excel/CSV-import (historische keuringen)
-
-47. Instellingen → **Excel/CSV-import** → kies een testbestand (`.xlsx`/`.csv`) met een paar artikelrijen.
-    **Verwacht:** stap 1 toont het bestand; bij meerdere tabbladen kun je er één kiezen.
-48. Stap 2: klik de **koprij** aan in de voorvertoning.
-    **Verwacht:** de kolomkoppen worden herkend vanaf die rij.
-49. Stap 3: koppel de kolommen (Klant/Artikel/Keuring). Gebruik evt. **vaste klantnaam** en **vaste keuringsdatum** als het bestand die niet heeft.
-    **Verwacht:** per kolom een dropdown met voorbeeldwaarden.
-50. Stap 4: bekijk de **droogloop-validatie + preview** (eerste 10 rijen, dubbele serienummers, lege verplichte velden).
-    **Verwacht:** duidelijke melding als er iets mis is; anders groen.
-51. Stap 5: **Importeren**.
-    **Verwacht:** klanten/artikelen/keuring aangemaakt; het originele bestand gaat naar de private `imports`-bucket.
-52. Controleer in Klanten dat de geïmporteerde klant(en) verschijnen met hun artikelen.
-    **Verwacht:** aanwezig, artikelen met `source = 'import'`.
-
-## Fase K — Klant-app: koppelen via uitnodigingscode
-
-53. Open (in een **privé-venster** of op de telefoon) https://gearonimo.net/portal/.
-    **Verwacht:** inlogscherm van de klant-app.
-54. Log in met een **nieuw** e-mailadres via de **magic link** (check de mailbox, klik de link).
-    **Verwacht:** je landt terug in de klant-app zonder wit scherm.
-55. **Verwacht (belangrijk):** je ziet het **startscherm** met twee keuzes: *"Ik heb een uitnodigingscode"* en *"Zelf beginnen"*.
-56. Kies **Ik heb een uitnodigingscode** → voer **KLANT-1** in (fase D) + je naam → bevestig.
-    **Verwacht:** je komt op het **dashboard** van "Klimvereniging De Rots".
-57. Dashboard: bekijk de **stoplichtkaart** en de tegels.
-    **Verwacht:** één kaart met het oordeel én de tellers (✓/!/✗) erin, met daaronder de tegels **Mijn materiaal · Certificaten · Keuring aanvragen · Instellingen**. Klik op de stoplichtkaart → je komt op **Mijn materiaal**, voorgefilterd op "Aandacht nodig": de artikelen uit fase D/F met status en volgende-keuringsdatum, het afgekeurde artikel telt als "actie nodig". Op die pagina zit ook een **zoekbalk** (naam/merk/serienummer) en een **personeelslid-filter**; de app-naam bovenin is overal de home-knop terug naar het dashboard.
-58. Dashboard → tegel **Certificaten**.
-    **Verwacht:** het certificaat uit fase F staat er, met **⬇ PDF**-download.
-59. Dashboard → tegel **Instellingen** (jij bent admin).
-    **Verwacht:** ledenlijst met jou als beheerder; de uitnodigingscode is zichtbaar om collega's te laten koppelen.
-60. Dashboard → **Mijn materiaal** → **+ Toevoegen**: voeg een artikel toe via catalogus-zoeken.
-    **Verwacht:** artikel toegevoegd; verschijnt in de lijst (zet evt. het "Aandacht nodig"-filter uit om alles te zien).
-61. Voeg een artikel toe met een **onbekend product** (vrije invoer).
-    **Verwacht:** toegevoegd; dit gaat automatisch de **catalogus-wachtrij** in (curator ziet het later).
-62. Voer bij een artikel **Afvoeren** uit (🗑) met een reden (bv. "verloren").
-    **Verwacht:** artikel verdwijnt uit de lijst.
-63. Terug in de **Pro-app** → dat afgevoerde artikel via SN-zoeken.
-    **Verwacht:** vindbaar als "Afgevoerd (reden)"; klikken = weer in gebruik nemen.
-
-## Fase L — Klant-app: zelf aanmelden + keuring aanvragen (TAAK 2, leadmotor)
-
-64. Open opnieuw (nieuw privé-venster) https://gearonimo.net/portal/ en log in met **weer een ander, nieuw** e-mailadres (magic link).
-    **Verwacht:** startscherm met de twee keuzes.
-65. Kies **Zelf beginnen** → vul een naam/bedrijfsnaam in (bv. "Jansen Klimtechniek") → **Beginnen**.
-    **Verwacht:** je komt op het dashboard.
-66. **Verwacht (belangrijk):** een blauwe banner *"Je materiaal is nog niet gekoppeld aan een keurbedrijf. Vraag een keuring aan wanneer je wilt."* (geen rood alarm).
-67. SQL-controle: `select c.name, cl.status from customers c left join customer_links cl on cl.customer_id = c.id where c.name = 'Jansen Klimtechniek';`
-    **Verwacht:** de klant bestaat, **zonder** customer_link (staat op zichzelf).
-68. Dashboard → **Mijn materiaal** → **+ Toevoegen** → voeg wat eigen materiaal toe.
-    **Verwacht:** toegevoegd; de stoplichtkaart op het dashboard telt het als "nog nooit gekeurd".
-69. Tegel of banner → **Keuring aanvragen**.
-    **Verwacht:** de aanvraagpagina opent met een **wereldkaart**.
-70. Bekijk de kaart.
-    **Verwacht:** één **groene pin** bij Elst (Safety Green). Onder de kaart een lijst met Safety Green.
-71. Typ in het **zoekveld** een deel van "Safety".
-    **Verwacht:** Safety Green verschijnt als zoekresultaat (naam-zoeken werkt ook los van de kaart).
-72. Klik de pin **of** het lijst-item aan.
-    **Verwacht:** een bevestigingskaart "Aanvraag sturen naar Safety Green B.V.?" met een optioneel bericht-veld.
-73. Typ een kort bericht en klik **Aanvraag sturen**.
-    **Verwacht:** bij "Mijn aanvragen" verschijnt Safety Green met status **In behandeling**; op het dashboard staat nu de gele *"wacht op goedkeuring"*-banner.
-74. Probeer dezelfde aanvraag nog eens te sturen.
-    **Verwacht:** geen dubbele aanvraag (dezelfde openstaande wordt hergebruikt).
-
-## Fase M — Pro-app: aanvraag goedkeuren
-
-75. Ga naar de **Pro-app** (keurmeester) → hoofdmenu.
-    **Verwacht:** de tegel **Aanvragen** toont een rood **badge-getal** (1).
-76. Open **Aanvragen**.
-    **Verwacht:** de aanvraag van "Jansen Klimtechniek" staat er, met bron ("Via de openbare kaart") en het bericht.
-77. Klik **Afwijzen** op een testaanvraag (maak er evt. eerst nog één aan vanuit de klant-app om dit los te testen).
-    **Verwacht:** aanvraag verdwijnt; in de klant-app wordt de status "Afgewezen".
-78. Klik bij de echte aanvraag op **Goedkeuren** → bevestig de melding.
-    **Verwacht:** aanvraag verdwijnt uit de lijst; badge weg.
-79. SQL-controle: `select status from customer_links where customer_id = (select id from customers where name = 'Jansen Klimtechniek');`
-    **Verwacht:** een **active** koppeling naar Safety Green.
-80. Terug in de **klant-app** (Jansen) → herlaad.
-    **Verwacht:** de banner is weg; er staat nu *"Gekoppeld aan Safety Green B.V."*.
-81. Pro-app → **Klanten**.
-    **Verwacht:** "Jansen Klimtechniek" staat nu in je klantenlijst, met het zelf-ingevoerde materiaal — je kunt er een keuring voor starten.
-
-## Fase N — Rollen-afscherming
-
-82. Log in de **Pro-app** uit en log in met een **klant-account** (bv. het account van fase 56).
-    **Verwacht:** het hoofdmenu toont **alleen** de melding "dit is geen keurmeester-account" + link naar /portal/ — **geen** tegels, geen zoekbalk.
-83. Probeer handmatig naar `gearonimo.net/customers` of `/settings` te gaan.
-    **Verwacht:** je wordt teruggestuurd naar het hoofdmenu (geen toegang tot Pro-schermen).
-84. Log uit; log weer in als **keurmeester**.
-    **Verwacht:** volledige toegang terug.
-
-## Fase O — Wachtwoord vergeten (Pro-app)
-
-85. Log uit → inlogscherm → **Wachtwoord vergeten**.
-    **Verwacht:** je kunt een e-mailadres invoeren; er wordt een reset-mail gestuurd.
-86. Open de reset-link uit de mail.
-    **Verwacht:** de reset-pagina opent (`/reset-password`); je kunt een nieuw wachtwoord instellen en daarna inloggen.
-
-## Fase P — Offline (op de telefoon/tablet)
-
-87. Pro-app → **Offline downloads** → stel een **PIN** in.
-    **Verwacht:** PIN-dialoog; daarna een lege downloadlijst met snelkeuzes "Vandaag"/"Deze week".
-88. Download één klant.
-    **Verwacht:** de klant verschijnt in de offline-lijst.
-89. Zet het toestel in **vliegtuigstand** en heropen de app.
-    **Verwacht:** de app opent (app-shell offline), je kunt na PIN-ontgrendelen de gedownloade klant + artikelen zien.
-90. Start/hervat offline een keuring en vul een paar resultaten in.
-    **Verwacht:** invoer wordt lokaal bewaard; onderin een syncbalk met "nog niet gesynchroniseerd".
-91. Zet het netwerk weer aan (of druk **Nu synchroniseren**).
-    **Verwacht:** de wachtrij loopt leeg; offline afgeronde keuringen krijgen alsnog hun certificaat.
-92. Controleer in de klant-app dat de offline gemaakte keuring/certificaat zichtbaar is.
-    **Verwacht:** aanwezig.
-
-## Fase Q — Historie reist mee met de klant (overstap) — geavanceerd/optioneel
-
-> Vereist een **tweede keurbedrijf** + tweede keurmeester. Doe dit alleen als je
-> de overstap-logica wilt bevestigen (jouw punt: keurbedrijf B moet de historie
-> van A kunnen zien).
-
-93. SQL: maak een tweede bedrijf + zet 'm op de kaart:
-    ```sql
-    insert into public.inspection_companies (name, country_code, listed, latitude, longitude, city)
-    values ('Testkeur B.V.', 'NL', true, 52.0907, 5.1214, 'Utrecht');
-    ```
-    **Verwacht:** `Success`.
-94. Supabase → Add user `keurmeester2@test.nl` (Auto Confirm). Log in de Pro-app in met dat account zodat ensure_inspector een inspector aanmaakt; koppel die inspector aan het nieuwe bedrijf:
-    ```sql
-    update public.inspectors
-    set company_id = (select id from inspection_companies where name = 'Testkeur B.V.')
-    where user_id = (select id from auth.users where email = 'keurmeester2@test.nl');
-    ```
-    **Verwacht:** `1 row`.
-95. Klant-app (een klant die al bij Safety Green gekeurd is, bv. "Klimvereniging De Rots" — log in met dat klant-account) → **Keuring aanvragen** → kies **Testkeur B.V.** → versturen.
-    **Verwacht:** aanvraag verstuurd.
-96. Log in de Pro-app in als **keurmeester2** → Aanvragen → **Goedkeuren**.
-    **Verwacht:** aanvraag geaccepteerd.
-97. SQL-controle: `select company_id, status from customer_links where customer_id = (select id from customers where name = 'Klimvereniging De Rots');`
-    **Verwacht:** de link naar Safety Green is **ended**, de link naar Testkeur is **active** (overstap).
-98. Als keurmeester2 → open die klant → **Start keuring**.
-    **Verwacht (de kern):** je ziet bij de artikelen de **"vorige keuring"-context** van Safety Green (de historie reist mee), én de klant staat in je klantenlijst.
-99. Log weer in als de **eerste keurmeester** (Safety Green) → Klanten.
-    **Verwacht:** "Klimvereniging De Rots" is **niet meer** zichtbaar (koppeling beëindigd), maar het eerder door Safety Green gemaakte certificaat blijft in jullie eigen administratie leesbaar.
-
-## Afronding
-
-100. Noteer per fase wat ✅ ging en wat ❌ (met de melding/screenshot). Stuur dat terug,
-     dan pak ik de ❌'s één voor één op.
+   **Verwacht:** `producten` ≈ 2291 (de gecorrigeerde bronlijst), en
+   `gekoppelde_artikelen` = ongeveer het aantal dat je met de hand hebt
+   gekoppeld. Wijkt `producten` sterk af (bijv. ~5700, of 0), geef het getal dan
+   door voordat je verdergaat.
 
 ---
 
-### Handige controle-query's (Supabase SQL-editor)
+## Fase 1 — Opstarten, icoon en hoofdmenu (±5 min, doe dit op de telefoon)
 
-```sql
--- Overzicht van de kernaantallen:
-select
-  (select count(*) from customers)                          as klanten,
-  (select count(*) from articles where not retired)         as artikelen,
-  (select count(*) from inspections where status='completed') as keuringen,
-  (select count(*) from certificates)                       as certificaten,
-  (select count(*) from inspection_requests)                as aanvragen,
-  (select count(*) from articles where suggest_for_catalog) as wachtrij;
+6. Verwijder de app van je telefoon als hij er als PWA op staat, en zet hem
+   opnieuw op je beginscherm via de browser ("Toevoegen aan beginscherm").
+   **Verwacht:** het icoon is de groene karabiner met vinkje, scherp, zonder wit
+   blok eromheen en zonder woordmerk.
+7. Start de app vanaf het beginscherm.
+   **Verwacht:** het opstartscherm (splash) toont hetzelfde scherpe logo op wit —
+   geen blokkerig, uitgerekt grijs plaatje.
+8. Log in.
+   **Verwacht:** op het inlogscherm staat het groene pil-label
+   "Keurder-app · voor keurmeesters".
+9. Bekijk het hoofdmenu.
+   **Verwacht:** de sfeerfoto op de achtergrond met daarover glas-tegels. **Zes**
+   tegels: Keuringen, Klanten, Aanvragen, Offline downloads, SN zoeken / Recall,
+   Instellingen. Géén zoekbalk en géén grote kaart met "artikelen te herkeuren"
+   (die is er bewust af).
+10. Pak de laptop erbij of draai de telefoon.
+    **Verwacht:** op een breed scherm staan de tegels als 3×2, netjes
+    gecentreerd; op de telefoon onder elkaar. Geen tegel die halverwege afbreekt.
+11. Open Klanten en kijk naar de kopbalk.
+    **Verwacht:** één vaste kopbalk met terug- en home-knop links en de titel in
+    het midden, met de gedimde sfeerfoto als kopstrook. Op elke subpagina
+    hetzelfde — geen pagina die er anders uitziet.
 
--- Openstaande aanvragen met klant + bedrijf:
-select r.status, r.source, cu.name as klant, ic.name as bedrijf, r.created_at
-from inspection_requests r
-join customers cu on cu.id = r.customer_id
-join inspection_companies ic on ic.id = r.company_id
-order by r.created_at desc;
+---
 
--- Koppelingen per klant:
-select cu.name as klant, ic.name as bedrijf, cl.status
-from customer_links cl
-join customers cu on cu.id = cl.customer_id
-join inspection_companies ic on ic.id = cl.company_id
-order by cu.name;
-```
+## Fase 2 — Werk-tabbladen (±10 min) ⭐ nieuw
+
+Dit is het grootste nieuwe stuk: de app werkt nu als een mini-browser met
+meerdere pagina's tegelijk open. Doe deze fase rustig — hier zit de meeste
+nieuwe techniek.
+
+12. Bekijk de strook bovenaan het scherm.
+    **Verwacht:** een tabbladenstrook boven de kopbalk, met één tabblad
+    ("Hoofdmenu") en een **+**-knop.
+13. Open Klanten → klik een klant aan.
+    **Verwacht:** het tabblad krijgt de naam van die klant (bijv. "Acme Klimhal
+    B.V."), niet "Klant" of "Pagina".
+14. Klik op de **+** in de strook.
+    **Verwacht:** er komt een tweede tabblad bij, dat op het hoofdmenu staat. Het
+    eerste tabblad blijft bestaan.
+15. Ga in dat tweede tabblad naar Instellingen → Catalogus en typ iets in het
+    zoekveld.
+16. Klik in de strook terug naar het eerste tabblad.
+    **Verwacht:** je klant staat er nog precies zoals je hem verliet — zelfde
+    plek, ingeklapte/uitgeklapte blokken nog hetzelfde. Hij laadt niet opnieuw.
+17. Ga weer naar het tweede tabblad.
+    **Verwacht:** de catalogus staat er nog, met je zoekterm er nog in.
+18. Open een derde tabblad (**+**) → Klanten → **Klant toevoegen** → maak de
+    testklant aan die we hierna gebruiken: naam **ZZ Test 31-07**, verder alleen
+    wat verplicht is. Opslaan.
+    **Verwacht:** de klant wordt aangemaakt.
+19. Ga naar het tabblad waar de klantenlijst al open stond (uit stap 13; ga daar
+    één stap terug naar Klanten).
+    **Verwacht:** **ZZ Test 31-07** staat in die lijst. Dít is het punt: een lijst
+    in een ander tabblad ververst zichzelf als je erop terugkomt — hij staat niet
+    eeuwig verouderd.
+20. Sluit een tabblad met het kruisje.
+    **Verwacht:** het tabblad verdwijnt en je komt op een ander tabblad terecht,
+    niet op een leeg scherm.
+21. Sluit alle tabbladen op één na.
+    **Verwacht:** bij het laatste tabblad is er geen kruisje meer — dat kun je
+    niet sluiten.
+22. Open 8 tabbladen (blijf op **+** klikken).
+    **Verwacht:** bij 8 kun je er geen meer bij; er verschijnt "Maximaal 8
+    tabbladen tegelijk". Geen vastloper.
+23. Sluit terug naar 2 tabbladen en herlaad de pagina (of sluit de app en start
+    hem opnieuw).
+    **Verwacht:** de strook met die 2 tabbladen komt terug. De inhoud ván de
+    pagina's begint wel opnieuw — dat kan niet anders en is goed.
+24. Log uit en weer in.
+    **Verwacht:** je begint met één schoon tabblad; de oude tabbladen zijn weg.
+
+---
+
+## Fase 3 — Testklant en artikelen (±10 min)
+
+We gebruiken **ZZ Test 31-07** uit stap 18, zodat je echte klanten ongemoeid
+blijven.
+
+25. Open ZZ Test 31-07 → blok **Artikelen** → voeg een artikel toe **uit de
+    catalogus**: zoek op `petzl` en kies een gordel of karabiner. Vul serienummer
+    `TEST-001` in plus een bouwjaar. Opslaan.
+    **Verwacht:** het artikel staat in de lijst, met merk en naam van het
+    catalogusproduct.
+26. Voeg een tweede toe als **vrij artikel** (niet uit de catalogus):
+    omschrijving `Distel Alu kort`, merk `Distel`, serienummer `TEST-002`.
+    **Verwacht:** het artikel staat in de lijst en is herkenbaar als niet-gekoppeld.
+27. Voeg een derde toe, ook vrij: omschrijving `Fallsafe FS242-L-XL`, serienummer
+    `TEST-003`.
+28. Klap de blokken op de klantpagina in en uit (Artikelen, Sets, Medewerkers,
+    Certificaten, Keuringen).
+    **Verwacht:** elk blok klapt open/dicht en toont het juiste aantal in de kop.
+
+---
+
+## Fase 4 — Artikelpagina: koppelen en corrigeren (±15 min) ⭐ veel gewijzigd
+
+29. Open artikel `TEST-002` (het vrije "Distel Alu kort").
+    **Verwacht:** een blok **Koppel aan catalogusproduct**, met de **Originele
+    omschrijving** ("Distel Alu kort") als vaste referentie erboven en een
+    zoekveld dat al voorgevuld is.
+30. Bekijk de suggesties onder het veld.
+    **Verwacht:** ondanks dat "kort" in geen enkele catalogusnaam voorkomt, komen
+    er Distel Alu-producten naar boven (bijv. Distel Alu 3.1 / Alu Plus). Niet
+    "Geen passend product gevonden".
+31. Typ in het zoekveld `petzl seq`.
+    **Verwacht:** er komen resultaten — merk en naam samen worden gevonden. Dit
+    gaf eerder nul resultaten.
+32. Maak het veld leeg en typ `242`.
+    **Verwacht:** het FALL SAFE-product komt naar boven op zijn artikelcode, en
+    die code staat in de suggestieregel zodat je ziet dát het de juiste maat is.
+33. Kies een product uit de lijst.
+    **Verwacht:** het artikel is gekoppeld. Het blok heet nu **Gekoppeld
+    catalogusproduct** met de productnaam, plus **Ander product kiezen** en
+    **Ontkoppelen**. Keurtermijn en handleiding komen nu van het product.
+34. Klik **Ander product kiezen**.
+    **Verwacht:** hetzelfde zoekveld opent, voorgevuld met de huidige
+    productnaam. Kies een ander product → de koppeling is gewijzigd. (Dit was
+    eerder onmogelijk: een misklik was definitief.)
+35. Klik **Ontkoppelen**.
+    **Verwacht:** het artikel is weer vrij, en merk + omschrijving staan er weer
+    als vrije tekst op — geen artikel zonder omschrijving.
+36. Kijk naar het blok **Opmerkingen** onder de gegevens.
+    **Verwacht:** dat staat er altijd, ook als het leeg is, en je kunt er direct
+    in typen. Typ iets → Opslaan/Annuleren verschijnen → Opslaan. Na een herlaad
+    staat de opmerking er nog.
+37. Zoek via het potlood het veld **Keurtermijn (maanden)**.
+    **Verwacht:** in te vullen, en de volgende-keuringsdatum rekent daarmee.
+38. Onderaan de artikelpagina: klik **Volgende →**.
+    **Verwacht:** het volgende artikel van deze klant, met een teller als "2 / 3".
+    De pagina toont écht het nieuwe artikel — niet het oude met een nieuw
+    nummertje.
+39. Klik **← Vorige**.
+    **Verwacht:** je bent terug op het vorige artikel, mét wat je daar had staan.
+40. Klik **Volgend vrij artikel (n te koppelen)**.
+    **Verwacht:** hij slaat artikelen over die al aan de catalogus hangen en landt
+    op een vrij artikel; het aantal in de knop klopt.
+41. Open ditzelfde artikel in een tweede tabblad (**+** → zelfde klant → zelfde
+    artikel), en klik in het eerste tabblad door naar een ander artikel.
+    **Verwacht:** het tweede tabblad blijft op zijn eigen artikel staan en gaat
+    niet mee. (Dit ging eerder mis.)
+
+---
+
+## Fase 5 — Keuring uitvoeren en certificaat (±15 min)
+
+42. Keuringen → **Nieuwe keuring starten** → kies ZZ Test 31-07.
+    **Verwacht:** de vraag welke artikelen meegaan (Alles / Alleen nieuwe). Kies
+    **Alles**.
+43. Loop de keuring door: artikel 1 op **Goed**, artikel 2 op **Afgekeurd** met
+    een afkeurcode en een opmerking, artikel 3 laat je open.
+    **Verwacht:** onderaan lopen de tellers mee: "1 goed · 1 afgekeurd · 1 nog te
+    doen". Elk resultaat wordt opgeslagen zonder foutmelding.
+44. Zoek in het zoekveld op de laatste cijfers van een serienummer (`003`).
+    **Verwacht:** het juiste artikel wordt gevonden.
+45. Klik **Afronden →**.
+    **Verwacht:** een melding dat 1 artikel niet gekeurd is en niet op het
+    certificaat komt (het blijft bij de klant staan). Bevestig.
+46. Bekijk het voorstel voor de volgende keuringsdatum en rond af.
+    **Verwacht:** een datum ±12 maanden vooruit, aanpasbaar. Na opslaan:
+    "Certificaat gegenereerd en gearchiveerd" + **Certificaat downloaden**.
+47. Download het certificaat.
+    **Verwacht:** een PDF in je Downloads-map. Daarin: je bedrijfslogo, het
+    certificaatnummer, de gekeurde artikelen, en het afgekeurde artikel mét code.
+    Het niet-gekeurde artikel staat er **niet** op.
+48. Scan de QR-code op het certificaat (of open de verify-link).
+    **Verwacht:** "Echt certificaat", met certificaatnummer, klant,
+    keuringsdatum, de keurmeester-naam en de artikelen. Op deze pagina is géén
+    tabbladenstrook — die staat bewust los.
+49. Ga naar Keuringen en zoek op het certificaatnummer.
+    **Verwacht:** de keuring wordt gevonden; het certificaatnummer staat in de
+    lijst.
+50. Open een **geïmporteerde** keuring van een echte klant (uit de Excel-import),
+    als je die hebt.
+    **Verwacht:** géén "Certificaat gegenereerd", maar "Geïmporteerd uit een oud
+    certificaat. Er is geen nieuw certificaat aangemaakt…". Bij die klant staat
+    terecht "Certificaten (0)".
+
+---
+
+## Fase 6 — Catalogus (±15 min, alleen als curator) ⭐ veel gewijzigd
+
+51. Instellingen → **Catalogus** → tab **Catalogus**.
+    **Verwacht:** de volledige productenlijst met een zoekveld, en een aantal dat
+    klopt met stap 5 (≈2291) — niet 1000.
+52. Zoek op `petzl seq`, daarna op een artikelcode (bijv. `M33A`), daarna op een
+    categorie.
+    **Verwacht:** alle drie geven resultaat — het zoekveld kijkt naar merk, naam,
+    categorie én artikelcode tegelijk.
+53. Open een product en bekijk het formulier.
+    **Verwacht:** in elk veld staat een voorbeeld (grijze hint), en
+    **Producttype** is een keuzelijst — geen vrij tekstveld.
+54. Kijk bij de levensduurvelden.
+    **Verwacht:** de hint "999 = onbeperkte levensduur. Leeg = nog niet
+    opgezocht." Zoek een product met 999 erin.
+    **Verwacht:** dat geeft géén afkeurdatum en géén levensduurwaarschuwing —
+    nergens een jaartal als 3025.
+55. **Product toevoegen** → merk `ZZ TEST`, naam `Testkarabiner` → opslaan.
+    **Verwacht:** het product staat in de lijst.
+56. Probeer nóg een product aan te maken met exact hetzelfde merk + naam.
+    **Verwacht:** dat wordt geweigerd (het slot uit migratie 20260752).
+57. Open `ZZ TEST Testkarabiner` → **Kopiëren naar nieuw product (bv. andere
+    maat)**.
+    **Verwacht:** een nieuw formulier met de velden overgenomen; geef het een
+    andere naam en sla op.
+58. Open `ZZ TEST Testkarabiner` → **Product verwijderen**.
+    **Verwacht:** een rood bevestigingsblok. Omdat dit product nergens in gebruik
+    is: "Dit product staat nergens in gebruik en wordt definitief verwijderd."
+    Bevestig → het product is weg. Doe hetzelfde met de kopie. (Werkt dit niet,
+    dan is migratie 20260751 uit fase 0 niet gedraaid.)
+59. Klik **Exporteren naar Excel**.
+    **Verwacht:** een `.xlsx` met **alle** producten (≈2291 rijen, niet 1000) en
+    alle kolommen.
+60. Klik **Importeren uit Excel** en kies het bestand dat je net exporteerde.
+    **Verwacht:** de preview meldt dat vrijwel alles **al bestond (overgeslagen)**
+    en 0 nieuw. Bevestig.
+    **Verwacht:** er komt niets dubbel bij, het aantal producten blijft gelijk, en
+    tijdens het importeren zie je voortgang ("… van … toegevoegd").
+
+---
+
+## Fase 7 — Aanmelden voor de catalogus en de wachtrij (±10 min)
+
+61. Open het vrije artikel `TEST-002` → in de koppelsectie: **Toevoegen aan
+    productendatabase**.
+    **Verwacht:** een productformulier dat al is voorgevuld met wat in de vrije
+    velden stond (merk, omschrijving). Vul aan en klik **Aanmelden bij de
+    catalogus**.
+62. Instellingen → Catalogus → tab **Wachtrij**.
+    **Verwacht:** je aanmelding staat er, **met de velden die je invulde** — niet
+    kaal.
+63. Vul de rest aan en klik **Toevoegen aan catalogus**.
+    **Verwacht:** er komt een echt catalogusproduct, het artikel wordt eraan
+    gekoppeld, en de aanmelding verdwijnt uit de wachtrij.
+64. Meld nog een artikel aan en klik deze keer **Afwijzen**.
+    **Verwacht:** de aanmelding verdwijnt en er komt géén product bij.
+65. Ruim het product uit stap 63 op via **Product verwijderen**.
+    **Verwacht:** de waarschuwing meldt nu dat het **1 keer gebruikt** wordt, en
+    dat het artikel blijft bestaan met merk en naam als vrije tekst. Bevestig, en
+    controleer het artikel.
+    **Verwacht:** het artikel bestaat nog, met omschrijving, weer als vrij artikel.
+
+---
+
+## Fase 8 — Spiekbriefje en SN-referentie (±5 min)
+
+66. Open een keuring of de SN-zoekpagina en klap **Spiekbriefje — dag/week &
+    SN-referentie** open.
+67. Tab **Dag / week**: vul dag `123` in.
+    **Verwacht:** 3 mei 2026. Vul daarna `366` in.
+    **Verwacht:** "Bestaat niet in dit jaar" (2026 is geen schrikkeljaar).
+    *(De tooltip bij dit veld in de keuring zei eerder "1 mei" — dat was een
+    fout in de hulptekst, niet in de rekenaar; hij is bijgewerkt.)*
+68. Vul week `12` in.
+    **Verwacht:** een datumbereik van maandag t/m zondag.
+69. Tab **SN-referentie**: filter op `petzl`.
+    **Verwacht:** het serienummerformaat van Petzl met uitleg van de tekens
+    (Y = jaar, D = dagnummer, …) en een voorbeeld.
+
+---
+
+## Fase 9 — Klant-app (±15 min)
+
+> Let op: beide apps delen de sessie op hetzelfde domein. Log je in `/portal/`
+> met een klant-account in, dan ben je in de Pro-app uitgelogd. Doe deze fase
+> daarom als laatste, of reken erop dat je daarna opnieuw inlogt.
+
+70. Pro-app → klantpagina van ZZ Test 31-07 → kopieer de **uitnodigingscode**.
+    **Verwacht:** de code staat er met een kopieerknop.
+71. Open https://gearonimo.net/portal/ op je telefoon.
+    **Verwacht:** het blauwe pil-label "Klantportaal · voor klanten", en een
+    startkeuze: uitnodigingscode óf zelf beginnen.
+72. Log in met een e-mailadres dat je nog niet gebruikt — bijvoorbeeld
+    `josvdhoogen+klanttest@gmail.com`; die mail komt gewoon in je eigen postvak.
+    Volg de magic-link.
+    **Verwacht:** je landt in de klant-app, niet in de Pro-app, en niet op een wit
+    scherm.
+73. Koppel met de uitnodigingscode uit stap 70.
+    **Verwacht:** je hangt aan ZZ Test 31-07, en omdat dit het eerste account is
+    ben je meteen **beheerder**.
+74. Bekijk het dashboard.
+    **Verwacht:** een stoplicht-oordeel met tellers. Omdat er in fase 5 een
+    artikel is afgekeurd: "Actie nodig". Plus de tegels Mijn materiaal,
+    Certificaten en Keuring aanvragen.
+75. Open **Mijn materiaal**.
+    **Verwacht:** je testartikelen met status-chips (✓/✗), de
+    volgende-keuringsdatum, en de filters (gebruiker, Aandacht nodig).
+76. Open het afgekeurde artikel.
+    **Verwacht:** de laatste keuring met resultaat, en een handleiding-link als
+    het product die heeft.
+77. Open **Certificaten** → download het certificaat uit fase 5.
+    **Verwacht:** dezelfde PDF landt in je Downloads-map.
+78. Materiaal → **+ Toevoegen** → zoek in de catalogus op een artikelcode
+    (bijv. `M33A`).
+    **Verwacht:** het product wordt gevonden. (Zo niet, dan is migratie 20260750
+    uit fase 0 niet gedraaid.) Voeg het toe met serienummer `TEST-004`.
+79. Voeg er nog één toe via **Staat het er niet tussen? Zelf invullen**.
+    **Verwacht:** het artikel komt erbij, en in de Pro-app staat het op de
+    catalogus-wachtrij.
+80. Voer een artikel af via **Vervangen? Afvoeren** met een reden.
+    **Verwacht:** het verdwijnt uit het overzicht; de historie blijft bewaard.
+81. Open **Medewerkers**.
+    **Verwacht:** jij staat er met de badge **Beheerder**, plus de
+    uitnodigingscode met uitleg. Voeg een medewerker toe (naam + functie).
+    **Verwacht:** die komt in de lijst met de badge "nog geen account".
+82. Probeer jezelf op inactief of niet-beheerder te zetten.
+    **Verwacht:** dat wordt geweigerd — vangnet tegen jezelf buitensluiten.
+83. Ga terug naar de Pro-app (opnieuw inloggen) → ZZ Test 31-07.
+    **Verwacht:** de artikelen die de klant toevoegde staan er, herkenbaar als
+    door de klant aangemeld, en het afgevoerde artikel staat als afgevoerd.
+
+---
+
+## Fase 10 — Offline (±10 min, op de telefoon)
+
+84. Pro-app → **Offline downloads** → download ZZ Test 31-07.
+    **Verwacht:** een pincode-vraag (of hij vraagt je bestaande pin), daarna
+    "gedownload" met een tijdstip.
+85. Zet je telefoon op vliegtuigmodus en open de app.
+86. Ga naar ZZ Test 31-07.
+    **Verwacht:** klant, artikelen, sets en medewerkers zijn zichtbaar na het
+    ontgrendelen met de pin; geen kale foutmelding.
+87. Start een keuring, zet twee artikelen op Goed en rond af.
+    **Verwacht:** "Keuring afgerond, offline opgeslagen. Het certificaat wordt
+    gegenereerd zodra er weer verbinding is." Onderin een syncbalk met "nog niet
+    gesynchroniseerd".
+88. Zet vliegtuigmodus uit en wacht (of gebruik de sync-knop).
+    **Verwacht:** de syncbalk loopt leeg, en daarna staat het certificaat er echt
+    bij de klant.
+
+---
+
+## Fase 11 — Instellingen kort langs (±10 min)
+
+89. Instellingen → **Afkeurcodes**: voeg een code toe en zet er één op inactief.
+    **Verwacht:** de nieuwe code komt terug in de keuring; de inactieve niet.
+90. **Certificaat-template**: wijzig de voettekst en bekijk het voorbeeld.
+    **Verwacht:** het voorbeeld verandert mee.
+91. **Keurmeesters**: open je eigen kwalificatie en zet **Zichtbaar bij
+    verificatie** aan.
+    **Verwacht:** op de verify-pagina uit stap 48 staan nu je kwalificaties met
+    "Bekijk bewijs →". Zet je hem uit, dan zijn ze daar weg.
+92. **Vindbaarheid**: controleer de listed-schakelaar en de locatie.
+    **Verwacht:** Safety Green staat op de kaart met Elst als plek.
+93. **Wachtwoord**: wijzig je wachtwoord en log opnieuw in.
+    **Verwacht:** inloggen met het nieuwe wachtwoord werkt.
+94. Log uit en klik op het inlogscherm **Wachtwoord vergeten**.
+    **Verwacht:** een reset-mail die op de reset-pagina landt (niet in de
+    klant-app), waar je een nieuw wachtwoord kunt zetten.
+
+---
+
+## Optioneel — alleen als je er tijd of zin voor hebt
+
+95. **Keuring aanvragen (leadmotor).** `/portal/` → zelf beginnen (weer een
+    ongebruikt e-mailadres) → materiaal invoeren → keuring aanvragen via de kaart
+    of naam-zoeken. Dan in de Pro-app → Aanvragen → goedkeuren.
+    **Verwacht:** de klant is gekoppeld en zijn historie is zichtbaar.
+96. **Excel/CSV-import.** Instellingen → Excel/CSV-import met een klein
+    testbestand (5 regels) op ZZ Test 31-07.
+    **Verwacht:** voortgang per rij, `*` in de Goed-kolom telt als goedgekeurd, en
+    een standaard volgende-keuringsdatum van +12 maanden. Verwijder daarna de
+    batch via "Eerdere imports".
+    **Verwacht:** de keuringen zijn weg; de artikelen blijven bewust staan.
+97. **Platform-admin.** Instellingen → Bedrijven en Hero-foto (alleen zichtbaar
+    met het platform-account `info@gearonimo.net`).
+    **Verwacht:** een bedrijf aanmaken/bekijken werkt, "Wachtwoord instellen"
+    werkt (migratie 20260748), en een nieuwe hero-foto met de drie crops komt in
+    beide apps terug.
+
+---
+
+## Na de test
+
+- **ZZ Test 31-07 mag blijven staan.** Verwijderen lukt niet meer nu er een
+  keuring en certificaat aan hangen — dat is opzet (historie blijft bewaard) en
+  je krijgt daar een nette melding over. Hij stoort verder niet.
+- **Het klant-testaccount** (`+klanttest`) mag ook blijven; het hangt alleen aan
+  de testklant.
+- **Terugkoppelen:** geef per fase door welke stapnummers ❌ waren en wat je zag.
+  Alles wat ✅ is hoef je niet te melden.
+
+---
+
+## Wat dit plan bewust niet test
+
+- **Meer dan 1000 artikelen bij één klant** — de offline-download kapt daar nog
+  stil af (bekend punt in `packages/core/src/offline/download.ts`, nog te
+  repareren). Met een testklant van 3 artikelen kom je daar niet aan; vertrouw
+  offline nog niet bij een klant met een heel groot bestand.
+- **Overstap tussen keurbedrijven** — vraagt een tweede keurbedrijf en is
+  niemands dagelijkse pad.
+- **Stripe, app stores, Engelse vertaling** — bewust uitgesteld naar fase 5.
