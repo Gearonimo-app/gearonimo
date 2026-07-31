@@ -45,6 +45,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   de staat ín de pagina's niet — dat kan niet anders), en worden gewist bij
 >   uitloggen. Losstaande schermen (inloggen, wachtwoord, publieke verificatie)
 >   krijgen `meta: { noTabs: true }`: geen strook, geen keep-alive.
+> - **Correctie tijdens dezelfde sessie (vraag Jos: "kan ik tijdens artikelen
+>   koppelen nog wel naar het volgende artikel klikken?").** De watcher op
+>   `route.params.id` in `ArticleDetail.vue` is nu wég in plaats van
+>   voorwaardelijk. Hij was niet alleen overbodig (de keep-alive-sleutel bevat
+>   het pad, dus elk artikel krijgt een verse component) maar ook schadelijk:
+>   een watcher draait vóór de DOM-update, dus de wegklikkende pagina laadde
+>   nog snel het nieuwe artikel in en werd daarna in díe staat bewaard onder
+>   haar oude sleutel — terug (of een ander tabblad) toonde dan het verkeerde
+>   artikel. Doorklikken loopt gewoon via `goTo()` -> `router.push`.
+> - Daarbij hoort een **buurlijst-cache op moduleniveau** in `ArticleDetail`:
+>   zonder de watcher zou doorlopen door 278 geïmporteerde artikelen 278 keer
+>   de hele lijst ophalen. De cache deelt bewust dezelfde array met `siblings`,
+>   zodat het bijwerken van `product_id` bij koppelen/ontkoppelen meegaat en
+>   "volgend vrij artikel" blijft kloppen; hij wordt gewist bij
+>   afvoeren/terugzetten/wissen.
+> - **Geverifieerd met een tijdelijk testscherm** (7 scenario's, daarna weer
+>   verwijderd): doorklikken naar het volgende artikel toont het nieuwe artikel
+>   met schone staat, terug toont het oude artikel mét zijn eigen staat, en
+>   twee tabbladen op een artikelpagina beïnvloeden elkaar niet.
 > - Geen migratie nodig; de klant-app is niet gewijzigd.
 
 ## Voortgang (bijgewerkt 2026-07-29)
