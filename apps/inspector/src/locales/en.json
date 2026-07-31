@@ -268,6 +268,8 @@
     "lifeCycleWarning": "Lifespan: {months} mo left",
     "recallFlag": "Recall: check this article",
     "noticeFlag": "Manufacturer inspection notice",
+    "productNotesFlag": "Note on this product — click to read",
+    "productNotesTitle": "Note from the catalogue",
     "clearFlag": "Clear with a note (hides the flag for this article)",
     "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):",
     "clearedTitle": "Cleared",

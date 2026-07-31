@@ -301,6 +301,18 @@
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
+                    <!-- Opmerking uit de catalogus: uitklappen i.p.v. een
+                         tooltip, want een tooltip vraagt om muisaanwijzen en
+                         de keuring gebeurt op een telefoon. -->
+                    <button
+                      v-if="itemProductNotes(row.it)"
+                      type="button"
+                      class="iw__notes-toggle"
+                      :aria-expanded="openNotesId === row.it.id"
+                      :aria-label="$t('inspections.table.productNotesFlag')"
+                      :title="$t('inspections.table.productNotesFlag')"
+                      @click="toggleNotes(row.it)"
+                    >ℹ️</button>
                   </td>
                   <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
@@ -438,6 +450,12 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
+                <tr v-if="openNotesId === row.it.id" class="iw__notes-row">
+                  <td colspan="12">
+                    <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
+                    {{ itemProductNotes(row.it) }}
+                  </td>
+                </tr>
               </template>
               <tr v-if="!sortedRows.length">
                 <!-- Met actieve zoekvelden is "geen match" iets anders dan "geen
@@ -522,6 +540,12 @@ interface Product {
   recall_url: string | null
   inspection_notice_url: string | null
   manual_url: string | null
+  // Opmerking uit de catalogus. Stond hier eerder niet: de keurmeester zag
+  // `products.notes` tijdens een keuring dus helemaal niet, waardoor
+  // fabrikantseisen zonder document (bv. "elke 5 jaar Level 2-service bij een
+  // erkende partner") noodgedwongen in `inspection_notice_url` belandden --
+  // een linkveld, dus daar werd lopende tekst een kapotte link van.
+  notes: string | null
 }
 interface Article {
   id: string
@@ -1185,6 +1209,25 @@ function itemNoticeTitle(it: Item): string | null {
   const url = itemNoticeUrl(it)
   return url ? `${t('inspections.table.noticeHint')}: ${url}` : null
 }
+/**
+ * Opmerking uit de catalogus (`products.notes`).
+ *
+ * Anders dan een recall of een inspection notice is dit geen vlag die
+ * afgevinkt wordt: het is achtergrond die bij élke keuring van dit product
+ * geldt (fabrikantseisen, servicetermijnen, bijzonderheden). Daarom geen ✕ om
+ * te verbergen -- verbergen zou de eerstvolgende keurmeester de informatie
+ * onthouden.
+ */
+function itemProductNotes(it: Item): string | null {
+  return it.article.product?.notes?.trim() || null;
+}
+
+/** Welke rij zijn opmerking uitgeklapt heeft. Er staat er hooguit één open. */
+const openNotesId = ref<string | null>(null);
+function toggleNotes(it: Item) {
+  openNotesId.value = openNotesId.value === it.id ? null : it.id;
+}
+
 function itemNoticeClearedNote(it: Item): string | null {
   const url = itemNoticeRawUrl(it)
   if (!url || url !== it.article.notice_cleared_url) return null
@@ -2216,6 +2259,19 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__flag-clear:hover { opacity: 1; }
 .iw__flag-cleared { margin-right: 0.25rem; opacity: 0.45; cursor: help; }
+/* Opmerking uit de catalogus. Bewust neutraal grijs en niet rood/oranje: dit
+   is achtergrondinformatie, geen waarschuwing -- anders gaat het naast de
+   recall- en notice-vlag concurreren om dezelfde aandacht. */
+.iw__notes-toggle {
+  margin-right: 0.25rem; padding: 0; border: none; background: none;
+  font-size: 1rem; line-height: 1; cursor: pointer;
+}
+.iw__notes-row td {
+  padding: 0.4rem 1rem; font-size: 0.8rem; color: #374151;
+  background: #f9fafb; box-shadow: inset 3px 0 0 0 #d1d5db;
+  white-space: normal;
+}
+.iw__notes-row strong { color: #111827; }
 .iw__category { color: #374151; }
 .iw__sn { color: #6b7280; }
 .iw__prev--pass { color: #16a34a; }

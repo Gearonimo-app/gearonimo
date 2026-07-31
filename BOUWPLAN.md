@@ -93,7 +93,34 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   ART-veiligheidsmelding van oktober 2025 over de bearing pin). **Niet
 >   opruimen tot Jos het sein geeft** — het ziet eruit als een fout, maar het is
 >   een bewuste wachtstand.
-> - **Openstaand: Skylotec MILAN.** Die heeft óók lopende tekst in
+> - **`products.notes` is nu zichtbaar tijdens de keuring (2026-07-31).** Bij
+>   het nakijken bleek `notes` nul keer voor te komen in `InspectionWizard.vue`:
+>   de keurmeester zag dat veld tijdens een keuring helemaal niet, alleen op de
+>   artikelpagina. Dáárom belandden fabrikantseisen zónder document in
+>   `inspection_notice_url` — een linkveld, dus lopende tekst werd een kapotte
+>   link. Keuze Jos: tekst naar `notes`, échte link naar `inspection_notice_url`,
+>   én `notes` zichtbaar maken in de keuring.
+>   - ℹ️-knop in de vlaggenkolom die de opmerking onder de rij uitklapt
+>     (`colspan=12`, zelfde patroon als de groepskop). Uitklappen en geen
+>     tooltip: een tooltip vraagt muisaanwijzen en er wordt op een telefoon
+>     gekeurd.
+>   - Bewust géén ✕ om af te vinken, anders dan bij recall en notice: een
+>     opmerking geldt bij élke keuring van dat product, dus verbergen zou de
+>     eerstvolgende keurmeester de informatie onthouden.
+>   - Neutraal grijs, niet rood/oranje — het is achtergrond, geen waarschuwing,
+>     en mag niet concurreren met de recall-vlag. Layout headless gerenderd en
+>     bekeken vóór oplevering.
+>   - i18n nl+en: `productNotesFlag`, `productNotesTitle`.
+> - **Skylotec MILAN verplaatst:** de service-eis staat nu in `notes`,
+>   `inspection_notice_url` is leeg. Bij de Kalimba-notitie stond in de leestekst
+>   "(zie recall_url)" — een kolomnaam in tekst die een keurmeester leest;
+>   vervangen door "(zie de recall-link bij dit product)". Gevonden door de
+>   weergave écht te renderen.
+> - **Nog te doen: de 9 ART-regels** hebben nog steeds lopende tekst in
+>   `inspection_notice_url`. Verplaatsen naar `notes` botst niet met de
+>   ART-wachtstand (de PDF-link kan er later gewoon bij), maar Jos' instructie
+>   was expliciet "nog even wachten" — dus niet gedaan, vraagt akkoord.
+> - **~~Openstaand: Skylotec MILAN.~~ (verplaatst, zie boven)** Die heeft óók lopende tekst in
 >   `inspection_notice_url` ("Every 5 years: Level 2 service by authorised
 >   Skylotec partner required…") en viel bij de bespreking onder "allemaal van
 >   ART", maar is dat niet. Bewust laten staan: het veld toont een vlag aan de
