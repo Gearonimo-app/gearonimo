@@ -133,13 +133,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > de bestaande regel (ppe, Hitch Cords, aramide mantel, 8 mm, 10 jaar).
 > - **Aanname om na te kijken:** een artikel dat eerder aan de lengteloze regel
 >   hing, hangt nu aan de 0.65 m-variant.
-> - **Openstaand: bestaat er een 0.70 m?** Jos noemde "65, 70, 75, enz", maar in
->   de uitgeklapte lijst op de schermafdruk staat tussen 0.65 en 0.75 niets. Niet
->   aangemaakt — een maat verzinnen is precies hoe de Petzl `M033D`-regel ontstond.
-> - **Ook opgemerkt:** de pagina zegt *"gaine mélangée aramide/polyester"*,
->   terwijl alle drie de Phoenix-regels `Aramid sheath` als materiaal hebben.
->   Niet aangepast; vraagt een besluit of dat op alle Phoenix-producten
->   verfijnd moet worden.
+> - **0.70 m alsnog toegevoegd:** de lijst op de schermafdruk was doorgescrold
+>   (bevestigd door Jos), waardoor 0.65 en 0.70 er bovenaan uit vielen. Acht
+>   lengtes nu: 0.65 t/m 1.10 m.
+> - **Materiaal op alle 10 Phoenix-producten** naar
+>   `Aramid/polyester blended sheath`, conform de fabrikantstekst *"gaine
+>   mélangée aramide/polyester"*. Stond overal als `Aramid sheath`.
+> - **⚠ Openstaand: bestaat de rope sling ook in 10 mm?** De acht lengtes zijn
+>   allemaal 8 mm, want dat stond op de bestaande regel en de schermafdruk toonde
+>   alleen een lengtekeuze, geen diameterkeuze. De *hitch cord* (op de meter)
+>   bestaat wél in 8 én 10 mm. Vraag van Jos zelf; zo ja, dan komen er acht
+>   regels bij. Niet aangemaakt zonder bron.
+> - **Ook openstaand: is 1.10 m de langste?** De lijst was doorgescrold, dus
+>   onderaan kan net zo goed iets zijn weggevallen als bovenaan.
 
 > **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
 > *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.
