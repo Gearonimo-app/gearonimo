@@ -173,7 +173,11 @@ export function mergeRows(
       const from = existing[col];
       if (to === from) continue;
 
-      if (to === "" && !overwrite) {
+      // De `id` mag nooit gewist worden, ook niet met `overwrite`. Die komt uit
+      // de database en is de enige manier om een bestaand product bij te werken
+      // in plaats van te dupliceren; kwijt is kwijt. Een aangeleverd bestand
+      // zonder id-kolom zou hem er anders bij elke overwrite uit slaan.
+      if (to === "" && (col === "id" || !overwrite)) {
         // Alleen melden als er iets te verliezen viel.
         if (from !== "") blanked.push({ column: col, from, to });
         continue;

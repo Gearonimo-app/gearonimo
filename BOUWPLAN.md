@@ -122,6 +122,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   apart in (mét EN 1891 A), de oude 12.8mm-regel staat er nog naast zonder
 >   norm. Dat is dus een dubbeling, geen correctie. Laten staan tot Jos
 >   bevestigt dat de 12.8 weg mag.
+> - **Quick Cinch-specs binnen (2026-07-31, schermafdruk notchequipment.com):**
+>   17mm = `NQCCL-17mm`, SWL 15 kg; 25mm = `NQCCL-25mm`, SWL 25 kg. De 15-25 kg
+>   stond in `breaking_strength`, maar SWL is een werklast — verplaatst naar
+>   `working_load_limit`. `breaking_strength` bewust leeggelaten: de fabrikant
+>   geeft alleen een SWL bij verhouding 7:1 en drukt geen breuksterkte af.
+>   Uitrekenen (7 × SWL = 105/175 kg) zou een getal opleveren dat nergens op het
+>   product staat — **wil Jos dat toch, dan alsnog invullen.** Maten, lengtes en
+>   gewicht staan in `notes`.
+> - **`--overwrite` kan de `id` niet meer wissen.** Bij deze correctie bleek dat
+>   een aangeleverd bestand zonder id-kolom met `--overwrite` de bestaande id zou
+>   leegschrijven — daarmee is een product zijn koppeling met de database kwijt
+>   en zou het bij de volgende import gedupliceerd worden. `mergeRows` slaat de
+>   `id`-kolom nu altijd over bij een lege waarde, ook met `--overwrite`.
 > - **Besloten door Jos, doorgevoerd:** Courant Hulk → `rigging` /
 >   "Lowering Bollards"; Tree Runner Abseil Figure-of-eight → `no_ppe`
 >   ("hulpmiddel, geen ppe"); Notch Quick Cinch gesplitst in 17mm en 25mm.
