@@ -5,6 +5,38 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-07-31, deel 3)
+
+> **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het
+> opstarten van de PWA kwam een blokkerig grijs plaatje in beeld. Oorzaak:
+> `public/icons/icon.jpg` — één JPEG van 320x342 die in het manifest zowel als
+> 192x192 als 512x512 stond aangemeld. Android geloofde die maten, blies de
+> bitmap op naar splashscreen-formaat, en JPEG kan geen transparantie dus er
+> zat ook een wit blok omheen. Het bestand was bovendien niet vierkant.
+> - Jos leverde het echte logo aan (groene karabiner + vinkje, woordmerk
+>   eronder, 1024x1024 JPEG op wit). Staat als bron in `tools/logo/`.
+> - `tools/logo/genereer-iconen.py` maakt daar alle maten uit: witte
+>   achtergrond weg via een vulling vanaf de rand (glansplekken op de
+>   karabiner zijn óók bijna wit, maar die zitten ingesloten en blijven staan),
+>   woordmerk eraf, vierkant uitgelijnd, opgeslagen als 256-kleuren-PNG.
+>   Pillow is de enige afhankelijkheid en staat bewust niet in `package.json`:
+>   dit is handwerk bij een nieuw logo, geen buildstap.
+> - Nieuw: `icon-192.png`, `icon-512.png` (transparant),
+>   `icon-maskable-512.png` (dekkend, beeld binnen de veilige zone — Android
+>   snijdt daar zelf de themavorm uit), `apple-touch-icon.png` (dekkend, want
+>   iOS maakt transparantie zwart) en `favicon-64.png`.
+> - **Woordmerk zit bewust niet in het app-icoon**: op 48px in de appdrawer is
+>   "Gearonimo" toch onleesbaar en het maakt de karabiner alleen kleiner. Het
+>   volledige logo mét woordmerk staat transparant klaar als
+>   `tools/logo/gearonimo-logo-transparant.png` voor gebruik ín de app
+>   (inlogscherm, certificaat) — nog nergens ingehangen.
+> - `background_color` blijft `#ffffff`. Overwogen om er merkgroen of de
+>   donkere hero-kleur van te maken, maar de tekening heeft eigen donkere
+>   contouren en witte glans en staat op groen juist vlakker.
+> - De klant-app had helemaal geen icoon; die krijgt nu favicon +
+>   apple-touch-icon (relatieve paden, want hij draait onder `/portal/`).
+>   Bewust géén manifest of service worker daar — dat is een eigen besluit.
+
 ## Voortgang (bijgewerkt 2026-07-31, deel 2)
 
 > **Statkaart van het hoofdmenu af (besluit Jos 2026-07-31).** De grote kaart
