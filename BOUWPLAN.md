@@ -157,11 +157,13 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   op, de overige tien zijn afgeleid van dat patroon. Per regel vastgelegd in
 >   de kolom `bron_artikelcode` van
 >   `catalog/inbox/2026-07-31_besluit-phoenix-lanyards.csv`; die kolom wordt
->   niet geïmporteerd. **0.85 en 0.90 zijn nooit gecontroleerd** — de enige twee
->   waar het patroon nog kan afwijken.
-> - **Nog open: wat zijn `Phoenix 8mm Hitch Cord` en `Phoenix 10mm Hitch Cord`
->   zónder lengte?** Vermoedelijk de rope boxes van 100 en 200 m die de
->   fabrikantstekst noemt. Niet aangeraakt.
+>   niet geïmporteerd. De afgeleide codes zijn **door Jos bevestigd**
+>   (2026-07-31): *"het klopt gewoon"*. Geen openstaande vraag meer.
+> - **De regels zónder lengte blijven staan, en dat is bewust.** Dat zijn de
+>   rope boxes; *"zonder lengte wordt door de verkoper opgedeeld, dat kan een
+>   keurmeester zelf aanvullen"* (Jos 2026-07-31). Ze horen dus géén lengte te
+>   krijgen en zijn geen onvolledige regel — niet "opruimen" in een volgende
+>   sessie.
 
 > **Sessie 2026-07-31 — de bronlijst staat voortaan in de repo.** Melding Jos:
 > *"ik merk dat veel data verloren gaat in slechte administratie aan mijn kant.
