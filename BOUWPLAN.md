@@ -317,14 +317,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   PDF vernieuwd; Jos leverde de link aan. `manual_url` stond leeg — de
 >   `FLAG:`-notitie op dit product meldde al *"official manual link 404 on
 >   climb-art.de (both known URLs)"*, dus die is nu opgelost.
->   - **Let op: het is een `share.google`-verkorte link**, geen adres van
->     climb-art.de zelf. Zo'n verkorter kan verlopen en leidt de keurmeester via
->     Google. De bestandsnaam die ART hanteert is
->     `2025_BED_BB_EU_DRUCK_NEU_NOV.pdf`; het directe adres is vermoedelijk
->     `climb-art.de/wp-content/uploads/2025/11/2025_BED_BB_EU_DRUCK_NEU_NOV.pdf`
->     (WordPress zet uploads in jaar/maand-mappen en "NOV" staat in de naam),
->     maar **niet ingevuld want niet te controleren** vanuit deze omgeving.
->     Zodra Jos het echte adres heeft, vervangen.
+>   - Eerst stond er kort een `share.google`-verkorte link in; Jos leverde
+>     daarna het echte adres:
+>     `climb-art.de/shared-assets/manuals/2025_BED_BB_EU_DRUCK_NEU_NOV.pdf`.
+>     Opgeslagen als **https**, niet http zoals aangeleverd: de apps draaien
+>     zelf op https (GitHub Pages), dus een http-link wordt door de browser
+>     geweerd of als onveilig gemarkeerd. Dat de host https aankan blijkt uit de
+>     15 andere climb-art.de-links.
+>   - **Mijn gok naar het pad was fout** — ik verwachtte
+>     `/wp-content/uploads/2025/11/` (WordPress-jaar/maandmappen). Het is
+>     `/shared-assets/manuals/`, precies het pad waar `SpiderJack 2.1` al naar
+>     wees. Die afwijking was dus geen uitzondering maar **de nieuwe structuur
+>     van ART**. Goede reden dat de gok niet is ingevuld.
+>   - **Bruikbaar voor later:** de 15 links naar `/wp-content/uploads/2020/10/`
+>     verhuizen vermoedelijk naar `/shared-assets/manuals/`. De bestandsnamen
+>     veranderen echter óók (`Manual-X.pdf` → `2025_BED_XX_EU_…pdf`), dus ze
+>     zijn niet af te leiden — per stuk aanleveren blijft nodig.
+>   - De `FLAG:`-notitie op BlackBird is nu deels achterhaald: het punt
+>     "official manual link 404" is opgelost, maar "min user weight 60kg has no
+>     column" en de actieve ART-veiligheidsmelding (oktober 2025, bearing pin)
+>     staan nog. Niet aangepast — valt onder de ART-wachtstand.
 >   - De rest van de ART-site is nog niet aangepast (Jos): de 15 links naar
 >     `wp-content/uploads/2020/10/Manual-*.pdf` blijven voorlopig staan. Ook de
 >     10 ART-producten zónder handleiding wachten daarop. Checklist met alle 26
