@@ -313,6 +313,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   "(zie recall_url)" — een kolomnaam in tekst die een keurmeester leest;
 >   vervangen door "(zie de recall-link bij dit product)". Gevonden door de
 >   weergave écht te renderen.
+> - **ART BlackBird heeft weer een handleiding (2026-08-01).** ART heeft die
+>   PDF vernieuwd; Jos leverde de link aan. `manual_url` stond leeg — de
+>   `FLAG:`-notitie op dit product meldde al *"official manual link 404 on
+>   climb-art.de (both known URLs)"*, dus die is nu opgelost.
+>   - **Let op: het is een `share.google`-verkorte link**, geen adres van
+>     climb-art.de zelf. Zo'n verkorter kan verlopen en leidt de keurmeester via
+>     Google. De bestandsnaam die ART hanteert is
+>     `2025_BED_BB_EU_DRUCK_NEU_NOV.pdf`; het directe adres is vermoedelijk
+>     `climb-art.de/wp-content/uploads/2025/11/2025_BED_BB_EU_DRUCK_NEU_NOV.pdf`
+>     (WordPress zet uploads in jaar/maand-mappen en "NOV" staat in de naam),
+>     maar **niet ingevuld want niet te controleren** vanuit deze omgeving.
+>     Zodra Jos het echte adres heeft, vervangen.
+>   - De rest van de ART-site is nog niet aangepast (Jos): de 15 links naar
+>     `wp-content/uploads/2020/10/Manual-*.pdf` blijven voorlopig staan. Ook de
+>     10 ART-producten zónder handleiding wachten daarop. Checklist met alle 26
+>     staat in `catalog/export/art-handleidingen-nalopen-2026-08-01.xlsx`.
 > - **Nog te doen: de 9 ART-regels** hebben nog steeds lopende tekst in
 >   `inspection_notice_url`. Verplaatsen naar `notes` botst niet met de
 >   ART-wachtstand (de PDF-link kan er later gewoon bij), maar Jos' instructie
