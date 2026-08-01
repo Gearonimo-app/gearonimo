@@ -77,3 +77,59 @@ describe("fuzzySearch", () => {
     expect(zoek("   ")).toEqual([]);
   });
 });
+
+describe("tikfouten", () => {
+  // Melding Jos 2026-08-01: hij zocht "Save vision static line" (Save i.p.v.
+  // Safe) en kreeg EDELRID Fast Saver en Cambiumsaver terug. Eén verkeerde
+  // letter in het eerste woord maakte de drie kloppende woorden waardeloos,
+  // omdat het vangnet steeds het láátste woord eraf haalde en dus juist het
+  // foute woord overhield.
+  const ropes = [
+    "Tree Runner Safe Vision Static Line",
+    "EDELRID FAST SAVER AIR",
+    "EDELRID CAMBIUMSAVER BICOLOR",
+    "Notch Friction Savers with Aluminum",
+  ];
+
+  it("vindt het product ondanks één verkeerde letter", () => {
+    expect(fuzzyFilter(ropes, "Save vision static line")[0]).toBe(
+      "Tree Runner Safe Vision Static Line",
+    );
+  });
+
+  it("zet een exacte match boven een match met tikfout", () => {
+    expect(fuzzyScore("safe vision", "Tree Runner Safe Vision Static Line"))
+      .toBeGreaterThan(
+        fuzzyScore("save vision", "Tree Runner Safe Vision Static Line"),
+      );
+  });
+
+  it("laat korte tokens met rust", () => {
+    // "ok" mag niet ineens "ak" of "oz" vinden: onder de vier tekens zijn het
+    // vaak acroniemen die exact horen te matchen.
+    expect(fuzzyScore("ak", "OK TriactLock")).toBe(0);
+  });
+
+  it("vergeeft een vergeten of een dubbele letter", () => {
+    // vergeten letter: vison → vision
+    expect(fuzzyFilter(ropes, "safe vison")).toContain(
+      "Tree Runner Safe Vision Static Line",
+    );
+    // dubbele letter: saafe → safe
+    expect(fuzzyFilter(ropes, "saafe vision")).toContain(
+      "Tree Runner Safe Vision Static Line",
+    );
+  });
+
+  it("geeft tokens korter dan vier tekens geen marge", () => {
+    // Bewuste grens: onder de vier tekens levert één afwijking te veel ruis op
+    // ("rop" zou "top" vinden), en juist korte tokens zijn hier vaak
+    // acroniemen die exact horen te matchen. Gevolg: een tikfout in een kort
+    // woord wordt níét gecorrigeerd.
+    expect(fuzzyScore("sae", "Tree Runner Safe Vision Static Line")).toBe(0);
+  });
+
+  it("verzint niets bij een woord dat er niet op lijkt", () => {
+    expect(fuzzyScore("harnas", "Tree Runner Safe Vision Static Line")).toBe(0);
+  });
+});

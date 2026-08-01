@@ -136,16 +136,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   ook de KH bij carabiners"*): naast de 79 RP-codes ook KH (19, karabiners),
 >   SH (8), KL (8), RT (5), UB (4), GG, RIN en enkele losse. Geen ISC-product
 >   heeft nu nog een code die alleen in `manufacturer_code` staat.
-> - **Zoekvondst: het "steeds korter"-vangnet knipt aan de verkeerde kant.**
->   Jos zocht "Save vision static line" (tikfout: Save i.p.v. Safe) en kreeg
->   EDELRID Fast Saver en Cambiumsaver. Oorzaak: `fuzzySearch` haalt bij nul
->   treffers het **laatste** woord eraf en houdt dus het eerste over — precies
->   het woord met de fout. De drie woorden die wél klopten (vision, static,
->   line) verdwenen. Een betere regel zou zijn: rangschik op hoevéél
->   zoekwoorden matchen in plaats van blind van rechts te knippen. **Niet
->   gewijzigd** — `fuzzySearch` is gedeeld met de "bedoelt u"-koppeling,
->   catalogus-zoeken en serienummer-zoeken, dus een andere rangschikking raakt
->   meer dan één scherm. Aangeboden aan Jos.
+> - **Zoeken verdraagt nu één tikfout per woord (2026-08-01).** Jos zocht
+>   "Save vision static line" (Save i.p.v. Safe) en kreeg EDELRID Fast Saver en
+>   Cambiumsaver. Oorzaak: bij nul treffers haalt `fuzzySearch` het **laatste**
+>   woord eraf en houdt dus het eerste over — precies het woord met de fout,
+>   terwijl vision, static en line alle drie klopten. Jos: *"ik vind het stom
+>   dat een kleine typefout alles tegenhoudt."*
+>   - `matchtWoord()` accepteert een zoekwoord nu ook als prefix mét één
+>     afwijking (vervangen, invoegen of weglaten). Geen volledige Levenshtein
+>     maar een goedkope "hoogstens één bewerking"-check, want dit draait per
+>     toetsaanslag over ±2600 producten. Gemeten op de echte catalogus: 8–54 ms.
+>   - **Grens bij vier tekens**: korter krijgt géén marge, anders vindt "ok" ook
+>     "ak" en juist korte tokens zijn hier vaak acroniemen ("tl" → TriactLock)
+>     die exact horen te matchen. Gevolg dat je moet weten: een tikfout in een
+>     kort woord wordt niet gecorrigeerd.
+>   - `matchTokens()` geeft nu het mínimum aantal benodigde correcties terug in
+>     plaats van een ja/nee; per correctie gaat er 100 van de score af, zodat
+>     een exacte match altijd boven een gecorrigeerde blijft staan.
+>   - Zes tests erbij (17 totaal). Nagelopen op de echte catalogus: "ok tl",
+>     "petzl seq", "RP248" en "big dan kh" doen het onveranderd.
 > - **Vermoeden van Jos over de te verwijderen `Small Forged Pulley 20mm`
 >   (RP051-20) nagelopen.** Zijn gok was dat dit stiekem een compact rigging
 >   pulley uit zijn schermafdruk is. Dat lijkt niet te kloppen: die twee

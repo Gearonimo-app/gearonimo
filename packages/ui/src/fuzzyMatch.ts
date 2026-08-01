@@ -22,24 +22,98 @@ function words(s: string): string[] {
 }
 
 /**
- * Kan elk zoek-token achtereenvolgens op de kandidaat-woorden gelegd worden?
- * Een token matcht een woord als prefix ("tri" → "triact"), óf een reeks
- * woorden als acroniem van hun beginletters ("tl" → "triact"+"lock"). Tokens
- * mogen woorden overslaan, zodat "lock" ook het tweede woord mag raken.
+ * Verschillen `a` en `b` in hoogstens één teken (vervangen, invoegen of
+ * weglaten)? Bewust geen volledige Levenshtein: dit draait per toetsaanslag
+ * over de hele catalogus (±2600 producten), en één afwijking is precies wat
+ * een tikfout is.
  */
-function matchTokens(qTokens: string[], cWords: string[]): boolean {
-  function go(qi: number, wi: number): boolean {
-    if (qi === qTokens.length) return true;
-    if (wi >= cWords.length) return false;
+function withinOneEdit(a: string, b: string): boolean {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  let i = 0;
+  let j = 0;
+  let fouten = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i++;
+      j++;
+      continue;
+    }
+    if (++fouten > 1) return false;
+    if (a.length > b.length) i++;
+    else if (a.length < b.length) j++;
+    else {
+      i++;
+      j++;
+    }
+  }
+  return fouten + (a.length - i) + (b.length - j) <= 1;
+}
+
+/**
+ * Vanaf welke tokenlengte een tikfout wordt toegestaan.
+ *
+ * Onder de vier tekens niet: "ok" zou dan ook "ak" en "oz" vinden, en juist
+ * korte tokens zijn hier vaak acroniemen ("tl" → TriactLock) die exact horen
+ * te matchen.
+ */
+const MIN_TYPOLENGTE = 4;
+
+/** Matcht `tok` het begin van `woord`, eventueel met één tikfout? */
+function matchtWoord(tok: string, woord: string): "exact" | "tikfout" | null {
+  if (woord.startsWith(tok)) return "exact";
+  if (tok.length < MIN_TYPOLENGTE) return null;
+  // Zowel even lang (vervanging: save/safe) als één korter of langer
+  // (weglaten/invoegen: sae/safe, saafe/safe).
+  if (
+    withinOneEdit(tok, woord.slice(0, tok.length)) ||
+    withinOneEdit(tok, woord.slice(0, tok.length + 1))
+  ) {
+    return "tikfout";
+  }
+  return null;
+}
+
+/** Geen match mogelijk. */
+const GEEN_MATCH = Infinity;
+
+/**
+ * Kan elk zoek-token achtereenvolgens op de kandidaat-woorden gelegd worden,
+ * en zo ja: met hoeveel tikfouten op zijn minst?
+ *
+ * Een token matcht een woord als prefix ("tri" → "triact"), als prefix met één
+ * tikfout ("save" → "safe"), óf een reeks woorden als acroniem van hun
+ * beginletters ("tl" → "triact"+"lock"). Tokens mogen woorden overslaan, zodat
+ * "lock" ook het tweede woord mag raken.
+ *
+ * Het aantal tikfouten telt mee in de score, zodat een product dat exact
+ * matcht altijd bovenaan blijft staan boven één dat een correctie nodig had.
+ */
+function matchTokens(qTokens: string[], cWords: string[]): number {
+  function go(qi: number, wi: number): number {
+    if (qi === qTokens.length) return 0;
+    if (wi >= cWords.length) return GEEN_MATCH;
     const tok = qTokens[qi];
-    // (a) token is prefix van dit ene woord
-    if (cWords[wi].startsWith(tok) && go(qi + 1, wi + 1)) return true;
+    let beste = GEEN_MATCH;
+
+    // (a) token is prefix van dit ene woord, eventueel met één tikfout
+    const soort = matchtWoord(tok, cWords[wi]);
+    if (soort) {
+      const rest = go(qi + 1, wi + 1);
+      if (rest !== GEEN_MATCH) {
+        beste = Math.min(beste, rest + (soort === "tikfout" ? 1 : 0));
+      }
+    }
+
     // (b) token is acroniem: beginletters van opeenvolgende woorden
     let k = 0;
     while (k < tok.length && wi + k < cWords.length && cWords[wi + k].startsWith(tok[k])) k++;
-    if (k === tok.length && go(qi + 1, wi + k)) return true;
+    if (k === tok.length) {
+      const rest = go(qi + 1, wi + k);
+      if (rest !== GEEN_MATCH) beste = Math.min(beste, rest);
+    }
+
     // (c) dit woord overslaan en het token verderop proberen
-    return go(qi, wi + 1);
+    return Math.min(beste, go(qi, wi + 1));
   }
   return go(0, 0);
 }
@@ -56,7 +130,10 @@ export function fuzzyScore(typed: string, candidate: string): number {
   const idx = cand.indexOf(q);
   if (idx === 0) return 1000; // begint er letterlijk mee
   if (idx > 0) return 800 - Math.min(idx, 200); // bevat het letterlijk
-  if (matchTokens(q.split(/\s+/).filter(Boolean), words(candidate))) return 400;
+  // Per tikfout een flinke aftrek: een product dat exact matcht hoort altijd
+  // boven een product te staan waarvoor een letter gecorrigeerd moest worden.
+  const typos = matchTokens(q.split(/\s+/).filter(Boolean), words(candidate));
+  if (typos !== GEEN_MATCH) return Math.max(1, 400 - 100 * typos);
   return 0;
 }
 
