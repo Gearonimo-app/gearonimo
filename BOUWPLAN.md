@@ -132,6 +132,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > (`200-Series Compact Rigging Pulley RP248`). Bewust niet alleen katrollen: de
 > RP-reeks omvat ook o.a. `A-B Descender RP810`, en een half doorgevoerde
 > naamafspraak is later lastiger dan een hele.
+> - **Uitgebreid naar alle 134 ISC-producten** (2026-08-01, na *"bij ISC alles,
+>   ook de KH bij carabiners"*): naast de 79 RP-codes ook KH (19, karabiners),
+>   SH (8), KL (8), RT (5), UB (4), GG, RIN en enkele losse. Geen ISC-product
+>   heeft nu nog een code die alleen in `manufacturer_code` staat.
+> - **Zoekvondst: het "steeds korter"-vangnet knipt aan de verkeerde kant.**
+>   Jos zocht "Save vision static line" (tikfout: Save i.p.v. Safe) en kreeg
+>   EDELRID Fast Saver en Cambiumsaver. Oorzaak: `fuzzySearch` haalt bij nul
+>   treffers het **laatste** woord eraf en houdt dus het eerste over — precies
+>   het woord met de fout. De drie woorden die wél klopten (vision, static,
+>   line) verdwenen. Een betere regel zou zijn: rangschik op hoevéél
+>   zoekwoorden matchen in plaats van blind van rechts te knippen. **Niet
+>   gewijzigd** — `fuzzySearch` is gedeeld met de "bedoelt u"-koppeling,
+>   catalogus-zoeken en serienummer-zoeken, dus een andere rangschikking raakt
+>   meer dan één scherm. Aangeboden aan Jos.
 > - **Vermoeden van Jos over de te verwijderen `Small Forged Pulley 20mm`
 >   (RP051-20) nagelopen.** Zijn gok was dat dit stiekem een compact rigging
 >   pulley uit zijn schermafdruk is. Dat lijkt niet te kloppen: die twee
