@@ -124,6 +124,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ISC: artikelcode in de omschrijving (2026-08-01).** Wens Jos: *"isc pulleys
+> ik wil dat de RP-nummer in de omschrijving staat"* — de code staat op het
+> product gegraveerd en de handel noteert hem zo ("ISC COMPACT RIGGING PULLEY
+> 14 MM RP248A1"), maar bij ons stond hij alleen in `manufacturer_code`. Bij 79
+> ISC-producten met een RP-code is die nu achteraan de naam gezet
+> (`200-Series Compact Rigging Pulley RP248`). Bewust niet alleen katrollen: de
+> RP-reeks omvat ook o.a. `A-B Descender RP810`, en een half doorgevoerde
+> naamafspraak is later lastiger dan een hele.
+> - **Vermoeden van Jos over de te verwijderen `Small Forged Pulley 20mm`
+>   (RP051-20) nagelopen.** Zijn gok was dat dit stiekem een compact rigging
+>   pulley uit zijn schermafdruk is. Dat lijkt niet te kloppen: die twee
+>   (RP248 14 mm, RP251 16 mm) stáán al in de catalogus als 200-Series, en
+>   passen niet op "20 mm" of "forged". Een 20 mm gesmede ISC-katrol bestaat
+>   wél: `Medium Forged Pulley 20mm RP055`, ook al aanwezig. De verwijdering van
+>   RP051-20 blijft daarmee terecht — er raakt geen bestaand product zoek —
+>   maar dat is Jos' laatste woord.
 > **Courant Phoenix rope sling op lengte gezet (2026-07-31).** Jos leverde een
 > schermafdruk van de productpagina van Courant met de lengtekeuze. De
 > bestaande regel `Phoenix rope sling` had geen lengte; die is hernoemd naar

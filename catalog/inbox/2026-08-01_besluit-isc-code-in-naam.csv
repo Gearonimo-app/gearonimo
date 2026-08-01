@@ -1,0 +1,80 @@
+id,brand,name
+7200f397-2069-4fe3-9c08-8f2901e17c83,ISC,200-Series Compact Rigging Pulley RP248
+8f1f652b-12ca-4d2e-af20-5733c0d1d9ad,ISC,200-Series Large Rigging Pulley RP257
+f6c84645-6814-4d05-aa3d-5b684ee09e45,ISC,200-Series Medium Rigging Pulley RP255
+4768cbf7-9a87-4683-9d6e-04584b619070,ISC,200-Series Small Rigging Pulley RP251
+bd97823a-c7cf-4352-aacb-dde7bfc27525,ISC,A-B Descender RP810
+7a6920a2-448c-47e0-906e-272fbcc9f448,ISC,APEX (niet PPE) RP285
+b97a08d9-d4db-457b-8614-e8c83b0abf8f,ISC,Chest Ascender RP229
+5290fa62-d5cd-47b0-bcbf-6efe7f263c10,ISC,Compact Rigging Pulley 13mm RP048
+2636f4c3-67ee-4473-b4d4-fb9726e3d31c,ISC,D4 Work/Rescue Descender RP880
+7a46a34b-8680-4d97-b7d8-ca38999d2f67,ISC,D4PRO Work/Rescue Descender RP881
+2761c368-095d-4770-8226-951836a20d45,ISC,D5 Work/Rescue Descender RP885
+1046d499-e906-4e8b-b71c-70dcfa851be2,ISC,D5PRO Work/Rescue Descender RP886
+eb4951b1-566e-4dd5-9627-3aa999d22a33,ISC,Double Progress Capture Pulley (non-locking) RP703
+c6274ce4-7dd5-4378-b411-3d8334500701,ISC,Double Rescue Pulley (non-locking) RP701
+1d101c7d-9616-48ac-8dd5-d72eadb45199,ISC,Eiger Double Re-direct Pulley RP031
+c9a1f14d-304c-4c03-b47b-15cec7d77176,ISC,Eiger Medium Double Ended Pulley RP034
+434ca13b-5d81-4c07-9cf2-73cab15b5609,ISC,Eiger Medium Double Pulley RP033
+7cb2a640-6def-4f87-b525-c6ea74a6505a,ISC,Eiger Medium Single Pulley RP032
+198352cd-0d01-466e-a285-2d3b719364ea,ISC,Eiger Small Double Pulley RP030
+e26a3027-6743-4334-a707-f87951339a0c,ISC,Eiger Small Single Pulley RP012
+390b8820-224f-4472-bd56-015a2911367c,ISC,Extra Large Single Prussik 19mm RP069
+009ead1e-254d-4564-ba86-dde82a7eaec9,ISC,Figure 8 RP110
+80d6c1ed-44f5-477f-858a-57b837f6c03d,ISC,Fixed Wheel Shear Reduction Block Pulley RP029
+28566b5e-3ebd-4626-8db0-4a3bdbb6dbc8,ISC,Flame Rigging Pulley 16mm RP056
+affe00be-ab7b-443a-b69a-d55b4d6b3667,ISC,HALO Rigging Plate (L) RP304
+5b65c958-32c8-4a1c-b5c8-fcc2ab075adf,ISC,HALO Rigging Plate (M) RP303
+4c144a31-e0ce-4fae-9520-ca90f7708ef7,ISC,HALO Rigging Plate (S) RP302
+b1902178-d3e9-4c89-a17c-d06111c6dd96,ISC,Large Cast Pulley 20mm RP057
+5d26d334-fad4-4ea1-a049-7e78e80d62cf,ISC,Large Double Prussik Alu 16mm RP067-ALU
+8d357acb-6519-4d72-a821-703ce6bf9dd0,ISC,Large Double Prussik SS 16mm RP067-SS
+ec6df2af-1497-4cbf-a029-ab59638fd7ae,ISC,Large Rigging Plate RP320
+79df9431-2f88-4719-90c6-a422430c51c5,ISC,Large Single Prussik Alu 16mm RP066-ALU
+c183485d-0726-4160-bb60-2e8aa6d8a292,ISC,Large Single Prussik met Load Becket 16mm RP068
+7a5946c4-4c40-4ee4-9e01-e670b0814c28,ISC,Large Single Prussik SS 16mm RP066-SS
+8b53233e-c6e7-44af-bfab-631604952cfa,ISC,Medium Double Prussik Alu 13mm RP064-ALU
+9dd86998-bb1c-415b-a993-f0757b98d4ee,ISC,Medium Double Prussik SS 13mm RP064-SS
+f47530c7-0c6b-475a-9539-e180d011ae3a,ISC,Medium Forged Pulley 16mm RP054
+0cfc2b87-c800-49c3-affe-ce752d055f8e,ISC,Medium Forged Pulley 20mm RP055
+ad626e6b-2ee8-440a-8396-f43928815b33,ISC,Medium Rigging Plate RP310
+b0bbb651-c68a-4752-992e-42e57fbdb0aa,ISC,Medium Single Prussik Alu RP063-ALU
+a7374322-35ac-425c-addd-225f94ac228e,ISC,Medium Single Prussik met Load Becket 13mm RP065-ALU
+c1e0bf8c-c649-4fb2-9c75-05e3e38ce4df,ISC,Medium Single Prussik SS 13mm RP063-SS
+fe1c361c-17b5-4b76-b95b-eaad347d9738,ISC,Medium Single Prussik SS met Load Becket RP065-SS
+729a9163-ddcc-4c02-9e87-8908831440b9,ISC,Micro Pulley RP037
+58be653c-d47f-4e32-97c1-87955bf84957,ISC,Mini Ropegrab (Fixed Axle) RP203
+4a99a4dd-8b1e-4077-a147-b88f956b9f22,ISC,Mini Ropegrab (Pip Pin) RP209
+e789a7e0-e326-4f3d-ac77-decd27d0d488,ISC,One-way Locking Double Progress Capture Pulley RP705
+74331f48-7366-4b47-8ffd-f547477633e8,ISC,One-Way Locking Double Pulley RP700
+9c627d3a-5f20-49fb-94c1-c29680dfaffc,ISC,One-way Locking Single Progress Capture Pulley RP704
+e5e67f99-ccc0-45d9-b5e0-3951df6cd2fc,ISC,Phlotich Pulley RP282
+8afe4119-41bb-44c0-8ff0-312bad3b0ede,ISC,Professional Hand Ascender (L) RP210
+16043a68-5dc3-499f-8592-8c402edbe69b,ISC,Professional Hand Ascender (R) RP220
+27454100-5e21-4111-a125-160289c615b5,ISC,RAD Rope Adjustment Device RP815/KT815
+ae5a07d4-810c-42f0-bdf5-8774ad943d75,ISC,RED Back-up (Fixed Cord) RP891
+b93f4693-2b72-45ea-813a-72c4a55b2adf,ISC,RED Back-up (Popper Cord) RP892
+6b58264c-6179-4836-b1b2-fa45331299ee,ISC,RED Back-up (Stainless) RP892E
+db6cc1c1-d0f4-4d7d-8687-37489fc09a06,ISC,RED Back-up (zonder cord) RP890
+909ec11c-f52f-4c2f-bf10-12390b890483,ISC,Rescue Figure 8 (Alu) RP100
+71141ea7-4cb2-4ff9-aa5f-1448d2f1d244,ISC,Rescue Figure 8 (Stainless) RP101
+822a5dcb-2688-40e8-984a-b0821f6e84f2,ISC,Rigging Rope Wrench RP290
+83b3636c-78c0-482f-9bae-a247508a0d8f,ISC,Rigging Rope Wrench (one way locking) RP292
+8a777ab5-6d4e-4e2b-a8d2-c00be596e49d,ISC,Rocker RP500
+0deb57d4-5318-4a04-bd63-2008b923c18a,ISC,Rope Wrench 11-13mm (niet PPE) RP280
+00a9d022-ffe6-40d2-8ed9-b05b7b7b0931,ISC,Rope Wrench 13mm geoptimaliseerd (niet PPE) RP283
+680125a6-ee06-4568-96da-0a97c7ea52c8,ISC,Ropegrab (Fixed Axle) RP204
+460ae268-0222-4c11-af1b-ae93f028c7d9,ISC,Ropegrab (Pip Pin) RP205
+57d6944d-0b6c-406e-8bb1-c66c283127fb,ISC,Single Progress Capture Pulley (non-locking) RP702
+e14d9f2f-4516-429b-beb1-8922d05311e4,ISC,Small Double Prussik Alu 13mm RP061-ALU
+fc012fd1-fdcf-4ea7-b568-3d50b6ace694,ISC,Small Double Prussik SS 13mm RP061-SS
+799736cd-8573-415d-8269-9f76e2c2584f,ISC,Small Forged Pulley 13mm RP050
+b291fe7e-d09c-4263-b771-2d4393efca3c,ISC,Small Forged Pulley 16mm RP051-16
+7a42381c-734c-408f-8d64-e717981e681a,ISC,Small Rigging Plate RP300
+3bd9a33d-85c6-4ba8-b8fb-e469fc8837b4,ISC,Small Single Prussik Alu 13mm RP060-ALU
+5d204964-1faf-4d14-925a-695f494b315b,ISC,Small Single Prussik SS 13mm RP060-SS
+f19676fd-ae39-48b9-87d2-fceed7a0d1d2,ISC,STRYDER Foot Ascender (L) - NIET PPE RP228
+2b550088-daba-4e0d-b48b-4257e605f7f2,ISC,STRYDER Foot Ascender (R) - NIET PPE RP227
+222e5fcc-69c5-4c55-879d-fc1a6375d25a,ISC,Ultrasafe Hand Ascender (L) RP230
+5fd79f9c-df6e-4620-8f80-6d3a01f091e5,ISC,Ultrasafe Hand Ascender (R) RP240
+d86c0d6a-17a1-45a7-9e74-48162f2d692e,ISC,Wrench Pulley RP281
