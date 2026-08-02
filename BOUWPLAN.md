@@ -5,6 +5,53 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-02)
+
+> **Keurtabel werd trager naarmate een klant meer artikelen had (melding Jos
+> 2026-08-02).** Jos merkte bij een klant met 260+ artikelen dat een
+> serienummer intypen "erg traag" ging, en vroeg zich af of het aan mobiel
+> internet lag of aan de groeiende database.
+>
+> Het was geen van beide. Toevoegrij en keurtabel stonden in één component
+> (`InspectionWizard.vue`), dus tekende Vue bij élke toetsaanslag de hele
+> tabel opnieuw. Per regel is dat 35 `$t()`-aanroepen, 15 afleidingsfuncties
+> en 9 invoervelden — bij 260 artikelen ~9.100 vertaal-lookups per letter.
+> Gemeten in headless Chromium: 20 regels 5 ms, 100 regels 20 ms, 260 regels
+> **57 ms**, 500 regels 109 ms per toetsaanslag. Op een telefoon een veelvoud
+> daarvan. Niet alleen het serienummerveld: élk veld in de wizard betaalde die
+> prijs.
+> - Nieuw `components/InspectionRow.vue`: één regel = één component, zodat Vue
+>   ongewijzigde regels overslaat. Gemeten met het échte component: 260 regels
+>   **6,4 ms**, 500 regels 13,7 ms per toetsaanslag (~9× sneller, en het
+>   groeit niet meer mee met de klant).
+> - Idem `components/CustomerArticleRow.vue` voor de artikellijst op de
+>   klantpagina — zelfde constructie (toevoegformulier naast een lijst van
+>   260), lichtere regels.
+> - **Voorwaarde om dit zo te houden:** props naar die twee componenten zijn
+>   primitieven of stabiele verwijzingen, en gebeurtenissen gaan via
+>   `@gebeurtenis="functienaam"` zonder argumenten. Eén inline
+>   `@click="() => doe(rij)"` of `:foo="{ ... }"` in de ouder is per render een
+>   nieuwe waarde en zet het effect volledig terug. Staat als waarschuwing in
+>   beide componenten.
+> - Types en pure afleidingen naar `composables/inspectionItem.ts` en
+>   `components/customerArticleTypes.ts` (één bron, geen kopie per component).
+> - Opmaak van tabel/lijst naar `styles/inspection-table.css` en
+>   `styles/article-list.css`. **Bewuste afweging:** die twee zijn niet scoped.
+>   Scoped styles van een ouder bereiken de elementen van een kindcomponent
+>   niet, en de regels in beide componenten herhalen is erger. De `iw__`/`ca__`
+>   -prefix doet nu het afbakenwerk. Geverifieerd met screenshots op 1280px en
+>   390px: oud en nieuw zijn pixel-identiek (zelfde md5).
+> - **Niet aangepakt, bewust:** het zoeken op de SN-/recall-pagina doet vier
+>   netwerkverzoeken ná elkaar per zoekopdracht en haalt bij binnenkomst de
+>   hele catalogus op. Op mobiel is dat 1–2,5 seconde. Jos: die pagina wordt
+>   zelden gebruikt, dus lagere prioriteit.
+> - **Nog open (veiligheid, geen snelheid):** `doRecall` in `SerialSearch.vue`
+>   haalt `.limit(1000)` artikelen op en filtert client-side. Boven de 1000
+>   niet-afgevoerde artikelen mist een recall-zoekopdracht stilletjes
+>   artikelen. Ook staat er nergens een trigram-index, terwijl `search_products`
+>   en de `ilike '%…%'`-zoekopdrachten op `articles` volledige scans doen die
+>   met de database meegroeien.
+
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
 > **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het

@@ -266,199 +266,55 @@
               </tr>
             </thead>
             <tbody>
-              <template v-for="row in groupedSortedRows" :key="row.it.id">
-                <tr v-if="row.isFirstInGroup" class="iw__group-head-row">
-                  <td colspan="12">🔗 {{ row.groupName }}</td>
-                </tr>
-                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id, 'iw__row--grouped': !!articleSetInfo[row.it.article_id] }">
-                  <td class="iw__warn-cell">
-                    <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
-                         bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
-                    <a v-if="itemManualUrl(row.it)" :href="itemManualUrl(row.it)!" target="_blank" class="iw__warn-icon" :title="$t('articles.fields.manualUrl')">📖</a>
-                    <button v-else-if="!row.it.article.product" class="iw__icon-btn" :title="$t('inspections.table.addManualUrl')" @click="editManualUrl(row.it)">📖</button>
-                    <!-- Alleen het vlaggetje (geen rood blok meer -- feedback Jos
-                         2026-07-11: "dan hoeft er niet ook nog een rood vlak met
-                         RECALL te staan schreeuwen. het vlaggetje is genoeg").
-                         Recall en inspection notice zijn twee verschillende
-                         signalen (zie DATAMODEL products.recall_url /
-                         inspection_notice_url) en stonden hier ten onrechte
-                         samengevoegd achter hetzelfde 🚩 -- een gewoon
-                         fabrikantsbulletin zag er zo uit als een echte recall
-                         (feedback Jos 2026-07-14: onnodige paniek). Nu eigen
-                         icoon + tooltip per type, allebei tonen kan (een
-                         product kan beide links los hebben). Elk heeft een
-                         eigen ✕ om af te vinken met een opmerking (bv.
-                         "voldaan" of "dit exemplaar valt niet binnen de
-                         batch") -- feedback Jos 2026-07-14: anders blijft de
-                         vlag voor altijd staan, ook na beoordeling. -->
-                    <template v-if="itemRecallUrl(row.it)">
-                      <a :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.recallFlag')" :title="itemRecallTitle(row.it)!">🚩</a>
-                      <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearRecallFlag(row.it)">✕</button>
-                    </template>
-                    <span v-else-if="itemRecallClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemRecallClearedNote(row.it)}`">✓</span>
-                    <template v-if="itemNoticeUrl(row.it)">
-                      <a :href="itemNoticeUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.noticeFlag')" :title="itemNoticeTitle(row.it)!">⚠️</a>
-                      <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
-                    </template>
-                    <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
-                    <!-- Opmerking uit de catalogus: allebei de manieren, want
-                         er wordt zowel op een telefoon als op een laptop
-                         gekeurd. Muisaanwijzen toont de tekst als tooltip,
-                         klikken klapt hem uit onder de rij -- dat laatste is
-                         de enige route op een aanraakscherm. -->
-                    <button
-                      v-if="itemProductNotes(row.it)"
-                      type="button"
-                      class="iw__notes-toggle"
-                      :aria-expanded="openNotesId === row.it.id"
-                      :aria-label="$t('inspections.table.productNotesFlag')"
-                      :title="itemProductNotesTitle(row.it)!"
-                      @click="toggleNotes(row.it)"
-                    >ℹ️</button>
-                  </td>
-                  <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
-                  <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
-                  <td class="iw__match-cell" :data-label="$t('inspections.table.colDescription')">
-                    <template v-if="matchingRowId === row.it.id">
-                      <input
-                        v-model="matchSearch"
-                        class="iw__cell-input"
-                        :placeholder="$t('inspections.table.matchPlaceholder')"
-                        autofocus
-                        @blur="closeSuggest"
-                        @keydown="onSuggestKeydown"
-                      />
-                      <div v-if="activeField === 'rowMatch' && fieldSuggestions.length" class="iw__suggest iw__suggest--row">
-                        <button
-                          v-for="(s, i) in fieldSuggestions"
-                          :key="s"
-                          type="button"
-                          class="iw__suggest-item"
-                          :class="{ 'iw__suggest-item--active': i === suggestIndex }"
-                          @mousedown.prevent="pickSuggestion(s)"
-                          @mouseenter="suggestIndex = i"
-                        >{{ s }}</button>
-                      </div>
-                    </template>
-                    <button
-                      v-else-if="!row.it.article.product"
-                      type="button"
-                      class="iw__match-btn"
-                      :title="$t('inspections.table.matchTooltip')"
-                      @click="startMatch(row.it)"
-                    >{{ row.label }}</button>
-                    <span v-else>{{ row.label }}</span>
-                    <span
-                      v-if="articleSetInfo[row.it.article_id]"
-                      class="iw__set-flag"
-                      :title="$t('sets.addPart.linkedTo', { name: articleSetInfo[row.it.article_id].setName })"
-                    >🔗</span>
-                  </td>
-                  <td :data-label="$t('inspections.table.colSerial')">
-                    <input
-                      v-model="row.it.article.serial_number"
-                      class="iw__cell-input"
-                      :placeholder="$t('inspections.table.serial')"
-                      @change="saveArticle(row.it)"
-                    />
-                  </td>
-                  <td class="iw__year-cell" :data-label="$t('inspections.table.colYear')">
-                    <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
-                    <input
-                      v-model.number="row.it.article.manufacture_year"
-                      type="number"
-                      class="iw__cell-input iw__cell-input--xs"
-                      placeholder="JJJJ"
-                      @change="saveArticle(row.it)"
-                    />
-                    <select v-model.number="row.it.article.manufacture_month" class="iw__month-select" @change="saveArticle(row.it)">
-                      <option :value="null">{{ $t('inspections.table.month') }}</option>
-                      <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
-                    </select>
-                  </td>
-                  <td :data-label="$t('inspections.table.colFirstUse')">
-                    <input
-                      v-model="row.it.article.first_use_date"
-                      type="date"
-                      class="iw__date-input"
-                      @change="saveArticle(row.it)"
-                    />
-                  </td>
-                  <td :data-label="$t('inspections.table.colUser')">
-                    <input
-                      v-model="row.it.article.assigned_user_name"
-                      class="iw__cell-input"
-                      :placeholder="$t('articles.fields.user')"
-                      @change="saveArticle(row.it)"
-                    />
-                  </td>
-                  <td :data-label="$t('inspections.table.colPrevious')">
-                    <span
-                      v-if="row.previous && row.previous.result !== 'not_assessed'"
-                      :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'"
-                    >
-                      {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
-                    </span>
-                    <span v-else class="iw__prev--none">—</span>
-                  </td>
-                  <td class="iw__result-cell" :data-label="$t('inspections.table.colResult')">
-                    <div class="iw__result-buttons">
-                      <button
-                        class="iw__result-btn iw__result-btn--pass"
-                        :class="{ 'iw__result-btn--active': row.it.result === 'passed' }"
-                        @click="setResult(row.it, 'passed')"
-                      >✅ {{ $t('inspections.table.pass') }}</button>
-                      <button
-                        class="iw__result-btn iw__result-btn--fail"
-                        :class="{ 'iw__result-btn--active': row.it.result === 'rejected' }"
-                        @click="setResult(row.it, 'rejected')"
-                      >❌ {{ $t('inspections.table.fail') }}</button>
-                      <select v-if="row.it.result === 'rejected'" v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
-                        <option :value="null">{{ $t('inspections.noCode') }}</option>
-                        <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
-                      </select>
-                      <input
-                        v-model="row.it.comment"
-                        class="iw__input iw__input--sm iw__comment-input"
-                        :placeholder="$t('inspections.commentPlaceholder')"
-                        @blur="saveRow(row.it)"
-                      />
-                    </div>
-                  </td>
-                  <td :data-label="$t('inspections.table.colNextDue')">
-                    <input
-                      v-if="row.it.result === 'passed'"
-                      type="date"
-                      v-model="row.it.next_due"
-                      class="iw__date-input"
-                      @change="saveRow(row.it)"
-                    />
-                    <span v-else>—</span>
-                  </td>
-                  <td class="iw__actions-cell">
-                    <!-- Alleen bij vrije artikelen (geen catalogusmatch): aanmelden
-                         voor de catalogus-wachtrij. Geen kaal vinkje meer: de knop
-                         opent een productformulier dat de keurmeester zelf invult
-                         vóór het op de wachtrij komt (besluit Jos 2026-07-05).
-                         Actief = al aangemeld. -->
-                    <button v-if="!row.it.article.product" type="button"
-                            class="iw__catalog-toggle"
-                            :class="{ 'iw__catalog-toggle--on': row.it.article.suggest_for_catalog }"
-                            :title="$t('inspections.table.suggestForCatalog')"
-                            @click="suggestFor = row.it.article">
-                      📚
-                    </button>
-                    <button class="iw__part-btn" :title="$t('sets.addPart.title')" @click="startLinkPart(row.it)">🔗+</button>
-                    <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
-                  </td>
-                </tr>
-                <tr v-if="openNotesId === row.it.id" class="iw__notes-row">
-                  <td colspan="12">
-                    <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
-                    {{ itemProductNotes(row.it) }}
-                  </td>
-                </tr>
-              </template>
+              <!-- Eén regel = één component. Dat is een prestatiekeuze, geen
+                   opmaakkeuze: zolang de props van een regel gelijk blijven,
+                   slaat Vue hem over bij het typen in de toevoegrij. Bij 260
+                   artikelen scheelt dat ~57 ms per toetsaanslag (zie
+                   InspectionRow.vue).
+
+                   Daarom hieronder uitsluitend primitieven en stabiele
+                   verwijzingen als prop, en `@gebeurtenis="functienaam"` zonder
+                   argumenten -- een inline `() => ...` of een `:foo="{ ... }"`
+                   is per render een nieuwe waarde en haalt het effect meteen
+                   onderuit. -->
+              <InspectionRow
+                v-for="row in groupedSortedRows"
+                :key="row.it.id"
+                :item="row.it"
+                :label="row.label"
+                :brand="row.brand"
+                :category="row.category"
+                :warning-icon="row.warning ? row.warning.icon : null"
+                :warning-text="row.warning ? row.warning.text : null"
+                :previous-result="row.previous ? row.previous.result : null"
+                :previous-date="row.previousDate"
+                :highlighted="highlightId === row.it.id"
+                :group-head="row.isFirstInGroup ? row.groupName ?? '' : null"
+                :in-set="!!articleSetInfo[row.it.article_id]"
+                :set-name="articleSetInfo[row.it.article_id] ? articleSetInfo[row.it.article_id].setName : null"
+                :notes-open="openNotesId === row.it.id"
+                :rejection-codes="rejectionCodes"
+                :match-active="matchingRowId === row.it.id"
+                :match-search="matchingRowId === row.it.id ? matchSearch : ''"
+                :match-suggestions="matchingRowId === row.it.id && activeField === 'rowMatch' ? fieldSuggestions : GEEN_SUGGESTIES"
+                :match-index="matchingRowId === row.it.id ? suggestIndex : -1"
+                @edit-manual-url="editManualUrl"
+                @clear-recall="clearRecallFlag"
+                @clear-notice="clearNoticeFlag"
+                @toggle-notes="toggleNotes"
+                @start-match="startMatch"
+                @save-article="saveArticle"
+                @save-row="saveRow"
+                @set-result="setResult"
+                @suggest-catalog="startSuggestCatalog"
+                @link-part="startLinkPart"
+                @retire="retireArticle"
+                @update:match-search="setMatchSearch"
+                @match-blur="closeSuggest"
+                @match-keydown="onSuggestKeydown"
+                @pick-suggestion="pickSuggestion"
+                @hover-suggestion="setSuggestIndex"
+              />
               <tr v-if="!sortedRows.length">
                 <!-- Met actieve zoekvelden is "geen match" iets anders dan "geen
                      artikelen": de lijst is er nog, alleen verborgen door het
@@ -524,64 +380,36 @@ import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFree
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
+import InspectionRow from '../components/InspectionRow.vue'
+import {
+  itemBrand,
+  itemName,
+  itemCategory,
+  itemRecallUrl,
+  itemNoticeUrl,
+  monthName,
+  type Product,
+  type Article,
+  type Item,
+} from '../composables/inspectionItem'
+import '../styles/inspection-table.css'
+
+/**
+ * Stabiele lege lijst voor de suggestie-prop van niet-actieve regels.
+ *
+ * Een verse `[]` per render zou voor Vue een gewijzigde prop zijn, waardoor
+ * élke regel opnieuw getekend wordt en het hele nut van InspectionRow als
+ * eigen component vervalt. Eén gedeelde constante blijft identiek.
+ */
+const GEEN_SUGGESTIES: string[] = []
 
 const route = useRoute()
 const { t } = useI18n()
 const id = route.params.id as string
 const { isOnline } = useOnline()
 
-interface Product {
-  id: string
-  brand: string | null
-  name: string | null
-  category: string | null
-  product_type: string | null
-  interval_override_months: number | null
-  max_age_mfr_years: number | null
-  max_age_use_years: number | null
-  recall_url: string | null
-  inspection_notice_url: string | null
-  manual_url: string | null
-  // Opmerking uit de catalogus. Stond hier eerder niet: de keurmeester zag
-  // `products.notes` tijdens een keuring dus helemaal niet, waardoor
-  // fabrikantseisen zonder document (bv. "elke 5 jaar Level 2-service bij een
-  // erkende partner") noodgedwongen in `inspection_notice_url` belandden --
-  // een linkveld, dus daar werd lopende tekst een kapotte link van.
-  notes: string | null
-}
-interface Article {
-  id: string
-  serial_number: string | null
-  free_brand: string | null
-  free_category: string | null
-  free_description: string | null
-  free_manual_url: string | null
-  free_recall_flag: boolean
-  free_recall_url: string | null
-  recall_cleared_url: string | null
-  recall_cleared_note: string | null
-  notice_cleared_url: string | null
-  notice_cleared_note: string | null
-  assigned_user_name: string | null
-  manufacture_year: number | null
-  manufacture_month: number | null
-  first_use_date: string | null
-  severe_use: boolean
-  interval_override_months: number | null
-  retired: boolean
-  suggest_for_catalog: boolean
-  product: Product | null
-}
-interface Item {
-  id: string
-  article_id: string
-  result: string
-  next_due: string | null
-  rejection_code_id: string | null
-  comment: string | null
-  article: Article
-}
-
+// Product/Article/Item + de pure afleidingen staan in
+// ../composables/inspectionItem.ts, gedeeld met InspectionRow.vue.
 interface InspectionRecord {
   id: string
   customer_id: string
@@ -803,6 +631,20 @@ function setFieldValue(field: string | null, val: string) {
 const matchingRowId = ref<string | null>(null)
 const matchSearch = ref('')
 
+// InspectionRow houdt zelf geen staat bij: het meldt wat de keurmeester deed en
+// de wizard verwerkt het. Bewust benoemde functies (geen inline `() => ...` in
+// de template), want alleen zo blijft de gebeurtenis-binding per render
+// dezelfde waarde en slaat Vue ongewijzigde regels over.
+function setMatchSearch(value: string) {
+  matchSearch.value = value
+}
+function setSuggestIndex(index: number) {
+  suggestIndex.value = index
+}
+function startSuggestCatalog(article: Article) {
+  suggestFor.value = article
+}
+
 function startMatch(it: Item) {
   matchingRowId.value = it.id
   // Behoud de oude schrijfwijze als startwaarde: zo verdwijnt de tekst niet
@@ -948,8 +790,6 @@ function copyLastArticle() {
 const dayHint = ref<number | null>(null)
 const showSnRef = ref(false)
 const weekHint = ref<number | null>(null)
-const MONTH_NAMES_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
-function monthName(m: number) { return MONTH_NAMES_NL[m - 1] }
 const dayHintMonth = computed<number | null>(() => {
   const d = dayHint.value
   if (!d || d < 1 || d > 366) return null
@@ -1157,34 +997,7 @@ watch(newDescription, (name) => {
   }
 })
 
-function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
-function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
-function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
-function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
-// Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
-// keurmeester de handmatige recall-toggle heeft aangezet (free_recall_flag) --
-// zonder catalogus is een recall anders niet vast te stellen.
-function itemRecallRawUrl(it: Item): string | null {
-  if (it.article.product) return it.article.product.recall_url ?? null
-  return it.article.free_recall_flag ? it.article.free_recall_url : null
-}
-// Afgevinkt door de keurmeester (met opmerking, zie clearRecallFlag) blijft
-// verborgen zolang het dezelfde link betreft -- wijzigt products.recall_url
-// later (een nieuwe recall), dan verschijnt de vlag vanzelf weer.
-function itemRecallUrl(it: Item): string | null {
-  const url = itemRecallRawUrl(it)
-  return url && url === it.article.recall_cleared_url ? null : url
-}
-function itemRecallTitle(it: Item): string | null {
-  const url = itemRecallUrl(it)
-  return url ? `${t('inspections.table.recallHint')}: ${url}` : null
-}
-function itemRecallClearedNote(it: Item): string | null {
-  const url = itemRecallRawUrl(it)
-  if (!url || url !== it.article.recall_cleared_url) return null
-  return it.article.recall_cleared_note || null
-}
 async function clearRecallFlag(it: Item) {
   if (!isOnline.value) { addError.value = t('offline.onlineOnlyAction'); return }
   const url = itemRecallUrl(it)
@@ -1195,56 +1008,12 @@ async function clearRecallFlag(it: Item) {
   const { error: err } = await supabase.from('articles').update(patch).eq('id', it.article.id)
   if (!err) Object.assign(it.article, patch)
 }
-// Inspection notice / veiligheidsbulletin van de fabrikant: alleen
-// catalogusproducten (products.inspection_notice_url) -- geen vrij-artikel-
-// equivalent, zie DATAMODEL. Los van itemRecallUrl: een echte recall en een
-// routinebulletin zijn geen hetzelfde signaal en horen niet achter dezelfde
-// vlag te schuilen.
-function itemNoticeRawUrl(it: Item): string | null {
-  return it.article.product?.inspection_notice_url ?? null
-}
-function itemNoticeUrl(it: Item): string | null {
-  const url = itemNoticeRawUrl(it)
-  return url && url === it.article.notice_cleared_url ? null : url
-}
-function itemNoticeTitle(it: Item): string | null {
-  const url = itemNoticeUrl(it)
-  return url ? `${t('inspections.table.noticeHint')}: ${url}` : null
-}
-/**
- * Opmerking uit de catalogus (`products.notes`).
- *
- * Anders dan een recall of een inspection notice is dit geen vlag die
- * afgevinkt wordt: het is achtergrond die bij élke keuring van dit product
- * geldt (fabrikantseisen, servicetermijnen, bijzonderheden). Daarom geen ✕ om
- * te verbergen -- verbergen zou de eerstvolgende keurmeester de informatie
- * onthouden.
- */
-function itemProductNotes(it: Item): string | null {
-  return it.article.product?.notes?.trim() || null;
-}
-
-/**
- * De opmerking als tooltip, zodat muisaanwijzen op laptop/pc al volstaat
- * (Jos 2026-07-31: "keuren gebeurt ook vaak op een laptop/pc"). Klikken klapt
- * hem uit en blijft nodig op een telefoon, waar hoveren niet bestaat.
- */
-function itemProductNotesTitle(it: Item): string | null {
-  const notes = itemProductNotes(it);
-  return notes ? `${t("inspections.table.productNotesTitle")}: ${notes}` : null;
-}
-
 /** Welke rij zijn opmerking uitgeklapt heeft. Er staat er hooguit één open. */
 const openNotesId = ref<string | null>(null);
 function toggleNotes(it: Item) {
   openNotesId.value = openNotesId.value === it.id ? null : it.id;
 }
 
-function itemNoticeClearedNote(it: Item): string | null {
-  const url = itemNoticeRawUrl(it)
-  if (!url || url !== it.article.notice_cleared_url) return null
-  return it.article.notice_cleared_note || null
-}
 async function clearNoticeFlag(it: Item) {
   if (!isOnline.value) { addError.value = t('offline.onlineOnlyAction'); return }
   const url = itemNoticeUrl(it)
@@ -1360,6 +1129,8 @@ interface Row {
   category: string
   year: string
   previous: { result: string; comment: string | null; inspection_date: string } | null
+  // Al opgemaakt, zodat InspectionRow er geen eigen formatDate voor nodig heeft.
+  previousDate: string | null
   warning: { icon: string; text: string } | null
   score: number
 }
@@ -1402,13 +1173,15 @@ const rows = computed<Row[]>(() => {
     if (it.article.retired) continue
     if (hasFilter.value && !matchesFilters(it)) continue
     const y = it.article.manufacture_year
+    const previous = previousResults.value[it.article_id] ?? null
     result.push({
       it,
       label: itemLabel(it),
       brand: itemBrand(it),
       category: itemCategory(it),
       year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
-      previous: previousResults.value[it.article_id] ?? null,
+      previous,
+      previousDate: previous ? formatDate(previous.inspection_date) : null,
       warning: rowWarning(it),
       score: matchScore(it),
     })
@@ -2110,6 +1883,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 </script>
 
 <style scoped>
+/* De opmaak van de keurtabel zelf (regels, cellen, invoervelden,
+   suggestielijsten en de kaartweergave op telefoon) staat in
+   ../styles/inspection-table.css: die wordt gedeeld met InspectionRow.vue,
+   en scoped styles reiken niet tot in een kindcomponent. Hieronder blijft
+   alleen wat exclusief van deze pagina is. */
 .iw { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; flex-direction: column; }
 .iw__header {
   background: #1a3a2a; color: #fff;
@@ -2127,22 +1905,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
-/* Per-rij "aanmelden voor catalogus"-knop, rechts in de actiekolom. Het
-   boek-icoon kleurt op zodra het artikel is aangemeld, zodat in één oogopslag
-   te zien is welke vrije artikelen op de wachtrij staan. */
-.iw__catalog-toggle {
-  display: inline-flex; align-items: center;
-  border: none; background: none;
-  cursor: pointer; opacity: 0.4; filter: grayscale(1);
-  font-size: 0.95rem; margin-right: 0.35rem; vertical-align: middle;
-}
-.iw__catalog-toggle--on { opacity: 1; filter: none; }
-.iw__suggest {
-  background: #fff; border: 1px solid #ddd; border-radius: 8px;
-  margin: -0.35rem 0 0.85rem; padding: 0.3rem;
-  display: flex; flex-direction: column; gap: 0.1rem;
-  max-height: 240px; overflow-y: auto;
-}
 /* De per-veld-suggestielijst is alleen voor telefoon/tablet (zie media-query);
    op desktop staat de gedeelde lijst onder de hele rij (iw__suggest--main). */
 .iw__suggest--field { display: none; }
@@ -2162,46 +1924,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__sn-badge--add { background: #dcfce7; color: #166534; }
 .iw__sn-badge--retired { background: #f3f4f6; color: #6b7280; }
 
-/* Maand naast het bouwjaar in de tabel/kaart. */
-.iw__month-select {
-  padding: 0.35rem 0.4rem; border-radius: 6px; border: 1px solid #ddd;
-  font-size: 0.85rem; font-family: inherit; background: #fff; color: #111827;
-}
-
-/* Even oplichten waar je naartoe springt na een SN-keuze. */
-.iw__row--highlight { animation: iw-flash 2s ease; }
-@keyframes iw-flash { 0%, 35% { background: #fef9c3; } 100% { background: transparent; } }
-.iw__suggest-item {
-  text-align: left; border: none; background: transparent; cursor: pointer;
-  padding: 0.45rem 0.6rem; border-radius: 6px; font-size: 0.9rem;
-  color: #111827; font-family: inherit;
-}
-.iw__suggest-item:hover { background: #f3f4f6; }
-.iw__suggest-item--active { background: #e0e7ff; }
-.iw__match-cell { position: relative; }
-.iw__suggest--row {
-  position: absolute; top: 100%; left: 0; z-index: 5; min-width: 16rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-.iw__match-btn {
-  border: none; background: transparent; cursor: pointer; padding: 0;
-  font-family: inherit; font-size: inherit; color: inherit; text-align: left;
-  text-decoration: underline dotted; text-decoration-color: #9ca3af;
-}
-.iw__match-btn:hover { color: #16a34a; }
-
-.iw__input, .iw__select {
-  padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
-  font-size: 0.95rem; box-sizing: border-box; font-family: inherit; flex: 1; min-width: 8rem;
-}
-.iw__input--sm { flex: 1; min-width: 7rem; }
-.iw__input--xs { flex: 0 0 5rem; min-width: 4rem; }
-.iw__select--sm { min-width: 8rem; }
-.iw__select--xs { flex: 0 0 5.5rem; min-width: 5rem; padding: 0.6rem 0.5rem; border-radius: 8px; border: 1px solid #ddd; font-size: 0.95rem; font-family: inherit; }
-.iw__input--nospin { -moz-appearance: textfield; }
-.iw__input--nospin::-webkit-outer-spin-button,
-.iw__input--nospin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
 .iw__cheatsheet {
   display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
   font-size: 0.8rem; color: #6b7280; margin-bottom: 0.85rem; padding: 0 0.25rem;
@@ -2218,90 +1940,13 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__cheatsheet-sep { opacity: 0.5; }
 
 .iw__table-wrap { background: #fff; border-radius: 12px; overflow-x: auto; }
-.iw__table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-.iw__table th, .iw__table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #eee; text-align: left; vertical-align: top; }
-.iw__table th { color: #6b7280; font-weight: 600; font-size: 0.8rem; white-space: nowrap; }
 .iw__sortable { cursor: pointer; user-select: none; }
 .iw__sortable:hover { color: #111827; }
-.iw__row--passed { background: #f0fdf4; }
-.iw__row--rejected { background: #fef2f2; }
-/* Setleden bij elkaar (besloten met Jos 2026-07-11): box-shadow i.p.v.
-   border-left, want een echte border op <tr> wordt door border-collapse
-   genegeerd. */
-/* Geen achtergrondkleur hier (i.p.v. alleen box-shadow): zou de belangrijkere
-   goed/afgekeurd-achtergrond overschrijven (gelijke CSS-specificiteit, deze
-   regel staat later in het stylesheet). */
-.iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
-.iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
-/* Zacht/transparant i.p.v. een volle, felle balk (feedback Jos 2026-07-11:
-   "schreeuwt van de daken, doet pijn aan de ogen") -- zelfde subtiele tint
-   als de artikellijst, met alleen een dun randje zodat de kop nog wel opvalt. */
-.iw__group-head-row td {
-  padding: 0.35rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
-  background: #eff6ff; box-shadow: inset 3px 0 0 0 #93c5fd;
-}
 /* Klein en subtiel regeltje onder de toevoegrij, geen blok (feedback Jos
    2026-07-11). */
 .iw__add-recall-hint { margin: 0.4rem 0 0; font-size: 0.8rem; color: #b91c1c; }
 .iw__add-recall-hint a { color: inherit; }
-.iw__warn-cell { white-space: nowrap; }
-.iw__warn-icon { margin-right: 0.25rem; }
-.iw__icon-btn {
-  margin-right: 0.25rem;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
-  padding: 0.1rem;
-  opacity: 0.55;
-}
-.iw__icon-btn:hover { opacity: 1; }
-.iw__icon-btn--active { opacity: 1; filter: drop-shadow(0 0 1px #dc2626); }
-.iw__flag-clear {
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  font-size: 0.7rem;
-  line-height: 1;
-  padding: 0.1rem;
-  margin-right: 0.4rem;
-  opacity: 0.4;
-  color: #374151;
-}
-.iw__flag-clear:hover { opacity: 1; }
-.iw__flag-cleared { margin-right: 0.25rem; opacity: 0.45; cursor: help; }
-/* Opmerking uit de catalogus. Bewust neutraal grijs en niet rood/oranje: dit
-   is achtergrondinformatie, geen waarschuwing -- anders gaat het naast de
-   recall- en notice-vlag concurreren om dezelfde aandacht. */
-.iw__notes-toggle {
-  margin-right: 0.25rem; padding: 0; border: none; background: none;
-  font-size: 1rem; line-height: 1; cursor: pointer;
-}
-.iw__notes-row td {
-  padding: 0.4rem 1rem; font-size: 0.8rem; color: #374151;
-  background: #f9fafb; box-shadow: inset 3px 0 0 0 #d1d5db;
-  white-space: normal;
-}
-.iw__notes-row strong { color: #111827; }
-.iw__category { color: #374151; }
-.iw__sn { color: #6b7280; }
-.iw__prev--pass { color: #16a34a; }
-.iw__prev--fail { color: #dc2626; }
-.iw__prev--none { color: #9ca3af; }
-.iw__empty { text-align: center; color: #9ca3af; padding: 2rem 1rem; }
 
-.iw__result-buttons { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
-.iw__result-btn { padding: 0.45rem 0.65rem; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 0.85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
-.iw__result-btn--pass.iw__result-btn--active { background: #16a34a; color: #fff; border-color: #16a34a; }
-.iw__result-btn--fail.iw__result-btn--active { background: #dc2626; color: #fff; border-color: #dc2626; }
-.iw__result-cell { min-width: 11rem; }
-.iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
-.iw__actions-cell { text-align: center; }
-.iw__part-btn { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.5; margin-right: 0.35rem; }
-.iw__part-btn:hover { opacity: 1; }
-.iw__retire-btn { border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: 0.6; }
-.iw__retire-btn:hover { opacity: 1; }
 .iw__link-bar {
   display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
   background: #eff6ff; color: #1e40af; border-radius: 10px;
@@ -2309,16 +1954,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__link-cancel { border: none; background: none; color: #1e40af; cursor: pointer; font-size: 1rem; margin-left: auto; }
 .iw__retired-badge { opacity: 0.5; }
-.iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
-.iw__cell-input {
-  padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid transparent;
-  font-size: 0.9rem; font-family: inherit; width: 100%; min-width: 6rem; box-sizing: border-box;
-  background: transparent;
-}
-.iw__cell-input:hover { border-color: #ddd; }
-.iw__cell-input:focus { border-color: #16a34a; background: #fff; outline: none; }
-.iw__cell-input--xs { min-width: 4rem; width: 4.5rem; }
-.iw__year-cell { white-space: nowrap; }
 
 .iw__error { color: #dc2626; font-size: 0.9rem; margin: 0.5rem 0; }
 
@@ -2340,10 +1975,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__cert-imported { font-weight: 600; color: #1e3a5f; background: #eff6ff; border-radius: 8px; padding: 0.75rem; margin: 0; }
 .iw__cert-link { text-align: center; text-decoration: none; display: block; }
 
-/* ── Telefoon & tablet: keurtabel als kaartjes ────────────────────────────
-   De brede tabel past niet op smalle schermen. Onder 820px tonen we elke rij
-   als een kaartje met labels (de data-label per cel); laptop/desktop houden de
-   vertrouwde tabel. Zo werkt het scherm op alle formaten. */
+/* Telefoon & tablet: zie ../styles/inspection-table.css voor de tabel-als-
+   kaartjes; hieronder alleen de toevoegrij en de suggestielijsten. */
 @media (max-width: 820px) {
   .iw__body { padding: 0.85rem; }
 
@@ -2359,50 +1992,5 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   .iw__suggest--field { display: flex; flex: 1 1 100%; margin: 0.1rem 0 0.2rem; }
 
   .iw__table-wrap { background: transparent; overflow: visible; }
-  .iw__table,
-  .iw__table tbody { display: block; width: 100%; }
-  .iw__table thead { display: none; }
-
-  .iw__table tr {
-    display: block; background: #fff; border: 1px solid #e5e7eb;
-    border-radius: 12px; padding: 0.35rem 0.85rem; margin-bottom: 0.7rem;
-  }
-
-  .iw__table td {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 0.75rem; padding: 0.45rem 0; border: none; border-bottom: 1px solid #f1f1f1;
-    text-align: right; min-height: 2.25rem;
-  }
-  .iw__table tr td:last-child { border-bottom: none; }
-  .iw__table td::before {
-    content: attr(data-label); font-weight: 600; color: #6b7280;
-    font-size: 0.78rem; text-align: left; flex: 0 0 auto; white-space: nowrap;
-  }
-  /* Cellen zonder label (icoontjes / acties): geen labelkolom. */
-  .iw__table td:not([data-label]) { justify-content: flex-end; }
-  .iw__table td:not([data-label])::before { content: none; }
-
-  /* Invoervelden vullen de ruimte naast hun label. */
-  .iw__cell-input,
-  .iw__cell-input--xs,
-  .iw__date-input { width: auto; flex: 1 1 auto; min-width: 0; max-width: 62%; }
-
-  /* Bouwjaar + maand passen samen rechts naast het label. */
-  .iw__year-cell { white-space: normal; gap: 0.4rem; }
-  .iw__year-cell .iw__cell-input--xs { flex: 0 0 4.5rem; width: 4.5rem; max-width: 4.5rem; }
-  .iw__month-select { flex: 0 0 auto; }
-
-  /* Artikelnaam en beoordeling: label boven, inhoud eronder op volle breedte. */
-  .iw__match-cell,
-  .iw__result-cell { display: block; text-align: left; }
-  .iw__match-cell::before,
-  .iw__result-cell::before { display: block; margin-bottom: 0.35rem; }
-  .iw__result-buttons { justify-content: flex-start; }
-  .iw__comment-input { flex: 1 1 100%; }
-  /* Rij-match-suggestielijst niet zwevend maar in de kaart (geen overlap). */
-  .iw__suggest--row { position: static; box-shadow: none; min-width: 0; }
-
-  /* Lege-staat-rij gewoon gecentreerd, niet als kaartcel. */
-  .iw__table td.iw__empty { display: block; text-align: center; border: none; }
 }
 </style>

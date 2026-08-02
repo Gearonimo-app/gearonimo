@@ -1,0 +1,35 @@
+/* Opmaak van de artikellijst bij een klant: gedeeld door CustomerArticles.vue
+ * (de lijst zelf en het archief met afgevoerd materiaal) en
+ * CustomerArticleRow.vue (één regel).
+ *
+ * Niet-scoped om dezelfde reden als ./inspection-table.css: de <li>'s staan
+ * sinds de prestatie-commit van 2026-08-02 in een kindcomponent, en scoped
+ * styles van de ouder bereiken die niet. De `ca__`-prefix bakent af.
+ */
+.ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
+.ca__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
+.ca__item:last-child { border-bottom: none; }
+.ca__group-head {
+  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
+  background: #eff6ff; border-bottom: 1px solid #dbeafe;
+  cursor: pointer; display: flex; align-items: center;
+}
+.ca__group-head:hover { background: #dbeafe; }
+.ca__group-chev { margin-left: auto; font-size: 0.9rem; line-height: 1; opacity: 0.6; }
+.ca__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
+.ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
+.ca__part-btn {
+  flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+  font-size: 0.95rem; opacity: 0.45; padding: 0.2rem;
+}
+.ca__part-btn:hover { opacity: 1; }
+.ca__catalog-toggle {
+  display: inline-flex; align-items: center; cursor: pointer;
+  border: none; background: none; font-size: 1.05rem; padding: 0.2rem;
+  opacity: 0.4; filter: grayscale(1);
+}
+.ca__catalog-toggle--on { opacity: 1; filter: none; }
+.ca__desc { font-weight: 600; }
+.ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
+.ca__badge--retired { background: #f3f4f6; color: #6b7280; }

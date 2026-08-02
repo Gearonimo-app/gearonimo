@@ -16,42 +16,24 @@
     <div v-else-if="error" class="ca__state ca__state--error">{{ error }}</div>
     <p v-else-if="articles.length === 0 && !showAdd" class="ca__state">{{ $t('articles.empty') }}</p>
 
+    <!-- Eén artikel = één component: zolang zijn props gelijk blijven slaat Vue
+         de regel over bij het typen in het toevoegformulier hieronder. Daarom
+         hier alleen primitieven/stabiele verwijzingen als prop en
+         `@gebeurtenis="functienaam"` zonder argumenten. Zie
+         CustomerArticleRow.vue. -->
     <ul v-else-if="articles.length" class="ca__list">
-      <template v-for="row in displayRows" :key="row.article.id">
-        <!-- Klikbare setkop: sinds het aparte "Sets"-blok weg is (dubbelop met
-             deze groepskoppen, besluit Jos 2026-07-13) is dit dé ingang naar
-             het setdetail (hernoemen/leden wijzigen/verwijderen). -->
-        <li
-          v-if="row.isFirstInGroup"
-          class="ca__group-head"
-          role="link"
-          :title="$t('sets.openDetail')"
-          @click="$router.push(`/sets/${row.groupId}`)"
-        >🔗 {{ row.groupName }}<span class="ca__group-chev">›</span></li>
-        <li class="ca__item" :class="{ 'ca__item--grouped': row.groupId }">
-          <div class="ca__item-main" @click="$router.push(`/articles/${row.article.id}`)">
-            <div class="ca__desc">{{ articleLabel(row.article) }}</div>
-            <div class="ca__meta">
-              <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
-              <span v-if="!row.article.product_id" class="ca__badge">{{ $t('articles.freeBadge') }}</span>
-            </div>
-          </div>
-          <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
-               een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
-          <button type="button" class="ca__part-btn" :title="$t('sets.addPart.title')" @click.stop="partFor = row.article">🔗+</button>
-          <!-- Alleen bij vrije artikelen: aanmelden voor de catalogus-wachtrij.
-               Geen kaal vinkje meer: de knop opent een productformulier dat de
-               keurmeester zelf invult vóór het op de wachtrij komt (besluit Jos
-               2026-07-05). @click.stop zodat het niet doorklikt naar het
-               artikeldetail. Actief = al aangemeld. -->
-          <button v-if="!row.article.product_id" type="button" class="ca__catalog-toggle"
-                  :class="{ 'ca__catalog-toggle--on': row.article.suggest_for_catalog }"
-                  :title="$t('articles.suggestForCatalog')"
-                  @click.stop="suggestFor = row.article">
-            📚
-          </button>
-        </li>
-      </template>
+      <CustomerArticleRow
+        v-for="row in displayRows"
+        :key="row.article.id"
+        :article="row.article"
+        :label="row.label"
+        :group-head="row.isFirstInGroup ? row.groupName ?? '' : null"
+        :group-id="row.groupId"
+        @open="openArticle"
+        @open-set="openSet"
+        @add-part="startAddPart"
+        @suggest="startSuggest"
+      />
     </ul>
 
     <!-- Afgevoerd materiaal: archief, geen werkplek (ontwerpprincipe §1.3) --
@@ -219,27 +201,21 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { useRouter } from 'vue-router'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
 import AddPartDialog from './AddPartDialog.vue'
+import CustomerArticleRow from './CustomerArticleRow.vue'
+import type { Article, ProductMatch } from './customerArticleTypes'
+import '../styles/article-list.css'
 
 const { isOnline } = useOnline()
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
+const router = useRouter()
 
 interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
-interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
-interface Article {
-  id: string
-  serial_number: string | null
-  free_brand: string | null
-  free_description: string | null
-  product_id: string | null
-  suggest_for_catalog: boolean
-  product: ProductMatch | null
-  retired_reason?: string | null
-}
 
 const articles = ref<Article[]>([])
 const open = ref(false)
@@ -425,7 +401,10 @@ const partFor = ref<Article | null>(null)
 // Jos 2026-07-11: "als ik de Nomad vasthou wil ik de Fidus er meteen naast
 // zien staan"). Eén groepskop per set, gevolgd door zijn leden; artikelen
 // zonder set blijven gewoon los, op hun eigen plek in de bestaande volgorde.
-interface DisplayRow { article: Article; groupId: string | null; groupName: string | null; isFirstInGroup: boolean }
+// `label` staat hier voorgekauwd in en niet in CustomerArticleRow, zodat het
+// archieflijstje hieronder dezelfde articleLabel() kan blijven gebruiken --
+// één bron voor hoe een artikel heet.
+interface DisplayRow { article: Article; label: string; groupId: string | null; groupName: string | null; isFirstInGroup: boolean }
 const displayRows = computed<DisplayRow[]>(() => {
   const seen = new Set<string>()
   const result: DisplayRow[] = []
@@ -436,15 +415,31 @@ const displayRows = computed<DisplayRow[]>(() => {
       const members = articles.value.filter((x) => setInfo.value[x.id]?.setId === info.setId)
       members.forEach((m, idx) => {
         seen.add(m.id)
-        result.push({ article: m, groupId: info.setId, groupName: info.setName, isFirstInGroup: idx === 0 })
+        result.push({ article: m, label: articleLabel(m), groupId: info.setId, groupName: info.setName, isFirstInGroup: idx === 0 })
       })
     } else {
       seen.add(a.id)
-      result.push({ article: a, groupId: null, groupName: null, isFirstInGroup: false })
+      result.push({ article: a, label: articleLabel(a), groupId: null, groupName: null, isFirstInGroup: false })
     }
   }
   return result
 })
+
+// Acties uit CustomerArticleRow. Benoemde functies, geen inline arrows in de
+// template: alleen zo blijft de binding per render dezelfde waarde en slaat
+// Vue ongewijzigde regels over.
+function openArticle(article: Article) {
+  router.push(`/articles/${article.id}`)
+}
+function openSet(setId: string) {
+  router.push(`/sets/${setId}`)
+}
+function startAddPart(article: Article) {
+  partFor.value = article
+}
+function startSuggest(article: Article) {
+  suggestFor.value = article
+}
 
 async function loadSets() {
   if (!isOnline.value) return
@@ -617,33 +612,9 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .ca__add { background: none; border: none; color: #16a34a; font-weight: 600; font-size: 0.95rem; cursor: pointer; }
 .ca__state { color: #666; font-size: 0.9rem; padding: 0.5rem 0; }
 .ca__state--error { color: #dc2626; }
-.ca__list { list-style: none; margin: 0 0 0.75rem; padding: 0; background: #fff; border-radius: 12px; overflow: hidden; }
-.ca__item { display: flex; align-items: center; gap: 0.5rem; padding: 0.85rem 1rem; border-bottom: 1px solid #eee; }
-.ca__item:last-child { border-bottom: none; }
-.ca__group-head {
-  padding: 0.4rem 1rem; font-size: 0.75rem; font-weight: 700; color: #1e40af;
-  background: #eff6ff; border-bottom: 1px solid #dbeafe;
-  cursor: pointer; display: flex; align-items: center;
-}
-.ca__group-head:hover { background: #dbeafe; }
-.ca__group-chev { margin-left: auto; font-size: 0.9rem; line-height: 1; opacity: 0.6; }
-.ca__item--grouped { border-left: 3px solid #93c5fd; padding-left: calc(1rem - 3px); background: #f8fafc; }
-.ca__item-main { flex: 1; min-width: 0; cursor: pointer; }
-.ca__part-btn {
-  flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
-  font-size: 0.95rem; opacity: 0.45; padding: 0.2rem;
-}
-.ca__part-btn:hover { opacity: 1; }
-.ca__catalog-toggle {
-  display: inline-flex; align-items: center; cursor: pointer;
-  border: none; background: none; font-size: 1.05rem; padding: 0.2rem;
-  opacity: 0.4; filter: grayscale(1);
-}
-.ca__catalog-toggle--on { opacity: 1; filter: none; }
-.ca__desc { font-weight: 600; }
-.ca__meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-.ca__badge { background: #fef3c7; color: #92400e; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
-.ca__badge--retired { background: #f3f4f6; color: #6b7280; }
+/* Lijst, regels en badges staan in ../styles/article-list.css: gedeeld met
+   CustomerArticleRow.vue, want scoped styles reiken niet tot in een
+   kindcomponent. Hieronder alleen wat exclusief van dit component is. */
 .ca__set-badge { background: #eff6ff; color: #1e40af; border-radius: 6px; padding: 0.05rem 0.4rem; font-size: 0.75rem; }
 
 /* Afgevoerd materiaal: archief, ingetogen -- geen groene/blauwe actieknop. */
