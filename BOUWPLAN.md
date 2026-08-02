@@ -147,10 +147,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   id, dus voortaan kunnen ze ook bijgewerkt worden in plaats van alleen
 >   toegevoegd.
 > - **Stand: bronlijst en database lopen gelijk**, nul openstaande wijzigingen.
-> - **Nog te verwijderen in de app: `Tree Runner General Purpose Rope 12 mm`.**
->   Vijf van de zes zijn gedaan; deze staat er nog. Zolang hij in Gearonimo
->   staat komt hij bij elke ingest van een verse export terug in de bronlijst en
->   moet hij er weer uit.
+> - **`Tree Runner General Purpose Rope 12 mm` blijft toch staan** (besluit Jos
+>   2026-08-02, draait het besluit van 2026-07-31 terug): *"dit is een veel
+>   verkochte lijn maar heeft geen normering. Ik kom hem heel af en toe tegen.
+>   Ik heb er geen moeite mee dat deze erin staat."* Een lijn die je in het veld
+>   tegenkomt hoort vindbaar te zijn, ook zonder normering — anders belandt hij
+>   als vrij artikel in de wachtrij. Uit de verwijderlijst gehaald zodat een
+>   volgende ronde hem er niet alsnog uit gooit; die staat nu op 5 producten,
+>   allemaal gedaan.
+>   - Jos had het producttype in de app zelf al op `no_ppe` gezet (stond op
+>     `ppe`), wat klopt bij "geen normering". Dat kwam via zijn export mee.
+> - **Alle zes verwijderingen zijn daarmee afgerond**: vijf weggehaald, één
+>   teruggedraaid.
 
 > **Import gedraaid (2026-08-01, 16:40).** Jos heeft het gebundelde bestand van
 > 456 rijen in Gearonimo geïmporteerd. De preview van de wizard meldde
