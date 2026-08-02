@@ -54,11 +54,41 @@ export function readAnyFile(path: string): Record<string, string>[] {
   });
 }
 
+/**
+ * Kolommen die de database als `numeric` bewaart en dus in een eigen
+ * schrijfwijze teruggeeft: "11.00" komt eruit als "11", "11.50" als "11.5".
+ */
+const NUMERIEKE_KOLOMMEN = [
+  "rope_diameter_min_mm",
+  "rope_diameter_max_mm",
+] as const satisfies readonly CatalogColumn[];
+
+/**
+ * Zet een getal in dezelfde schrijfwijze als de database teruggeeft.
+ *
+ * Zonder dit meldt een vergelijking met een verse export eeuwig verschillen
+ * die er niet zijn: 39 producten stonden hier als "11.00" en in Gearonimo als
+ * "11". Zelfde diameter, andere notatie — maar `--sinds=` zag ze als gewijzigd
+ * en zou ze bij elke ronde opnieuw laten bijwerken.
+ *
+ * Alleen voor `numeric`-kolommen. Velden als `max_user_weight_kg` blijven
+ * ongemoeid: daar staat legitiem "130-150" of "100 (bij EN 12841/B)" in.
+ */
+function normaliseerGetal(waarde: string): string {
+  const v = waarde.trim();
+  if (!v) return v;
+  const n = Number(v);
+  return Number.isFinite(n) ? String(n) : v;
+}
+
 /** Beperk een aangeleverde rij tot de kolommen die de catalogus kent. */
 export function toCatalogRow(raw: Record<string, string>): CatalogRow {
   const row = emptyRow();
   for (const col of CATALOG_COLUMNS) {
     row[col] = (raw[col] ?? "").trim();
+  }
+  for (const col of NUMERIEKE_KOLOMMEN) {
+    row[col] = normaliseerGetal(row[col]);
   }
   return row;
 }

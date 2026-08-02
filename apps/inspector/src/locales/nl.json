@@ -267,7 +267,6 @@
     "lifeCycleWarning": "Levensduur: nog {months} mnd",
     "recallFlag": "Recall: controleer dit artikel",
     "noticeFlag": "Keuringsmelding van de fabrikant",
-    "productNotesFlag": "Opmerking bij dit product",
     "productNotesTitle": "Opmerking uit de catalogus",
     "clearFlag": "Afvinken met opmerking (verbergt de vlag voor dit artikel)",
     "clearFlagPrompt": "Opmerking (bv. \"voldaan\" of \"valt niet binnen de batch\"):",

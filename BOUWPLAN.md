@@ -124,6 +124,34 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Opmerking altijd zichtbaar, en de lus rondgemaakt (2026-08-02).**
+> - **`notes` staat nu gewoon in beeld tijdens de keuring**, niet meer achter
+>   een ℹ️-knop met tooltip. Correctie van Jos: *"ik wil opmerkingen gewoon
+>   kunnen lezen. Een afwijkende lengte lijn bijvoorbeeld staat daar. Recalls en
+>   inspection notice is de plek voor veiligheidswaarschuwing."* Terechte
+>   scheiding: een vlag vraagt om een beslissing, een opmerking is context bij
+>   het artikel en moet je kunnen lezen zónder te weten dát er iets staat.
+>   Kost niets: 1% van de producten heeft een opmerking, mediaan 28 tekens.
+>   Knop, tooltip-helper en de bijbehorende i18n-sleutel zijn verwijderd.
+> - **Verse export van 2026-08-02 nagelopen tegen de bronlijst.** Nul producten
+>   ontbraken, nul fouten in de export. Wel **39 diameterverschillen die geen
+>   verschil waren**: `11.00` hier tegen `11` in Gearonimo, `11.50` tegen
+>   `11.5`. De database bewaart `rope_diameter_*` als `numeric` en geeft dus een
+>   eigen schrijfwijze terug. `toCatalogRow()` normaliseert die twee kolommen nu
+>   naar dezelfde vorm, anders meldt `--sinds=` bij elke ronde 39
+>   spookwijzigingen. Alleen voor `numeric`-kolommen — `max_user_weight_kg` mag
+>   "130-150" blijven.
+> - **De 296 nieuwe producten hadden hier nog geen `id`.** Die kent Gearonimo
+>   pas bij het importeren toe. Opgelost door de verse export gewoon te
+>   ingesten: die matcht op merk+naam en vult de id aan. Nu 2598 van 2598 mét
+>   id, dus voortaan kunnen ze ook bijgewerkt worden in plaats van alleen
+>   toegevoegd.
+> - **Stand: bronlijst en database lopen gelijk**, nul openstaande wijzigingen.
+> - **Nog te verwijderen in de app: `Tree Runner General Purpose Rope 12 mm`.**
+>   Vijf van de zes zijn gedaan; deze staat er nog. Zolang hij in Gearonimo
+>   staat komt hij bij elke ingest van een verse export terug in de bronlijst en
+>   moet hij er weer uit.
+
 > **Import gedraaid (2026-08-01, 16:40).** Jos heeft het gebundelde bestand van
 > 456 rijen in Gearonimo geïmporteerd. De preview van de wizard meldde
 > **"296 new, 160 updated, 0 already present (skipped), 0 failed"** — exact wat

@@ -96,12 +96,17 @@ if (ids) {
 }
 
 if (rows.length === 0) {
+  // `--sinds` levert normaal gesproken nul rijen zodra alles geïmporteerd is;
+  // dat is de gewenste uitkomst en geen lege bronlijst. Die twee door elkaar
+  // halen leest als een fout terwijl er juist niets meer te doen is.
   console.log(
-    brand
-      ? `\nGeen producten van merk "${brand}"${newOnly ? " zonder id" : ""}.\n`
-      : newOnly
-        ? "\nGeen producten zonder id — er is niets nieuws om te importeren.\n"
-        : "\nDe bronlijst is leeg.\n"
+    sinds
+      ? `\nNiets openstaand: de bronlijst (${all.length} producten) en die export lopen gelijk.\n`
+      : brand
+        ? `\nGeen producten van merk "${brand}"${newOnly ? " zonder id" : ""}.\n`
+        : newOnly
+          ? "\nGeen producten zonder id — er is niets nieuws om te importeren.\n"
+          : "\nDe bronlijst is leeg.\n"
   );
   process.exit(0);
 }

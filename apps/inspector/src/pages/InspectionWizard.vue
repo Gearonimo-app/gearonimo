@@ -301,20 +301,6 @@
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
-                    <!-- Opmerking uit de catalogus: allebei de manieren, want
-                         er wordt zowel op een telefoon als op een laptop
-                         gekeurd. Muisaanwijzen toont de tekst als tooltip,
-                         klikken klapt hem uit onder de rij -- dat laatste is
-                         de enige route op een aanraakscherm. -->
-                    <button
-                      v-if="itemProductNotes(row.it)"
-                      type="button"
-                      class="iw__notes-toggle"
-                      :aria-expanded="openNotesId === row.it.id"
-                      :aria-label="$t('inspections.table.productNotesFlag')"
-                      :title="itemProductNotesTitle(row.it)!"
-                      @click="toggleNotes(row.it)"
-                    >ℹ️</button>
                   </td>
                   <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
@@ -452,7 +438,15 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <tr v-if="openNotesId === row.it.id" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: altijd zichtbaar, niet achter
+                     een knop of tooltip (Jos 2026-08-01: "opmerkingen wil ik
+                     gewoon zien"). Het is geen waarschuwing maar context bij
+                     het artikel -- een afwijkende lengte bijvoorbeeld -- en die
+                     moet je kunnen lezen zonder te weten dát er iets staat.
+                     Waarschuwingen hebben hun eigen vlaggen: recall en
+                     inspection notice. Kost weinig ruimte: 1% van de producten
+                     heeft een opmerking, mediaan 28 tekens. -->
+                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
@@ -1222,22 +1216,6 @@ function itemNoticeTitle(it: Item): string | null {
  */
 function itemProductNotes(it: Item): string | null {
   return it.article.product?.notes?.trim() || null;
-}
-
-/**
- * De opmerking als tooltip, zodat muisaanwijzen op laptop/pc al volstaat
- * (Jos 2026-07-31: "keuren gebeurt ook vaak op een laptop/pc"). Klikken klapt
- * hem uit en blijft nodig op een telefoon, waar hoveren niet bestaat.
- */
-function itemProductNotesTitle(it: Item): string | null {
-  const notes = itemProductNotes(it);
-  return notes ? `${t("inspections.table.productNotesTitle")}: ${notes}` : null;
-}
-
-/** Welke rij zijn opmerking uitgeklapt heeft. Er staat er hooguit één open. */
-const openNotesId = ref<string | null>(null);
-function toggleNotes(it: Item) {
-  openNotesId.value = openNotesId.value === it.id ? null : it.id;
 }
 
 function itemNoticeClearedNote(it: Item): string | null {
@@ -2272,12 +2250,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__flag-clear:hover { opacity: 1; }
 .iw__flag-cleared { margin-right: 0.25rem; opacity: 0.45; cursor: help; }
 /* Opmerking uit de catalogus. Bewust neutraal grijs en niet rood/oranje: dit
-   is achtergrondinformatie, geen waarschuwing -- anders gaat het naast de
-   recall- en notice-vlag concurreren om dezelfde aandacht. */
-.iw__notes-toggle {
-  margin-right: 0.25rem; padding: 0; border: none; background: none;
-  font-size: 1rem; line-height: 1; cursor: pointer;
-}
+   is context bij het artikel, geen waarschuwing -- die hebben hun eigen
+   vlaggen (recall, inspection notice) en moeten daar niet mee concurreren. */
 .iw__notes-row td {
   padding: 0.4rem 1rem; font-size: 0.8rem; color: #374151;
   background: #f9fafb; box-shadow: inset 3px 0 0 0 #d1d5db;
