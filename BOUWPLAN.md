@@ -124,6 +124,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Import gedraaid (2026-08-01, 16:40).** Jos heeft het gebundelde bestand van
+> 456 rijen in Gearonimo geïmporteerd. De preview van de wizard meldde
+> **"296 new, 160 updated, 0 already present (skipped), 0 failed"** — exact wat
+> de nabootsing van `buildPreview()` vooraf voorspelde. De bronlijst in de repo
+> en de database liepen daarmee weer gelijk.
+> - Nog te doen door Jos: de zes handmatige verwijderingen (de import kan dat
+>   niet) en daarna een verse export uit de app, zodat `catalog:export --sinds=`
+>   een nieuw ijkpunt heeft.
+
 > **ISC: artikelcode in de omschrijving (2026-08-01).** Wens Jos: *"isc pulleys
 > ik wil dat de RP-nummer in de omschrijving staat"* — de code staat op het
 > product gegraveerd en de handel noteert hem zo ("ISC COMPACT RIGGING PULLEY
