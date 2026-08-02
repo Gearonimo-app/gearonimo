@@ -19,6 +19,9 @@ export const SUPABASE_PAGE_SIZE = 1000;
 /** Veiligheidsrem: nooit meer dan dit aantal pagina's ophalen. */
 const MAX_PAGES = 100;
 
+/** Bovengrens van deze helper: erboven wordt er geen lijst meer opgeleverd. */
+export const FETCH_ALL_MAX_ROWS = MAX_PAGES * SUPABASE_PAGE_SIZE;
+
 type PageResult = { data: unknown[] | null; error: { message: string } | null };
 
 /**
@@ -26,6 +29,7 @@ type PageResult = { data: unknown[] | null; error: { message: string } | null };
  *
  * @param page bouwt de query voor één pagina; `from`/`to` horen in `.range()`.
  * @throws de Supabase-fout van de eerste pagina die faalt (niet stil slikken).
+ * @throws als de veiligheidsrem bereikt wordt — zie hieronder.
  *
  * ```ts
  * const products = await fetchAllRows<Product>((from, to) =>
@@ -46,7 +50,14 @@ export async function fetchAllRows<T>(
     rows.push(...batch);
     // Minder dan een volle pagina terug = einde tabel. (Een precies volle
     // laatste pagina kost één extra, lege ronde — dat mag.)
-    if (batch.length < pageSize) break;
+    if (batch.length < pageSize) return rows;
   }
-  return rows;
+  // Veiligheidsrem geraakt. Bewust een fout en géén halve lijst: deze helper
+  // bestaat juist om stille afkapping te voorkomen, en een aanroeper die hier
+  // een lijst terugkrijgt zou dénken dat hij alles heeft. Bij een recall-
+  // zoekopdracht is dat het verschil tussen "geen treffers" en "niet gekeken".
+  throw new Error(
+    `fetchAllRows: meer dan ${MAX_PAGES * pageSize} rijen; veiligheidsrem geraakt. ` +
+      `Deze zoekopdracht hoort server-side te filteren in plaats van alles op te halen.`,
+  );
 }

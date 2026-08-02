@@ -37,4 +37,12 @@ describe("fetchAllRows", () => {
       fetchAllRows(() => Promise.resolve({ data: null, error: { message: "permission denied" } })),
     ).rejects.toThrow("permission denied");
   });
+
+  // Een halve lijst teruggeven zou hier het gevaarlijkst zijn: de aanroeper
+  // denkt dan dat hij alles heeft. Bij een recall betekent dat gemiste
+  // artikelen zonder dat iemand het merkt.
+  it("levert geen halve lijst op bij de veiligheidsrem, maar een fout", async () => {
+    const { page } = fakeTable(100 * 5 + 1, 5);
+    await expect(fetchAllRows(page, 5)).rejects.toThrow("veiligheidsrem");
+  });
 });

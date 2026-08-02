@@ -444,13 +444,21 @@ async function doRecall() {
     // komen artikelen zónder bouwjaar óók binnen — die mogen we bij een recall
     // niet stil weglaten. Merk/naam kan bovendien uit de catalogus (products)
     // of uit een vrij artikel (free_*) komen, niet in één query te filteren.
-    const { data, error: err } = await supabase
-      .from('articles').select(SELECT).eq('retired', false).limit(1000)
-    if (err) throw err
+    //
+    // Gepagineerd, niet `.limit(1000)`. Dat stond hier eerder en kapte de
+    // zoekopdracht stil af zodra een keurbedrijf boven de 1000 niet-afgevoerde
+    // artikelen kwam: de recall leek dan gewoon minder treffers te hebben.
+    // Precies het foutbeeld dat je bij een recall niet wilt — je zoekt naar
+    // materiaal dat uit roulatie moet. `.order('id')` staat erbij omdat
+    // pagineren een stabiele sortering nodig heeft (zie fetchAll.ts), anders
+    // kan een artikel tussen twee pagina's door verspringen of dubbel komen.
+    const data = await fetchAllRows<Row>((from, to) =>
+      supabase.from('articles').select(SELECT).eq('retired', false).order('id').range(from, to),
+    )
 
     const dateActive = !!(voorJaar || vanafJaar)
     const rows: Row[] = []
-    for (const r of (data ?? []) as unknown as Row[]) {
+    for (const r of data) {
       if (bMerk && !brand(r).toLowerCase().includes(bMerk)) continue
       if (bProd && !prodHaystack(r).includes(bProd)) continue
       const ij = r.manufacture_year || 0

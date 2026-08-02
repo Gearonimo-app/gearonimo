@@ -45,10 +45,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   netwerkverzoeken ná elkaar per zoekopdracht en haalt bij binnenkomst de
 >   hele catalogus op. Op mobiel is dat 1–2,5 seconde. Jos: die pagina wordt
 >   zelden gebruikt, dus lagere prioriteit.
-> - **Nog open (veiligheid, geen snelheid):** `doRecall` in `SerialSearch.vue`
->   haalt `.limit(1000)` artikelen op en filtert client-side. Boven de 1000
->   niet-afgevoerde artikelen mist een recall-zoekopdracht stilletjes
->   artikelen. Ook staat er nergens een trigram-index, terwijl `search_products`
+> - **Recall-zoekopdracht kapte stil af (opgelost, verzoek Jos 2026-08-02).**
+>   `doRecall` in `SerialSearch.vue` haalde `.limit(1000)` artikelen op en
+>   filterde daarna client-side. Boven de 1000 niet-afgevoerde artikelen miste
+>   een recall dus stilletjes materiaal — precies het foutbeeld dat je bij een
+>   recall niet wilt. Nu gepagineerd via `fetchAllRows` (met `.order('id')`,
+>   want pagineren vraagt een stabiele sortering).
+>   `fetchAllRows` zelf gooit voortaan een fout bij zijn veiligheidsrem van
+>   100.000 rijen in plaats van een halve lijst op te leveren: een aanroeper die
+>   een lijst terugkrijgt moet erop kunnen vertrouwen dat het álles is. Test
+>   erbij.
+>   **Afweging om te kennen:** de recall haalt hiermee álle niet-afgevoerde
+>   artikelen op, in pagina's van 1000 ná elkaar. Correct, maar het wordt trager
+>   naarmate de database groeit (bij 10.000 artikelen tien opeenvolgende
+>   verzoeken). Het nette werk is server-side filteren in een RPC — merk/naam
+>   zijn met `coalesce(p.brand, a.free_brand)` prima in SQL uit te drukken, en
+>   het onbekende-bouwjaar-geval ook. Dat vraagt een migratie; bewust niet
+>   gedaan omdat de pagineerfix het gemelde probleem volledig dichtzet en
+>   vandaag werkt.
+> - **Nog open:** er staat nergens een trigram-index, terwijl `search_products`
 >   en de `ilike '%…%'`-zoekopdrachten op `articles` volledige scans doen die
 >   met de database meegroeien.
 
