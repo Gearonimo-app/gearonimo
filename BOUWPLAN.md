@@ -124,6 +124,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Merkoverzicht gemaakt (2026-08-04, vraag Jos "welke merken moeten we
+> nog?").** 43 merken, 2635 producten. Twee concrete gebreken gevonden, nog
+> niet gerepareerd:
+> - **`Kratos` (15) en `Kratos Safety` (1) zijn hetzelfde merk** — zelfde site
+>   `kratossafety.com`, zelfde codeformaat `FA…`. Splitsing betekent dat een
+>   keurmeester die op "Kratos" zoekt niet alles ziet.
+> - **13 producten hebben een artikelcode als naam** in plaats van een
+>   omschrijving: CMI 6 van zijn 7 (`RP130`, `RP131`, `RP145`, `RP146`, `RP160`,
+>   `RP162`), TreeUP 4 (`P-71E`, `P-90`, `P-90mX`, `TH-020`), plus
+>   `Kratos Safety fa4090220`, `Climbing Technology SKR-2` en `Samson V-24`.
+>   Onbruikbaar in een lijst: de keurmeester ziet geen product maar een code.
+> - **Dunne merken die vermoedelijk onvolledig zijn**: ASAT 1, SOVOS 1,
+>   BASHLIN 4, Distel 4, RIGIQ 5, Haberkorn 6, CMI 7, Tendon 9, CAMP 11,
+>   Rope Logic 11, Kratos 15, Tango 15, Husqvarna 18, Samson 19.
+> - **Merken mét volume maar zonder handleidingen**: Courant 100 producten (0%),
+>   Kask 58 (0%), Ellersafe 36 (0%), Beal 32 (0%), Samson 19 (0%),
+>   Rock Exotica 60 (2%), Tree Runner 63 (2%). Yale Cordage heeft 189 producten
+>   zonder één artikelcode.
+
 > **Ellersafe erbij (2026-08-04): 36 producten, 0 fouten.** Harnassen,
 > vanglijnen/valdempers en valstopapparaten. Ingevoegd zoals aangeleverd, met
 > vier gaten die Jos moet wegen:
