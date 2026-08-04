@@ -5,6 +5,92 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-04)
+
+> **Producttypes herzien + kleding erbij (besluiten Jos 2026-08-04).**
+> Aanleiding: het eerste verzoek van een grote klant — *"per persoon kunnen
+> bijhouden wie wat wanneer heeft gehad / kapot gemaakt; sommige werknemers
+> gebruiken veel meer spullen dan de rest. Ook kleding wil hij erin kunnen
+> zetten."*
+>
+> **Wat er ná overleg níét gebouwd wordt.** Eerste analyse stelde een
+> uitgifteregister voor (`article_assignments`, historie per persoon per
+> artikel, ±5 sessies). Jos: *"ik denk eigenlijk dat jij het te ingewikkeld
+> wilt maken."* Terecht, om twee redenen die de analyse miste:
+> - **Bij kleding is één artikel = één uitgifte.** Een zaagbroek gaat niet van
+>   Jan naar Piet en terug; hij wordt uitgegeven, gedragen, versleten,
+>   afgevoerd. `first_use_date` ís dus de uitgiftedatum en de artikelenlijst
+>   zelf is het register.
+> - **Filteren per persoon bestond al** (`Materials.vue`, chips uit
+>   `assigned_user_name`).
+>
+> Doorgevraagd op het enige echte gat — als lijn A van Jan naar Piet gaat en
+> bij Piet stukgaat, is Jan weg. Antwoord: dat is geen probleem voor de vragen
+> die de klant stelt (Piet maakte hem stuk, Piet staat erbij). En voor de
+> incidentvraag is het al gedekt: `useInspections.ts` schrijft bij elk
+> keuringsitem `article_snapshot: a` weg met een `select('*')`, dus inclusief
+> `assigned_user_name` bevroren op de keuringsdatum. Bij een jaarlijkse keuring
+> is dat een jaarlijks stempel van wie het artikel toen had. **Uitgifteregister
+> geschrapt.**
+>
+> **De typelijst opnieuw vastgesteld.** Zie `DATAMODEL.md §products` voor de
+> tabel met alle zes types en de onderbouwing per besluit. Samengevat:
+> `aerial_platform` eruit (andere doelgroep, stond op geen enkel product),
+> `clothing` erbij, `no_ppe`/`clothing`/`other` op "nooit keuren",
+> `rigging` in GB van 6 naar 12, `other` alleen bij vrije invoer.
+>
+> **Twee gaten die hierbij boven water kwamen:**
+> - **`no_ppe` werd stilletjes als PBM gekeurd.** Het stond wél in
+>   `PRODUCT_TYPES` (167 producten in de catalogus) maar níét in `REGIMES`, en
+>   `defaultIntervalMonths()` heeft een tak "alles wat geen rigging is telt als
+>   PBM". TypeScript zag het niet door de cast `(type as ProductType)`. Nu een
+>   expliciet besluit in plaats van een gat.
+> - **`getLegalReference()` was dode code.** Het werd nergens aangeroepen; er
+>   heeft dus nooit een wettelijke basis op een certificaat gestaan, ondanks
+>   wat `DATAMODEL.md` beweerde. Jos wil het ook niet: dat hoort in de
+>   voettekst van het keurbedrijf. Veld `legal_reference` én functie
+>   verwijderd, documentatie rechtgezet.
+>
+> **Gebouwd deze sessie (kernlaag, geen migratie, niets zichtbaar veranderd
+> voor gebruikers):**
+> - `regimes.ts`: nieuwe `ProductType`, `NO_INSPECTION_TYPES`,
+>   `getRegime()` → `number | null`, `isInspectedType()`, `legal_reference`
+>   weg, GB/rigging op 12.
+> - `catalog.ts`: `PRODUCT_TYPES` (catalogus, zonder `other`) naast
+>   `ARTICLE_TYPES` (vrij artikel, mét `other`) — zo is "een catalogusproduct
+>   kan niet op overig" een structuurregel en geen losse controle.
+> - `nextDue.ts`: `calcNextDue()` → `Date | null`. De null-check staat vóór de
+>   levensduur-caps, anders krijgt een zaagbroek met een maximale gebruiksduur
+>   alsnog een keurdatum.
+> - `InspectionWizard.vue`: "wordt dit type gekeurd?" staat nu vóór de
+>   bedrijfsinstellingen in `defaultIntervalMonths()` — die zijn
+>   `not null default 12` en dus altijd gevuld, dus erna had kleding alsnog stil
+>   12 maanden gekregen. Nieuwe helper `suggestedNextDueIso()` in plaats van op
+>   drie plekken dezelfde null-check.
+> - Locales nl+en: `clothing` erbij, `aerial_platform` eruit.
+> - 6 nieuwe tests in `nextDue.test.ts` (types zonder termijn, override wint
+>   van "nooit", GB ppe 6 / rigging 12).
+>
+> **Nog te bouwen (volgende slice):**
+> - Migratie: kolom op `articles` voor het type van een **vrij artikel**.
+>   `product_type` staat op `products`; een vrij artikel heeft nu alleen
+>   `free_category` (vrije tekst). Jos wil daar een verplichte dropdown —
+>   `ARTICLE_TYPES` staat klaar, de kolom nog niet.
+> - Klant-app: dropdown in `AddArticleForm`, statuslogica in `Materials.vue`
+>   (`uiStatus`/`isFirstInspectionOverdue` moeten types zonder termijn
+>   overslaan, anders staat de kledingkast na 12 maanden onder "Aandacht").
+> - Filter op categorie (aan/uit per type) + op persoon. Bewust **geen teller**
+>   per persoon — Jos: *"die 5 t-shirts, paar schoenen en 2 broeken per jaar
+>   blijft echt wel overzichtelijk genoeg"*; een lijst op datumvolgorde
+>   volstaat.
+> - `other` → `self_managed` + `self_checks` aanzetten (kolom en tabel bestaan
+>   sinds 2026-06-23 en zijn nog nergens gebruikt), met herinnering na 12 mnd.
+> - Open: `retired_reason` als kort keuzelijstje i.p.v. vrije tekst, zodat
+>   "kapot" op te tellen is.
+> - Open bij Jos: **machine** — keurbedrijf of klant zelf? Staat nu op 12 mnd
+>   bij de keurmeester; een klant die zijn kettingzaag zelf bijhoudt kan dat
+>   artikel straks op `self_managed` zetten, dus dit hoeft nu niet beslist.
+
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
 > **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het

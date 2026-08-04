@@ -275,7 +275,7 @@ keurbedrijf B.
 |---|---|---|
 | brand | text | merk |
 | name | text | omschrijving |
-| product_type | text | `ppe` / `rigging` / `aerial_platform` / `machine` (kettingzaag, accuboor, versnipperaar) / `other` / … — bepaalt standaardregime |
+| product_type | text | `ppe` / `no_ppe` / `rigging` / `machine` (kettingzaag, accuboor, versnipperaar) / `clothing` — bepaalt standaardregime. `other` kan hier **niet**: dat bestaat alleen bij een vrij artikel (besluit 2026-08-04, zie hieronder) |
 | category | text? | huidige `categorie` |
 | material | text? | |
 | standard | text? | EN-norm (huidige `norm`) |
@@ -315,6 +315,54 @@ dit klopt dus gewoon"* — de bronlijst bevat legitiem `130-150` (bereik) en
 net als `breaking_strength` en `working_load_limit` die om dezelfde reden al
 text zijn. Er wordt nergens op dit veld gerekend of gesorteerd.
 Migratie: `20260727_products_max_user_weight_text.sql`.
+
+**De zes producttypes en hun regime (besloten Jos 2026-08-04):** de lijst is
+opnieuw vastgesteld toen kleding erbij moest. `aerial_platform` is eruit
+(hoogwerkers zijn een andere doelgroep; stond op geen enkel product).
+
+| type | keurtermijn | door wie |
+|---|---|---|
+| `ppe` | 12 mnd (GB 6, zwaar gebruik 3) | keurmeester |
+| `no_ppe` | **nooit** | — |
+| `rigging` | 12 mnd (ook GB) | keurmeester |
+| `machine` | 12 mnd | keurmeester |
+| `clothing` | **nooit** | — |
+| `other` | **nooit** (klant vinkt zelf af, herinnering na 12 mnd) | klant |
+
+- **`no_ppe` op "nooit" (Jos):** klimsporen, voetklemmen, elastiek om een zaag
+  aan te hangen. *"Worden vaak wel meegekeurd, maar is niet verplicht."* Wie
+  het tóch periodiek wil zien, zet een `interval_override_months` op product of
+  artikel. Tot 2026-08-04 stond `no_ppe` wél in de catalogus-typelijst maar
+  níét in `REGIMES`; via de tak "alles wat geen rigging is telt als PBM" in
+  `defaultIntervalMonths()` kregen die 167 producten stilletjes het
+  PBM-interval van het keurbedrijf. Dat is nu een expliciet besluit in plaats
+  van een gat.
+- **`clothing` op "nooit" (Jos):** een zaagbroek ís formeel een PBM, maar
+  *"er is nog geen enkele fabrikant die vertelt hoe je een broek moet keuren."*
+  Kleding zit in Gearonimo om bij te houden wie wat wanneer kreeg, niet om te
+  keuren.
+- **`rigging` in GB van 6 naar 12 (Jos, met bronbevestiging):** stond op 6
+  vanuit LOLER 1998 reg. 9(3), dat voor *lifting accessories* (stroppen,
+  harpen, blokken) 6 maanden voorschrijft. Jos heeft het nagevraagd bij een
+  Britse keurmeester, die schriftelijk bevestigt: *"Thorough examinations are
+  every 6 months for PPE and 12 months for rigging."* De verklaring is dat
+  rigging in de boomverzorging takken laat **zakken** in plaats van hijst —
+  daarmee geen hijsoperatie in de zin van LOLER. PBM in GB blijft 6 maanden.
+- **`other` is geen catalogusproduct (Jos):** *"wanneer er iets uit de
+  catalogus gekozen wordt kan dit niet naar other gezet worden."* Het is de
+  eigen todo-lijst van de klant (brandblusser, EHBO-koffer, APK) en bestaat
+  daarom alleen bij een vrij artikel. Afgedwongen door `other` uit
+  `PRODUCT_TYPES` te halen en alleen in `ARTICLE_TYPES` te zetten
+  (`packages/core/src/catalog.ts`), niet met een losse controle.
+- **"Nooit" is `null`, niet `0`.** `getRegime()` geeft sinds 2026-08-04
+  `number | null` terug. Nul zou via `addMonths()` betekenen "volgende keuring
+  is vandaag" — dus meteen rood. De fallback voor een *onbekend* type blijft
+  bewust 12 maanden: onbekend betekent "voor de zekerheid keuren", nooit "voor
+  de zekerheid nooit keuren".
+- **Volgorde in `defaultIntervalMonths()`:** de vraag "wordt dit type
+  gekeurd?" staat vóór de bedrijfsinstellingen. Die zijn `not null default 12`
+  en dus altijd gevuld; stond de vraag erna, dan kreeg kleding alsnog stil 12
+  maanden.
 
 **`product_type` is het regime, niet de categorie (bevestigd 2026-07-27):**
 bij de bronlijst-import bleek `product_type` bij 156 van de 2294 rijen (6,8%)
@@ -368,17 +416,28 @@ productdata van de keuringsdatum toont.
 |---|---|---|
 | product_type | text | |
 | country_code | text | |
-| interval_months | int | NL/ppe → 12; GB/ppe → 6; NL/machine → 12 (NEN 3140); nieuw land of type = rijen toevoegen |
+| interval_months | int | NL/ppe → 12; GB/ppe → 6; rigging → 12 (ook GB); machine → 12; nieuw land of type = rijen toevoegen |
 | severe_use_interval_months | int? | verkort interval bij zwaar gebruik (VK/INDG367: 3 mnd bij bijv. scherpe randen); artikel krijgt vlag `severe_use` |
-| legal_reference | text? | "Arbobesluit" / "LOLER 1998" / "NEN 3140" / "DGUV Regel 112-198" — op certificaat |
 
 Intervalresolutie: artikel-override → product-override → regime(type × land).
+Types zonder termijn (`no_ppe`, `clothing`, `other`) leveren `null` — geen
+volgende keuring, geen stoplichtstatus. Een expliciete override wint daar wél
+van: zo krijgen de Stein-afdaalapparaten, waarvoor de fabrikant zelf 6 maanden
+voorschrijft, gewoon een termijn.
 
 > **Implementatie fase 2.5 (2026-06-24):** geen eigen DB-tabel — leeft als
-> statische `REGIMES`-lijst in `packages/core/src/regimes.ts` (NL/GB ×
-> ppe/rigging/machine/aerial_platform), met `getLegalReference()` als
-> nieuwe helper die het certificaat-PDF voedt. Een DB-tabel is pas nodig
-> zodra een keurbedrijf eigen regimes/landen moet kunnen instellen.
+> statische `REGIMES`-lijst in `packages/core/src/regimes.ts`. Een DB-tabel is
+> pas nodig zodra een keurbedrijf eigen regimes/landen moet kunnen instellen.
+>
+> **`legal_reference` verwijderd (besluit Jos 2026-08-04).** Het veld stond in
+> `Regime` en er was een `getLegalReference()`-helper, maar die werd in de hele
+> codebase **nooit aangeroepen** — er heeft dus nooit een wettelijke basis op
+> een certificaat gestaan, ondanks wat hieronder bij §`certificates` stond.
+> Jos: *"gekeurd volgens LOLER eraf halen, dat is aan het keurbedrijf of in de
+> voettekst te zetten."* Welke norm een keurbedrijf claimt is aan dat
+> keurbedrijf; daarvoor bestaat `inspection_companies.cert_footer` al (en is
+> bij Safety Green al gevuld). Veld én functie zijn weggehaald in plaats van
+> blijven staan — zelfde lijn als `max_age_years` op 2026-07-09.
 
 ### `rejection_codes` (afkeurcodes)
 | kolom | type | uitleg |
@@ -653,10 +712,15 @@ zie BOUWPLAN.
 
 Op de PDF staan verplicht: "volgende keuring uiterlijk" (LOLER-eis; per item
 `next_due`, begrensd door einde levensduur — bewust niet "goed tot"), naam +
-kwalificatie van de keurmeester, wettelijke basis
-(`legal_reference`), handtekening (PNG) en de verificatie-QR. Voor de Duitse
-markt later uitbreidbaar met een automatisch cryptografisch zegel
+kwalificatie van de keurmeester, handtekening (PNG) en de verificatie-QR. Voor
+de Duitse markt later uitbreidbaar met een automatisch cryptografisch zegel
 (eIDAS-niveau "geavanceerd", server-side, geen handeling voor de keurmeester).
+
+**Géén wettelijke basis vanuit het systeem (besluit Jos 2026-08-04).** Hier
+stond dat `legal_reference` verplicht op de PDF komt. Dat is nooit gebouwd —
+`getLegalReference()` werd nergens aangeroepen — en het gaat er ook niet
+komen: welke norm een keurbedrijf claimt is aan dat keurbedrijf, via
+`cert_footer`. Zie §`inspection_regimes`.
 
 > **Implementatie fase 2.5 (2026-06-24, inspector-app):** `certificates`
 > gebouwd zoals hierboven (migratie `supabase/migrations/20260624_certificates.sql`),
@@ -675,10 +739,8 @@ markt later uitbreidbaar met een automatisch cryptografisch zegel
 > heeft geen rechten op `customers`/`inspections`/`inspection_items`. De
 > publieke pagina zelf is `/verify/:token` in de inspector-app (geen apart
 > publiek app'tje, kiss). `handtekening (PNG)` en het cryptografische
-> DE-zegel zijn nog niet gebouwd; de wettelijke basis per item komt uit de
-> statische `REGIMES`-lijst in `packages/core` (zie §`inspection_regimes`),
-> niet uit een DB-tabel. Certificaatnummer-formaat: `JJJJMMDD-KLANTNAAM`
-> (Jos' huidige praktijk).
+> DE-zegel zijn nog niet gebouwd. Certificaatnummer-formaat:
+> `JJJJMMDD-KLANTNAAM` (Jos' huidige praktijk).
 >
 > **Bedrijfsgegevens en afkeurcodes ingevuld (2026-06-25):** Safety Green
 > B.V.'s echte bedrijfsgegevens en de 8 echte afkeurcodes zijn nu gezet (zie

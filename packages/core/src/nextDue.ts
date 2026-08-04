@@ -9,6 +9,10 @@
  * Also caps at end-of-life:
  *   - manufacture_year + max_age_mfr_years
  *   - first_use_date  + max_age_use_years
+ *
+ * Geeft `null` terug als er geen keurtermijn is (kleding, geen-PBM, overig —
+ * zie `NO_INSPECTION_TYPES` in `regimes.ts`). Zo'n artikel heeft geen volgende
+ * keuring en krijgt dus ook geen stoplichtstatus.
  */
 
 import { getRegime, ProductType, CountryCode } from "./regimes";
@@ -63,7 +67,7 @@ export function addMonths(date: Date, months: number): Date {
   return d;
 }
 
-export function calcNextDue(input: NextDueInput): Date {
+export function calcNextDue(input: NextDueInput): Date | null {
   const {
     inspection_date,
     country_code,
@@ -78,16 +82,25 @@ export function calcNextDue(input: NextDueInput): Date {
     max_age_use_years,
   } = input;
 
-  // 1. Determine interval
+  // 1. Determine interval. `null` uit getRegime = dit type wordt niet gekeurd
+  // (kleding, geen-PBM, overig). Een expliciete override op artikel of product
+  // wint daar wél van: dat is iemand die bewust zegt "dit ding wil ik tóch elke
+  // X maanden zien" — bijvoorbeeld de Stein-afdaalapparaten waar de fabrikant
+  // zelf 6 maanden voorschrijft.
   const interval_months =
     article_interval_override_months ??
     product_interval_override_months ??
     getRegime(product_type, country_code, severe_use);
 
-  // 2. Next due from inspection date
+  // 2. Geen termijn = geen volgende keuring. Bewust vóór de levensduur-caps:
+  // een zaagbroek die niet gekeurd wordt, krijgt ook geen keurdatum omdat hij
+  // toevallig een maximale gebruiksduur heeft staan.
+  if (interval_months == null) return null;
+
+  // 3. Next due from inspection date
   let next_due = addMonths(inspection_date, interval_months);
 
-  // 3. Cap: manufacture date + max age from manufacturer
+  // 4. Cap: manufacture date + max age from manufacturer
   if (manufacture_year != null && max_age_mfr_years != null && !isUnlimitedAge(max_age_mfr_years)) {
     const mfr_month = manufacture_month ?? 1;
     const eol_mfr = new Date(
@@ -98,7 +111,7 @@ export function calcNextDue(input: NextDueInput): Date {
     if (eol_mfr < next_due) next_due = eol_mfr;
   }
 
-  // 4. Cap: first use date + max age from first use
+  // 5. Cap: first use date + max age from first use
   if (first_use_date != null && max_age_use_years != null && !isUnlimitedAge(max_age_use_years)) {
     const eol_use = addMonths(first_use_date, max_age_use_years * 12);
     if (eol_use < next_due) next_due = eol_use;
