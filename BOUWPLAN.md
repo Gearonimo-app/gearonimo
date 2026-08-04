@@ -112,10 +112,12 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >    herinnering na 12 mnd.
 > - Open: `retired_reason` als kort keuzelijstje i.p.v. vrije tekst, zodat
 >   "kapot" op te tellen is.
-> - **Te controleren vóór de UI-slice live gaat:** staan er in de live database
->   producten op `aerial_platform` of `other`? In `catalog/producten.csv` niet
->   (alle 2598 rijen nagerekend), maar de database is een eigen ding.
->   `select product_type, count(*) from public.products group by 1;`
+> - **Live database gecontroleerd (Jos 2026-08-04):** er staat niets op
+>   `aerial_platform` of `other`, ook niet in de database. Klopt met
+>   `catalog/producten.csv` (alle 2598 rijen nagerekend: alleen `ppe` 2262,
+>   `rigging` 168, `no_ppe` 167, `machine` 1). Het verwijderen van
+>   `aerial_platform` en het weghalen van `other` uit `PRODUCT_TYPES` laat dus
+>   geen enkele bestaande rij in de 12-maanden-fallback vallen.
 
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
