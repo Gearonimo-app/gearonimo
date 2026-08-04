@@ -124,6 +124,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Ellersafe erbij (2026-08-04): 36 producten, 0 fouten.** Harnassen,
+> vanglijnen/valdempers en valstopapparaten. Ingevoegd zoals aangeleverd, met
+> vier gaten die Jos moet wegen:
+> - **Geen enkele handleiding-link** (`manual_url` leeg bij alle 36). Voor PBM
+>   is dat het veld waar de keurmeester de fabrikantsinstructie opent.
+> - **18 van de 36 wijzen als "productpagina" naar dezelfde
+>   heyzine-flipbook-PDF** (`cdnm.heyzine.com/flip-book/…-4.pdf`, pagina 4 van
+>   één catalogus). Dat is verkoopmateriaal, geen productpagina — en één
+>   gedeelde link zegt niets over het specifieke product. 14 wijzen wél naar
+>   `ellersafe.com`.
+> - **4 wijzen naar wederverkopers** (licht-produktiv.de, sos-shop.com,
+>   prolight.co.uk, riggersworld.eu). Die verdwijnen zodra de winkel het artikel
+>   uit het assortiment haalt.
+> - **Geen levensduur** (`max_age_use_years` en `max_age_mfr_years` allebei 0/36
+>   gevuld). Bij harnassen en valstopapparaten stuurt dat de afkeurdatum.
+> - **Naam begint bij alle 36 met het merk** ("Ellersafe ELLERsafe H110
+>   harness"): de app toont merk en naam samen, dus het staat er dubbel. In de
+>   rest van de catalogus is dat zeldzaam — 42 van 2599 (1,6%), vrijwel alleen
+>   PROTOS. Voorstel om `ELLERsafe ` uit de naam te halen ligt bij Jos; kost nu
+>   niets omdat deze rijen nog geen id hebben.
+
 > **Opmerking altijd zichtbaar, en de lus rondgemaakt (2026-08-02).**
 > - **`notes` staat nu gewoon in beeld tijdens de keuring**, niet meer achter
 >   een ℹ️-knop met tooltip. Correctie van Jos: *"ik wil opmerkingen gewoon
