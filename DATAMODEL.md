@@ -201,11 +201,35 @@ Eigenaar van artikelen en historie (besloten: de klant bezit de data).
 | country_code | text | legacy; de UI gebruikt nu het vrije tekstveld `country` |
 | address | text? | **niet meer gebruikt** — vervangen door `street`/`house_number` (2026-06-23) |
 | invite_code | text, uniek | uitnodigingscode/QR voor nieuwe medewerkers (besloten 2026-06-14, zie onboarding bij `customer_members`) |
+| enabled_domains | text[] | welke materiaal-tegels deze klant gebruikt (besloten 2026-08-04, **nog te bouwen**) — zie hieronder |
 
 > **Implementatie fase 2.2 (2026-06-23):** bovenstaande extra velden zijn als
 > kolommen toegevoegd via `supabase/migrations/20260622_customers_extra_fields.sql`
 > in de Gearonimo-repo. Alleen `name` en `email` zijn in de UI verplicht; de rest
 > is vrije invoer (data-minimalisatie/AVG).
+
+> **`enabled_domains` — materiaal-tegels (besloten Jos 2026-08-04, nog te
+> bouwen).** De klant-app krijgt onder "Mijn materiaal" vier tegels:
+> Klimmateriaal (`ppe`/`no_ppe`/`rigging`), Machines (`machine`), Kleding
+> (`clothing`) en Overig (`other`). Het volledige ontwerpbesluit met de
+> afwegingen staat in `UX-FLOW.md §9.6`; hier alleen wat het voor het
+> datamodel betekent:
+> - **Dit is de enige opslag.** De afbeelding `product_type` → tegel staat
+>   vast in `packages/core`; op `articles` komt géén tegel-kolom. Eén
+>   classificatie (`product_type`), één afgeleide weergavelaag. Zou een artikel
+>   zowel een type als een tegel hebben, dan kunnen die twee het oneens zijn.
+> - **Alleen `is_admin` mag het wijzigen**; de tegels zelf zijn voor elke
+>   medewerker zichtbaar.
+> - **Een tegel met inhoud kan niet uit** — dat maakt "onzichtbaar materiaal
+>   met een verlopende keuring" onmogelijk. Af te dwingen in de RPC die dit
+>   veld zet, niet alleen in de UI.
+> - **Startwaarde bij invoeren:** `{climbing}` voor iedereen — alles wat er nu
+>   staat is klimmateriaal.
+> - Let op de twee andere `text[]`-verzamelingen van producttypes in dit model,
+>   die een **andere vraag** beantwoorden en bewust niet samengevoegd worden:
+>   `customer_links.scope_product_types` (wat de klant *deelt* met een
+>   keurbedrijf) en `inspection_companies.allowed_product_types` (wat een
+>   keurbedrijf *keurt*). Zelfde woordenschat, drie verschillende vragen.
 
 ### `customer_members` (medewerkers/eindgebruikers)
 | kolom | type | uitleg |

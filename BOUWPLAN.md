@@ -71,25 +71,51 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - 6 nieuwe tests in `nextDue.test.ts` (types zonder termijn, override wint
 >   van "nooit", GB ppe 6 / rigging 12).
 >
-> **Nog te bouwen (volgende slice):**
-> - Migratie: kolom op `articles` voor het type van een **vrij artikel**.
->   `product_type` staat op `products`; een vrij artikel heeft nu alleen
->   `free_category` (vrije tekst). Jos wil daar een verplichte dropdown —
->   `ARTICLE_TYPES` staat klaar, de kolom nog niet.
-> - Klant-app: dropdown in `AddArticleForm`, statuslogica in `Materials.vue`
->   (`uiStatus`/`isFirstInspectionOverdue` moeten types zonder termijn
->   overslaan, anders staat de kledingkast na 12 maanden onder "Aandacht").
-> - Filter op categorie (aan/uit per type) + op persoon. Bewust **geen teller**
->   per persoon — Jos: *"die 5 t-shirts, paar schoenen en 2 broeken per jaar
->   blijft echt wel overzichtelijk genoeg"*; een lijst op datumvolgorde
->   volstaat.
-> - `other` → `self_managed` + `self_checks` aanzetten (kolom en tabel bestaan
->   sinds 2026-06-23 en zijn nog nergens gebruikt), met herinnering na 12 mnd.
+> **Ontwerp afgerond in dezelfde sessie: materiaal-tegels in de klant-app.**
+> Volledig besluit met afwegingen in `UX-FLOW.md §9.6`, veldkant in
+> `DATAMODEL.md §customers`. Kern: vier tegels (Klimmateriaal / Machines /
+> Kleding / Overig) één niveau **onder** "Mijn materiaal" — niet op het
+> hoofdmenu, want daar staan taakgerichte tegels en dit zijn inhoudsgerichte.
+> Een tegel is een **weergave**, geen eigenschap van een artikel: de afbeelding
+> type → tegel staat vast in code, het enige dat opgeslagen wordt is
+> `customers.enabled_domains`. Aan/uit alleen door `is_admin`; een tegel met
+> inhoud kan niet uit. Eén catalogus met per tegel een gefilterd venster, géén
+> aparte kledingcatalogus.
+>
+> Twee dingen die het ontwerp vereenvoudigden en die uit Jos' tegenwerpingen
+> kwamen:
+> - **Tegels kunnen niet afgeleid worden uit inhoud.** Eerste voorstel was
+>   "toon een tegel zodra er materiaal in zit". Jos: *"als er geen tegel is
+>   wanneer er niks in staat, kan deze ook niet gevuld worden."* Toevoegen
+>   gebeurt ín een tegel, dus de tegel moet er eerst zijn.
+> - **De tegel ís de dropdown.** Voeg je toe vanuit Kleding, dan is het type
+>   `clothing`. De verplichte keuzelijst voor een vrij artikel is daarmee
+>   alleen nog nodig buiten een tegel om — scheelt bouwwerk én invoerfouten.
+>
+> **Nog te bouwen (volgende slice), in deze volgorde:**
+> 1. Migratie: `customers.enabled_domains` + kolom op `articles` voor het type
+>    van een **vrij artikel**. `product_type` staat op `products`; een vrij
+>    artikel heeft nu alleen `free_category` (vrije tekst). `ARTICLE_TYPES`
+>    staat klaar, de kolommen nog niet. Startwaarde `{climbing}` voor alle
+>    bestaande klanten.
+> 2. Klant-app: tegelscherm onder "Mijn materiaal", toevoegen per tegel met
+>    gefilterde catalogus.
+> 3. Statuslogica in `Materials.vue`: `uiStatus`/`isFirstInspectionOverdue`
+>    moeten types zonder termijn overslaan, anders staat de kledingkast na 12
+>    maanden onder "Aandacht". **Ook de stoplichtkaart op `Home.vue`**: die
+>    telt nu alle artikelen, dus 40 T-shirts zouden de tellers vervuilen.
+> 4. Filter op persoon binnen een tegel. Bewust **geen teller** — Jos: *"die 5
+>    T-shirts, paar schoenen en 2 broeken per jaar blijft echt wel
+>    overzichtelijk genoeg"*; een lijst op datumvolgorde volstaat.
+> 5. `other` + `machine` → `self_managed` + `self_checks` aanzetten (kolom en
+>    tabel bestaan sinds 2026-06-23 en zijn nog nergens gebruikt), met
+>    herinnering na 12 mnd.
 > - Open: `retired_reason` als kort keuzelijstje i.p.v. vrije tekst, zodat
 >   "kapot" op te tellen is.
-> - Open bij Jos: **machine** — keurbedrijf of klant zelf? Staat nu op 12 mnd
->   bij de keurmeester; een klant die zijn kettingzaag zelf bijhoudt kan dat
->   artikel straks op `self_managed` zetten, dus dit hoeft nu niet beslist.
+> - **Te controleren vóór de UI-slice live gaat:** staan er in de live database
+>   producten op `aerial_platform` of `other`? In `catalog/producten.csv` niet
+>   (alle 2598 rijen nagerekend), maar de database is een eigen ding.
+>   `select product_type, count(*) from public.products group by 1;`
 
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
