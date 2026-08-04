@@ -5,6 +5,74 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-04, deel 2)
+
+> **Materiaal-tegels gebouwd.** Het ontwerp uit `UX-FLOW.md §9.6` staat nu in de
+> app. Ontwerp zelf is niet gewijzigd tijdens het bouwen.
+>
+> **⚠ Migratie `20260752_material_domains.sql` moet nog uitgevoerd worden in de
+> Supabase SQL-editor.** Zonder die migratie werkt de klant-app niet: `my_customer`
+> en `my_articles` krijgen nieuwe kolommen.
+>
+> Wat de migratie doet:
+> - `customers.enabled_domains text[]`, standaard `{climbing}` — de enige opslag
+>   van de tegelkeuze. Géén tegel-kolom op `articles`.
+> - `articles.free_product_type` — het type van een vrij artikel. Bewust
+>   nullable en niet gebackfilld: `null` = "van vóór de splitsing" en wordt
+>   overal als klimmateriaal/ppe behandeld, precies wat er nu al gebeurt.
+> - `domain_for_type()` in SQL — de afbeelding type → tegel. Bewuste duplicatie
+>   van `packages/core/src/domains.ts`; de controle "een tegel met inhoud kan
+>   niet uit" moet serverside staan, en SQL kan geen TypeScript importeren.
+> - `set_my_enabled_domains()` — beheerder-only, weigert een tegel met inhoud.
+> - `my_customer()` en `my_articles()` uitgebreid (drop + recreate, return-type
+>   wijzigt); `add_my_article()` en `search_products()` kregen een parameter.
+>
+> **Twee valkuilen onderweg:**
+> - **Overloads.** `create or replace` met een extra parameter maakt een
+>   *nieuwe* functie naast de oude, geen vervanging — dan wordt de aanroep
+>   dubbelzinnig. Zowel `add_my_article` (10 args) als `search_products` (3 args)
+>   worden daarom eerst expliciet gedropt. Zelfde les als `retire_my_article` in
+>   migratie 20260712.
+> - **Bijna het fuzzy zoeken gesloopt.** `search_products` is bij het toevoegen
+>   van het typefilter opnieuw uitgeschreven; het origineel bleek `similarity()`
+>   (pg_trgm) te gebruiken voor tolerantie én sortering, plus een cap op 60. Het
+>   volledige lichaam van 20260750 is nu overgenomen met alleen het filter erbij,
+>   en bewust géén `set search_path` — `similarity()` staat niet in `public`.
+>
+> **App-kant:**
+> - `packages/core/src/domains.ts` — tegels, de afbeelding type → tegel,
+>   `normalizeDomains`, `typeIsInspected`. 15 tests, waaronder een die bewaakt
+>   dat elk artikeltype in precies één tegel valt.
+> - `Materials.vue` — tegelscherm bij >1 soort, anders meteen de lijst (een
+>   scherm met één knop is zinloos). De gekozen tegel staat in `?domain=`, niet
+>   in het pad: `/materials/:id` is al het artikeldetail. `?filter=aandacht`
+>   vanaf de stoplichtkaart slaat de tegels over en toont alles — aandacht gaat
+>   over soorten heen.
+> - Nieuwe status `no_inspection` in `Materials.vue` én `Home.vue`. Zonder die
+>   toestand zou een T-shirt na 12 maanden als "eerste keuring te laat" onder
+>   Aandacht komen. Het oordeel op de stoplichtkaart telt nu alleen keurbaar
+>   materiaal; "nog geen materiaal" kijkt wél naar alles, anders krijgt iemand
+>   met alleen kleding een welkomsttekst alsof hij nog moet beginnen.
+> - `AddArticleForm.vue` — de tegel ís de typekeuze. Catalogus-zoeken gefilterd
+>   op de tegel; "Overig" krijgt helemaal geen catalogus en gaat ook niet de
+>   wachtrij in. Alleen Klimmateriaal toont een keuzelijst, want die bundelt
+>   drie types.
+> - `Members.vue` — tegels aan/uit, beheerder-only, met het aantal artikelen per
+>   soort zodat zichtbaar is waarom iets niet uit kan.
+> - `GIcon` — vier nieuwe iconen: `climbing`, `machines`, `clothing`, `other`.
+>
+> **Over het klim-icoon (shortcut, expliciet gemeld).** Eerst een karabiner
+> geprobeerd — het beeldmerk van de app — in drie varianten. Op de échte
+> weergavemaat (26px) valt de snapper telkens weg en blijft er een pil over;
+> gerenderd en bekeken vóór de keuze. Het is nu een veiligheidshelm. Wil Jos
+> tóch de karabiner, dan is dat één regel in `GIcon.ts`.
+>
+> **Nog te doen:** `other`/`machine` koppelen aan `self_managed` + `self_checks`
+> (12-maands-herinnering, klant vinkt zelf af), `retired_reason` als
+> keuzelijstje, en de keurmeester-app laten weten dat kleding bestaat (die ziet
+> nu nog alle artikelen van een klant, inclusief kleding — bij een keuring is
+> dat ruis).
+
 ## Voortgang (bijgewerkt 2026-08-04)
 
 > **Producttypes herzien + kleding erbij (besluiten Jos 2026-08-04).**

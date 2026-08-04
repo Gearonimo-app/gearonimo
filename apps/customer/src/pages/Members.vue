@@ -65,6 +65,40 @@
         </form>
       </section>
 
+      <!-- Materiaalsoorten: welke tegels de klant onder "Mijn materiaal" ziet
+           (UX-FLOW §9.6). Alleen de beheerder, want dit bepaalt hoe de app er
+           voor iedereen uitziet. Klimmateriaal staat vast aan, en een soort met
+           materiaal erin kan niet uit -- dat laatste wordt ook serverside
+           afgedwongen in set_my_enabled_domains(). -->
+      <section v-if="isAdmin" class="mb__section">
+        <div class="mb__section-head">
+          <h2>{{ $t('settings.domains.title') }}</h2>
+        </div>
+        <p class="mb__security-hint">{{ $t('settings.domains.hint') }}</p>
+        <p v-if="domainsError" class="mb__state mb__state--error">{{ domainsError }}</p>
+        <ul class="mb__list">
+          <li v-for="d in allDomains" :key="d" class="mb__item">
+            <label class="mb__item-main mb__domain-row">
+              <input
+                type="checkbox"
+                :checked="draftDomains.includes(d)"
+                :disabled="d === alwaysOnDomain || domainsSaving"
+                @change="toggleDomain(d)"
+              />
+              <span class="mb__item-name">{{ $t(`materials.domains.${d}`) }}</span>
+              <span class="mb__item-meta">
+                <template v-if="d === alwaysOnDomain">{{ $t('settings.domains.always') }}</template>
+                <template v-else-if="domainCounts[d]">{{ $t('settings.domains.inUse', { n: domainCounts[d] }) }}</template>
+              </span>
+            </label>
+          </li>
+        </ul>
+        <div v-if="domainsDirty" class="mb__form-actions">
+          <button class="mb__save" :disabled="domainsSaving" @click="saveDomains">{{ $t('settings.domains.save') }}</button>
+          <button class="mb__cancel" :disabled="domainsSaving" @click="resetDomains">{{ $t('members.cancel') }}</button>
+        </div>
+      </section>
+
       <!-- Beveiliging: vingerafdruk/Face ID i.p.v. elke keer een inloglink per
            mail (Jos, 2026-07-16). Persoonlijk per account/toestel, dus geen
            isAdmin-check -- iedere medewerker beheert zijn eigen toestellen. -->
@@ -155,6 +189,11 @@ import {
   passkeySupported,
   isPasskeyCancelled,
   markPasskeyEnabledOnThisDevice,
+  MATERIAL_DOMAINS,
+  ALWAYS_ON_DOMAIN,
+  normalizeDomains,
+  domainForType,
+  type MaterialDomain,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
@@ -300,13 +339,76 @@ async function load() {
       postal_code: row.postal_code, city: row.city, province: row.province, country: row.country,
     };
 
+    savedDomains.value = normalizeDomains(row.enabled_domains);
+    draftDomains.value = [...savedDomains.value];
+
     const { data, error: err } = await supabase.rpc("my_members");
     if (err) throw err;
     members.value = (data ?? []) as MemberRow[];
+
+    // Tellers per soort: laten zien wáárom een soort niet uit kan. Alleen voor
+    // de beheerder, en het mag best falen -- dan mist er een getal, meer niet.
+    if (isAdmin.value) await loadDomainCounts();
   } catch (e) {
     error.value = errorMessage(e);
   } finally {
     loading.value = false;
+  }
+}
+
+// ─── Materiaalsoorten (UX-FLOW §9.6) ────────────────────────────────────────
+const allDomains = MATERIAL_DOMAINS;
+const alwaysOnDomain = ALWAYS_ON_DOMAIN;
+const savedDomains = ref<MaterialDomain[]>([alwaysOnDomain]);
+const draftDomains = ref<MaterialDomain[]>([alwaysOnDomain]);
+const domainCounts = ref<Record<string, number>>({});
+const domainsSaving = ref(false);
+const domainsError = ref("");
+
+const domainsDirty = computed(
+  () => draftDomains.value.join(",") !== savedDomains.value.join(",")
+);
+
+async function loadDomainCounts() {
+  const { data } = await supabase.rpc("my_articles");
+  const counts: Record<string, number> = {};
+  for (const a of (data ?? []) as { product_type: string | null }[]) {
+    const d = domainForType(a.product_type);
+    counts[d] = (counts[d] ?? 0) + 1;
+  }
+  domainCounts.value = counts;
+}
+
+function toggleDomain(d: MaterialDomain) {
+  domainsError.value = "";
+  if (d === alwaysOnDomain) return;
+  draftDomains.value = draftDomains.value.includes(d)
+    ? draftDomains.value.filter((x) => x !== d)
+    : normalizeDomains([...draftDomains.value, d]);
+}
+
+function resetDomains() {
+  domainsError.value = "";
+  draftDomains.value = [...savedDomains.value];
+}
+
+async function saveDomains() {
+  domainsSaving.value = true;
+  domainsError.value = "";
+  try {
+    // De server is de autoriteit: hij weigert een soort die nog materiaal
+    // bevat, en geeft de opgeschoonde lijst terug.
+    const { data, error: err } = await supabase.rpc("set_my_enabled_domains", {
+      p_domains: draftDomains.value,
+    });
+    if (err) throw err;
+    savedDomains.value = normalizeDomains(data as string[] | null);
+    draftDomains.value = [...savedDomains.value];
+  } catch (e) {
+    domainsError.value = errorMessage(e);
+    resetDomains();
+  } finally {
+    domainsSaving.value = false;
   }
 }
 
@@ -455,6 +557,9 @@ if (passkeySupportedDevice) onMounted(loadPasskeys);
   border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.95rem;
 }
 .mb__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: #374151; }
+.mb__domain-row { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
+.mb__domain-row input:disabled { cursor: default; }
+.mb__domain-row .mb__item-meta { margin-left: auto; }
 .mb__form-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
 .mb__save {
   background: #16a34a; color: #fff; border: none; border-radius: 8px;

@@ -1,4 +1,5 @@
 export * from "./regimes";
+export * from "./domains";
 export * from "./catalog";
 export * from "./status";
 export * from "./nextDue";

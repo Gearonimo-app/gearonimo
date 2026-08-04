@@ -8,12 +8,41 @@
      aandacht nodig heeft). -->
 <template>
   <div class="mt">
-    <PageHeader back :title="$t('materials.title')" />
+    <PageHeader back :title="pageTitle" />
 
     <div v-if="loading" class="mt__state">{{ $t('common.loading') }}</div>
     <div v-else-if="error" class="mt__state mt__state--error">{{ error }}</div>
 
+    <!-- Tegelkeuze: alleen als er méér dan één materiaalsoort aanstaat. Bij één
+         soort (de standaard: alleen Klimmateriaal) zou dit een scherm met één
+         knop zijn -- dan meteen de lijst, zie `showDomainTiles`. -->
+    <div v-else-if="showDomainTiles" class="mt__body">
+      <nav class="mt__domains">
+        <button
+          v-for="d in enabledDomains"
+          :key="d"
+          class="mt__domain"
+          @click="selectDomain(d)"
+        >
+          <GIcon :name="domainIcon(d)" class="mt__domain-icon" />
+          <span class="mt__domain-label">{{ $t(`materials.domains.${d}`) }}</span>
+          <span class="mt__domain-count">{{ domainCounts[d] ?? 0 }}</span>
+          <!-- Aandacht per tegel, zodat je niet hoeft in te klikken om te zien
+               waar iets speelt. Kleding/Overig krijgen dit nooit: daar wordt
+               niets gekeurd. -->
+          <span v-if="domainAttention[d]" class="mt__domain-flag">
+            ❗ {{ $t('materials.attentionCount', { n: domainAttention[d] }) }}
+          </span>
+        </button>
+      </nav>
+    </div>
+
     <div v-else class="mt__body">
+      <!-- Terug naar de tegels; alleen zichtbaar als er iets om naar terug te
+           gaan is (bij één materiaalsoort bestaat het tegelscherm niet). -->
+      <button v-if="enabledDomains.length > 1" class="mt__back-domains" @click="clearDomain">
+        ‹ {{ $t('materials.allDomains') }}
+      </button>
       <input
         v-model="search"
         type="search"
@@ -54,9 +83,14 @@
             <button v-if="!addingArticle" class="mt__addbtn" @click="addingArticle = true">{{ $t('home.addArticle.button') }}</button>
           </div>
         </div>
+        <!-- De tegel ís de typekeuze (besluit Jos 2026-08-04): toevoegen vanuit
+             Kleding levert een artikel met type `clothing`, en de
+             catalogus-zoekfunctie kijkt alleen binnen die soort. Staat er maar
+             één soort aan, dan is dat vanzelf de actieve. -->
         <AddArticleForm
           v-if="addingArticle"
           :known-users="memberNames"
+          :domain="activeDomain ?? enabledDomains[0]"
           @close="addingArticle = false"
           @added="onArticleAdded"
         />
@@ -143,7 +177,18 @@
 import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { supabase, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
+import {
+  supabase,
+  errorMessage,
+  calcStatus,
+  isFirstInspectionOverdue,
+  domainForType,
+  normalizeDomains,
+  typeIsInspected,
+  MATERIAL_DOMAINS,
+  type MaterialDomain,
+} from "@gearonimo/core";
+import { GIcon } from "@gearonimo/ui";
 import AddArticleForm from "../components/AddArticleForm.vue";
 import AddPartForm from "../components/AddPartForm.vue";
 import PageHeader from "../components/PageHeader.vue";
@@ -157,6 +202,7 @@ interface ArticleRow {
   name: string | null;
   brand: string | null;
   category: string | null;
+  product_type: string | null;
   serial_number: string | null;
   assigned_user_name: string | null;
   manual_url: string | null;
@@ -171,7 +217,11 @@ interface ArticleRow {
 // en (EN 365, Jos 2026-07-13) 12 maanden in gebruik zonder ooit gekeurd te
 // zijn -- zelfde zachte toon als "binnenkort keuren", geen rood alarm
 // (blauwdruk §7 blijft gelden voor "nog geen 12 maanden").
-type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected";
+// `no_inspection` is er sinds 2026-08-04 bij: kleding, geen-PBM en overig
+// hebben geen keurtermijn (zie regimes.ts). Dat is bewust een eigen toestand
+// en niet "nog niet gekeurd" -- die laatste nodigt uit om een keuring aan te
+// vragen, en dat is hier juist niet de bedoeling.
+type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection";
 interface UiArticle extends ArticleRow {
   uiStatus: UiStatus;
 }
@@ -190,6 +240,10 @@ const attentionOnly = ref(route.query.filter === "aandacht");
 
 function uiStatus(a: ArticleRow): UiStatus {
   if (a.last_result === "rejected") return "rejected";
+  // Types zonder keurtermijn krijgen geen keurstatus. Zonder deze regel zou
+  // een T-shirt na 12 maanden als "eerste keuring te laat" onder Aandacht
+  // komen -- ruis die de stoplichtkaart zijn betekenis kost.
+  if (!typeIsInspected(a.product_type)) return "no_inspection";
   const base = calcStatus({
     today: new Date(),
     next_due: a.next_due ? new Date(a.next_due) : null,
@@ -200,10 +254,80 @@ function uiStatus(a: ArticleRow): UiStatus {
   return base as UiStatus;
 }
 
-// Personeelslid-chips: de namen zoals ze aan artikelen hangen.
+// ─── Materiaalsoorten (tegels, UX-FLOW §9.6) ────────────────────────────────
+// De tegel is een weergave: welke tegel een artikel heeft volgt uit zijn
+// product_type. De gekozen tegel staat in de URL (?domain=clothing) en niet in
+// het pad, zodat de bestaande route /materials/:id (artikeldetail) ongemoeid
+// blijft.
+const enabledDomains = ref<MaterialDomain[]>(["climbing"]);
+
+const activeDomain = computed<MaterialDomain | null>(() => {
+  const q = route.query.domain;
+  const value = Array.isArray(q) ? q[0] : q;
+  const found = MATERIAL_DOMAINS.find((d) => d === value);
+  return found && enabledDomains.value.includes(found) ? found : null;
+});
+
+// Het tegelscherm slaan we over als er niets te kiezen valt (één soort) of als
+// de stoplichtkaart hierheen linkt met ?filter=aandacht -- dat filter gaat over
+// alle soorten heen en hoort meteen de lijst te tonen.
+const showDomainTiles = computed(
+  () => enabledDomains.value.length > 1 && activeDomain.value === null && !attentionOnly.value
+);
+
+const pageTitle = computed(() =>
+  activeDomain.value ? t(`materials.domains.${activeDomain.value}`) : t("materials.title")
+);
+
+// Artikelen van de gekozen tegel. Zonder gekozen tegel: alles wat in een
+// aanstaande tegel valt. Materiaal in een uitgezette soort blijft dus zichtbaar
+// -- verbergen mag nooit een waarschuwing onderdrukken (UX-FLOW §9.6).
+const domainArticles = computed(() =>
+  activeDomain.value === null
+    ? articles.value
+    : articles.value.filter((a) => domainForType(a.product_type) === activeDomain.value)
+);
+
+const domainCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {};
+  for (const a of articles.value) {
+    const d = domainForType(a.product_type);
+    counts[d] = (counts[d] ?? 0) + 1;
+  }
+  return counts;
+});
+
+const domainAttention = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {};
+  for (const a of articles.value) {
+    if (!ATTENTION.includes(a.uiStatus)) continue;
+    const d = domainForType(a.product_type);
+    counts[d] = (counts[d] ?? 0) + 1;
+  }
+  return counts;
+});
+
+// De icoonnaam is gelijk aan de domeinnaam (GIcon kent ze alle vier sinds
+// 2026-08-04), dus geen afbeelding nodig.
+function domainIcon(d: MaterialDomain): string {
+  return d;
+}
+
+function selectDomain(d: MaterialDomain) {
+  router.push({ path: "/materials", query: { domain: d } });
+}
+
+function clearDomain() {
+  clearFilters();
+  router.push({ path: "/materials" });
+}
+
+// Personeelslid-chips: de namen zoals ze aan artikelen hangen. Binnen een tegel
+// alleen de namen die dáár voorkomen -- anders sta je in Kleding te filteren op
+// een collega die alleen klimspullen heeft.
 const memberNames = computed(() => {
   const names = new Set<string>();
-  for (const a of articles.value) if (a.assigned_user_name) names.add(a.assigned_user_name);
+  for (const a of domainArticles.value) if (a.assigned_user_name) names.add(a.assigned_user_name);
   return [...names].sort((a, b) => a.localeCompare(b));
 });
 
@@ -215,7 +339,7 @@ const ATTENTION: UiStatus[] = ["rejected", "overdue", "due_soon", "first_inspect
 
 const filteredArticles = computed(() => {
   const q = search.value.trim().toLowerCase();
-  return articles.value.filter((a) => {
+  return domainArticles.value.filter((a) => {
     if (attentionOnly.value && !ATTENTION.includes(a.uiStatus)) return false;
     if (memberFilter.value && a.assigned_user_name !== memberFilter.value) return false;
     if (q) {
@@ -242,6 +366,8 @@ const STATUS_ORDER: Record<UiStatus, number> = {
   first_inspection_due: 3,
   never_inspected: 4,
   ok: 5,
+  // Onderaan: er valt niets aan te doen en er hoeft niets mee te gebeuren.
+  no_inspection: 6,
 };
 const sortedArticles = computed(() =>
   [...filteredArticles.value].sort(
@@ -278,7 +404,7 @@ const displayArticles = computed<DisplayArticleRow[]>(() => {
 // de volledige tekst blijft als tooltip beschikbaar. first_inspection_due
 // deelt het "!" van due_soon: zelfde zachte toon, andere tooltiptekst.
 function statusIcon(s: UiStatus): string {
-  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—" }[s];
+  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—", no_inspection: "·" }[s];
 }
 
 function formatDate(d: string) {
@@ -299,6 +425,7 @@ async function load() {
     }
     customerId.value = row.customer_id;
     isAdmin.value = !!row.is_admin;
+    enabledDomains.value = normalizeDomains(row.enabled_domains);
 
     const { data, error: err } = await supabase.rpc("my_articles");
     if (err) throw err;
@@ -394,6 +521,33 @@ onMounted(load);
 .mt__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
 @media (min-width: 900px) { .mt__body { max-width: 760px; } }
 
+/* Materiaalsoort-tegels. Bewust een lijst van brede knoppen en geen raster van
+   vierkantjes: er zijn er maximaal vier, ze hebben een teller en soms een
+   aandachtsregel, en op een telefoon leest een rij prettiger dan 2x2. */
+.mt__domains { display: flex; flex-direction: column; gap: 0.6rem; }
+.mt__domain {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%; box-sizing: border-box;
+  background: #fff; border: 1px solid #e5e7eb; border-radius: 12px;
+  padding: 1rem; cursor: pointer; text-align: left; font: inherit;
+}
+.mt__domain:hover { border-color: #1a3a2a; }
+.mt__domain-icon { width: 1.6rem; height: 1.6rem; color: #1a3a2a; }
+.mt__domain-label { font-weight: 700; font-size: 1rem; }
+.mt__domain-count { color: #6b7280; font-size: 0.9rem; font-variant-numeric: tabular-nums; }
+/* Loopt over de volle breedte onder de eerste rij door. */
+.mt__domain-flag {
+  grid-column: 2 / -1;
+  font-size: 0.8rem; font-weight: 700; color: #92400e;
+}
+.mt__back-domains {
+  background: none; border: none; padding: 0 0 0.5rem; margin: 0;
+  color: #1d4ed8; font-weight: 700; cursor: pointer; font-size: 0.9rem;
+}
+
 .mt__search {
   width: 100%; box-sizing: border-box;
   border: 1px solid #d1d5db; border-radius: 10px;
@@ -468,6 +622,7 @@ onMounted(load);
 .mt__item-reason--due_soon, .mt__item-reason--first_inspection_due { color: #92400e; }
 .mt__item-reason--overdue, .mt__item-reason--rejected { color: #991b1b; }
 .mt__item-reason--never_inspected { color: #6b7280; font-weight: 600; }
+.mt__item-reason--no_inspection { color: #9ca3af; font-weight: 600; }
 
 .mt__chip-status {
   flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; line-height: 1;
@@ -477,4 +632,5 @@ onMounted(load);
 .mt__chip-status--due_soon, .mt__chip-status--first_inspection_due { background: #fef9c3; color: #854d0e; }
 .mt__chip-status--overdue, .mt__chip-status--rejected { background: #fee2e2; color: #991b1b; }
 .mt__chip-status--never_inspected { background: #f3f4f6; color: #6b7280; }
+.mt__chip-status--no_inspection { background: #f9fafb; color: #9ca3af; }
 </style>

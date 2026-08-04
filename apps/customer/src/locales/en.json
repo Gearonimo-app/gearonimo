@@ -83,7 +83,8 @@
       "first_inspection_due": "First inspection due",
       "overdue": "Overdue",
       "rejected": "Rejected",
-      "never_inspected": "Not inspected yet"
+      "never_inspected": "Not inspected yet",
+      "no_inspection": "Not inspected"
     },
     "certificates": "Certificates",
     "noCertificates": "No certificates yet.",
@@ -116,7 +117,8 @@
       "queueNote": "Unknown products are automatically suggested for the Gearonimo catalogue.",
       "save": "Add",
       "cancel": "Cancel",
-      "needProductOrDescription": "Pick a product from the catalogue or enter a description."
+      "needProductOrDescription": "Pick a product from the catalogue or enter a description.",
+      "type": "Type"
     }
   },
   "materials": {
@@ -125,7 +127,15 @@
     "everyone": "Everyone",
     "attention": "Needs attention",
     "noMatches": "Nothing found within these filters.",
-    "clearFilters": "Clear filters"
+    "clearFilters": "Clear filters",
+    "domains": {
+      "climbing": "Climbing gear",
+      "machines": "Machines",
+      "clothing": "Clothing",
+      "other": "Other"
+    },
+    "allDomains": "All material types",
+    "attentionCount": "{n} need attention"
   },
   "articleDetail": {
     "notFound": "Article not found.",
@@ -168,6 +178,13 @@
         "province": "Province",
         "country": "Country"
       }
+    },
+    "domains": {
+      "title": "Material types",
+      "hint": "Choose which kinds of material you track in this app. Climbing gear is always on. A type that still holds material cannot be switched off — retire it first.",
+      "always": "Always on",
+      "inUse": "{n} item(s)",
+      "save": "Save"
     }
   },
   "members": {
@@ -229,5 +246,13 @@
       "declined": "Declined",
       "withdrawn": "Withdrawn"
     }
+  },
+  "productTypes": {
+    "ppe": "PPE",
+    "no_ppe": "No PPE",
+    "rigging": "Rigging",
+    "machine": "Machine",
+    "clothing": "Clothing",
+    "other": "Other"
   }
 }
