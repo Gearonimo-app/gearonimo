@@ -213,7 +213,7 @@ import SerialCheatSheet from '../components/SerialCheatSheet.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage, fetchAllRows } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 
 interface Product {
@@ -321,17 +321,21 @@ async function runSearch() {
 
     // 1. Primaire route: serienummer (suffix/bevat-match — Jos zoekt op de
     //    laatste cijfers, zie UX-FLOW §4.2). Serie-treffers staan bovenaan.
-    const serial = await supabase
-      .from('articles').select(SELECT)
-      .ilike('serial_number', `%${q}%`).eq('retired', false).limit(50)
+    const serial = await inspectorVisibleArticles(
+      supabase
+        .from('articles').select(SELECT)
+        .ilike('serial_number', `%${q}%`).eq('retired', false).limit(50)
+    )
     if (serial.error) throw serial.error
     for (const r of (serial.data ?? []) as unknown as Row[]) byId.set(r.id, r)
 
     // 2. Vrije artikelen op omschrijving/merk/categorie.
-    const free = await supabase
-      .from('articles').select(SELECT)
-      .or(`free_brand.ilike.%${q}%,free_description.ilike.%${q}%,free_category.ilike.%${q}%`)
-      .eq('retired', false).limit(50)
+    const free = await inspectorVisibleArticles(
+      supabase
+        .from('articles').select(SELECT)
+        .or(`free_brand.ilike.%${q}%,free_description.ilike.%${q}%,free_category.ilike.%${q}%`)
+        .eq('retired', false).limit(50)
+    )
     if (free.error) throw free.error
     for (const r of (free.data ?? []) as unknown as Row[]) if (!byId.has(r.id)) byId.set(r.id, r)
 
@@ -340,9 +344,11 @@ async function runSearch() {
     if (!prod.error) {
       const ids = (prod.data ?? []).map((p: { id: string }) => p.id)
       if (ids.length) {
-        const cat = await supabase
-          .from('articles').select(SELECT)
-          .in('product_id', ids).eq('retired', false).limit(50)
+        const cat = await inspectorVisibleArticles(
+          supabase
+            .from('articles').select(SELECT)
+            .in('product_id', ids).eq('retired', false).limit(50)
+        )
         if (cat.error) throw cat.error
         for (const r of (cat.data ?? []) as unknown as Row[]) if (!byId.has(r.id)) byId.set(r.id, r)
       }
@@ -444,8 +450,9 @@ async function doRecall() {
     // komen artikelen zónder bouwjaar óók binnen — die mogen we bij een recall
     // niet stil weglaten. Merk/naam kan bovendien uit de catalogus (products)
     // of uit een vrij artikel (free_*) komen, niet in één query te filteren.
-    const { data, error: err } = await supabase
-      .from('articles').select(SELECT).eq('retired', false).limit(1000)
+    const { data, error: err } = await inspectorVisibleArticles(
+      supabase.from('articles').select(SELECT).eq('retired', false).limit(1000)
+    )
     if (err) throw err
 
     const dateActive = !!(voorJaar || vanafJaar)

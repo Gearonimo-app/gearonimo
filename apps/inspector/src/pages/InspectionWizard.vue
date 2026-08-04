@@ -510,6 +510,7 @@ import {
   markInspectionPendingCompletion,
   getRegime,
   isInspectedType,
+  inspectorVisibleArticles,
   isUnlimitedAge,
   type ProductType,
   type CountryCode,
@@ -1536,10 +1537,12 @@ async function load() {
   // Al bekende artikelen van deze klant als extra suggestiebron (zie
   // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
   // catalogus nog (vrijwel) leeg is.
-  const { data: custArts } = await supabase
-    .from('articles')
-    .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
-    .eq('customer_id', insp.customer_id)
+  const { data: custArts } = await inspectorVisibleArticles(
+    supabase
+      .from('articles')
+      .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
+      .eq('customer_id', insp.customer_id)
+  )
   customerArticles.value = (custArts ?? []).map((a: any) => ({
     id: a.id,
     serial: a.serial_number ?? '',

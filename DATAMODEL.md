@@ -555,7 +555,8 @@ voorschrijft, gewoon een termijn.
 | retired | boolean | afgevoerd |
 | retired_at | timestamptz? | |
 | suggest_for_catalog | boolean | klant-vinkje "voeg toe aan de productendatabase" bij een vrij artikel (`product_id` leeg) — besloten 2026-06-14, zie BLAUWDRUK §2. Aangevinkt: artikel komt in de catalogus-wachtrij (`products`, status=`pending`) en `free_description`/`free_brand`/`free_manual_url` worden verplicht. Niet aangevinkt: blijft puur eigen artikel, buiten de wachtrij |
-| self_managed | boolean | `true` = vrij, niet-PBM artikel uit de "zelf te keuren spullen"-lijst (EHBO-trommel, brandblusser, auto-APK, kettingzaag bij externe dealer, …) — besloten 2026-06-14, zie BLAUWDRUK §2. Staat los van de catalogus (`product_id` leeg) en komt nooit in de keuring-wizard van een keurmeester, ook niet via een actieve `customer_link`. Status volgt uit `self_checks` i.p.v. `inspection_items` |
+| self_managed | boolean | `true` = **dit artikel valt buiten het keurbedrijf**: geen keurmeester ziet het, ook niet via een actieve `customer_link`, en de status komt niet uit `inspection_items`. Wordt automatisch gezet voor `clothing` / `machine` / `other` (zie hieronder) |
+| free_product_type | text? | producttype van een **vrij artikel** (`product_id` leeg) — bij een catalogusartikel komt het type van het product. Leeg = van vóór 2026-08-04, telt overal als klimmateriaal/`ppe` |
 
 Status (groen/oranje/"nog niet gekeurd"/rood) wordt **berekend**, nooit
 opgeslagen: de "volgende keuring uiterlijk"-datum (`next_due`) van de laatste
@@ -565,6 +566,27 @@ levensduur kan dus eerder rood geven dan het keuringsinterval. Nooit gekeurd ⇒
 "vraag een keuring aan" (geen rood alarm, zie blauwdruk §7).
 Terminologie bewust: nergens "goed tot" — een keuring is een momentopname,
 geen garantie tot een datum.
+
+**`self_managed` verbreed (besluit Jos 2026-08-04).** Het veld stond hier
+beschreven als "zelf te keuren spullen" (EHBO-trommel, brandblusser, APK) — de
+oorspronkelijke bedoeling van 2026-06-14. De operationele betekenis was altijd
+al ruimer: *dit artikel valt buiten het keurbedrijf*. Dat is precies wat er ook
+voor kleding moet gelden, ook al "keurt" de klant die niet zelf.
+
+- Automatisch `true` voor `clothing`, `machine` en `other`. Jos: *"voor nu
+  standaard self managed"* — kettingzaagkeurmeesters zitten voorlopig niet op
+  een app te wachten. Afgedwongen door `type_is_self_managed()` en een trigger
+  op `articles` (migratie `20260753_self_managed_domains.sql`), dus ook als het
+  type later wijzigt.
+- **`no_ppe` blijft er bewust buiten**: klimsporen en voetklemmen worden in de
+  praktijk vaak meegekeurd, dus die moet de keurmeester gewoon zien.
+- De trigger zet het alleen **aan**, nooit uit: stapt Gearonimo later bij
+  machinedealers binnen, dan kan `self_managed` handmatig uit zonder dat een
+  volgende update het stilletjes terugdraait.
+- Eén kolom in plaats van overal op producttype filteren — het type zit soms op
+  `products` (via een join) en soms op `articles.free_product_type`. In de apps
+  loopt het via één helper, `inspectorVisibleArticles()` in
+  `packages/core/src/domains.ts`.
 
 Poolmateriaal (besloten 2026-06-12): `assigned_member_id` leeg is normaal
 gebruik — voorraad en niet-PPE hebben zelden een vaste gebruiker, en gedeelde

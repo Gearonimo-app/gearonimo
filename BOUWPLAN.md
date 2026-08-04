@@ -67,11 +67,41 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > gerenderd en bekeken vóór de keuze. Het is nu een veiligheidshelm. Wil Jos
 > tóch de karabiner, dan is dat één regel in `GIcon.ts`.
 >
-> **Nog te doen:** `other`/`machine` koppelen aan `self_managed` + `self_checks`
-> (12-maands-herinnering, klant vinkt zelf af), `retired_reason` als
-> keuzelijstje, en de keurmeester-app laten weten dat kleding bestaat (die ziet
-> nu nog alle artikelen van een klant, inclusief kleding — bij een keuring is
-> dat ruis).
+> **Iconen opnieuw (feedback Jos 2026-08-04):** *"deze iconen zien er goedkoop
+> uit"* — terecht, ze waren met de hand getekend terwijl de bestaande set op
+> lucide/feather-vormen staat. Nu: helm en pakket in lucide-vorm, kettingzaag
+> met schuin blad (recht naast het blok las het als een hangslot met stokje),
+> en een werkbroek in plaats van een T-shirt (Jos: *"mag een broek of schoen
+> worden"* — de zaagbroek is hier het typische artikel). Alle varianten
+> gerenderd op de échte weergavemaat van 26px én naast de bestaande set gelegd
+> om te zien of het één familie is. De karabiner is vijf keer geprobeerd en
+> haalt die maat niet: er blijft een pil of een ei over.
+>
+> **`self_managed` verbreed en aangezet (besluit Jos 2026-08-04):**
+> *"voor nu standaard self managed"*. Migratie
+> `20260753_self_managed_domains.sql` — **moet ook nog uitgevoerd worden**.
+> - `type_is_self_managed()` + trigger op `articles`: `clothing`, `machine` en
+>   `other` krijgen automatisch `self_managed = true`, ook als het type later
+>   wijzigt. De trigger zet alleen áán, nooit uit — anders overschrijft hij
+>   ooit de bewuste keuze om machines tóch door een dealer te laten keuren.
+> - `no_ppe` blijft er bewust buiten (wordt vaak meegekeurd).
+> - Zie `DATAMODEL.md §3` voor de verbrede betekenis van het veld.
+>
+> **Keurmeester-app ziet geen kleding meer.** Zes queries liepen langs
+> `articles`; die gaan nu allemaal door `inspectorVisibleArticles()` uit
+> `packages/core/src/domains.ts` — één helper in plaats van zes losse
+> `.eq('self_managed', false)`. Plekken: klantpagina (actief + afgevoerd),
+> keuringsomvang (`fetchArticleScope`, óók de offline-tak), de suggestiebron in
+> de wizard, SN-zoeken (3 queries) en de recall-zoeker. **En de
+> offline-download** (`packages/core/src/offline/download.ts`) — anders staat
+> een keurmeester zonder netwerk alsnog naar de kledingkast te kijken.
+>
+> Let op: de helper heeft een **ongebonden** typeparameter. Met een structurele
+> constraint (`Q extends { eq(...) }`) rolt TypeScript de PostgREST-buildertypes
+> uit en klapt `vue-tsc` op TS2589 "type instantiation is excessively deep".
+>
+> **Nog te doen:** `self_checks` zelf (klant vinkt af + herinnering na 12 mnd —
+> tabel bestaat, is nog nergens gebruikt), `retired_reason` als keuzelijstje.
 
 ## Voortgang (bijgewerkt 2026-08-04)
 

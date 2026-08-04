@@ -6,6 +6,8 @@ import {
   normalizeDomains,
   domainHasInspections,
   typeIsInspected,
+  typeIsSelfManaged,
+  inspectorVisibleArticles,
 } from "./domains";
 import { PRODUCT_TYPES, ARTICLE_TYPES } from "./catalog";
 
@@ -80,6 +82,43 @@ describe("normalizeDomains", () => {
       "machines",
       "other",
     ]);
+  });
+});
+
+describe("buiten het keurbedrijf", () => {
+  it.each(["clothing", "machine", "other"] as const)(
+    "%s valt buiten het keurbedrijf",
+    (t) => {
+      expect(typeIsSelfManaged(t)).toBe(true);
+    }
+  );
+
+  it("no_ppe blijft zichtbaar voor de keurmeester", () => {
+    // Klimsporen en voetklemmen worden in de praktijk vaak meegekeurd, ook al
+    // is er geen keurplicht. Ze mogen dus niet uit de keurmeester-app vallen.
+    expect(typeIsSelfManaged("no_ppe")).toBe(false);
+    expect(typeIsInspected("no_ppe")).toBe(false);
+  });
+
+  it.each(["ppe", "rigging"] as const)("%s blijft gewoon keurwerk", (t) => {
+    expect(typeIsSelfManaged(t)).toBe(false);
+  });
+
+  it("leeg telt als ppe, dus niet self managed", () => {
+    expect(typeIsSelfManaged(null)).toBe(false);
+    expect(typeIsSelfManaged("")).toBe(false);
+  });
+
+  it("inspectorVisibleArticles zet precies één filter en geeft de query terug", () => {
+    const calls: [string, unknown][] = [];
+    const fake = {
+      eq(column: string, value: unknown) {
+        calls.push([column, value]);
+        return this;
+      },
+    };
+    expect(inspectorVisibleArticles(fake)).toBe(fake);
+    expect(calls).toEqual([["self_managed", false]]);
   });
 });
 

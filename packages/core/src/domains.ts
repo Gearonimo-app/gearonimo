@@ -94,3 +94,46 @@ export function typeIsInspected(product_type?: string | null): boolean {
   const t = ((product_type ?? "").trim() || "ppe") as ProductType;
   return !NO_INSPECTION_TYPES.includes(t);
 }
+
+/**
+ * Types die buiten het keurbedrijf vallen: geen keurmeester ziet ze, hun status
+ * komt niet uit `inspections` (besluit Jos 2026-08-04, "voor nu standaard self
+ * managed").
+ *
+ * `no_ppe` staat er bewust NIET in: klimsporen en voetklemmen worden in de
+ * praktijk vaak meegekeurd, dus die moet de keurmeester gewoon zien.
+ *
+ * ⚠ Ook in SQL, als `public.type_is_self_managed()` (migratie
+ * `20260753_self_managed_domains.sql`). Daar is het de autoriteit — een trigger
+ * op `articles` zet `self_managed` zelf goed. Wijzig je er één, wijzig de ander.
+ */
+export const SELF_MANAGED_TYPES: readonly ProductType[] = [
+  "clothing",
+  "machine",
+  "other",
+];
+
+export function typeIsSelfManaged(product_type?: string | null): boolean {
+  const t = ((product_type ?? "").trim() || "ppe") as ProductType;
+  return SELF_MANAGED_TYPES.includes(t);
+}
+
+/**
+ * Beperkt een Supabase-query op `articles` tot wat een keurmeester mag zien.
+ *
+ * Eén helper in plaats van `.eq('self_managed', false)` op vijf plekken — en
+ * één plek om aan te passen als de regel verandert. Bewust op de kolom
+ * `self_managed` en niet op producttype: het type zit soms op `products` (via
+ * een join) en soms op `articles.free_product_type`, wat in elke query een
+ * andere constructie zou opleveren.
+ */
+// Het typeparameter is bewust ONgebonden (geen `Q extends { eq(...) }`): met
+// een structurele constraint gaat TypeScript de PostgREST-buildertypes
+// uitrollen en klapt vue-tsc op TS2589 "type instantiation is excessively
+// deep". De cast binnenin doet het werk; de aanroeper houdt zijn eigen type.
+export function inspectorVisibleArticles<Q>(query: Q): Q {
+  return (query as unknown as { eq(column: string, value: unknown): Q }).eq(
+    "self_managed",
+    false
+  );
+}
