@@ -139,11 +139,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   uit het assortiment haalt.
 > - **Geen levensduur** (`max_age_use_years` en `max_age_mfr_years` allebei 0/36
 >   gevuld). Bij harnassen en valstopapparaten stuurt dat de afkeurdatum.
-> - **Naam begint bij alle 36 met het merk** ("Ellersafe ELLERsafe H110
->   harness"): de app toont merk en naam samen, dus het staat er dubbel. In de
->   rest van de catalogus is dat zeldzaam — 42 van 2599 (1,6%), vrijwel alleen
->   PROTOS. Voorstel om `ELLERsafe ` uit de naam te halen ligt bij Jos; kost nu
->   niets omdat deze rijen nog geen id hebben.
+> - **Merk uit de naam gehaald** (akkoord Jos): alle 36 begonnen met
+>   "ELLERsafe", terwijl de app merk en naam samen toont — dus stond het dubbel.
+>   In de rest van de catalogus is dat zeldzaam (42 van 2599, vrijwel alleen
+>   PROTOS). Gedaan vóór de import, toen de rijen nog geen id hadden, zodat het
+>   geen extra bijwerkronde kostte. Geen botsingen na het inkorten.
+>   - 13 namen beginnen nu met een kleine letter ("Ellersafe valstopapparaat
+>     CR030"). Dat is correct Nederlands en sorteert goed; niet aangepast.
+>   - Wel opgevallen: de naamgeving in dit bestand is gemengd — sommige beginnen
+>     met de modelcode (`H110 harness`), andere met de productsoort
+>     (`valstopapparaat CR030`). Dat zat al in de aangeleverde lijst. De codes
+>     staan sowieso in `manufacturer_code` en zijn dus doorzoekbaar; gelijk
+>     trekken kan als Jos dat wil.
 
 > **Opmerking altijd zichtbaar, en de lus rondgemaakt (2026-08-02).**
 > - **`notes` staat nu gewoon in beeld tijdens de keuring**, niet meer achter
