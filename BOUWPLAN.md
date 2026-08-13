@@ -151,11 +151,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   enkele norm.** Vooral Courant (26), STEIN (11), Rope Logic (10), Notch (9),
 >   ART (8), Rock Exotica (8), Yale (8). Daar kan de nieuwe regel niets mee —
 >   geen norm betekent geen tegenspraak om op te vangen.
-> - **TREEREX II heeft geen maatvarianten in de catalogus** (vraag Jos), terwijl
->   Edelrid hem in maten levert. Van de 12 EDELRID-gordels hebben er maar 2 een
->   maat in de naam (`FLEX LITE size 1/2`). Zelfde patroon als eerder bij
->   FALL SAFE, CAMP en Phoenix: maten ontbreken tot ze per merk worden
->   aangeleverd.
+> - **TREEREX II gesplitst in drie maten** (2026-08-13, schermafdruk Edelrid):
+>   `size 0`, `size 1`, `size 2`. De bestaande regel is `size 1` geworden zodat
+>   de id — en daarmee gekoppelde klantartikelen — behouden blijft; 0 en 2 zijn
+>   nieuw. Zelfde aanpak als bij Quick Cinch en Phoenix.
+>   - **Alleen maat 0 heeft een artikelcode** (`820250132190`): die stond op de
+>     pagina terwijl SIZE 0 geselecteerd was. De codes van maat 1 en 2 zijn niet
+>     bekend en dus leeg gelaten — niet afgeleid.
+>   - Opgemerkt, niet aangepast: Edelrid noemt het product **"Sit Harnesses"**,
+>     bij ons staat categorie `Harnesses`. Klopt met de EN 813 in de norm.
+>   - Ander openstaand punt uit de audit: `FLEX LITE size 1` en `size 2` delen
+>     één artikelcode (`820390142170`). Bij maatvarianten kán dat kloppen, maar
+>     gezien de TREEREX per maat een eigen nummer heeft is dat twijfelachtig.
 
 > **Merkoverzicht gemaakt (2026-08-04, vraag Jos "welke merken moeten we
 > nog?").** 43 merken, 2635 producten. Twee concrete gebreken gevonden, nog
