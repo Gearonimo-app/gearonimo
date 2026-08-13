@@ -132,10 +132,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   *touw* waar het apparaat op werkt, niet de keuring van het apparaat zelf;
 >   in het normveld zou het lezen alsof de LOV2 een touwnorm draagt. Staat nu
 >   in de opmerkingen, waar de keurmeester het ziet.
-> - **LOV3 nog niet toegevoegd.** Jos vroeg erom en gaf de link, maar
->   taz3d.fr is van hieruit geblokkeerd (403 op CONNECT, netwerkbeleid van de
->   omgeving — geldt ook voor petzl.com en iscwales.com). Wacht op dezelfde
->   schermafdruk van het FIELD-of-APPLICATION-blok.
+> - **LOV3 er direct achteraan** (tweede schermafdruk). Vijf functies, EN 12841
+>   type A/B/C, EN 15151-1, EN 341 type 2 klasse C en EN 358 (dat laatste
+>   alleen als LOV3+ met de LOVROPE-lijn). Touwmaat 9,5-11 mm als envelop; per
+>   norm verschilt hij, dus dat staat uitgeschreven in de opmerkingen.
+> - **"3 years warranty" is niet als levensduur overgenomen** — garantie is
+>   geen afkeurtermijn. Zelfde afweging als bij de ASAP'SORBER.
+> - taz3d.fr is van hieruit geblokkeerd (403 op CONNECT, netwerkbeleid van de
+>   omgeving — geldt ook voor petzl.com en iscwales.com), dus alles komt uit
+>   de schermafdrukken.
 
 > **ISC APEX is wél PBM (besluit Jos 2026-08-13).** De APEX RP285 stond als
 > `no_ppe` met "NIET voor primaire levensondersteuning" in het normveld. Jos:
