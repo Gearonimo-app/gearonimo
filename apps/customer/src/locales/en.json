@@ -84,7 +84,8 @@
       "overdue": "Overdue",
       "rejected": "Rejected",
       "never_inspected": "Not inspected yet",
-      "no_inspection": "Not inspected"
+      "no_inspection": "Not inspected",
+      "self_check_due": "Check yourself"
     },
     "certificates": "Certificates",
     "noCertificates": "No certificates yet.",
@@ -254,5 +255,13 @@
     "machine": "Machine",
     "clothing": "Clothing",
     "other": "Other"
+  },
+  "selfCheck": {
+    "action": "Tick off",
+    "save": "Tick off",
+    "checkedAt": "Checked on",
+    "performedByPlaceholder": "By whom? (optional, e.g. Stihl dealer Jansen)",
+    "dialogText": "Tick off \"{name}\" as checked. This is not an inspection by an inspection company — you are recording it yourself.",
+    "lastChecked": "checked on {date}"
   }
 }

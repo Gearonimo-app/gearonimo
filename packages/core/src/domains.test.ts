@@ -7,6 +7,7 @@ import {
   domainHasInspections,
   typeIsInspected,
   typeIsSelfManaged,
+  selfCheckIntervalMonths,
   inspectorVisibleArticles,
 } from "./domains";
 import { PRODUCT_TYPES, ARTICLE_TYPES } from "./catalog";
@@ -119,6 +120,38 @@ describe("buiten het keurbedrijf", () => {
     };
     expect(inspectorVisibleArticles(fake)).toBe(fake);
     expect(calls).toEqual([["self_managed", false]]);
+  });
+});
+
+describe("zelf afvinken", () => {
+  it("overig en machines krijgen 12 maanden", () => {
+    expect(selfCheckIntervalMonths("other")).toBe(12);
+    expect(selfCheckIntervalMonths("machine")).toBe(12);
+  });
+
+  it("kleding hoeft nooit afgevinkt", () => {
+    // Kleding zit in Gearonimo om bij te houden wie wat kreeg, niet om na te
+    // lopen. Een T-shirt met een afvinkherinnering is precies de ruis die we
+    // eruit wilden houden.
+    expect(selfCheckIntervalMonths("clothing")).toBeNull();
+  });
+
+  it("keurmateriaal valt hier buiten -- dat doet het keurbedrijf", () => {
+    for (const t of ["ppe", "no_ppe", "rigging"] as const) {
+      expect(selfCheckIntervalMonths(t)).toBeNull();
+    }
+    expect(selfCheckIntervalMonths(null)).toBeNull();
+    expect(selfCheckIntervalMonths("")).toBeNull();
+  });
+
+  it("alles met een afvinktermijn valt ook buiten het keurbedrijf", () => {
+    // Anders zou een artikel zowel door een keurmeester gekeurd worden als door
+    // de klant afgevinkt -- twee statussen op één ding.
+    for (const t of ARTICLE_TYPES) {
+      if (selfCheckIntervalMonths(t) != null) {
+        expect(typeIsSelfManaged(t), `${t}`).toBe(true);
+      }
+    }
   });
 });
 

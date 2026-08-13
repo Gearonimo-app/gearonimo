@@ -685,6 +685,27 @@ Status/`next_due` van een `self_managed`-artikel volgt uitsluitend uit
 een keurmeester-certificaat, om verwarring over de juridische status te
 voorkomen.
 
+> **Gebouwd 2026-08-04 (migratie `20260754_self_checks.sql`).** De tabel
+> bestond al live maar had géén `create table` in de repo; de kolommen zijn
+> door Jos opgevraagd en komen exact overeen met bovenstaande opzet. De
+> migratie maakt hem alleen aan als hij ontbreekt en zet de FK's expliciet
+> goed (`article_id` → `articles` met cascade, `created_by_member_id` →
+> `customer_members` met set null).
+>
+> - **Afvinktermijn per type** staat in `selfCheckIntervalMonths()`
+>   (`packages/core/src/domains.ts`): `other` en `machine` 12 maanden,
+>   `clothing` nooit. Bewust géén onderdeel van `REGIMES` — dat is de termijn
+>   waarop een *keurbedrijf* keurt; dit is de eigen todo-lijst van de klant.
+>   `add_my_self_check()` rekent de volgende datum server-side uit, zodat die
+>   regel op één plek staat.
+> - **Alleen voor `self_managed`-artikelen**: de RPC weigert een artikel dat
+>   door een keurbedrijf gekeurd wordt. Twee statussen op één artikel zou de
+>   juridische status vertroebelen.
+> - `attachment_url` (extern rapport/bonnetje) is nog niet in gebruik; de RPC
+>   zet het veld niet.
+> - Historie per artikel via `my_self_checks(article_id)` — bestaat, wordt nog
+>   niet aangeroepen (artikeldetailscherm volgt).
+
 ---
 
 ## 4. Keuringen en certificaten

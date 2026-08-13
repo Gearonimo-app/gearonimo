@@ -112,6 +112,10 @@
                   <span v-if="row.article.serial_number">SN {{ row.article.serial_number }}</span>
                   <span v-if="row.article.assigned_user_name">· {{ row.article.assigned_user_name }}</span>
                   <span v-if="row.article.next_due"> · {{ $t('home.nextDue') }} {{ formatDate(row.article.next_due) }}</span>
+                  <!-- Zelf afgevinkt staat er bewust anders dan een keuring:
+                       "afgevinkt op", niet "volgende keuring". Dat verschil in
+                       juridische status moet zichtbaar blijven (DATAMODEL §3). -->
+                  <span v-if="row.article.self_checked_at"> · {{ $t('selfCheck.lastChecked', { date: formatDate(row.article.self_checked_at) }) }}</span>
                 </div>
                 <!-- De reden staat nu ook als tekst in de rij (Jos, 2026-07-13:
                      "ik wil meteen zien waarom"): op de telefoon is een tooltip
@@ -125,9 +129,29 @@
                    voortaan ook al bij (zie hierboven), dit blijft alleen het
                    compacte icoon voor op-een-oogopslag-scannen. -->
               <span class="mt__chip-status" :class="`mt__chip-status--${row.article.uiStatus}`" :title="$t(`home.status.${row.article.uiStatus}`)">{{ statusIcon(row.article.uiStatus) }}</span>
+              <!-- Zelf afvinken: alleen voor materiaal buiten het keurbedrijf
+                   met een eigen termijn (brandblusser, kettingzaag). Mag elk
+                   actief lid, zelfde lijn als artikelen toevoegen. -->
+              <button
+                v-if="canSelfCheck(row.article)"
+                class="mt__checkbtn"
+                :title="$t('selfCheck.action')"
+                :aria-label="$t('selfCheck.action')"
+                @click="openSelfCheck(row.article)"
+              >☑</button>
               <!-- Onderdeel toevoegen aan dit artikel (bv. een vervangen brug op
-                   een klimgordel) -- koppelt in één stap aan (of maakt) de set. -->
-              <button class="mt__partbtn" :title="$t('sets.addPart.title')" @click="partFor = row.article">🔗+</button>
+                   een klimgordel) -- koppelt in één stap aan (of maakt) de set.
+                   Niet bij materiaal buiten het keurbedrijf: een set is bedoeld
+                   voor bij elkaar horend klimmateriaal (fliplijn = lijn +
+                   karabiner), en een brandblusser of T-shirt hoort daar niet in.
+                   Scheelt meteen een vierde knop in een rij die op 390px al krap
+                   is (gerenderd en gezien, 2026-08-04). -->
+              <button
+                v-if="!row.article.self_managed"
+                class="mt__partbtn"
+                :title="$t('sets.addPart.title')"
+                @click="partFor = row.article"
+              >🔗+</button>
               <!-- Afvoeren: alleen de beheerder (Jos, 2026-07-13 -- draait het
                    besluit van 2026-07-02 terug: dat mocht toen nog elk lid).
                    Ook serverside afgedwongen in retire_my_article, dit is
@@ -153,6 +177,28 @@
         @saved="onPartSaved"
         @close="partFor = null"
       />
+
+      <!-- Afvink-dialoog. Zelfde patroon als het afvoeren hieronder: een
+           in-app dialoog en geen window.prompt (die kan de browser
+           onderdrukken, Jos 2026-07-13). -->
+      <div v-if="selfCheckFor" class="mt__overlay" @click.self="selfCheckFor = null">
+        <div class="mt__dialog">
+          <h2>{{ $t('selfCheck.action') }}</h2>
+          <p class="mt__dialog-text">{{ $t('selfCheck.dialogText', { name: retireLabel(selfCheckFor) }) }}</p>
+          <label class="mt__dialog-label">
+            {{ $t('selfCheck.checkedAt') }}
+            <input v-model="selfCheckDate" type="date" :max="today" class="mt__dialog-input" />
+          </label>
+          <input v-model="selfCheckBy" class="mt__dialog-input" :placeholder="$t('selfCheck.performedByPlaceholder')" />
+          <p v-if="selfCheckError" class="mt__state mt__state--error">{{ selfCheckError }}</p>
+          <div class="mt__dialog-actions">
+            <button class="mt__cancel" @click="selfCheckFor = null">{{ $t('common.cancel') }}</button>
+            <button class="mt__savebtn" :disabled="selfCheckSaving" @click="confirmSelfCheck">
+              {{ selfCheckSaving ? $t('common.busy') : $t('selfCheck.save') }}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div v-if="retireFor" class="mt__overlay" @click.self="retireFor = null">
         <div class="mt__dialog">
@@ -185,6 +231,7 @@ import {
   domainForType,
   normalizeDomains,
   typeIsInspected,
+  selfCheckIntervalMonths,
   MATERIAL_DOMAINS,
   type MaterialDomain,
 } from "@gearonimo/core";
@@ -203,6 +250,7 @@ interface ArticleRow {
   brand: string | null;
   category: string | null;
   product_type: string | null;
+  self_managed: boolean | null;
   serial_number: string | null;
   assigned_user_name: string | null;
   manual_url: string | null;
@@ -211,6 +259,8 @@ interface ArticleRow {
   last_inspection_date: string | null;
   next_due: string | null;
   first_use_date: string | null;
+  self_checked_at: string | null;
+  self_next_due: string | null;
 }
 // UI-status = calcStatus (packages/core, de geteste domeinlogica) + twee
 // extra gevallen die daar buiten vallen: bij de laatste keuring afgekeurd,
@@ -221,7 +271,13 @@ interface ArticleRow {
 // hebben geen keurtermijn (zie regimes.ts). Dat is bewust een eigen toestand
 // en niet "nog niet gekeurd" -- die laatste nodigt uit om een keuring aan te
 // vragen, en dat is hier juist niet de bedoeling.
-type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection";
+// Twee toestanden erbij sinds 2026-08-04:
+// - `no_inspection`: kleding en geen-PBM hebben geen termijn en hoeven nergens
+//   afgevinkt. Bewust niet "nog niet gekeurd" -- dat nodigt uit tot een
+//   keuringsaanvraag, en dat is hier juist niet de bedoeling.
+// - `self_check_due`: eigen todo-lijst (brandblusser, kettingzaag) waarvan de
+//   12 maanden verlopen zijn, of die nog nooit is afgevinkt.
+type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection" | "self_check_due";
 interface UiArticle extends ArticleRow {
   uiStatus: UiStatus;
 }
@@ -240,10 +296,26 @@ const attentionOnly = ref(route.query.filter === "aandacht");
 
 function uiStatus(a: ArticleRow): UiStatus {
   if (a.last_result === "rejected") return "rejected";
-  // Types zonder keurtermijn krijgen geen keurstatus. Zonder deze regel zou
-  // een T-shirt na 12 maanden als "eerste keuring te laat" onder Aandacht
-  // komen -- ruis die de stoplichtkaart zijn betekenis kost.
-  if (!typeIsInspected(a.product_type)) return "no_inspection";
+
+  // Buiten het keurbedrijf: de klant vinkt zelf af. Vertakt op de vlag
+  // `self_managed` en niet op het producttype -- zet Jos machines ooit terug
+  // naar een keurbedrijf, dan volgt dit vanzelf mee.
+  if (a.self_managed && selfCheckIntervalMonths(a.product_type) != null) {
+    if (!a.self_checked_at) return "self_check_due";
+    return calcStatus({
+      today: new Date(),
+      next_due: a.self_next_due ? new Date(a.self_next_due) : null,
+    }) as UiStatus;
+  }
+
+  // Types zonder termijn én zonder afvinkplicht (kleding, geen-PBM) krijgen
+  // geen status. Zonder deze regel zou een T-shirt na 12 maanden als "eerste
+  // keuring te laat" onder Aandacht komen -- ruis die de stoplichtkaart zijn
+  // betekenis kost. Een handmatig gezette `next_due` wint wél: als een
+  // keurmeester een geen-PBM-artikel tóch heeft meegekeurd en er een datum bij
+  // zette, hoort die te tellen.
+  if (!typeIsInspected(a.product_type) && !a.next_due) return "no_inspection";
+
   const base = calcStatus({
     today: new Date(),
     next_due: a.next_due ? new Date(a.next_due) : null,
@@ -335,7 +407,7 @@ const memberNames = computed(() => {
 // binnenkort te keuren, of 12 maanden in gebruik zonder eerste keuring.
 // Nooit-gekeurd (binnen 12 maanden) valt er bewust buiten (blauwdruk §7:
 // uitnodigend, geen alarm).
-const ATTENTION: UiStatus[] = ["rejected", "overdue", "due_soon", "first_inspection_due"];
+const ATTENTION: UiStatus[] = ["rejected", "overdue", "due_soon", "first_inspection_due", "self_check_due"];
 
 const filteredArticles = computed(() => {
   const q = search.value.trim().toLowerCase();
@@ -368,6 +440,9 @@ const STATUS_ORDER: Record<UiStatus, number> = {
   ok: 5,
   // Onderaan: er valt niets aan te doen en er hoeft niets mee te gebeuren.
   no_inspection: 6,
+  // Vlak onder "verlopen": het vraagt actie, maar van de klant zelf en zonder
+  // juridisch gewicht -- dus niet bovenaan tussen het afgekeurde materiaal.
+  self_check_due: 2.5,
 };
 const sortedArticles = computed(() =>
   [...filteredArticles.value].sort(
@@ -404,7 +479,7 @@ const displayArticles = computed<DisplayArticleRow[]>(() => {
 // de volledige tekst blijft als tooltip beschikbaar. first_inspection_due
 // deelt het "!" van due_soon: zelfde zachte toon, andere tooltiptekst.
 function statusIcon(s: UiStatus): string {
-  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—", no_inspection: "·" }[s];
+  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—", no_inspection: "·", self_check_due: "!" }[s];
 }
 
 function formatDate(d: string) {
@@ -487,6 +562,52 @@ async function confirmRetire() {
 async function onArticleAdded() {
   addingArticle.value = false;
   await load();
+}
+
+// ─── Zelf afvinken (eigen todo-lijst, UX-FLOW §9.6) ─────────────────────────
+// Alleen voor materiaal dat buiten het keurbedrijf valt én een eigen termijn
+// heeft: brandblusser, EHBO-koffer, kettingzaag. Kleding heeft geen termijn en
+// krijgt dus geen knop.
+const selfCheckFor = ref<UiArticle | null>(null);
+const selfCheckDate = ref("");
+const selfCheckBy = ref("");
+const selfCheckSaving = ref(false);
+const selfCheckError = ref("");
+
+const today = computed(() => new Date().toISOString().slice(0, 10));
+
+function canSelfCheck(a: UiArticle): boolean {
+  return !!a.self_managed && selfCheckIntervalMonths(a.product_type) != null;
+}
+
+function openSelfCheck(a: UiArticle) {
+  selfCheckError.value = "";
+  selfCheckDate.value = today.value;
+  selfCheckBy.value = "";
+  selfCheckFor.value = a;
+}
+
+async function confirmSelfCheck() {
+  const a = selfCheckFor.value;
+  if (!a) return;
+  selfCheckSaving.value = true;
+  selfCheckError.value = "";
+  try {
+    // De server bepaalt de volgende datum (interval per type), zodat die regel
+    // op één plek staat en niet in de app te omzeilen is.
+    const { error: err } = await supabase.rpc("add_my_self_check", {
+      p_article_id: a.id,
+      p_checked_at: selfCheckDate.value || null,
+      p_performed_by: selfCheckBy.value.trim() || null,
+    });
+    if (err) throw err;
+    selfCheckFor.value = null;
+    await load();
+  } catch (e) {
+    selfCheckError.value = errorMessage(e);
+  } finally {
+    selfCheckSaving.value = false;
+  }
 }
 
 // Sets: alleen nog via het 🔗+-knopje per artikel (AddPartForm) -- het
@@ -580,6 +701,23 @@ onMounted(load);
   padding: 0.4rem 0.8rem; font-weight: 700; cursor: pointer; font-size: 0.85rem;
 }
 .mt__addbtn:disabled { opacity: 0.5; }
+/* Compacte icoonknop, zelfde maat als de andere acties in de rij. Een
+   tekstknop ("Afvinken") duwde op een telefoon van 390px de artikelnaam over
+   drie regels -- gerenderd en gezien vóór deze keuze. Het vakje-met-vinkje is
+   bewust een ander teken dan de status-✓ ernaast: dat is een uitkomst, dit is
+   een actie. */
+.mt__checkbtn {
+  flex: 0 0 auto; border: none; background: transparent; cursor: pointer;
+  font-size: 1.05rem; color: #15803d; opacity: 0.75; padding: 0.25rem;
+  line-height: 1;
+}
+.mt__checkbtn:hover { opacity: 1; }
+.mt__savebtn {
+  background: #16a34a; color: #fff; border: none; border-radius: 8px;
+  padding: 0.5rem 1rem; font-weight: 700; cursor: pointer; flex: 1;
+}
+.mt__savebtn:disabled { opacity: 0.5; }
+.mt__dialog-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
 .mt__partbtn { flex: 0 0 auto; border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.45; padding: 0.25rem; }
 .mt__partbtn:hover { opacity: 1; }
 .mt__overlay {
@@ -623,6 +761,7 @@ onMounted(load);
 .mt__item-reason--overdue, .mt__item-reason--rejected { color: #991b1b; }
 .mt__item-reason--never_inspected { color: #6b7280; font-weight: 600; }
 .mt__item-reason--no_inspection { color: #9ca3af; font-weight: 600; }
+.mt__item-reason--self_check_due { color: #92400e; }
 
 .mt__chip-status {
   flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; line-height: 1;
@@ -633,4 +772,5 @@ onMounted(load);
 .mt__chip-status--overdue, .mt__chip-status--rejected { background: #fee2e2; color: #991b1b; }
 .mt__chip-status--never_inspected { background: #f3f4f6; color: #6b7280; }
 .mt__chip-status--no_inspection { background: #f9fafb; color: #9ca3af; }
+.mt__chip-status--self_check_due { background: #fef9c3; color: #854d0e; }
 </style>

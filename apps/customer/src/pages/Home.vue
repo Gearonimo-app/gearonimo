@@ -76,7 +76,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue, typeIsInspected } from "@gearonimo/core";
+import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue, typeIsInspected, selfCheckIntervalMonths } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
 import PasskeyPrompt from "../components/PasskeyPrompt.vue";
@@ -110,15 +110,18 @@ async function loadHeroPhoto() {
 
 interface ArticleRow {
   product_type: string | null;
+  self_managed: boolean | null;
   last_result: string | null;
   next_due: string | null;
   first_use_date: string | null;
+  self_checked_at: string | null;
+  self_next_due: string | null;
 }
 // `no_inspection`: kleding, geen-PBM en overig hebben geen keurtermijn en doen
 // dus niet mee aan het oordeel (2026-08-04). Zonder deze uitzondering zouden 40
 // T-shirts als "nog niet gekeurd" in de tellers verschijnen en zou de kaart
 // precies de betekenis kwijtraken waarvoor hij er is.
-type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection";
+type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection" | "self_check_due";
 
 const customerName = ref("");
 const companyName = ref("");
@@ -134,7 +137,16 @@ const error = ref("");
 // als "binnenkort keuren" (zachte toon, geen rood alarm).
 function uiStatus(a: ArticleRow): UiStatus {
   if (a.last_result === "rejected") return "rejected";
-  if (!typeIsInspected(a.product_type)) return "no_inspection";
+  // Eigen todo-lijst (brandblusser, kettingzaag): telt wél mee in het oordeel,
+  // maar via de zelf afgevinkte datum in plaats van een keuring.
+  if (a.self_managed && selfCheckIntervalMonths(a.product_type) != null) {
+    if (!a.self_checked_at) return "self_check_due";
+    return calcStatus({
+      today: new Date(),
+      next_due: a.self_next_due ? new Date(a.self_next_due) : null,
+    }) as UiStatus;
+  }
+  if (!typeIsInspected(a.product_type) && !a.next_due) return "no_inspection";
   const base = calcStatus({
     today: new Date(),
     next_due: a.next_due ? new Date(a.next_due) : null,
@@ -151,7 +163,7 @@ const inspectableStatuses = computed(() => statuses.value.filter((s) => s !== "n
 const counts = computed(() => ({
   ok: inspectableStatuses.value.filter((s) => s === "ok").length,
   due_soon: inspectableStatuses.value.filter((s) => s === "due_soon" || s === "first_inspection_due").length,
-  action: inspectableStatuses.value.filter((s) => s === "rejected" || s === "overdue").length,
+  action: inspectableStatuses.value.filter((s) => s === "rejected" || s === "overdue" || s === "self_check_due").length,
   never: inspectableStatuses.value.filter((s) => s === "never_inspected").length,
 }));
 

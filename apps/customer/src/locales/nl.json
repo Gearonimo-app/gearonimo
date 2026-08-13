@@ -84,7 +84,8 @@
       "overdue": "Verlopen",
       "rejected": "Afgekeurd",
       "never_inspected": "Nog niet gekeurd",
-      "no_inspection": "Wordt niet gekeurd"
+      "no_inspection": "Wordt niet gekeurd",
+      "self_check_due": "Zelf controleren"
     },
     "certificates": "Certificaten",
     "noCertificates": "Nog geen certificaten.",
@@ -254,5 +255,13 @@
     "machine": "Machine",
     "clothing": "Kleding",
     "other": "Overig"
+  },
+  "selfCheck": {
+    "action": "Afvinken",
+    "save": "Afvinken",
+    "checkedAt": "Gecontroleerd op",
+    "performedByPlaceholder": "Door wie? (optioneel, bv. Stihl-dealer Jansen)",
+    "dialogText": "\"{name}\" afvinken als gecontroleerd. Dit is geen keuring door een keurbedrijf — je legt het zelf vast.",
+    "lastChecked": "afgevinkt op {date}"
   }
 }

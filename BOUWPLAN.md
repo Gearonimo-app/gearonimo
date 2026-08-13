@@ -100,8 +100,52 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > constraint (`Q extends { eq(...) }`) rolt TypeScript de PostgREST-buildertypes
 > uit en klapt `vue-tsc` op TS2589 "type instantiation is excessively deep".
 >
-> **Nog te doen:** `self_checks` zelf (klant vinkt af + herinnering na 12 mnd —
-> tabel bestaat, is nog nergens gebruikt), `retired_reason` als keuzelijstje.
+> **Zelf afvinken gebouwd (2026-08-04, na de vraag van Jos "waarom nog open bij
+> zelf?").** Terecht: met alleen de `self_managed`-vlag was de tegel Overig
+> half af — je kon een brandblusser toevoegen, maar niet afvinken, en hij toonde
+> "Wordt niet gekeurd" terwijl de spec juist een herinnering na 12 maanden was.
+>
+> **⚠ Migratie `20260754_self_checks.sql` moet ook uitgevoerd worden** (na
+> 20260752 en 20260753).
+>
+> - **De tabel `self_checks` bestond live maar had geen `create table` in de
+>   repo** — ooit rechtstreeks in Supabase aangemaakt. Jos heeft de kolommen
+>   opgevraagd (2026-08-04): ze komen exact overeen met DATAMODEL §3. De
+>   migratie maakt hem daarom alleen aan als hij ontbreekt, en zet verder de
+>   FK's expliciet goed (`article_id` → `articles`, `created_by_member_id` →
+>   `customer_members`) — bekend patroon in deze repo, drie keer misgegaan met
+>   FK's naar het lege `public.users`.
+> - **`selfCheckIntervalMonths()`** in `packages/core/src/domains.ts`: `other`
+>   en `machine` 12 maanden, kleding nooit. Bewust los van `REGIMES` — dat is
+>   de termijn waarop een *keurbedrijf* keurt, dit is de eigen todo-lijst.
+> - De **server** bepaalt de volgende datum, niet de app: zo staat die regel op
+>   één plek en is hij niet te omzeilen. `add_my_self_check()` weigert een
+>   artikel dat wél door een keurbedrijf gekeurd wordt en een datum in de
+>   toekomst.
+> - RLS blijft aan zonder policies; alles loopt via security definer-RPC's,
+>   zelfde lijn als de rest van de klant-app sinds 20260713.
+> - `my_articles()` geeft nu ook `self_managed`, `self_checked_at` en
+>   `self_next_due`. De app vertakt op de **vlag** en niet op het producttype:
+>   zet Jos machines ooit terug naar een keurbedrijf, dan volgt de app vanzelf.
+> - Nieuwe status `self_check_due`; telt mee in "Aandacht" en in het oordeel op
+>   de stoplichtkaart. De regel toont "afgevinkt op …", bewust andere taal dan
+>   "volgende keuring" — het verschil in juridische status moet zichtbaar
+>   blijven.
+> - Ook gerepareerd: een geen-PBM-artikel dat een keurmeester tóch heeft
+>   meegekeurd en handmatig een `next_due` gaf, viel eerst terug op "wordt niet
+>   gekeurd". Een gezette datum wint nu.
+>
+> **Twee UI-besluiten, gerenderd vóór de keuze:**
+> - De afvinkknop is een compact ☑-icoon en geen tekstknop: "Afvinken" duwde op
+>   een telefoon van 390px de artikelnaam over drie regels.
+> - Het setknopje (🔗+) is weg bij materiaal buiten het keurbedrijf. Een set is
+>   bedoeld voor bij elkaar horend klimmateriaal (fliplijn = lijn + karabiner);
+>   een brandblusser hoort daar niet in. Scheelt meteen een vierde knop in een
+>   toch al krappe rij.
+>
+> **Nog te doen:** `retired_reason` als keuzelijstje i.p.v. vrije tekst, en de
+> historie van zelfcontroles tonen op het artikeldetailscherm (de RPC
+> `my_self_checks()` staat er al, wordt nog niet aangeroepen).
 
 ## Voortgang (bijgewerkt 2026-08-04)
 

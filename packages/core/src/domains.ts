@@ -119,6 +119,32 @@ export function typeIsSelfManaged(product_type?: string | null): boolean {
 }
 
 /**
+ * Hoe vaak de klant dit type zélf moet nalopen, in maanden. `null` = nooit.
+ *
+ * Dit staat los van `REGIMES`: dat is de termijn waarop een **keurbedrijf**
+ * keurt. Hier gaat het om de eigen todo-lijst van de klant (besluit Jos
+ * 2026-08-04: *"other, door de klant af te vinken, na 12mnd weer herinnering.
+ * Geen officiële keurlijst dus"*).
+ *
+ * - `other`    — brandblusser, EHBO-koffer, APK: 12 maanden.
+ * - `machine`  — kettingzaag, bosmaaier: 12 maanden. Zolang `self_managed`
+ *                aanstaat vinkt de klant zelf af; gaat die vlag ooit uit
+ *                (machinedealers), dan neemt het keurbedrijf het over via
+ *                `REGIMES` en telt dit niet meer mee.
+ * - `clothing` — nooit. Kleding wordt niet gekeurd én niet nagelopen; die zit
+ *                in Gearonimo om bij te houden wie wat wanneer kreeg.
+ */
+export function selfCheckIntervalMonths(product_type?: string | null): number | null {
+  switch ((product_type ?? "").trim()) {
+    case "other":
+    case "machine":
+      return 12;
+    default:
+      return null;
+  }
+}
+
+/**
  * Beperkt een Supabase-query op `articles` tot wat een keurmeester mag zien.
  *
  * Eén helper in plaats van `.eq('self_managed', false)` op vijf plekken — en
