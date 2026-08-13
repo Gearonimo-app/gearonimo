@@ -124,6 +124,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Petzl ANNEAU erbij (2026-08-13, technische handleiding aangeleverd).**
+> Vier maten: 60 cm geel, 80 cm blauw, 120 cm groen, 150 cm rood (kleuren
+> aangevuld door Jos). Bronlijst nu 2641 producten, 0 fouten.
+> - Uit de handleiding (`ANNEAU G0007000G`, 16-01-2025) komen: `ppe`,
+>   EN 566:2017 + EN 795 type B:2012 (+ GB 30862-2014/B, XF 494-2023, UIAA,
+>   EAC), levensduur 10 jaar, geteste treksterkte 2x22 kN, individueel nummer
+>   op het gestikte etiket, keuring minimaal elke 12 maanden.
+> - **De maten stonden alleen in de afbeelding op pagina 1, niet in de
+>   tekstlaag.** De PDF-tekst gaf normen en levensduur maar geen lengtes en
+>   geen artikelcodes. Pagina 1 daarom als afbeelding uitgepakt (`pypdf` +
+>   `pillow`) en bekeken; daar staan de vier lengtes en "2x22 kN". Werkwijze om
+>   te onthouden: bij een Petzl-handleiding zit de productinformatie in de
+>   tekeningen, de waarschuwingen in de tekst.
+> - **Bewust leeg gelaten:** `manufacturer_code`, `material` en `manual_url`.
+>   De handleiding noemt geen artikelnummers en geen materiaal, en het
+>   downloadadres bij Petzl is van hieruit niet te controleren (geen
+>   uitgaand internet). Niet invullen op gok — zie de Phoenix- en
+>   BlackBird-les hieronder.
+
 > **Import van 2026-08-13 nagelopen: alles aangekomen op één veld na.**
 > Bronlijst en database staan allebei op 2637 producten, **nul fouten in de live
 > export**, nul producten die aan één kant ontbreken, en nul die een keurmeester
