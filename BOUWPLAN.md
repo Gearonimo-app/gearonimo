@@ -124,6 +124,14 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Import van de tweede ronde 2026-08-13 nagelopen: alles aangekomen.**
+> Bronlijst en database allebei 2651 producten, **nul veldverschillen** over
+> alle 22 kolommen heen, niets dat aan één kant ontbreekt, 0 producten zonder
+> id en 0 die `no_ppe` met een PBM-norm combineren. De 14 nieuwe producten
+> (4 ANNEAU, 3 ASAP'SORBER, KT305A2, 2 TAZ, 4 PROGRESS ADJUST-I) hebben hun
+> id opgehaald; ook de 42 bijwerkingen (levensduur, APEX naar `ppe`,
+> artikelcode OVAL POWER) staan live. `--sinds` meldt nu niets openstaand.
+
 > **PROGRESS ADJUST-I erbij, 1 en 2 m (2026-08-13, handleiding aangeleverd).**
 > Uit `L0023400G` (16-01-2025): EN 358:2018 én EN 795:2012 type B, ANSI
 > Z359.3, CSA Z259.11-17 klasse F, GB 24543/GB 30862, materiaal nylon /
