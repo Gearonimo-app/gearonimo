@@ -124,6 +124,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Import van 2026-08-13 nagelopen: alles aangekomen op één veld na.**
+> Bronlijst en database staan allebei op 2637 producten, **nul fouten in de live
+> export**, nul producten die aan één kant ontbreken, en nul die een keurmeester
+> zelf heeft toegevoegd. Steekproef op het werk van deze ronde: TREEREX II in
+> drie maten aanwezig en `ppe`, Ellersafe 36/36, FLEX LITE size 2 met zijn eigen
+> code, en **0 producten die nog `no_ppe` met een PBM-norm combineren** — de 27
+> correcties zijn dus doorgekomen.
+> - **Eén veld niet aangekomen:** `OVAL POWER 2500 SCREW` heeft in Gearonimo nog
+>   geen `manufacturer_code`. Verklaarbaar: Jos importeerde het bestand van 67
+>   rijen vlak vóór ik `852040001380` invulde, dus die code zat er nog niet in.
+>   Rest-bestand van één rij aangemaakt.
+> - Daarna de verse export geïngest om de id's van de 38 nieuwe producten
+>   (36 Ellersafe + 2 TREEREX-maten) op te halen. Nu 2637 van 2637 mét id.
+
 > **Audit na een terechte zorg van Jos (2026-08-04).** Hij zag dat de EDELRID
 > TREEREX II als `no_ppe` stond terwijl het een klimgordel is: *"ik maak me
 > ernstige zorgen om de database. Als dit soort fouten erin kunnen kruipen, wat
