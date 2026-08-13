@@ -124,6 +124,28 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Levensduur Petzl en TAZ ingevuld (regels van Jos, 2026-08-13).**
+> *"petzl is voor stoffe delen altijd 10 jaar vanaf productie ... de asap zelf
+> is weer van metaal dus unl"*, en voor TAZ: 30 jaar vanaf productiedatum
+> (staat in hun handleiding als afkeurcriterium). 46 Petzl-producten en 2
+> TAZ-producten hadden helemaal geen levensduur; nu 0.
+> - **Altijd `max_age_mfr_years`, niet `max_age_use_years`.** Beide zijn
+>   plafonds in `calcNextDue` en het vroegste wint; omdat ingebruikname nooit
+>   vóór productie ligt, is de fabrikantentermijn de bindende. De ANNEAU-rijen
+>   van vanmiddag stonden in de verkeerde kolom (10 vanaf ingebruikname) —
+>   dat is een gordel die jaren op de plank kan liggen en dan alsnog tien jaar
+>   meegaat. Rechtgezet.
+> - **Bij gemengde producten beslist het dragende deel.** Dat is geen nieuwe
+>   regel maar de regel die al in de data zat: 29 harnassen en katrollen met
+>   textiel in de lastweg stonden op 10, 26 metalen apparaten met een
+>   nylon-inzet op 999. Zo ingevuld voor de 16 gemengde rijen die nog leeg
+>   waren — de zestien staan met naam in de commit, want dit is de enige
+>   groep waar geoordeeld moest worden.
+> - **Garantie is geen levensduur.** ASAP'SORBER (3 jaar) en LOV3 (3 jaar)
+>   krijgen die termijn niet; die staat er voor gebreken, niet voor afkeur.
+> - Nog 827 producten in de hele catalogus zonder levensduur — per merk aan
+>   te pakken zodra Jos de regel van dat merk geeft.
+
 > **TAZ LOV2 erbij (2026-08-13, schermafdrukken taz3d).** Nieuw merk in de
 > catalogus. Zelfremmende afdaler + meelopende valbeveiliger, EN 12841:2006
 > type A/C en EN 358, PBM categorie III, touw EN 1891 klasse A 10-11 mm, één
