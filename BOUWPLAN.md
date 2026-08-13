@@ -5,6 +5,28 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-13)
+
+> **Opmerking invullen tijdens het koppelen (Jos 2026-08-13).** Geen migratie
+> nodig.
+>
+> Het opmerkingenveld stáát al sinds 2026-07-29 op het artikeldetail, boven het
+> koppelblok — nagerenderd met een tijdelijke mock-opzet en het staat er
+> gewoon. In Jos' schermafbeelding ontbreekt het, dus die app draaide nog op een
+> oudere, gecachete versie (de bekende PWA-landmijn uit `CLAUDE.md`).
+>
+> Wat wél ontbrak: het veld overleefde het doorlopen niet. Tijdens een
+> koppel-marathon (Weijtmans: 278 artikelen) typ je de opmerking en klik je
+> meteen op "Volgende" of "Volgend vrij artikel" — de getypte tekst verdween
+> dan zonder waarschuwing, want opslaan ging alleen via de aparte knop.
+> Nu schrijft `saveNotesBeforeLeaving()` een openstaande opmerking eerst weg
+> (ook bij de terugknop); mislukt dat, dan blijven we op het artikel staan.
+>
+> Tweede fout eruit: een mislukte opmerking zette de gedeelde `error`, en die
+> vervángt het hele scherm door een foutregel — je was dan én je tekst én je
+> plek in de lijst kwijt. Er is nu een eigen foutregel in het opmerkingenblok
+> (`articles.detail.notesSaveError`, nl + en).
+
 ## Voortgang (bijgewerkt 2026-08-04, deel 4)
 
 > **Drie wensen na de tweede testronde (Jos 2026-08-04).** Geen migratie nodig.

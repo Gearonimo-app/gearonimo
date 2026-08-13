@@ -183,7 +183,8 @@
       "relink": "Choose another product",
       "unlink": "Unlink",
       "queueEdit": "On the queue — edit",
-      "notesPlaceholder": "Anything notable about this article…"
+      "notesPlaceholder": "Anything notable about this article…",
+      "notesSaveError": "Note not saved: {msg}"
     }
   },
   "sets": {

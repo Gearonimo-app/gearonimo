@@ -45,6 +45,10 @@
             {{ savingNotes ? $t('common.saving') : $t('common.save') }}
           </button>
         </div>
+        <!-- Eigen foutregel: een mislukte opmerking mag niet de hele pagina
+             vervangen door een foutmelding (dat deed de gedeelde `error`), want
+             dan ben je én je tekst én je plek in de lijst kwijt. -->
+        <p v-if="notesError" class="ad__error">{{ notesError }}</p>
       </section>
 
       <!-- Al gekoppeld: laten zien wááraan, en dat kunnen herzien. Een misklik
@@ -301,14 +305,18 @@ const viewFieldDefs = fieldDefs.filter((f) => f.col !== 'notes')
 
 const notesDraft = ref('')
 const savingNotes = ref(false)
+const notesError = ref('')
 const notesDirty = computed(() => notesDraft.value !== ((article.value?.notes as string | null) ?? ''))
 
 function resetNotes() {
   notesDraft.value = (article.value?.notes as string | null) ?? ''
+  notesError.value = ''
 }
 
-async function saveNotes() {
+/** @returns of het opslaan lukte -- het doorloop-pad hangt hierop. */
+async function saveNotes(): Promise<boolean> {
   savingNotes.value = true
+  notesError.value = ''
   const { data, error: err } = await supabase
     .from('articles')
     .update({ notes: notesDraft.value.trim() || null })
@@ -316,9 +324,23 @@ async function saveNotes() {
     .select('*, customer:customers(name), product:products(id, brand, name)')
     .single()
   savingNotes.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { notesError.value = t('articles.detail.notesSaveError', { msg: err.message }); return false }
   article.value = data
   notesDraft.value = data.notes ?? ''
+  return true
+}
+
+/**
+ * Een getypte opmerking eerst wegschrijven vóór we van artikel wisselen.
+ * Tijdens het koppelen van een hele import (Weijtmans: 278 artikelen) typ je de
+ * opmerking en klik je meteen door naar het volgende vrije artikel; zonder dit
+ * verdween die tekst zonder waarschuwing (Jos 2026-08-13). Lukt opslaan niet,
+ * dan blijven we staan mét de foutregel in beeld, zodat de tekst niet alsnog
+ * met de pagina verdwijnt.
+ */
+async function saveNotesBeforeLeaving(): Promise<boolean> {
+  if (!notesDirty.value || !isOnline.value || article.value?.retired) return true
+  return await saveNotes()
 }
 
 const brandLabel = computed(() => {
@@ -435,7 +457,8 @@ async function loadSiblings() {
   }
 }
 
-function goTo(articleId: string) {
+async function goTo(articleId: string) {
+  if (!(await saveNotesBeforeLeaving())) return
   router.push(`/articles/${articleId}`)
 }
 
@@ -682,7 +705,9 @@ async function reinstate() {
   await loadSiblings()
 }
 
-function back() {
+async function back() {
+  // Zelfde bescherming als bij doorlopen: eerst de opmerking wegschrijven.
+  if (!(await saveNotesBeforeLeaving())) return
   // Gaat terug naar waar je vandaan kwam (serienummer-/recall-zoeken,
   // setdetail, ...) als die geschiedenis er is -- Vue Router (createWebHistory)
   // zet history.state.back op elke navigatie, null bij de eerste pagina in dit

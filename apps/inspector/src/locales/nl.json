@@ -183,7 +183,8 @@
       "relink": "Ander product kiezen",
       "unlink": "Ontkoppelen",
       "queueEdit": "Staat op de wachtrij — aanpassen",
-      "notesPlaceholder": "Bijzonderheden bij dit artikel…"
+      "notesPlaceholder": "Bijzonderheden bij dit artikel…",
+      "notesSaveError": "Opmerking niet opgeslagen: {msg}"
     }
   },
   "sets": {
