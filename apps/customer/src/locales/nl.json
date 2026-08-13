@@ -266,6 +266,8 @@
     "lastChecked": "afgevinkt op {date}",
     "lastCheckLabel": "Laatste controle",
     "nextCheckLabel": "Volgende controle",
-    "neverChecked": "Nog niet gecontroleerd"
+    "neverChecked": "Nog niet gecontroleerd",
+    "performedByLabel": "Gecontroleerd door",
+    "recordedByLabel": "Vastgelegd door"
   }
 }

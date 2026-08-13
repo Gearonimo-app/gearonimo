@@ -266,6 +266,8 @@
     "lastChecked": "checked on {date}",
     "lastCheckLabel": "Last check",
     "nextCheckLabel": "Next check",
-    "neverChecked": "Not checked yet"
+    "neverChecked": "Not checked yet",
+    "performedByLabel": "Checked by",
+    "recordedByLabel": "Recorded by"
   }
 }

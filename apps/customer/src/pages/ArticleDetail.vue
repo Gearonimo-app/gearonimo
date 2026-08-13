@@ -36,6 +36,17 @@
             <dt>{{ $t('selfCheck.lastCheckLabel') }}</dt>
             <dd>{{ article.self_checked_at ? formatDate(article.self_checked_at) : $t('selfCheck.neverChecked') }}</dd>
           </div>
+          <!-- Twee verschillende dingen, dus twee regels: wie het volgens de
+               invuller déed (vrije tekst, kan een externe dealer zijn) en wie
+               het in de app vastlegde. -->
+          <div v-if="article.self_performed_by" class="ad__row">
+            <dt>{{ $t('selfCheck.performedByLabel') }}</dt>
+            <dd>{{ article.self_performed_by }}</dd>
+          </div>
+          <div v-if="article.self_checked_by_member" class="ad__row">
+            <dt>{{ $t('selfCheck.recordedByLabel') }}</dt>
+            <dd>{{ article.self_checked_by_member }}</dd>
+          </div>
           <div v-if="article.self_next_due" class="ad__row">
             <dt>{{ $t('selfCheck.nextCheckLabel') }}</dt>
             <dd>{{ formatDate(article.self_next_due) }}</dd>
@@ -161,6 +172,8 @@ interface ArticleDetailRow {
   next_due: string | null;
   self_checked_at: string | null;
   self_next_due: string | null;
+  self_performed_by: string | null;
+  self_checked_by_member: string | null;
   retired: boolean;
 }
 
