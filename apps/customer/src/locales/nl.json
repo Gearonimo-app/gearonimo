@@ -268,6 +268,7 @@
     "nextCheckLabel": "Volgende controle",
     "neverChecked": "Nog niet gecontroleerd",
     "performedByLabel": "Gecontroleerd door",
-    "recordedByLabel": "Vastgelegd door"
+    "recordedByLabel": "Vastgelegd door",
+    "historyLabel": "Controles"
   }
 }

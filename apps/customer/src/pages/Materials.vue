@@ -89,7 +89,6 @@
              één soort aan, dan is dat vanzelf de actieve. -->
         <AddArticleForm
           v-if="addingArticle"
-          :known-users="memberNames"
           :domain="activeDomain ?? enabledDomains[0]"
           @close="addingArticle = false"
           @added="onArticleAdded"

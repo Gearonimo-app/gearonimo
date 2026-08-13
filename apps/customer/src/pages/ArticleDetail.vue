@@ -32,20 +32,19 @@
              artikel is geen keuring door een keurbedrijf, en dat verschil in
              juridische status moet zichtbaar blijven (DATAMODEL §3). -->
         <template v-if="isSelfChecked">
-          <div class="ad__row">
-            <dt>{{ $t('selfCheck.lastCheckLabel') }}</dt>
-            <dd>{{ article.self_checked_at ? formatDate(article.self_checked_at) : $t('selfCheck.neverChecked') }}</dd>
-          </div>
-          <!-- Twee verschillende dingen, dus twee regels: wie het volgens de
-               invuller déed (vrije tekst, kan een externe dealer zijn) en wie
-               het in de app vastlegde. -->
-          <div v-if="article.self_performed_by" class="ad__row">
-            <dt>{{ $t('selfCheck.performedByLabel') }}</dt>
-            <dd>{{ article.self_performed_by }}</dd>
-          </div>
-          <div v-if="article.self_checked_by_member" class="ad__row">
-            <dt>{{ $t('selfCheck.recordedByLabel') }}</dt>
-            <dd>{{ article.self_checked_by_member }}</dd>
+          <!-- De laatste vijf controles in het kaartje zelf (wens Jos
+               2026-08-04). Datum plus wie het deed; leeg = nog nooit. -->
+          <div class="ad__row ad__row--checks">
+            <dt>{{ $t('selfCheck.historyLabel') }}</dt>
+            <dd>
+              <span v-if="!selfChecks.length">{{ $t('selfCheck.neverChecked') }}</span>
+              <ul v-else class="ad__checks">
+                <li v-for="c in selfChecks" :key="c.id">
+                  <span class="ad__checks-date">{{ formatDate(c.checked_at) }}</span>
+                  <span v-if="c.performed_by" class="ad__checks-by">{{ c.performed_by }}</span>
+                </li>
+              </ul>
+            </dd>
           </div>
           <div v-if="article.self_next_due" class="ad__row">
             <dt>{{ $t('selfCheck.nextCheckLabel') }}</dt>
@@ -95,26 +94,7 @@
       <form v-else-if="editMode" class="ad__form" @submit.prevent="save">
         <label class="ad__field">
           {{ $t('articleDetail.fields.user') }}
-          <input
-            v-model="form.userName"
-            class="ad__input"
-            autocomplete="off"
-            @focus="activeField = 'user'"
-            @blur="closeSuggest"
-            @keydown="onSuggestKeydown"
-          />
-          <ul v-if="activeField === 'user' && userSuggestions.length" class="ad__suggest">
-            <li v-for="(s, i) in userSuggestions" :key="s">
-              <button
-                type="button"
-                ref="userItemRefs"
-                class="ad__suggest-item"
-                :class="{ 'ad__suggest-item--active': i === suggestIndex }"
-                @mousedown.prevent="pickSuggestion(s)"
-                @mouseenter="suggestIndex = i"
-              >{{ s }}</button>
-            </li>
-          </ul>
+          <UserPicker v-model="form.userName" :members="memberNames" />
         </label>
         <label class="ad__field">
           {{ $t('articleDetail.fields.purchaseDate') }}
@@ -145,8 +125,8 @@ import {
   selfCheckIntervalMonths,
   customerArticleStatus,
 } from "@gearonimo/core";
-import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
+import UserPicker from "../components/UserPicker.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -183,6 +163,25 @@ const loading = ref(true);
 const error = ref("");
 
 // ─── Zelf afvinken ──────────────────────────────────────────────────────────
+interface SelfCheckRow {
+  id: string;
+  checked_at: string;
+  performed_by: string | null;
+  next_due: string | null;
+}
+/** De laatste vijf controles; my_self_checks geeft nieuwste eerst. */
+const selfChecks = ref<SelfCheckRow[]>([]);
+const SELF_CHECK_LIMIT = 5;
+
+async function loadSelfChecks() {
+  if (!article.value?.self_managed) {
+    selfChecks.value = [];
+    return;
+  }
+  const { data } = await supabase.rpc("my_self_checks", { p_article_id: article.value.id });
+  selfChecks.value = ((data ?? []) as SelfCheckRow[]).slice(0, SELF_CHECK_LIMIT);
+}
+
 const selfCheckOpen = ref(false);
 // Standaard vandaag; de watcher vult 'm bij het openen van het dialoog.
 const selfCheckDate = ref("");
@@ -213,6 +212,7 @@ async function confirmSelfCheck() {
     selfCheckOpen.value = false;
     selfCheckBy.value = "";
     await load();
+    await loadSelfChecks();
   } catch (e) {
     selfCheckError.value = errorMessage(e);
   } finally {
@@ -271,6 +271,7 @@ async function load() {
     isAdmin.value = !!custRow.is_admin;
     const row = Array.isArray(detailRes.data) ? detailRes.data[0] : detailRes.data;
     article.value = (row ?? null) as ArticleDetailRow | null;
+    await loadSelfChecks();
   } catch (e) {
     error.value = errorMessage(e);
   } finally {
@@ -283,25 +284,8 @@ const saving = ref(false);
 const formError = ref("");
 const form = ref({ userName: "", purchaseDate: "", firstUseDate: "" });
 
-// Gebruiker-typeahead: zelfde patroon als AddArticleForm.vue -- helpt
-// tikfouten/hoofdletterverschillen voorkomen ("piet" naast "Piet").
+// De keuzelijst van gebruikers; de UserPicker doet de rest.
 const memberNames = ref<string[]>([]);
-type SuggestField = "user";
-const {
-  activeField,
-  suggestIndex,
-  suggestions: userSuggestions,
-  itemRefs: userItemRefs,
-  pick: pickSuggestion,
-  close: closeSuggest,
-  onKeydown: onSuggestKeydown,
-} = useFieldSuggest<SuggestField>({
-  resolve: () => fuzzyFilter(memberNames.value, form.value.userName),
-  select: (_field, value) => {
-    form.value.userName = value;
-  },
-  scrollToActive: true,
-});
 
 async function startEdit() {
   if (!article.value) return;
@@ -316,17 +300,17 @@ async function startEdit() {
     // Beide bronnen: de officiële medewerkerslijst én de namen die al op
     // andere artikelen staan (Jos, 2026-07-13 -- "Piet"/"piet" waren nooit
     // als medewerker toegevoegd, alleen getypt bij het toevoegen).
-    const [membersRes, articlesRes] = await Promise.all([
-      supabase.rpc("my_members"),
-      supabase.rpc("my_articles"),
-    ]);
-    const registeredNames = ((membersRes.data ?? []) as { name: string; active: boolean }[])
+    // my_articles hoeft niet meer opgehaald: die diende alleen om de eerder
+    // getypte namen als suggestie te tonen, en die staan nu bewust niet meer
+    // in de keuzelijst.
+    const membersRes = await supabase.rpc("my_members");
+    // Alléén echte medewerkers (besluit Jos 2026-08-04). De namen die al op
+    // andere artikelen getypt stonden zaten hier eerst ook bij; als keuzelijst
+    // zou dat "piet" naast "Piet" juist vereeuwigen. De huidige waarde van dít
+    // artikel blijft wél kiesbaar -- dat regelt de UserPicker.
+    memberNames.value = ((membersRes.data ?? []) as { name: string; active: boolean }[])
       .filter((m) => m.active)
       .map((m) => m.name);
-    const usedNames = ((articlesRes.data ?? []) as { assigned_user_name: string | null }[])
-      .map((a) => a.assigned_user_name)
-      .filter((n): n is string => !!n);
-    memberNames.value = [...new Set([...registeredNames, ...usedNames])];
   }
 }
 
@@ -360,6 +344,13 @@ onMounted(load);
 .ad__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
 
 .ad__actions { display: flex; gap: 0.5rem; align-items: center; }
+/* Controlehistorie: de rij mag hoger worden dan de andere, dus dt/dd boven
+   elkaar uitlijnen i.p.v. op één regel. */
+.ad__row--checks { align-items: flex-start; }
+.ad__checks { list-style: none; margin: 0; padding: 0; text-align: right; }
+.ad__checks li { display: flex; gap: 0.5rem; justify-content: flex-end; align-items: baseline; }
+.ad__checks li + li { margin-top: 0.2rem; }
+.ad__checks-by { color: #6b7280; font-weight: 400; font-size: 0.85rem; }
 /* Omlijnd i.p.v. dicht groen: naast de bestaande Bewerken-knop stonden twee
    identieke groene blokken (gerenderd en gezien, 2026-08-04). Zo blijft
    Bewerken ongewijzigd en is Afvinken toch duidelijk een eigen actie. */

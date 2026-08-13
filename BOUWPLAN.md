@@ -5,6 +5,38 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-04, deel 4)
+
+> **Drie wensen na de tweede testronde (Jos 2026-08-04).** Geen migratie nodig.
+>
+> **1. Gebruiker als keuzelijst.** Vrij typen gaf "Jan de Vries" naast
+> "J. de Vries"; die schuld stond al sinds de eerste analyse open en is nu
+> weg. Nieuw component `apps/customer/src/components/UserPicker.vue`, gebruikt
+> door zowel het toevoegformulier als het bewerkscherm — het stond op twee
+> plekken en dat is precies waar het vorige week misging.
+> Drie gevallen die moesten blijven werken:
+> - klant mét medewerkers → keuzelijst;
+> - klant zónder medewerkers → vrij tekstveld plus hint naar Instellingen,
+>   anders kan zo iemand niets meer toevoegen;
+> - artikel met een naam die geen medewerker is → die naam blijft in de lijst
+>   en geselecteerd, anders wist het openen van het bewerkscherm stilletjes de
+>   gebruiker.
+> Plus een "Andere naam…"-uitweg. De keuzelijst bevat **alleen echte
+> medewerkers**: de eerder getypte namen zaten er als suggestie bij, maar als
+> keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen. De prop
+> `knownUsers` op `AddArticleForm` is daarmee dood en verwijderd.
+>
+> **2. Laatste vijf controles in het overzichtskaartje.** Datum + wie het deed,
+> nieuwste eerst. Geen migratie: `my_self_checks()` lag er al sinds 20260754 en
+> werd nog nergens aangeroepen. De losse regels "Laatste controle" en
+> "Gecontroleerd door" zijn erin opgegaan; "Volgende controle" blijft apart.
+>
+> **3. "Vastgelegd door" weg** (Jos: "mag achterwege blijven"). Alleen uit de
+> UI; de kolom `self_checked_by_member` blijft in `my_article_detail` staan.
+> Bewust géén migratie voor het schrappen van één ongebruikte kolom — dat is
+> een ronde SQL voor Jos zonder enig gevolg voor de gebruiker. Verdwijnt vanzelf
+> als die functie ooit om een andere reden herschreven wordt.
+
 ## Voortgang (bijgewerkt 2026-08-04, deel 3)
 
 > **Live gegaan en meteen twee bugs (test Jos 2026-08-04).** De drie migraties

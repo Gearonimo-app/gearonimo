@@ -71,33 +71,11 @@
     </template>
 
     <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
-    <!-- Gebruiker: typeahead op de medewerkerslijst (Jos, 2026-07-13: "piet"
-         en "Piet" stonden er al naast elkaar) -- zelfde patroon/composable
-         als de Pro-app (useFieldSuggest, CustomerArticles.vue). Vrije invoer
-         blijft mogelijk voor wie niet als medewerker geregistreerd staat. -->
-    <div class="aa__field">
-      <input
-        v-model="userName"
-        class="aa__input"
-        :placeholder="$t('home.addArticle.user')"
-        autocomplete="off"
-        @focus="activeField = 'user'"
-        @blur="closeSuggest"
-        @keydown="onSuggestKeydown"
-      />
-      <ul v-if="activeField === 'user' && userSuggestions.length" class="aa__suggest">
-        <li v-for="(s, i) in userSuggestions" :key="s">
-          <button
-            type="button"
-            ref="userItemRefs"
-            class="aa__suggest-item"
-            :class="{ 'aa__suggest-item--active': i === suggestIndex }"
-            @mousedown.prevent="pickSuggestion(s)"
-            @mouseenter="suggestIndex = i"
-          >{{ s }}</button>
-        </li>
-      </ul>
-    </div>
+    <!-- Gebruiker: keuzelijst uit de medewerkers (besluit Jos 2026-08-04).
+         Vrij typen gaf "Jan de Vries" naast "J. de Vries" en maakte elk
+         overzicht per persoon onbetrouwbaar. Zie UserPicker voor de drie
+         gevallen die blijven werken. -->
+    <UserPicker v-model="userName" :members="memberNames" />
     <div class="aa__row">
       <input v-model.number="year" type="number" min="1990" max="2100" class="aa__input" :placeholder="$t('home.addArticle.year')" />
       <input v-model.number="month" type="number" min="1" max="12" class="aa__input" :placeholder="$t('home.addArticle.month')" />
@@ -131,17 +109,15 @@ import {
   DOMAIN_PRODUCT_TYPES,
   type MaterialDomain,
 } from "@gearonimo/core";
-import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 
-// knownUsers: de namen die al op andere artikelen van deze klant staan
-// (Materials.vue's memberNames). Nodig naast de officiële medewerkerslijst
-// (my_members): "Piet"/"piet" waren nooit als medewerker toegevoegd, alleen
-// getypt op een ander artikel -- zonder deze bron bleef de typeahead leeg
-// voor precies de namen die de duplicatie veroorzaakten (Jos, 2026-07-13).
 // domain: de materiaalsoort-tegel waarin je toevoegt (UX-FLOW §9.6). Die
 // bepaalt drie dingen: welk deel van de catalogus doorzocht wordt, welk
 // producttype een vrij artikel krijgt, en of er überhaupt een catalogus is.
-const props = defineProps<{ knownUsers?: string[]; domain?: MaterialDomain }>();
+//
+// `knownUsers` is hier weg (2026-08-04): dat waren de namen die al op andere
+// artikelen getypt stonden, als extra suggestiebron naast de medewerkerslijst.
+// Met een keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen.
+const props = defineProps<{ domain?: MaterialDomain }>();
 const emit = defineEmits<{ (e: "close"): void; (e: "added"): void }>();
 const { t } = useI18n();
 
@@ -201,32 +177,14 @@ onMounted(async () => {
     supabase.rpc("my_members"),
   ]);
   brandOptions.value = ((brandsRes.data ?? []) as { brand: string }[]).map((r) => r.brand);
-  const registeredNames = ((membersRes.data ?? []) as { name: string; active: boolean }[])
+  // Alléén echte medewerkers in de keuzelijst (besluit Jos 2026-08-04). Tot nu
+  // stonden ook de namen die al op andere artikelen getypt waren erbij; als
+  // keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen -- precies het
+  // probleem dat we hiermee oplossen. Wie er niet in staat, kiest "Andere
+  // naam..." in de UserPicker.
+  memberNames.value = ((membersRes.data ?? []) as { name: string; active: boolean }[])
     .filter((m) => m.active)
     .map((m) => m.name);
-  // Beide bronnen samen, exacte duplicaten eruit -- verschillende
-  // schrijfwijzen ("piet"/"Piet") blijven bewust allebei zichtbaar, dat is
-  // eerlijker dan er zomaar één van te laten verdwijnen.
-  memberNames.value = [...new Set([...registeredNames, ...(props.knownUsers ?? [])])];
-});
-
-// Gebruiker-typeahead: zelfde composable als de Pro-app (packages/ui),
-// hier met één veld ("user").
-type SuggestField = "user";
-const {
-  activeField,
-  suggestIndex,
-  suggestions: userSuggestions,
-  itemRefs: userItemRefs,
-  pick: pickSuggestion,
-  close: closeSuggest,
-  onKeydown: onSuggestKeydown,
-} = useFieldSuggest<SuggestField>({
-  resolve: () => fuzzyFilter(memberNames.value, userName.value),
-  select: (_field, value) => {
-    userName.value = value;
-  },
-  scrollToActive: true,
 });
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
