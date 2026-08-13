@@ -226,12 +226,12 @@ import { useI18n } from "vue-i18n";
 import {
   supabase,
   errorMessage,
-  calcStatus,
-  isFirstInspectionOverdue,
   domainForType,
   normalizeDomains,
   typeIsInspected,
   selfCheckIntervalMonths,
+  customerArticleStatus,
+  type CustomerArticleStatus,
   MATERIAL_DOMAINS,
   type MaterialDomain,
 } from "@gearonimo/core";
@@ -259,6 +259,7 @@ interface ArticleRow {
   last_inspection_date: string | null;
   next_due: string | null;
   first_use_date: string | null;
+  purchase_date: string | null;
   self_checked_at: string | null;
   self_next_due: string | null;
 }
@@ -277,7 +278,7 @@ interface ArticleRow {
 //   keuringsaanvraag, en dat is hier juist niet de bedoeling.
 // - `self_check_due`: eigen todo-lijst (brandblusser, kettingzaag) waarvan de
 //   12 maanden verlopen zijn, of die nog nooit is afgevinkt.
-type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection" | "self_check_due";
+type UiStatus = CustomerArticleStatus;
 interface UiArticle extends ArticleRow {
   uiStatus: UiStatus;
 }
@@ -295,35 +296,18 @@ const memberFilter = ref("");
 const attentionOnly = ref(route.query.filter === "aandacht");
 
 function uiStatus(a: ArticleRow): UiStatus {
-  if (a.last_result === "rejected") return "rejected";
-
-  // Buiten het keurbedrijf: de klant vinkt zelf af. Vertakt op de vlag
-  // `self_managed` en niet op het producttype -- zet Jos machines ooit terug
-  // naar een keurbedrijf, dan volgt dit vanzelf mee.
-  if (a.self_managed && selfCheckIntervalMonths(a.product_type) != null) {
-    if (!a.self_checked_at) return "self_check_due";
-    return calcStatus({
-      today: new Date(),
-      next_due: a.self_next_due ? new Date(a.self_next_due) : null,
-    }) as UiStatus;
-  }
-
-  // Types zonder termijn én zonder afvinkplicht (kleding, geen-PBM) krijgen
-  // geen status. Zonder deze regel zou een T-shirt na 12 maanden als "eerste
-  // keuring te laat" onder Aandacht komen -- ruis die de stoplichtkaart zijn
-  // betekenis kost. Een handmatig gezette `next_due` wint wél: als een
-  // keurmeester een geen-PBM-artikel tóch heeft meegekeurd en er een datum bij
-  // zette, hoort die te tellen.
-  if (!typeIsInspected(a.product_type) && !a.next_due) return "no_inspection";
-
-  const base = calcStatus({
-    today: new Date(),
-    next_due: a.next_due ? new Date(a.next_due) : null,
+  // Eén gedeelde bron met het dashboard en het artikeldetail (packages/core).
+  return customerArticleStatus({
+    last_result: a.last_result,
+    next_due: a.next_due,
+    first_use_date: a.first_use_date,
+    purchase_date: a.purchase_date,
+    self_managed: a.self_managed,
+    self_check_interval_months: selfCheckIntervalMonths(a.product_type),
+    self_checked_at: a.self_checked_at,
+    self_next_due: a.self_next_due,
+    type_is_inspected: typeIsInspected(a.product_type),
   });
-  if (base === "never_inspected" && isFirstInspectionOverdue(a.first_use_date ? new Date(a.first_use_date) : null, new Date())) {
-    return "first_inspection_due";
-  }
-  return base as UiStatus;
 }
 
 // ─── Materiaalsoorten (tegels, UX-FLOW §9.6) ────────────────────────────────
@@ -443,6 +427,9 @@ const STATUS_ORDER: Record<UiStatus, number> = {
   // Vlak onder "verlopen": het vraagt actie, maar van de klant zelf en zonder
   // juridisch gewicht -- dus niet bovenaan tussen het afgekeurde materiaal.
   self_check_due: 2.5,
+  // Nog nooit afgevinkt maar binnen de termijn: rustig, naast "nog niet
+  // gekeurd".
+  never_checked: 4.5,
 };
 const sortedArticles = computed(() =>
   [...filteredArticles.value].sort(
@@ -479,7 +466,7 @@ const displayArticles = computed<DisplayArticleRow[]>(() => {
 // de volledige tekst blijft als tooltip beschikbaar. first_inspection_due
 // deelt het "!" van due_soon: zelfde zachte toon, andere tooltiptekst.
 function statusIcon(s: UiStatus): string {
-  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—", no_inspection: "·", self_check_due: "!" }[s];
+  return { ok: "✓", due_soon: "!", first_inspection_due: "!", overdue: "✗", rejected: "✗", never_inspected: "—", no_inspection: "·", self_check_due: "!", never_checked: "—" }[s];
 }
 
 function formatDate(d: string) {
@@ -762,6 +749,7 @@ onMounted(load);
 .mt__item-reason--never_inspected { color: #6b7280; font-weight: 600; }
 .mt__item-reason--no_inspection { color: #9ca3af; font-weight: 600; }
 .mt__item-reason--self_check_due { color: #92400e; }
+.mt__item-reason--never_checked { color: #6b7280; font-weight: 600; }
 
 .mt__chip-status {
   flex: 0 0 auto; font-size: 0.9rem; font-weight: 800; line-height: 1;
@@ -773,4 +761,5 @@ onMounted(load);
 .mt__chip-status--never_inspected { background: #f3f4f6; color: #6b7280; }
 .mt__chip-status--no_inspection { background: #f9fafb; color: #9ca3af; }
 .mt__chip-status--self_check_due { background: #fef9c3; color: #854d0e; }
+.mt__chip-status--never_checked { background: #f3f4f6; color: #6b7280; }
 </style>

@@ -85,7 +85,8 @@
       "rejected": "Afgekeurd",
       "never_inspected": "Nog niet gekeurd",
       "no_inspection": "Wordt niet gekeurd",
-      "self_check_due": "Zelf controleren"
+      "self_check_due": "Zelf controleren",
+      "never_checked": "Nog niet gecontroleerd"
     },
     "certificates": "Certificaten",
     "noCertificates": "Nog geen certificaten.",
@@ -262,6 +263,9 @@
     "checkedAt": "Gecontroleerd op",
     "performedByPlaceholder": "Door wie? (optioneel, bv. Stihl-dealer Jansen)",
     "dialogText": "\"{name}\" afvinken als gecontroleerd. Dit is geen keuring door een keurbedrijf — je legt het zelf vast.",
-    "lastChecked": "afgevinkt op {date}"
+    "lastChecked": "afgevinkt op {date}",
+    "lastCheckLabel": "Laatste controle",
+    "nextCheckLabel": "Volgende controle",
+    "neverChecked": "Nog niet gecontroleerd"
   }
 }

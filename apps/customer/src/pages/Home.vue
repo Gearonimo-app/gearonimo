@@ -76,7 +76,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { supabase, useAuth, errorMessage, calcStatus, isFirstInspectionOverdue, typeIsInspected, selfCheckIntervalMonths } from "@gearonimo/core";
+import {
+  supabase,
+  useAuth,
+  errorMessage,
+  typeIsInspected,
+  selfCheckIntervalMonths,
+  customerArticleStatus,
+  type CustomerArticleStatus,
+} from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
 import PasskeyPrompt from "../components/PasskeyPrompt.vue";
@@ -114,6 +122,7 @@ interface ArticleRow {
   last_result: string | null;
   next_due: string | null;
   first_use_date: string | null;
+  purchase_date: string | null;
   self_checked_at: string | null;
   self_next_due: string | null;
 }
@@ -121,7 +130,7 @@ interface ArticleRow {
 // dus niet mee aan het oordeel (2026-08-04). Zonder deze uitzondering zouden 40
 // T-shirts als "nog niet gekeurd" in de tellers verschijnen en zou de kaart
 // precies de betekenis kwijtraken waarvoor hij er is.
-type UiStatus = "rejected" | "overdue" | "due_soon" | "first_inspection_due" | "ok" | "never_inspected" | "no_inspection" | "self_check_due";
+type UiStatus = CustomerArticleStatus;
 
 const customerName = ref("");
 const companyName = ref("");
@@ -136,25 +145,18 @@ const error = ref("");
 // 2026-07-13) 12 maanden in gebruik zonder ooit gekeurd te zijn -- telt mee
 // als "binnenkort keuren" (zachte toon, geen rood alarm).
 function uiStatus(a: ArticleRow): UiStatus {
-  if (a.last_result === "rejected") return "rejected";
-  // Eigen todo-lijst (brandblusser, kettingzaag): telt wél mee in het oordeel,
-  // maar via de zelf afgevinkte datum in plaats van een keuring.
-  if (a.self_managed && selfCheckIntervalMonths(a.product_type) != null) {
-    if (!a.self_checked_at) return "self_check_due";
-    return calcStatus({
-      today: new Date(),
-      next_due: a.self_next_due ? new Date(a.self_next_due) : null,
-    }) as UiStatus;
-  }
-  if (!typeIsInspected(a.product_type) && !a.next_due) return "no_inspection";
-  const base = calcStatus({
-    today: new Date(),
-    next_due: a.next_due ? new Date(a.next_due) : null,
+  // Eén gedeelde bron met de materiaallijst en het artikeldetail.
+  return customerArticleStatus({
+    last_result: a.last_result,
+    next_due: a.next_due,
+    first_use_date: a.first_use_date,
+    purchase_date: a.purchase_date,
+    self_managed: a.self_managed,
+    self_check_interval_months: selfCheckIntervalMonths(a.product_type),
+    self_checked_at: a.self_checked_at,
+    self_next_due: a.self_next_due,
+    type_is_inspected: typeIsInspected(a.product_type),
   });
-  if (base === "never_inspected" && isFirstInspectionOverdue(a.first_use_date ? new Date(a.first_use_date) : null, new Date())) {
-    return "first_inspection_due";
-  }
-  return base as UiStatus;
 }
 
 // Alleen materiaal dat gekeurd wordt telt mee in het oordeel.
@@ -164,7 +166,7 @@ const counts = computed(() => ({
   ok: inspectableStatuses.value.filter((s) => s === "ok").length,
   due_soon: inspectableStatuses.value.filter((s) => s === "due_soon" || s === "first_inspection_due").length,
   action: inspectableStatuses.value.filter((s) => s === "rejected" || s === "overdue" || s === "self_check_due").length,
-  never: inspectableStatuses.value.filter((s) => s === "never_inspected").length,
+  never: inspectableStatuses.value.filter((s) => s === "never_inspected" || s === "never_checked").length,
 }));
 
 // Nooit-gekeurde artikelen maken het oordeel bewust niet rood (zie

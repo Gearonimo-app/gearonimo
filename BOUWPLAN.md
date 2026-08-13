@@ -5,6 +5,45 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-04, deel 3)
+
+> **Live gegaan en meteen twee bugs (test Jos 2026-08-04).** De drie migraties
+> zijn uitgevoerd, `main` staat op f3aebb4. Jos voegde een EHBO-tas toe en
+> vond twee dingen:
+>
+> 1. **"Bij keuring staat nog niet gekeurd" op het artikeldetailscherm**, ook
+>    na afvinken. Oorzaak: `ArticleDetail.vue` heeft een eigen RPC
+>    (`my_article_detail`) en berekende de status zélf. Bij het bouwen van de
+>    tegels zijn `my_articles` en `my_customer` uitgebreid, deze niet.
+> 2. **"Deze wordt niet gekeurd maar gecontroleerd."** Terecht: het scherm zei
+>    overal "keuring", ook voor een artikel dat per definitie niet gekeurd
+>    wordt.
+>
+> En zelf gezien in zijn schermafbeelding: een **net toegevoegde** EHBO-tas
+> stond meteen oranje. Dat is dezelfde fout die de app bij keuringen bewust
+> níét maakt — daar is "nooit gekeurd" rustig grijs en wordt het pas na 12
+> maanden een aandachtspunt (blauwdruk §7: uitnodigend, geen alarm).
+>
+> **De echte oorzaak is er één: de statusberekening stond op drie plekken.**
+> `Home.vue`, `Materials.vue` én `ArticleDetail.vue` deden het elk zelf. Twee
+> pasten we aan, de derde bleef achter — exact het patroon uit CLAUDE.md
+> ("nooit hetzelfde patroon op N plekken"). Opgelost door
+> `customerArticleStatus()` in `packages/core/src/status.ts` te zetten; alle
+> drie de schermen roepen nu diezelfde functie aan. 9 tests erbij.
+>
+> - Nieuwe toestand `never_checked` (grijs) naast `self_check_due` (oranje),
+>   spiegelbeeld van `never_inspected` / `first_inspection_due`. De termijn
+>   loopt vanaf ingebruikname, en anders vanaf de aankoopdatum.
+> - `my_article_detail` geeft nu `product_type`, `self_managed`,
+>   `self_checked_at` en `self_next_due`; `my_articles` kreeg `purchase_date`.
+>   Migratie **`20260755_article_detail_self_checks.sql` — moet nog
+>   uitgevoerd worden.**
+> - Het detailscherm zegt "Laatste controle" / "Volgende controle" in plaats
+>   van "Laatste keuring" zodra een artikel zelf afgevinkt wordt, en heeft nu
+>   ook een eigen afvinkknop.
+> - Die knop is omlijnd en niet dichtgroen: naast de bestaande Bewerken-knop
+>   stonden anders twee identieke groene blokken (gerenderd en gezien).
+
 ## Voortgang (bijgewerkt 2026-08-04, deel 2)
 
 > **Materiaal-tegels gebouwd.** Het ontwerp uit `UX-FLOW.md §9.6` staat nu in de

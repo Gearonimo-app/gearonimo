@@ -28,16 +28,56 @@
         </div>
         <div class="ad__row"><dt>{{ $t('articleDetail.fields.purchaseDate') }}</dt><dd>{{ article.purchase_date ? formatDate(article.purchase_date) : '—' }}</dd></div>
         <div class="ad__row"><dt>{{ $t('articleDetail.fields.firstUse') }}</dt><dd>{{ article.first_use_date ? formatDate(article.first_use_date) : '—' }}</dd></div>
-        <div class="ad__row">
-          <dt>{{ $t('articleDetail.lastInspection') }}</dt>
-          <dd>{{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}</dd>
-        </div>
-        <div v-if="article.next_due" class="ad__row"><dt>{{ $t('articleDetail.fields.nextDue') }}</dt><dd>{{ formatDate(article.next_due) }}</dd></div>
+        <!-- Keuring of controle: bewust andere woorden. Een zelf afgevinkt
+             artikel is geen keuring door een keurbedrijf, en dat verschil in
+             juridische status moet zichtbaar blijven (DATAMODEL §3). -->
+        <template v-if="isSelfChecked">
+          <div class="ad__row">
+            <dt>{{ $t('selfCheck.lastCheckLabel') }}</dt>
+            <dd>{{ article.self_checked_at ? formatDate(article.self_checked_at) : $t('selfCheck.neverChecked') }}</dd>
+          </div>
+          <div v-if="article.self_next_due" class="ad__row">
+            <dt>{{ $t('selfCheck.nextCheckLabel') }}</dt>
+            <dd>{{ formatDate(article.self_next_due) }}</dd>
+          </div>
+        </template>
+        <template v-else>
+          <div class="ad__row">
+            <dt>{{ $t('articleDetail.lastInspection') }}</dt>
+            <dd>{{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}</dd>
+          </div>
+          <div v-if="article.next_due" class="ad__row"><dt>{{ $t('articleDetail.fields.nextDue') }}</dt><dd>{{ formatDate(article.next_due) }}</dd></div>
+        </template>
         <div v-if="article.manual_url" class="ad__row"><dt>{{ $t('home.manual') }}</dt><dd><a :href="article.manual_url" target="_blank">{{ $t('home.manual') }}</a></dd></div>
         <div v-if="article.recall_url" class="ad__row"><dt>{{ $t('home.recall') }}</dt><dd><a :href="article.recall_url" target="_blank" class="ad__recall">🚩 {{ $t('home.recall') }}</a></dd></div>
       </dl>
 
-      <button v-if="isAdmin && !editMode" class="ad__editbtn" @click="startEdit">{{ $t('articleDetail.edit') }}</button>
+      <div v-if="!editMode" class="ad__actions">
+        <!-- Afvinken mag elk actief lid (zelfde lijn als in de materiaallijst);
+             bewerken blijft beheerderswerk. -->
+        <button v-if="isSelfChecked" class="ad__checkbtn" @click="selfCheckOpen = true">{{ $t('selfCheck.action') }}</button>
+        <button v-if="isAdmin" class="ad__editbtn" @click="startEdit">{{ $t('articleDetail.edit') }}</button>
+      </div>
+
+      <!-- Afvink-dialoog, zelfde patroon als in de materiaallijst. -->
+      <div v-if="selfCheckOpen" class="ad__overlay" @click.self="selfCheckOpen = false">
+        <div class="ad__dialog">
+          <h2>{{ $t('selfCheck.action') }}</h2>
+          <p class="ad__dialog-text">{{ $t('selfCheck.dialogText', { name: headerTitle }) }}</p>
+          <label class="ad__dialog-label">
+            {{ $t('selfCheck.checkedAt') }}
+            <input v-model="selfCheckDate" type="date" :max="todayIso" class="ad__dialog-input" />
+          </label>
+          <input v-model="selfCheckBy" class="ad__dialog-input" :placeholder="$t('selfCheck.performedByPlaceholder')" />
+          <p v-if="selfCheckError" class="ad__state ad__state--error">{{ selfCheckError }}</p>
+          <div class="ad__dialog-actions">
+            <button class="ad__cancel" @click="selfCheckOpen = false">{{ $t('common.cancel') }}</button>
+            <button class="ad__savebtn" :disabled="selfCheckSaving" @click="confirmSelfCheck">
+              {{ selfCheckSaving ? $t('common.busy') : $t('selfCheck.save') }}
+            </button>
+          </div>
+        </div>
+      </div>
 
       <!-- Bewerken: alleen deze drie velden mogen wijzigen (besloten met
            Jos 2026-07-13); de rest staat hierboven vast. -->
@@ -85,9 +125,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { supabase, errorMessage, calcStatus, isFirstInspectionOverdue } from "@gearonimo/core";
+import {
+  supabase,
+  errorMessage,
+  typeIsInspected,
+  selfCheckIntervalMonths,
+  customerArticleStatus,
+} from "@gearonimo/core";
 import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
 
@@ -108,9 +154,13 @@ interface ArticleDetailRow {
   first_use_date: string | null;
   manual_url: string | null;
   recall_url: string | null;
+  product_type: string | null;
+  self_managed: boolean | null;
   last_result: string | null;
   last_inspection_date: string | null;
   next_due: string | null;
+  self_checked_at: string | null;
+  self_next_due: string | null;
   retired: boolean;
 }
 
@@ -119,25 +169,72 @@ const isAdmin = ref(false);
 const loading = ref(true);
 const error = ref("");
 
+// ─── Zelf afvinken ──────────────────────────────────────────────────────────
+const selfCheckOpen = ref(false);
+// Standaard vandaag; de watcher vult 'm bij het openen van het dialoog.
+const selfCheckDate = ref("");
+const selfCheckBy = ref("");
+const selfCheckSaving = ref(false);
+const selfCheckError = ref("");
+const todayIso = computed(() => new Date().toISOString().slice(0, 10));
+
+watch(selfCheckOpen, (open) => {
+  if (open) {
+    selfCheckError.value = "";
+    selfCheckDate.value = todayIso.value;
+  }
+});
+
+async function confirmSelfCheck() {
+  if (!article.value) return;
+  selfCheckSaving.value = true;
+  selfCheckError.value = "";
+  try {
+    // De server rekent de volgende datum uit, zodat die regel op één plek staat.
+    const { error: err } = await supabase.rpc("add_my_self_check", {
+      p_article_id: article.value.id,
+      p_checked_at: selfCheckDate.value || null,
+      p_performed_by: selfCheckBy.value.trim() || null,
+    });
+    if (err) throw err;
+    selfCheckOpen.value = false;
+    selfCheckBy.value = "";
+    await load();
+  } catch (e) {
+    selfCheckError.value = errorMessage(e);
+  } finally {
+    selfCheckSaving.value = false;
+  }
+}
+
 const headerTitle = computed(() =>
   article.value ? [article.value.brand, article.value.name].filter(Boolean).join(" ") : ""
 );
 
 const status = computed(() => {
   if (!article.value) return "never_inspected";
-  if (article.value.last_result === "rejected") return "rejected";
-  const base = calcStatus({
-    today: new Date(),
-    next_due: article.value.next_due ? new Date(article.value.next_due) : null,
+  // Eén gedeelde bron met het dashboard en de materiaallijst (packages/core).
+  // Stond hier tot 2026-08-04 apart, waardoor een afgevinkte EHBO-koffer op dit
+  // scherm nog "Nog niet gekeurd" toonde.
+  return customerArticleStatus({
+    last_result: article.value.last_result,
+    next_due: article.value.next_due,
+    first_use_date: article.value.first_use_date,
+    purchase_date: article.value.purchase_date,
+    self_managed: article.value.self_managed,
+    self_check_interval_months: selfCheckIntervalMonths(article.value.product_type),
+    self_checked_at: article.value.self_checked_at,
+    self_next_due: article.value.self_next_due,
+    type_is_inspected: typeIsInspected(article.value.product_type),
   });
-  if (base === "never_inspected" && isFirstInspectionOverdue(
-    article.value.first_use_date ? new Date(article.value.first_use_date) : null,
-    new Date()
-  )) {
-    return "first_inspection_due";
-  }
-  return base;
 });
+
+// Dit artikel wordt niet gekeurd maar gecontroleerd (Jos 2026-08-04: "deze
+// wordt niet gekeurd maar gecontroleerd, ik denk dat het daar mis gaat").
+// Bepaalt de woordkeuze op dit scherm én of de afvinkknop verschijnt.
+const isSelfChecked = computed(
+  () => !!article.value?.self_managed && selfCheckIntervalMonths(article.value?.product_type) != null
+);
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
@@ -249,6 +346,29 @@ onMounted(load);
 .ad__state--error { color: #dc2626; }
 .ad__body { padding: 1.25rem; max-width: 640px; margin: 0 auto; }
 
+.ad__actions { display: flex; gap: 0.5rem; align-items: center; }
+/* Omlijnd i.p.v. dicht groen: naast de bestaande Bewerken-knop stonden twee
+   identieke groene blokken (gerenderd en gezien, 2026-08-04). Zo blijft
+   Bewerken ongewijzigd en is Afvinken toch duidelijk een eigen actie. */
+.ad__checkbtn {
+  background: #fff; color: #15803d; border: 1.5px solid #16a34a; border-radius: 8px;
+  padding: 0.5rem 1rem; font-weight: 700; cursor: pointer;
+}
+.ad__overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100;
+}
+.ad__dialog { background: #fff; border-radius: 16px; padding: 1.25rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.6rem; }
+.ad__dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.ad__dialog-text { margin: 0; font-size: 0.9rem; color: #374151; }
+.ad__dialog-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
+.ad__dialog-input { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+.ad__dialog-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+.ad__cancel { background: none; border: 1px solid #d1d5db; border-radius: 8px; padding: 0.5rem 1rem; color: #374151; cursor: pointer; flex: 1; }
+.ad__savebtn { background: #16a34a; color: #fff; border: none; border-radius: 8px; padding: 0.5rem 1rem; font-weight: 700; cursor: pointer; flex: 1; }
+.ad__savebtn:disabled { opacity: 0.5; }
+.ad__status--never_checked, .ad__status--no_inspection { background: #f3f4f6; color: #6b7280; }
+.ad__status--self_check_due { background: #fef9c3; color: #854d0e; }
 .ad__status {
   display: inline-block; font-size: 0.85rem; font-weight: 700;
   border-radius: 999px; padding: 0.3rem 0.8rem; margin-bottom: 1rem;
