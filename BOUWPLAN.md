@@ -124,6 +124,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ISC APEX is wél PBM (besluit Jos 2026-08-13).** De APEX RP285 stond als
+> `no_ppe` met "NIET voor primaire levensondersteuning" in het normveld. Jos:
+> *"no ppe weg halen bij de apex"*. Nu `ppe`, met dezelfde normregel als de
+> rest van de KT282-kit (CE PPE Reg. 2016/425 als deel van KT282 / ANSI Z133 /
+> UKCA) en "(niet PPE)" uit de naam.
+> - Tegelijk de nieuwe set toegevoegd: `APEX & Chipmunk FLEX Tether KT305A2` —
+>   11-13 mm touw, 24 kN, 282 g, tether 225 mm (9"), set van APEX-sleutel +
+>   Chipmunk-tether + KL100-karabiner.
+> - **Nog wél `no_ppe` bij ISC** (bewust, niet aangeraakt): Rope Wrench RP280,
+>   Rope Wrench RP283 en de STRYDER-voetklemmen RP227/RP228. De APEX verschilt
+>   daarin dat hij als onderdeel van kit KT282 CE-gekeurd is.
+> - Productpagina van de KT305A2 niet ingevuld: het adres stond niet in de
+>   schermafdruk en is van hieruit niet te controleren.
+
 > **ASAP'SORBER erbij + apostrof-gat in het zoeken gedicht (2026-08-13).**
 > Jos: *"ook de asap sorber kan ik niet vinden"*. Klopte: de drie valdempers
 > stonden helemaal niet in de catalogus. Toegevoegd op basis van zijn
