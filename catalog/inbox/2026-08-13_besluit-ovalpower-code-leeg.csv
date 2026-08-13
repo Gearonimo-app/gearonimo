@@ -1,0 +1,2 @@
+id,brand,name,product_type,category,material,standard,manufacturer_code,max_age_use_years,max_age_mfr_years,breaking_strength,working_load_limit,max_user_weight_kg,rope_diameter_min_mm,rope_diameter_max_mm,serial_number_location,interval_override_months,manual_url,product_page_url,recall_url,inspection_notice_url,notes
+6ba99083-81de-41c1-99a6-2c25b6108e85,EDELRID,OVAL POWER 2500 SCREW,ppe,Connectors,Aluminium,"EN 12275, EN 362",,,999,25 kN,,,,,,,,https://edelrid.com/eu-en/sport/carabiners-and-quickdraws/oval-power-2500-screw,,,

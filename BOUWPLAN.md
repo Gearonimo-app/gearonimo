@@ -147,6 +147,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   support"). Twee twijfelgevallen voor Jos: **Teufelberger `upMOTION SRT`
 >   (2 maten, categorie Harnesses, geen norm)** en **Climbing Technology
 >   `SEAT TEC` / `HOOK REST`**.
+> - **Beide code-fouten opgelost (2026-08-13, schermafdrukken Edelrid).** In
+>   allebei de paren bleek de éérste regel goed en de tweede een kopie:
+>   `FLEX LITE size 2` kreeg zijn eigen `820390152170` (size 1 klopte al), en de
+>   `OVAL POWER 2500 SCREW` droeg de code van de `D-CLASSIC 3000 SCREW`. Die is
+>   **leeggemaakt in plaats van geraden** — een foute code laat een zoekopdracht
+>   het verkéérde product vinden, en dat is erger dan geen code. Aanleveren
+>   zodra Jos hem tegenkomt. Na deze twee: **0 codes meer gedeeld tussen
+>   verschillende producten.**
+> - **Twijfelgevallen opgelost door Jos:** `upMOTION SRT`, `SEAT TEC` en
+>   `HOOK REST` zijn **harnasaccessoires** en dus terecht `no_ppe` — hulpstukken
+>   bij een gordel, geen beschermingsmiddel op zich. Niet opnieuw aanmerken bij
+>   een volgende audit.
+> - **ART blijft zoals het is** (besluit Jos 2026-08-13): *"alle websites worden
+>   af en toe aangepast, de laatste handleidingen staan op de site."* De 15
+>   links naar de map van 2020 en de 10 producten zonder handleiding blijven dus
+>   staan; geen actie meer nodig, ook niet in een volgende sessie.
 > - **Grootste resterende gat: 108 producten met `product_type=ppe` maar geen
 >   enkele norm.** Vooral Courant (26), STEIN (11), Rope Logic (10), Notch (9),
 >   ART (8), Rock Exotica (8), Yale (8). Daar kan de nieuwe regel niets mee —
