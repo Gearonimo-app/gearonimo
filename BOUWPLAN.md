@@ -151,9 +151,10 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   allebei de paren bleek de éérste regel goed en de tweede een kopie:
 >   `FLEX LITE size 2` kreeg zijn eigen `820390152170` (size 1 klopte al), en de
 >   `OVAL POWER 2500 SCREW` droeg de code van de `D-CLASSIC 3000 SCREW`. Die is
->   **leeggemaakt in plaats van geraden** — een foute code laat een zoekopdracht
->   het verkéérde product vinden, en dat is erger dan geen code. Aanleveren
->   zodra Jos hem tegenkomt. Na deze twee: **0 codes meer gedeeld tussen
+>   **leeggemaakt in plaats van geraden**, en kort daarna door Jos aangevuld met
+>   de echte: `852040001380`. Die lijkt in niets op die van de D-CLASSIC, dus
+>   het was een rechttoe rechtaan kopieerfout en geen bijna-treffer — precies
+>   waarom raden hier niet kon. Na deze twee: **0 codes meer gedeeld tussen
 >   verschillende producten.**
 > - **Twijfelgevallen opgelost door Jos:** `upMOTION SRT`, `SEAT TEC` en
 >   `HOOK REST` zijn **harnasaccessoires** en dus terecht `no_ppe` — hulpstukken
