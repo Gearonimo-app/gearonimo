@@ -77,6 +77,17 @@ function matchtWoord(tok: string, woord: string): "exact" | "tikfout" | null {
 const GEEN_MATCH = Infinity;
 
 /**
+ * Dezelfde tekst zonder leestekens en spaties.
+ *
+ * Petzl schrijft ASAP'SORBER, Am'D en I'D met een apostrof; wie "asapsorber"
+ * of "amd" intikt vindt anders niets. De losse woorden matchen wél
+ * ("asap sorber"), maar dat is niet hoe iemand het typt.
+ */
+function zonderLeestekens(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
+/**
  * Kan elk zoek-token achtereenvolgens op de kandidaat-woorden gelegd worden,
  * en zo ja: met hoeveel tikfouten op zijn minst?
  *
@@ -130,6 +141,15 @@ export function fuzzyScore(typed: string, candidate: string): number {
   const idx = cand.indexOf(q);
   if (idx === 0) return 1000; // begint er letterlijk mee
   if (idx > 0) return 800 - Math.min(idx, 200); // bevat het letterlijk
+  // Zelfde vergelijking, maar met de leestekens weggelaten: "asapsorber" hoort
+  // ASAP'SORBER te vinden. Scoort onder elke letterlijke match en boven een
+  // token-match, want dit is nog steeds precies de getypte reeks.
+  const qKaal = zonderLeestekens(q);
+  if (qKaal) {
+    const kaalIdx = zonderLeestekens(cand).indexOf(qKaal);
+    if (kaalIdx === 0) return 500;
+    if (kaalIdx > 0) return 450;
+  }
   // Per tikfout een flinke aftrek: een product dat exact matcht hoort altijd
   // boven een product te staan waarvoor een letter gecorrigeerd moest worden.
   const typos = matchTokens(q.split(/\s+/).filter(Boolean), words(candidate));

@@ -124,6 +124,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ASAP'SORBER erbij + apostrof-gat in het zoeken gedicht (2026-08-13).**
+> Jos: *"ook de asap sorber kan ik niet vinden"*. Klopte: de drie valdempers
+> stonden helemaal niet in de catalogus. Toegevoegd op basis van zijn
+> schermafdrukken van petzl.com: `ASAP'SORBER 20` (L071AB00), `ASAP'SORBER 40`
+> (L071AB01) en `ASAP'SORBER AXESS` (L071CC00) — nylon/polyester, EN 353-2 of
+> EN 12841 type A samen met een ASAP of ASAP LOCK, 140 kg (AXESS 250 kg bij
+> redding met twee personen).
+> - **Ze zouden ook ná het toevoegen onvindbaar zijn geweest.** Petzl schrijft
+>   ASAP'SORBER, Am'D en I'D met een apostrof; `fuzzyScore` splitste daarop en
+>   vond "asapsorber" als één woord dus niet. Er zit nu een vergelijking bij
+>   waarin leestekens en spaties wegvallen — scoort onder elke letterlijke
+>   match en boven een token-match, zodat de volgorde niet omgaat. Dit raakt
+>   ook Am'D, I'D en OK TriactLock.
+> - **Niet ingevuld:** levensduur. Petzl noemt op de productpagina alleen 3
+>   jaar *garantie*; dat is geen afkeurtermijn.
+
 > **Petzl ANNEAU erbij (2026-08-13, technische handleiding aangeleverd).**
 > Vier maten: 60 cm geel, 80 cm blauw, 120 cm groen, 150 cm rood (kleuren
 > aangevuld door Jos). Bronlijst nu 2641 producten, 0 fouten.

@@ -133,3 +133,37 @@ describe("tikfouten", () => {
     expect(fuzzyScore("harnas", "Tree Runner Safe Vision Static Line")).toBe(0);
   });
 });
+
+describe("leestekens in de productnaam", () => {
+  // Melding Jos 2026-08-13: hij kon de ASAP'SORBER niet vinden. Die stond
+  // toen nog niet in de catalogus, maar zou ook daarna niet gevonden zijn:
+  // Petzl schrijft hem met een apostrof en niemand tikt die mee.
+  const petzl = [
+    "ASAP'SORBER 20",
+    "ASAP'SORBER 40",
+    "ASAP'SORBER AXESS",
+    "Am'D TRIACT-LOCK",
+    "I'D S",
+    "ASAP LOCK",
+  ];
+
+  it("vindt ASAP'SORBER als je 'asapsorber' tikt", () => {
+    expect(fuzzyFilter(petzl, "asapsorber")).toContain("ASAP'SORBER 20");
+  });
+
+  it("vindt Am'D als je 'amd' tikt", () => {
+    expect(fuzzyFilter(petzl, "amd")).toContain("Am'D TRIACT-LOCK");
+  });
+
+  it("houdt de letterlijke match bovenaan", () => {
+    // "asap" staat letterlijk vooraan in beide, dus die volgorde mag de
+    // leesteken-route niet omgooien.
+    expect(fuzzyScore("asap", "ASAP LOCK")).toBeGreaterThan(
+      fuzzyScore("asapsorber", "ASAP'SORBER 20"),
+    );
+  });
+
+  it("verzint nog steeds niets", () => {
+    expect(fuzzyScore("harnas", "ASAP'SORBER 20")).toBe(0);
+  });
+});
