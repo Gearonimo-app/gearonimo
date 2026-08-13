@@ -124,6 +124,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **EDELRID X-P*E erbij + Kratos samengevoegd (2026-08-13).** Zes lengtes
+> (3, 4, 6, 36, 45, 60 m) van het boomklimtouw met smalle Weblink-eindverbinding:
+> EN 1891 type A, polyester, 12,3 mm, 25 kN. `Kratos Safety` had nog één
+> product en heet nu `Kratos` — één merk in plaats van twee.
+> - **Artikelcodes alleen bij 3 en 4 m** (835030039340 / 835030049340, van de
+>   schermafdrukken). De code lijkt de lengte op één positie te coderen, maar
+>   dat kan niet kloppen voor 36/45/60 — dus niet doorgetrokken.
+> - **Vraag van Jos: "gaat dat goed met - en * ?"** Ja. Getest op de echte
+>   zoekfunctie: `x-p*e`, `xpe`, `x-pe`, `xp e`, `xpe 36` en `12,3mm` vinden
+>   het touw allemaal. De leestekenloze vergelijking van vanmiddag (voor
+>   ASAP'SORBER) doet hier het werk.
+> - **Wél een echte bug gevonden, door de komma in de naam.** `SerialSearch`
+>   plakte de zoekterm ongequote in een PostgREST `or=(...)`-filter, en die
+>   knipt op komma's. Iemand die "12,3mm" intikt kreeg dus geen resultaat maar
+>   een 400-fout over de hele zoekopdracht. Waarde staat nu tussen dubbele
+>   quotes, met backslash/quote ontsnapt.
+
 > **Import van de tweede ronde 2026-08-13 nagelopen: alles aangekomen.**
 > Bronlijst en database allebei 2651 producten, **nul veldverschillen** over
 > alle 22 kolommen heen, niets dat aan één kant ontbreekt, 0 producten zonder

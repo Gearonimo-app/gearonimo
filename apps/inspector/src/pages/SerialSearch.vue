@@ -311,6 +311,15 @@ function onInput() {
   debounce = setTimeout(runSearch, 250)
 }
 
+/**
+ * Zet een filterwaarde tussen dubbele quotes voor gebruik in `or=(...)`.
+ * Backslash en dubbele quote moeten daarbinnen ontsnapt worden, anders sluit
+ * de waarde te vroeg af.
+ */
+function quoteFilterValue(value: string): string {
+  return `"${value.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`
+}
+
 async function runSearch() {
   const q = query.value.trim()
   if (q.length < 2) { results.value = []; loading.value = false; return }
@@ -328,9 +337,17 @@ async function runSearch() {
     for (const r of (serial.data ?? []) as unknown as Row[]) byId.set(r.id, r)
 
     // 2. Vrije artikelen op omschrijving/merk/categorie.
+    //    De waarde moet tussen dubbele quotes: PostgREST knipt een
+    //    `or=(...)`-filter op komma's. Zoekt een keurmeester op "12,3mm" —
+    //    EDELRID schrijft zijn touwdiameters zo — dan valt de filter zonder
+    //    quotes uiteen en faalt de hele zoekopdracht met een 400.
     const free = await supabase
       .from('articles').select(SELECT)
-      .or(`free_brand.ilike.%${q}%,free_description.ilike.%${q}%,free_category.ilike.%${q}%`)
+      .or(
+        ['free_brand', 'free_description', 'free_category']
+          .map((col) => `${col}.ilike.${quoteFilterValue(`%${q}%`)}`)
+          .join(','),
+      )
       .eq('retired', false).limit(50)
     if (free.error) throw free.error
     for (const r of (free.data ?? []) as unknown as Row[]) if (!byId.has(r.id)) byId.set(r.id, r)
