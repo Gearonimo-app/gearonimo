@@ -99,6 +99,53 @@ const URL_FIELDS = [
 const UNLIMITED_AGE = 999;
 
 /**
+ * EN-normen die per definitie een persoonlijk beschermingsmiddel betreffen:
+ * ze gaan over iets dat een persoon draagt, of dat een persoon opvangt.
+ *
+ * Draagt een product zo'n norm, dan kán het geen `no_ppe` zijn. Die combinatie
+ * is geen smaakkwestie maar een tegenspraak, en een stille: `no_ppe` staat niet
+ * in `REGIMES`, dus `getRegime()` valt terug op 12 maanden — in NL toevallig
+ * gelijk aan PBM, in GB fout, want daar moet PBM op 6.
+ *
+ * Aanleiding (Jos, 2026-08-04): hij zag dat de EDELRID TREEREX II als `no_ppe`
+ * stond terwijl het een klimgordel is, en vroeg terecht wat er nog meer niet
+ * klopte. Antwoord: 27 producten, allemaal gordels of touwklemmen van
+ * Teufelberger, STEIN en EDELRID. Zonder deze regel was dat alleen met het oog
+ * te vinden.
+ *
+ * Bewust niet in deze lijst: EN 795 (ankervoorzieningen) en EN 12278
+ * (katrollen). Die zitten legitiem zowel bij PBM als bij rigging, dus daar zou
+ * de regel vals alarm geven.
+ */
+const PPE_NORMEN: readonly (readonly [RegExp, string])[] = [
+  [/\bEN\s?361\b/i, "EN 361 (harnasgordel)"],
+  [/\bEN\s?358\b/i, "EN 358 (werkpositionering)"],
+  [/\bEN\s?813\b/i, "EN 813 (zitgordel)"],
+  [/\bEN\s?1497\b/i, "EN 1497 (reddingsgordel)"],
+  [/\bEN\s?12277\b/i, "EN 12277 (klimgordel)"],
+  [/\bEN\s?354\b/i, "EN 354 (vanglijn)"],
+  [/\bEN\s?355\b/i, "EN 355 (valdemper)"],
+  [/\bEN\s?360\b/i, "EN 360 (valstopapparaat)"],
+  [/\bEN\s?353\b/i, "EN 353 (meelopende valbeveiliging)"],
+  [/\bEN\s?341\b/i, "EN 341 (afdaalapparaat)"],
+  [/\bEN\s?12841\b/i, "EN 12841 (touwtoegang)"],
+  [/\bEN\s?567\b/i, "EN 567 (touwklem)"],
+  [/\bEN\s?397\b/i, "EN 397 (industriehelm)"],
+  [/\bEN\s?12492\b/i, "EN 12492 (bergsporthelm)"],
+  [/\bEN\s?1891\b/i, "EN 1891 (semi-statisch touw)"],
+  [/\bEN\s?892\b/i, "EN 892 (dynamisch touw)"],
+  [/\bEN\s?566\b/i, "EN 566 (bandlus)"],
+  [/\bEN\s?564\b/i, "EN 564 (hulptouw)"],
+  [/\bEN\s?362\b/i, "EN 362 (verbindingselement)"],
+  [/\bEN\s?12275\b/i, "EN 12275 (karabiner)"],
+];
+
+/** Welke PBM-normen noemt dit product? Leeg = geen. */
+export function ppeNormenIn(standard: string): string[] {
+  return PPE_NORMEN.filter(([re]) => re.test(standard)).map(([, naam]) => naam);
+}
+
+/**
  * Sleutel waarop "hetzelfde product" wordt herkend: merk + naam, zonder
  * hoofdletter- of spatieverschillen.
  *
@@ -218,6 +265,18 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
         `"${type}" is geen producttype maar een categorie — toegestaan: ${PRODUCT_TYPES.join(", ")}. Zet de omschrijving in de kolom category`,
         "product_type"
       );
+    }
+
+    // --- Tegenspraak: no_ppe met een PBM-norm ------------------------------
+    if (type === "no_ppe") {
+      const normen = ppeNormenIn(row.standard ?? "");
+      if (normen.length > 0) {
+        add(
+          errors,
+          `staat als no_ppe maar draagt ${normen.join(" + ")} — dat is per definitie een persoonlijk beschermingsmiddel. Het keurregime valt nu terug op 12 maanden, ook in GB waar PBM op 6 moet`,
+          "product_type"
+        );
+      }
     }
 
     // --- Getalvelden: stil `null` worden is hoe data verdwijnt -------------

@@ -124,6 +124,39 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Audit na een terechte zorg van Jos (2026-08-04).** Hij zag dat de EDELRID
+> TREEREX II als `no_ppe` stond terwijl het een klimgordel is: *"ik maak me
+> ernstige zorgen om de database. Als dit soort fouten erin kunnen kruipen, wat
+> klopt er dan nog meer niet?"*
+> - **Het waren er 27**, niet één: 16 Teufelberger treeMOTION-gordels, 6 STEIN
+>   VEGA-gordels, 5 EDELRID (TREEREX II + vier voetklemmen). Allemaal met
+>   EN 361, EN 813, EN 358, EN 567 of EN 12841 in de norm. Gecorrigeerd naar
+>   `ppe`.
+> - **Nieuwe controleregel maakt dit voortaan onmogelijk**: draagt een product
+>   een norm die per definitie PBM is, dan kan het geen `no_ppe` zijn. Zie
+>   `PPE_NORMEN` in `packages/core/src/catalog.ts` (20 normen), met vijf tests.
+>   EN 795 en EN 12278 zitten er bewust níét in: ankers en katrollen komen
+>   legitiem in beide regimes voor.
+> - **Vier andere controles gedraaid, uitkomst geruststellender dan het klinkt:**
+>   levensduur gebruik > fabrikant: 0 gevallen. Dubbele artikelcodes: 29, maar
+>   28 daarvan zijn maatvarianten die terecht een basiscode delen; **één echte
+>   fout**: EDELRID `852060000060` staat op zowel `D-CLASSIC 3000 SCREW` als
+>   `OVAL POWER 2500 SCREW`. 35 producten waarvan naam of categorie draagbaar
+>   klinkt maar die geen `ppe` zijn — nagelopen en vrijwel allemaal terecht
+>   (voetlussen, klimsporen, gereedschapslijnen, `Magneato` met "NOT for life
+>   support"). Twee twijfelgevallen voor Jos: **Teufelberger `upMOTION SRT`
+>   (2 maten, categorie Harnesses, geen norm)** en **Climbing Technology
+>   `SEAT TEC` / `HOOK REST`**.
+> - **Grootste resterende gat: 108 producten met `product_type=ppe` maar geen
+>   enkele norm.** Vooral Courant (26), STEIN (11), Rope Logic (10), Notch (9),
+>   ART (8), Rock Exotica (8), Yale (8). Daar kan de nieuwe regel niets mee —
+>   geen norm betekent geen tegenspraak om op te vangen.
+> - **TREEREX II heeft geen maatvarianten in de catalogus** (vraag Jos), terwijl
+>   Edelrid hem in maten levert. Van de 12 EDELRID-gordels hebben er maar 2 een
+>   maat in de naam (`FLEX LITE size 1/2`). Zelfde patroon als eerder bij
+>   FALL SAFE, CAMP en Phoenix: maten ontbreken tot ze per merk worden
+>   aangeleverd.
+
 > **Merkoverzicht gemaakt (2026-08-04, vraag Jos "welke merken moeten we
 > nog?").** 43 merken, 2635 producten. Twee concrete gebreken gevonden, nog
 > niet gerepareerd:

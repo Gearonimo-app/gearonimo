@@ -150,3 +150,53 @@ describe("validateCatalog", () => {
     expect(CATALOG_COLUMNS.slice(0, 3)).toEqual(["id", "brand", "name"]);
   });
 });
+
+describe("no_ppe met een PBM-norm", () => {
+  // Melding Jos 2026-08-04: hij zag dat de EDELRID TREEREX II als no_ppe stond
+  // terwijl het een klimgordel is, en vroeg wat er nog meer niet klopte. Het
+  // bleken er 27. Deze regel maakt die combinatie voortaan onmogelijk.
+  it("weigert een gordel die als no_ppe staat", () => {
+    const report = validateCatalog([
+      row({
+        brand: "EDELRID",
+        name: "TREEREX II",
+        product_type: "no_ppe",
+        standard: "EN 358, EN 813, EN 361, ANSI Z133",
+      }),
+    ]);
+    expect(report.errors).toHaveLength(1);
+    expect(report.errors[0].column).toBe("product_type");
+    expect(report.errors[0].message).toContain("EN 361");
+  });
+
+  it("laat een echt niet-PBM product met rust", () => {
+    // Een kettingzaaglijn zonder PBM-norm mag gewoon no_ppe zijn.
+    const report = validateCatalog([
+      row({ name: "Quick Cinch Chainsaw Lanyard", product_type: "no_ppe", standard: "" }),
+    ]);
+    expect(report.errors).toEqual([]);
+  });
+
+  it("valt niet over EN 795 of EN 12278", () => {
+    // Ankervoorzieningen en katrollen zitten legitiem zowel bij PBM als bij
+    // rigging; daar zou de regel vals alarm geven.
+    expect(
+      validateCatalog([row({ product_type: "no_ppe", standard: "EN 795 Type B" })]).errors,
+    ).toEqual([]);
+    expect(
+      validateCatalog([row({ product_type: "no_ppe", standard: "EN 12278" })]).errors,
+    ).toEqual([]);
+  });
+
+  it("herkent de norm ook zonder spatie", () => {
+    const report = validateCatalog([
+      row({ product_type: "no_ppe", standard: "EN813:2008 / EN358:2018" }),
+    ]);
+    expect(report.errors).toHaveLength(1);
+  });
+
+  it("bemoeit zich niet met ppe of rigging", () => {
+    expect(validateCatalog([row({ product_type: "ppe", standard: "EN 361" })]).errors).toEqual([]);
+    expect(validateCatalog([row({ product_type: "rigging", standard: "EN 795" })]).errors).toEqual([]);
+  });
+});
