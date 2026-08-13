@@ -140,9 +140,12 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Artikelcodes ontbreken**: de handleiding noemt ze niet (net als bij de
 >   ANNEAU staan referenties alleen in de afbeeldingen, en die van deze
 >   notice bevatten ze niet).
-> - Gezet onder `Positioning lanyards`, bij de GRILLON-lijnen. Let op: de
->   bestaande `PROGRESS ADJUST-Y` staat onder `Rope clamps` — die twee horen
->   bij elkaar; vragen aan Jos of de Y verplaatst mag worden.
+> - **Alle vier de lengtes erin** (1, 2, 3 en 5 m) en de hele PROGRESS-familie
+>   staat onder `Positioning lanyards` — besluit Jos: ook de ADJUST-Y, die
+>   onder `Rope clamps` stond.
+> - **CSA Z259.11-17 klasse F staat alleen bij 1 en 2 m in het normveld.** De
+>   handleiding zegt "up to 2.5 m"; bij 3 en 5 m zou die norm er staan zonder
+>   dat hij die lengte dekt. Voor die twee staat de uitleg in de opmerkingen.
 
 > **Levensduur Petzl en TAZ ingevuld (regels van Jos, 2026-08-13).**
 > *"petzl is voor stoffe delen altijd 10 jaar vanaf productie ... de asap zelf
