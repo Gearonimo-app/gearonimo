@@ -124,6 +124,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **TAZ LOV2 erbij (2026-08-13, schermafdrukken taz3d).** Nieuw merk in de
+> catalogus. Zelfremmende afdaler + meelopende valbeveiliger, EN 12841:2006
+> type A/C en EN 358, PBM categorie III, touw EN 1891 klasse A 10-11 mm, één
+> persoon, 120 kg.
+> - **EN 1891 bewust níét in het normveld gezet.** Dat is de norm van het
+>   *touw* waar het apparaat op werkt, niet de keuring van het apparaat zelf;
+>   in het normveld zou het lezen alsof de LOV2 een touwnorm draagt. Staat nu
+>   in de opmerkingen, waar de keurmeester het ziet.
+> - **LOV3 nog niet toegevoegd.** Jos vroeg erom en gaf de link, maar
+>   taz3d.fr is van hieruit geblokkeerd (403 op CONNECT, netwerkbeleid van de
+>   omgeving — geldt ook voor petzl.com en iscwales.com). Wacht op dezelfde
+>   schermafdruk van het FIELD-of-APPLICATION-blok.
+
 > **ISC APEX is wél PBM (besluit Jos 2026-08-13).** De APEX RP285 stond als
 > `no_ppe` met "NIET voor primaire levensondersteuning" in het normveld. Jos:
 > *"no ppe weg halen bij de apex"*. Nu `ppe`, met dezelfde normregel als de
