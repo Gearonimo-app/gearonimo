@@ -124,6 +124,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **PROGRESS ADJUST-I erbij, 1 en 2 m (2026-08-13, handleiding aangeleverd).**
+> Uit `L0023400G` (16-01-2025): EN 358:2018 én EN 795:2012 type B, ANSI
+> Z359.3, CSA Z259.11-17 klasse F, GB 24543/GB 30862, materiaal nylon /
+> polyester / HMPE / aluminium, werklast 140 kg, levensduur 10 jaar.
+> Handleiding-link door Jos aangeleverd.
+> - **De twee lengtes verschillen in gebruik, niet alleen in maat.** Alleen bij
+>   1 m mag de touwklem áán het anker (met VERTIGO + TANGA); vanaf 2 m is de
+>   lijn dan niet strak te houden en is er valgevaar. De 2 m heeft wél een
+>   beschermhoes. Staat per rij in de opmerkingen — dat is precies wat een
+>   keurmeester moet weten en wat in geen enkel getalveld past.
+> - 18 kN is niet als breuksterkte overgenomen: dat is de maximale kracht die
+>   het anker op de constructie mag overbrengen, geen breuksterkte van de
+>   lijn. Staat in de opmerkingen.
+> - **Artikelcodes ontbreken**: de handleiding noemt ze niet (net als bij de
+>   ANNEAU staan referenties alleen in de afbeeldingen, en die van deze
+>   notice bevatten ze niet).
+> - Gezet onder `Positioning lanyards`, bij de GRILLON-lijnen. Let op: de
+>   bestaande `PROGRESS ADJUST-Y` staat onder `Rope clamps` — die twee horen
+>   bij elkaar; vragen aan Jos of de Y verplaatst mag worden.
+
 > **Levensduur Petzl en TAZ ingevuld (regels van Jos, 2026-08-13).**
 > *"petzl is voor stoffe delen altijd 10 jaar vanaf productie ... de asap zelf
 > is weer van metaal dus unl"*, en voor TAZ: 30 jaar vanaf productiedatum
