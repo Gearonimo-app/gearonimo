@@ -155,9 +155,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   `size 0`, `size 1`, `size 2`. De bestaande regel is `size 1` geworden zodat
 >   de id — en daarmee gekoppelde klantartikelen — behouden blijft; 0 en 2 zijn
 >   nieuw. Zelfde aanpak als bij Quick Cinch en Phoenix.
->   - **Alleen maat 0 heeft een artikelcode** (`820250132190`): die stond op de
->     pagina terwijl SIZE 0 geselecteerd was. De codes van maat 1 en 2 zijn niet
->     bekend en dus leeg gelaten — niet afgeleid.
+>   - **Alle drie de artikelcodes bevestigd** door Jos, per maat van de
+>     Edelrid-pagina gelezen: `820250132190` (maat 0), `820250142190` (maat 1),
+>     `820250152190` (maat 2). Het achtste cijfer loopt op met de maat (3-4-5).
+>     Dat patroon is nu drie keer bevestigd en dus niet geraden — eerst stond
+>     alleen maat 0 ingevuld, juist omdat afleiden gokken zou zijn.
 >   - Opgemerkt, niet aangepast: Edelrid noemt het product **"Sit Harnesses"**,
 >     bij ons staat categorie `Harnesses`. Klopt met de EN 813 in de norm.
 >   - Ander openstaand punt uit de audit: `FLEX LITE size 1` en `size 2` delen
