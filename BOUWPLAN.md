@@ -124,6 +124,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Kratos aangevuld met 17 producten (2026-08-16, catalogus-pagina's).**
+> Vraag Jos: staat `fa1010500` erin? Nee — de hele MUNE-serie ontbrak.
+> Toegevoegd: MUNE 1, 2, 3 (dat ís FA1010500), 3R, 4, 5 en 6. Daarnaast de
+> gaten op de andere aangeleverde pagina's gedicht: 6 HOPE-vanglijnen, 2
+> GRAVITY-S en de 2 OLYMPE-S valstopapparaten. Kratos gaat van 16 naar 33.
+> - **Correctie op wat ik Jos eerder schreef:** ik meldde dat Kratos geen
+>   levensduur had. Onjuist — alle 16 rijen stonden al op 10 jaar, in
+>   `max_age_use_years` (vanaf ingebruikname). De nieuwe rijen volgen die
+>   bestaande merkconventie. Let op dat die afwijkt van Petzl, waar de
+>   termijn vanaf productiedatum loopt.
+> - **Naamgeving met onderscheid**, want de HOPE-serie heeft meerdere
+>   varianten van dezelfde lijn: 1,50 m met en zonder connectoren zou anders
+>   twee keer dezelfde naam krijgen en als duplicaat wegvallen bij import.
+> - **Niet uit de tabel af te leiden**: of `FA3020015` een enkele of een
+>   Y-lijn is. De naam claimt daarom geen van beide, alleen de 12 mm-kern.
+
 > **EDELRID X-P*E erbij + Kratos samengevoegd (2026-08-13).** Zes lengtes
 > (3, 4, 6, 36, 45, 60 m) van het boomklimtouw met smalle Weblink-eindverbinding:
 > EN 1891 type A, polyester, 12,3 mm, 25 kN. `Kratos Safety` had nog één
