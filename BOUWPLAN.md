@@ -124,6 +124,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Kratos FA40-lijnen erbij + de naamloze rij opgelost (2026-08-16).**
+> Pagina 106-107 van de Kratos-catalogus: 4 werkplekpositioneringslijnen
+> (EN 358) en 11 verbindingsmiddelen (EN 354, 22 kN). Kratos staat nu op 48.
+> - **`FA4090220` had alleen zijn artikelcode als naam** en stond op precies
+>   die pagina: het is de werkplekpositioneringslijn 1,2-2,0 m met PA 11 mm.
+>   Daarmee is dat item van de "naam is een artikelcode"-lijst af; nog 7 te
+>   gaan (CMI 6, TreeUP 4 — geteld op exacte gelijkheid naam=code).
+> - **Artikelcode in de naam**, zoals Jos bij ISC vroeg. Bij deze serie is dat
+>   geen luxe: FA4050210 en FA4050310 zijn allebei "1,00 m, PA 11 mm, stalen
+>   connector" en verschillen in de tabel alleen in gewicht (0,66 vs 0,89 kg).
+>   Zonder code in de naam zouden ze niet uit elkaar te houden zijn.
+> - Maximaal gebruikersgewicht bewust leeg: die kolom staat niet in deze twee
+>   tabellen (wel op de HOPE- en GRAVITY-pagina's).
+
 > **Kratos aangevuld met 17 producten (2026-08-16, catalogus-pagina's).**
 > Vraag Jos: staat `fa1010500` erin? Nee — de hele MUNE-serie ontbrak.
 > Toegevoegd: MUNE 1, 2, 3 (dat ís FA1010500), 3R, 4, 5 en 6. Daarnaast de
