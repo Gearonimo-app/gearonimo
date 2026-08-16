@@ -124,6 +124,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Levensduurregel Kratos (besluit Jos, 2026-08-16).** *"kratos voor textile
+> dus 10 use 15 mfr, kratos metal 999"*. Alle 48 Kratos-producten staan nu op
+> `max_age_use_years=10` én `max_age_mfr_years=15`.
+> - **Dit is de eerste regel met twee plafonds tegelijk.** `calcNextDue` neemt
+>   de vroegste: tien jaar na ingebruikname óf vijftien jaar na productie, wat
+>   het eerst komt. Een lijn die vijf jaar op de plank lag gaat dus tien jaar
+>   mee, eentje die zeven jaar lag nog maar acht.
+> - **De 999-regel voor metaal heeft (nog) niets om op toe te passen**: alle
+>   48 producten zijn lijnen, harnassen of valstoppers met textiel in de
+>   lastweg. Twee rijen hadden een misleidend materiaalveld — FA3060010 stond
+>   op alleen "Steel" en FA3060013 was leeg, terwijl het allebei
+>   kernmantel-vanglijnen zijn. Aangevuld vanuit de catalogus-pagina, anders
+>   zouden die twee bij een volgende ronde als metaal doorgaan.
+
 > **Kratos FA40-lijnen erbij + de naamloze rij opgelost (2026-08-16).**
 > Pagina 106-107 van de Kratos-catalogus: 4 werkplekpositioneringslijnen
 > (EN 358) en 11 verbindingsmiddelen (EN 354, 22 kN). Kratos staat nu op 48.
