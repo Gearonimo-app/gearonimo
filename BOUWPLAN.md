@@ -124,6 +124,31 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Waar zijn de ISC-sluitingen gebleven? Niet hier verdwenen (2026-08-25).**
+> Vraag Jos: het eerste document van ~600 artikelen had ze wél. Alles wat ooit
+> in `catalog/inbox/` is aangekomen doorzocht op namen met screwgate,
+> twistlock, supersafe of quadlock:
+> - de scrape van 2299 rijen (31-07): **0** ISC-karabiners met een sluiting;
+> - de oudste live-export uit Gearonimo (2308 rijen, 31-07): 135 ISC-producten,
+>   **0** met een sluiting — dus de database had ze op dag één hier al niet;
+> - de zeven "SS"-treffers in die scrape zijn *stainless steel* prusiks, geen
+>   supersafe-karabiners.
+> Ze zijn dus niet in deze pijplijn kwijtgeraakt; ze zaten al niet in wat er
+> binnenkwam. Wat er vóór 31 juli met dat 600-regelbestand is gebeurd valt van
+> hieruit niet te achterhalen — precies het gat dat de repo sindsdien dicht.
+>
+> **Nieuw: `scripts/catalog/sluitingen.mts`.** Zelfde patroon als
+> `handleidingen.mts`: `--merk=ISC --excel` geeft een invulbestand met een
+> kolom per sluiting, `--toepassen=` hernoemt de bestaande rij en maakt de
+> ontbrekende aan met dezelfde norm, materiaal, breuksterkte en handleiding.
+> - **`bestaande_wordt` is verplicht per ingevulde regel.** Die rij staat live
+>   en er kunnen artikelen aan hangen; zonder expliciete keuze slaat het
+>   script hem over in plaats van te gokken.
+> - Getest op een kopie met de Gator (1 hernoemd, 3 nieuw) en daarna
+>   teruggedraaid — die sluitingen zijn nog niet bevestigd.
+> - **26 ISC-connectoren staan nog zo in de lijst.** Ook Petzl en DMM kennen
+>   dit patroon (SCREW-LOCK / TRIACT-LOCK / BALL-LOCK).
+
 > **ROLLCLIP-normen recht gezet uit de markering (2026-08-25).** De
 > schermafdruk van het markeringsblok in de handleiding bevestigt wat ik
 > vermoedde: de niet-vergrendelende `ROLLCLIP A` draagt **geen EN 362**, alleen
