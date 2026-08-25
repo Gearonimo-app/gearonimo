@@ -124,6 +124,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ANNEAU Tactical erbij (2026-08-25).** Jos kon de Petzl-slings niet vinden
+> en vroeg om alle versies en lengtes. De Professional-ANNEAU stond er al in
+> vier lengtes in; nu ook de Tactical-uitvoering ("open loop sling", zwart):
+> `C40 60N` 60 cm, `C40 80N` 80 cm en `C40120 N` 120 cm, met hun NSN-nummers.
+> - **Twee producten met dezelfde naam, andere uitvoering.** Petzl noemt beide
+>   ANNEAU. De namen dragen daarom "Tactical" en de kleur, want de
+>   Professional-versie is per lengte gekleurd en de Tactical altijd zwart.
+> - **Norm nog leeg bij de Tactical**: die tab stond niet op de schermafdruk.
+>   Levensduur wél ingevuld (10 jaar vanaf productie, de Petzl-regel).
+> - **ST'ANNEAU ontbreekt nog.** Staat in de zoekresultaten van Petzl
+>   ("lightweight sewn sling") maar er is geen referentietabel aangeleverd,
+>   dus geen lengtes en geen artikelcodes.
+
 > **ISC UltraLink toegevoegd, mét recall (2026-08-25).** Jos: *"klopt het dat
 > de ISC ultra link er niet in staat?"* Klopte — hij ontbrak. Twee versies:
 > `UltraLink Small LK100A1.2` en `UltraLink Large LK101A1.2`, allebei met
@@ -132,11 +145,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Er loopt een productnotice van ISC.** Link staat in `recall_url`, zodat
 >   de keurmeester de waarschuwing ziet vóór goedkeuring; de opmerking begint
 >   met LET OP, want die is tijdens de keuring altijd zichtbaar.
-> - **`ppe` gekozen, niet geverifieerd.** 36 van de 40 ISC-producten in
->   `Pulleys & Rigging Devices` staan op `ppe`, en die kant op fout zitten
->   betekent vaker keuren, niet minder. Laten bevestigen door Jos.
-> - **Norm, materiaal, breuksterkte en levensduur ontbreken**: die staan in de
->   UIM, en iscwales.com is van hieruit geblokkeerd (403 op CONNECT).
+> - **`ppe` bevestigd door de specificatiepagina** (schermafdruk Jos):
+>   "PPE Regulation (EU) 2016/425 (including EN 12278:2007)". De keuze op
+>   grond van de siblings bleek te kloppen; norm nu ingevuld, net als het
+>   serienummer (standaard aanwezig).
+> - **Het losse wiel LK102A staat nergens meer** — besluit Jos: *"losse wiel
+>   achterwegen laten, dat hoeft nergens te staan"*. Ook uit de opmerkingen.
+> - **Breuksterkte 40 kN en gewicht 182 g nog niet ingevuld**: de
+>   specificatiepagina toont één set waarden en het is niet te zien of die bij
+>   de Small of de Large hoort. Vraag uitstaan bij Jos.
 
 > **Levensduurregel Kratos (besluit Jos, 2026-08-16).** *"kratos voor textile
 > dus 10 use 15 mfr, kratos metal 999"*. Alle 48 Kratos-producten staan nu op
