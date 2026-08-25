@@ -124,6 +124,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Naamregel vastgelegd: herkenbaar boven verkoopnaam (Jos, 2026-08-25).**
+> Hij struikelde in de app over "Split-Tail" bij de Arbpro-prusiks: *"maak er
+> XS9.1 Prusik 100cm van. Misschien niet zoals Arbpro ze verkoopt, wel hoe
+> iedereen het snapt."* Terecht — een split tail is in het vak de losse korte
+> lijn in een DdRT-systeem, niet een prusiklus met twee gestikte ogen. Arbpro
+> gebruikt het als productnaam, niet als beschrijving.
+> - Tien rijen hernoemd; de term van Arbpro staat in de opmerking, zodat hij
+>   vindbaar blijft als je hem bij de leverancier tegenkomt.
+> - Regel staat nu in `CLAUDE.md`, samen met de al gemaakte keuze om
+>   sluitingen voluit te schrijven. Dat zijn twee kanten van hetzelfde: de
+>   naam moet kloppen voor wie het product in handen heeft.
+
 > **Alle ISC-karabiners in vier sluitingen (besluit Jos, 2026-08-25).** *"Niet
 > ingevuld is gewoon altijd SS. Er staat echt nog niet veel echte data in de
 > app."* Daarmee verviel mijn bezwaar tegen het hernoemen van live rijen. 22

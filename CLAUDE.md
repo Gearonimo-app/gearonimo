@@ -46,6 +46,14 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   een Excel. Aangeleverde bestanden in `catalog/inbox/`, bijhouden met
   `npm run catalog:ingest` / `:check` / `:export` (zie `catalog/README.md`).
   Een lege cel in een aangeleverd bestand wist nooit een bestaande waarde.
+- **Productnaam: zoals de keurmeester het herkent, niet zoals de fabrikant
+  het verkoopt** (Jos, 2026-08-25: *"misschien niet zoals Arbpro ze verkoopt,
+  wel hoe iedereen het snapt"*). Marketingtermen die iets anders betekenen in
+  het vak gaan eruit — "Split-Tail" bij een gewone prusiklus — en de term van
+  de fabrikant komt in de opmerking, zodat hij vindbaar blijft. Sluitingen
+  altijd voluit (screwgate / twistlock 2-weg / supersafe 3-weg / quadlock
+  4-weg), nooit als lettercode: TL betekent bij ISC twistlock en in de
+  praktijk trilock.
 - **Handleiding-link is het belangrijkste veld** (Jos, 2026-08-25:
   *"vanaf nu alle handleidingen meenemen, dat is belangrijker dan
   artikelnummers — handleidingen zijn juist een van de kernzaken waarom deze
