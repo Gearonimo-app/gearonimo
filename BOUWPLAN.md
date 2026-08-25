@@ -128,8 +128,16 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > `P75 TL / P75 SL` in het codeveld. Nu `ROLLCLIP Z TRIACT-LOCK` (P75 TL) en
 > `ROLLCLIP Z SCREW-LOCK` (P75 SL), zoals de Am'D, OK, OXAN en WILLIAM er al
 > in staan. Handleiding-link ging mee — die was er al.
-> - **Zelfde situatie bij `ROLLCLIP A`**: codeveld `P74 TL / P74`. Niet
->   aangeraakt, want het besluit ging over de Z. Vragen aan Jos.
+> - **ROLLCLIP A daarna ook gesplitst**: `P74 TL` (TRIACT-LOCK) en `P74`. De
+>   productpagina legt uit wat die tweede is: dezelfde katrol-karabiner
+>   *zonder* vergrendeling.
+> - **Bij de niet-vergrendelende versie is het normveld leeg gelaten.** De
+>   vergrendelende versie draagt EN 362, en die norm gaat over vergrendelende
+>   connectoren; die klakkeloos overnemen zou op de keurkaart zeggen dat een
+>   snapper-karabiner EN 362 draagt. Staat als LET OP in de opmerking, met de
+>   vraag om bevestiging.
+> - Handleiding-link (`068Tx00000F6OVHIA3`) staat op alle vier de rijen —
+>   Petzl heeft één notice voor de hele ROLLCLIP-familie.
 >
 > **Vraag Jos over de productiemaand — die is er al en werkt.**
 > `articles.manufacture_month` staat naast het bouwjaar in de keurtabel
