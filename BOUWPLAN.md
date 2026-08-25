@@ -131,11 +131,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Twee producten met dezelfde naam, andere uitvoering.** Petzl noemt beide
 >   ANNEAU. De namen dragen daarom "Tactical" en de kleur, want de
 >   Professional-versie is per lengte gekleurd en de Tactical altijd zwart.
-> - **Norm nog leeg bij de Tactical**: die tab stond niet op de schermafdruk.
->   Levensduur wél ingevuld (10 jaar vanaf productie, de Petzl-regel).
-> - **ST'ANNEAU ontbreekt nog.** Staat in de zoekresultaten van Petzl
->   ("lightweight sewn sling") maar er is geen referentietabel aangeleverd,
->   dus geen lengtes en geen artikelcodes.
+> - **Tactical gelijkgetrokken met de Professional** (besluit Jos: *"is gelijk
+>   aan de andere anneau, alleen zwart"*): zelfde normen, 22 kN en
+>   serienummerplek. Petzl's eigen omschrijving "open loop sling" is uit de
+>   opmerking gehaald — die suggereerde een ander product dan het is.
+> - **ST'ANNEAU er ook bij**: `C07 24` 24 cm groen, `C07 60` 60 cm geel en
+>   `C07 120` 120 cm rood. HMPE + nylon band met polyester stiksel, 22 kN.
+>   **Draagt alléén EN 795 type B, geen EN 566** — dat staat expliciet in de
+>   opmerking, want de gewone ANNEAU draagt beide en dat verschil bepaalt
+>   waarvoor je hem mag gebruiken.
 
 > **ISC UltraLink toegevoegd, mét recall (2026-08-25).** Jos: *"klopt het dat
 > de ISC ultra link er niet in staat?"* Klopte — hij ontbrak. Twee versies:
@@ -151,9 +155,13 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   serienummer (standaard aanwezig).
 > - **Het losse wiel LK102A staat nergens meer** — besluit Jos: *"losse wiel
 >   achterwegen laten, dat hoeft nergens te staan"*. Ook uit de opmerkingen.
-> - **Breuksterkte 40 kN en gewicht 182 g nog niet ingevuld**: de
->   specificatiepagina toont één set waarden en het is niet te zien of die bij
->   de Small of de Large hoort. Vraag uitstaan bij Jos.
+> - **Breuksterkte 30 kN op beide, besluit Jos.** ISC noemt drie getallen:
+>   25 kN over de korte as, 30 kN over de lange as en 40 kN mét het katrolwiel.
+>   Jos: *"30 op beide lijkt me goed. 40 met wieltje, maar niet iedereen
+>   gebruikt dat; over de korte as is bij karabiners ook niet gebruikelijk."*
+>   Alle drie de getallen staan in de opmerkingen, zodat de keuze navolgbaar is.
+> - Materiaal bevestigd uit de ISC-tekst: roestvast stalen frame, aluminium
+>   wiel.
 
 > **Levensduurregel Kratos (besluit Jos, 2026-08-16).** *"kratos voor textile
 > dus 10 use 15 mfr, kratos metal 999"*. Alle 48 Kratos-producten staan nu op
