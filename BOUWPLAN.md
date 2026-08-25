@@ -134,12 +134,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Handleiding en levensduur dezelfde ronde aangeleverd door Jos**:
 >   `arbpro.it/wp-content/uploads/2026/03/XS9-1-4-lingue-A5-2023.pdf`, 3 jaar
 >   vanaf ingebruikname en 5 vanaf productie.
-> - **De 3 jaar is de bovengrens, niet de regel.** De handleiding maakt het
->   afhankelijk van de intensiteit: intensief 1 jaar, af en toe 2, zelden 3.
->   Die trap staat voluit in de opmerking, samen met "direct afkeuren na een
->   val" — anders leest de keurmeester alleen de 3 uit de kolom en keurt hij
->   een intensief gebruikte lus twee jaar te lang goed. `max_age_use_years`
->   kent maar één getal; de nuance moet dus in de tekst.
+> - **Correctie van Jos in dezelfde ronde: 8 jaar vanaf productie, niet 5.**
+>   De handleiding zegt "lifespan = storage + actual use": maximaal 5 jaar
+>   opslag *plus* de gebruiksduur daarna. De bovengrens vanaf productiedatum
+>   is dus 5 + 3 = 8. Eerst stond er 5, wat een lus die keurig vijf jaar in
+>   het magazijn lag meteen zou afkeuren.
+> - **De 3 jaar is zelf ook een bovengrens.** De handleiding maakt de
+>   gebruiksduur afhankelijk van de intensiteit: intensief 1 jaar, af en toe
+>   2, zelden 3. Die trap staat voluit in de opmerking, samen met "direct
+>   afkeuren na een val" — anders leest de keurmeester alleen de 3 uit de
+>   kolom en keurt hij een intensief gebruikte lus twee jaar te lang goed.
+>   `max_age_use_years` kent maar één getal; de nuance moet in de tekst.
+> - **Nagerekend met `calcNextDue`** (wegwerptest, daarna verwijderd): nieuw
+>   product → gewoon het keurinterval; sinds 2024 in gebruik → de 3 jaar
+>   knijpt af; sinds 2018 op de plank → de 8 jaar knijpt af. De twee plafonds
+>   werken dus samen zoals bedoeld, het vroegste wint.
 
 > **Nieuwe werkafspraak (Jos, 2026-08-25): handleiding-link gaat vóór
 > artikelnummers.** *"Vanaf nu alle handleidingen meenemen. Handleidingen zijn
