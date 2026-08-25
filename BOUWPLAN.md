@@ -124,6 +124,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **STEIN COPIOUS nagelopen (2026-08-25).** Vraag Jos: *"ik mis deze ook nog,
+> hadden we stein al?"* STEIN stond er al met 45 producten, en alle acht
+> COPIOUS-lussen ook: A-TEC 65/70/75/85 (8 mm), ATOL 70/75 (9 mm) en P-TEC
+> 75/85 (10 mm). Niets ontbrak; wat ontbrak was de data.
+> - **EN 795 (B) toegevoegd aan de vier A-TEC-lengtes**, plus constructie
+>   (gestikt oog, dubbelgevlochten, 24-draads mantel, DRT en SRT). ATOL en
+>   P-TEC nog leeg: dat zijn andere touwen (9 en 10 mm) en het aangeleverde
+>   specificatieblad ging over de A-TEC 85.
+> - **Conflict niet zelf opgelost:** de bronlijst zegt bij A-TEC "technora
+>   cover / polyester core", het specificatieblad van de webshop zegt
+>   polyester binnen én buiten. Voor een frictieknoop is dat verschil
+>   wezenlijk — technora houdt hitte, polyester niet. Materiaalveld daarom
+>   ongemoeid gelaten en de vraag bij Jos neergelegd.
+> - Alle vier de A-TEC-rijen wijzen naar dezelfde productpagina (die van de
+>   85 cm). Niet rechtgezet: de andere adressen zijn niet te controleren.
+
 > **ANNEAU Tactical erbij (2026-08-25).** Jos kon de Petzl-slings niet vinden
 > en vroeg om alle versies en lengtes. De Professional-ANNEAU stond er al in
 > vier lengtes in; nu ook de Tactical-uitvoering ("open loop sling", zwart):
