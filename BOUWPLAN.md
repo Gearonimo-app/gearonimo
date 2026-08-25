@@ -124,6 +124,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **NEWTON EASYFIT in drie maten (besluit Jos, 2026-08-25).** Zowel de
+> European als de International Version stond als één rij met drie
+> artikelcodes in het codeveld (`C073EA00 / EA01 / EA02`). Die laatste twee
+> cijfers zíjn de maat, dus per versie drie rijen: maat 0, 1 en 2, elk met de
+> eigen code. De bestaande rij werd maat 1, zoals bij de TREEREX.
+> - **Het veiligheidsbericht stond alleen op de losse rij `NEWTON EasyFit`
+>   (C073).** De European en International versies droegen het niet, terwijl
+>   het bericht juist over de EASYFIT gaat. Nu staat het op alle zes, en de
+>   opmerking begint met LET OP zodat het ook in de keurtabel zichtbaar is.
+> - **Openstaand: `NEWTON EasyFit` (C073) zelf.** Dat is de familiecode zonder
+>   versie of maat, met een recall maar zonder handleiding. Vermoedelijk een
+>   oudere dubbele rij. Vragen aan Jos of hij weg mag.
+> - Zelfde patroon staat nog bij `NEWTON FAST International Version` (vier
+>   codes in één veld) en drie andere NEWTON-rijen met twee codes.
+
 > **Naamregel vastgelegd: herkenbaar boven verkoopnaam (Jos, 2026-08-25).**
 > Hij struikelde in de app over "Split-Tail" bij de Arbpro-prusiks: *"maak er
 > XS9.1 Prusik 100cm van. Misschien niet zoals Arbpro ze verkoopt, wel hoe
