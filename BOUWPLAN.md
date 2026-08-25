@@ -124,6 +124,17 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Sluiting voluit in de naam bij de ISC Gecko (besluit Jos, 2026-08-25).**
+> `Gecko KH452` stond er zonder sluiting in en is nu `Gecko Supersafe (3-way)
+> KH452`. Reden van Jos: *"vaak wordt TL voor trilock gebruikt. Dit is
+> verwarrend omdat ISC het twist lock noemt."* De lettercodes komen dus niet
+> in de naam; de sluiting wordt uitgeschreven. Dat is de regel voor alle
+> connectoren met meerdere sluitingen.
+> - De overige drie uitvoeringen (SG screwgate, TL twist lock 2-weg, QL
+>   quadlock 4-weg) staan genoemd in de opmerking maar hebben nog geen eigen
+>   rij: hun artikelcodes zijn niet aangeleverd en de suffixen zelf verzinnen
+>   is precies wat hier niet moet.
+
 > **STEIN COPIOUS nagelopen (2026-08-25).** Vraag Jos: *"ik mis deze ook nog,
 > hadden we stein al?"* STEIN stond er al met 45 producten, en alle acht
 > COPIOUS-lussen ook: A-TEC 65/70/75/85 (8 mm), ATOL 70/75 (9 mm) en P-TEC
