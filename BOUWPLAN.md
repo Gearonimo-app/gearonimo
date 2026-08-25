@@ -124,6 +124,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ROLLCLIP Z gesplitst naar sluiting (2026-08-25).** Stond als één rij met
+> `P75 TL / P75 SL` in het codeveld. Nu `ROLLCLIP Z TRIACT-LOCK` (P75 TL) en
+> `ROLLCLIP Z SCREW-LOCK` (P75 SL), zoals de Am'D, OK, OXAN en WILLIAM er al
+> in staan. Handleiding-link ging mee — die was er al.
+> - **Zelfde situatie bij `ROLLCLIP A`**: codeveld `P74 TL / P74`. Niet
+>   aangeraakt, want het besluit ging over de Z. Vragen aan Jos.
+>
+> **Vraag Jos over de productiemaand — die is er al en werkt.**
+> `articles.manufacture_month` staat naast het bouwjaar in de keurtabel
+> (dropdown met de twaalf maanden) en zowel `calcNextDue` als de
+> einde-levensduurberekening in de wizard gebruiken hem. De januari die in de
+> testuitkomsten stond kwam uit mijn eigen testinvoer, niet uit een beperking:
+> zonder ingevulde maand valt de berekening terug op januari, en dat is
+> bewust de veilige kant (vroegste datum).
+
 > **Arbpro XS9.1 erbij, tien lengtes (2026-08-25).** Nieuw merk. Split-tail
 > prusiklus met gestikte ogen, EN 566, >22 kN, 60 t/m 120 cm.
 > - **Eigen diameter 9,1 mm in de kolom, klimlijn 11,5-12,7 mm in de
