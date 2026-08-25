@@ -124,6 +124,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Alle ISC-karabiners in vier sluitingen (besluit Jos, 2026-08-25).** *"Niet
+> ingevuld is gewoon altijd SS. Er staat echt nog niet veel echte data in de
+> app."* Daarmee verviel mijn bezwaar tegen het hernoemen van live rijen. 22
+> modellen hernoemd naar Supersafe (3-way) en 66 rijen erbij; ISC gaat van 135
+> naar 209 producten, de karabiners van 33 naar 99.
+> - **Twaalf bewust niet gesplitst**, en dat is geen slordigheid maar een
+>   grens: de negen snaphooks (SH-codes) dragen hun actie al in de naam
+>   ("Double-action", "Triple-action"), en de Scaffold Hook, de Link (schakel)
+>   en de Klettersteig zijn geen karabiners met het SG/TL/SS/QL-systeem. Vier
+>   rijen zonder sluiting blijven dus staan — die verdienen navraag, geen
+>   automatische variant.
+> - **Val die voor de tweede keer toesloeg:** een rij zonder `id` hernoemen via
+>   `ingest` maakt een dúbbele rij. Ingest herkent op merk+naam, en juist die
+>   naam verandert; de oude rij blijft dan staan. Gebeurde bij de Gecko-TL
+>   (schrijfwijze gelijkgetrokken) en eerder bij de ANNEAU-kolomcorrectie.
+>   Rijen mét id gaan wél goed, want die matchen op id. Voor een rij zonder id
+>   moet je `producten.csv` rechtstreeks aanpassen.
+
 > **Waar zijn de ISC-sluitingen gebleven? Niet hier verdwenen (2026-08-25).**
 > Vraag Jos: het eerste document van ~600 artikelen had ze wél. Alles wat ooit
 > in `catalog/inbox/` is aangekomen doorzocht op namen met screwgate,
