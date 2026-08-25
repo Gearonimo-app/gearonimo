@@ -124,6 +124,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ISC UltraLink toegevoegd, mét recall (2026-08-25).** Jos: *"klopt het dat
+> de ISC ultra link er niet in staat?"* Klopte — hij ontbrak. Twee versies:
+> `UltraLink Small LK100A1.2` en `UltraLink Large LK101A1.2`, allebei met
+> ingebouwd katrolwiel. Het losse wiel `LK102A` is een vervangonderdeel en
+> krijgt geen eigen rij; het staat in de opmerkingen.
+> - **Er loopt een productnotice van ISC.** Link staat in `recall_url`, zodat
+>   de keurmeester de waarschuwing ziet vóór goedkeuring; de opmerking begint
+>   met LET OP, want die is tijdens de keuring altijd zichtbaar.
+> - **`ppe` gekozen, niet geverifieerd.** 36 van de 40 ISC-producten in
+>   `Pulleys & Rigging Devices` staan op `ppe`, en die kant op fout zitten
+>   betekent vaker keuren, niet minder. Laten bevestigen door Jos.
+> - **Norm, materiaal, breuksterkte en levensduur ontbreken**: die staan in de
+>   UIM, en iscwales.com is van hieruit geblokkeerd (403 op CONNECT).
+
 > **Levensduurregel Kratos (besluit Jos, 2026-08-16).** *"kratos voor textile
 > dus 10 use 15 mfr, kratos metal 999"*. Alle 48 Kratos-producten staan nu op
 > `max_age_use_years=10` én `max_age_mfr_years=15`.
