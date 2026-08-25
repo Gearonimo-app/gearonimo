@@ -124,6 +124,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Arbpro XS9.1 erbij, tien lengtes (2026-08-25).** Nieuw merk. Split-tail
+> prusiklus met gestikte ogen, EN 566, >22 kN, 60 t/m 120 cm.
+> - **Eigen diameter 9,1 mm in de kolom, klimlijn 11,5-12,7 mm in de
+>   opmerking.** De catalogus gebruikt `rope_diameter_*` voor de dikte van het
+>   product zelf (zo staan de Courant Phoenix en de STEIN COPIOUS er ook in);
+>   het touwbereik waarvoor hij geschikt is, is iets anders en hoort niet in
+>   datzelfde veld.
+> - **Handleiding-link ontbreekt** — arbpro.it is van hieruit onbereikbaar.
+>   Dat is nu het eerste wat gemeld wordt, niet het laatste; zie de nieuwe
+>   regel in `CLAUDE.md`.
+> - Levensduur nog leeg: de Arbpro-regel is niet bekend.
+
+> **Nieuwe werkafspraak (Jos, 2026-08-25): handleiding-link gaat vóór
+> artikelnummers.** *"Vanaf nu alle handleidingen meenemen. Handleidingen zijn
+> juist een van de kernzaken waarom deze app gemaakt wordt."* Vastgelegd in
+> `CLAUDE.md`: bij elk nieuw product hoort een `manual_url`, en ontbreekt die,
+> dan is dat het eerste dat gemeld wordt — met de vraag om de link, bij
+> voorkeur vóórdat de rij wordt toegevoegd.
+
 > **Handleiding-links: het gat zichtbaar gemaakt (2026-08-25).** 1112 van de
 > 2700 producten heeft geen `manual_url`. Terechte reactie van Jos toen ik dat
 > als terzijde noemde: *"dat had je ook wel beter aan kunnen geven. Hoe fixen

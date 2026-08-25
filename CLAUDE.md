@@ -46,6 +46,13 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   een Excel. Aangeleverde bestanden in `catalog/inbox/`, bijhouden met
   `npm run catalog:ingest` / `:check` / `:export` (zie `catalog/README.md`).
   Een lege cel in een aangeleverd bestand wist nooit een bestaande waarde.
+- **Handleiding-link is het belangrijkste veld** (Jos, 2026-08-25:
+  *"vanaf nu alle handleidingen meenemen, dat is belangrijker dan
+  artikelnummers — handleidingen zijn juist een van de kernzaken waarom deze
+  app gemaakt wordt"*). Bij elk nieuw product hoort een `manual_url`. Is die
+  niet te vinden, dan is dat **geen voetnoot achteraf maar het eerste wat je
+  meldt**, met de vraag om de link — bij voorkeur vóór de rij wordt
+  toegevoegd. Dekking checken: `node scripts/catalog/handleidingen.mts`.
 - **Voortgang bijhouden in `BOUWPLAN.md`** (sectie Voortgang) — dit is de
   geheugenbron tussen sessies. `DATAMODEL.md` is de veldenbron; `UX-FLOW.md`
   de ontwerpbron. Besluiten van Jos dáár vastleggen, met datum.
