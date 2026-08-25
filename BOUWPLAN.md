@@ -124,6 +124,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **ROLLCLIP-normen recht gezet uit de markering (2026-08-25).** De
+> schermafdruk van het markeringsblok in de handleiding bevestigt wat ik
+> vermoedde: de niet-vergrendelende `ROLLCLIP A` draagt **geen EN 362**, alleen
+> EN 12275:2013 en EN 12278:2007 (plus UIAA en EAC). De drie vergrendelende
+> uitvoeringen dragen die drie normen samen. Alle vier stonden onvolledig in
+> de lijst — EN 12275 en UIAA ontbraken bij de Z-rijen. Touwbereik 7-13 mm
+> bevestigd.
+>
+> **ISC Iron Wizard: drie sluitingen erbij (2026-08-25).** `KH219SG`
+> screwgate, `KH219TL` twistlock (2-weg) en `KH219QL` quadlock (4-weg), met de
+> technische gegevens van de productpagina: 70 kN, snapperopening 28 mm,
+> 264 g, verzinkt, serienummer standaard.
+> - **De bestaande rij `Iron Wizard KH219` is bewust níét hernoemd.** Bij de
+>   Gecko zei Jos expliciet dat de bestaande rij de supersafe moest worden;
+>   hier heeft hij dat niet gezegd. Die rij staat live en er kunnen artikelen
+>   aan hangen — hem zomaar tot supersafe bombarderen zou die artikelen een
+>   sluiting toedichten die ze misschien niet hebben. Vraag uitstaan.
+> - **Nog 26 ISC-karabiners zonder sluiting in de naam.** Dat is dezelfde
+>   situatie; per model moet bekend zijn welke sluitingen ISC daadwerkelijk
+>   voert, want niet elk model heeft alle vier.
+
 > **ROLLCLIP Z gesplitst naar sluiting (2026-08-25).** Stond als één rij met
 > `P75 TL / P75 SL` in het codeveld. Nu `ROLLCLIP Z TRIACT-LOCK` (P75 TL) en
 > `ROLLCLIP Z SCREW-LOCK` (P75 SL), zoals de Am'D, OK, OXAN en WILLIAM er al
