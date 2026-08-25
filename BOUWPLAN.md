@@ -124,6 +124,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Handleiding-links: het gat zichtbaar gemaakt (2026-08-25).** 1112 van de
+> 2700 producten heeft geen `manual_url`. Terechte reactie van Jos toen ik dat
+> als terzijde noemde: *"dat had je ook wel beter aan kunnen geven. Hoe fixen
+> we dat?"* De kern van het probleem was niet het gat zelf maar dat niets het
+> opmerkte terwijl er producten bij kwamen.
+> - **`validate.mts` meldt nu altijd de dekking**, met de vijf grootste merken.
+>   Bewust géén waarschuwing per product: ruim duizend regels leest niemand.
+> - **Nieuw: `scripts/catalog/handleidingen.mts`** — overzicht per merk,
+>   `--merk=` voor de losse producten, `--excel` voor een invulbestand met één
+>   regel per merk en `--toepassen=` om het terug te lezen. Producten die al
+>   een eigen productlink hebben blijven ongemoeid.
+> - **Merkpagina is expliciet de snelle route.** Een eigen PDF per product is
+>   beter; dit haalt honderden producten in één ronde van "niets" naar "iets
+>   bruikbaars tijdens de keuring". Precedent stond er al: de ART-rijen wijzen
+>   naar `climb-art.de/en/replacement-parts/`.
+> - Correcties Jos in dezelfde ronde: X-P*E 10 jaar vanaf gebruik en 14 vanaf
+>   productie, UltraLink onbeperkt, ANNEAU is polyester, TAZ is metaal.
+
 > **Gecko compleet in vier sluitingen (2026-08-25).** `KH452SG` screwgate,
 > `KH452TL` twist lock (2-weg), `KH452SS` supersafe (3-weg) en `KH452QL`
 > quadlock (4-weg). De bestaande rij had nog de kale code `KH452`; die is nu

@@ -79,5 +79,25 @@ if (report.errors.length === 0 && report.warnings.length === 0) {
   console.log("\nGeen fouten en geen aandachtspunten.");
 }
 
+// Dekking van de handleiding-link. Bewust géén waarschuwing per product: dat
+// zouden er ruim duizend zijn en dan leest niemand de lijst meer. Maar wél
+// altijd in beeld, want dit gat groeide een hele sessie lang stil mee terwijl
+// er producten bij kwamen (melding Jos 2026-08-25). Eén regel per keer dat je
+// de lijst controleert is genoeg om te zien of het beter of slechter wordt.
+const zonderHandleiding = rows.filter((r) => !r.manual_url.trim());
+if (zonderHandleiding.length > 0) {
+  const perMerk = new Map<string, number>();
+  for (const r of zonderHandleiding) {
+    const merk = r.brand.trim() || "(geen merk)";
+    perMerk.set(merk, (perMerk.get(merk) ?? 0) + 1);
+  }
+  const top = [...perMerk].sort((a, b) => b[1] - a[1]).slice(0, 5);
+  console.log(
+    `\nHandleiding-link: ${zonderHandleiding.length} van ${rows.length} producten heeft er geen.`
+  );
+  console.log(`  grootste merken: ${top.map(([m, n]) => `${m} ${n}`).join(", ")}`);
+  console.log("  volledige lijst: node scripts/catalog/handleidingen.mts");
+}
+
 console.log("");
 process.exit(report.errors.length > 0 ? 1 : 0);
