@@ -131,10 +131,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   product zelf (zo staan de Courant Phoenix en de STEIN COPIOUS er ook in);
 >   het touwbereik waarvoor hij geschikt is, is iets anders en hoort niet in
 >   datzelfde veld.
-> - **Handleiding-link ontbreekt** — arbpro.it is van hieruit onbereikbaar.
->   Dat is nu het eerste wat gemeld wordt, niet het laatste; zie de nieuwe
->   regel in `CLAUDE.md`.
-> - Levensduur nog leeg: de Arbpro-regel is niet bekend.
+> - **Handleiding en levensduur dezelfde ronde aangeleverd door Jos**:
+>   `arbpro.it/wp-content/uploads/2026/03/XS9-1-4-lingue-A5-2023.pdf`, 3 jaar
+>   vanaf ingebruikname en 5 vanaf productie.
+> - **De 3 jaar is de bovengrens, niet de regel.** De handleiding maakt het
+>   afhankelijk van de intensiteit: intensief 1 jaar, af en toe 2, zelden 3.
+>   Die trap staat voluit in de opmerking, samen met "direct afkeuren na een
+>   val" — anders leest de keurmeester alleen de 3 uit de kolom en keurt hij
+>   een intensief gebruikte lus twee jaar te lang goed. `max_age_use_years`
+>   kent maar één getal; de nuance moet dus in de tekst.
 
 > **Nieuwe werkafspraak (Jos, 2026-08-25): handleiding-link gaat vóór
 > artikelnummers.** *"Vanaf nu alle handleidingen meenemen. Handleidingen zijn
