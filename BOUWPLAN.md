@@ -124,6 +124,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Gecko compleet in vier sluitingen (2026-08-25).** `KH452SG` screwgate,
+> `KH452TL` twist lock (2-weg), `KH452SS` supersafe (3-weg) en `KH452QL`
+> quadlock (4-weg). De bestaande rij had nog de kale code `KH452`; die is nu
+> `KH452SS`, anders was hij de enige zonder suffix.
+> - **De suffixen zijn afgeleid, niet uit een bron** — ISC toont op de
+>   KH452-pagina alleen de lettercodes bij "Gate types". Jos heeft de
+>   afleiding expliciet goedgekeurd. Als een van de vier codes anders blijkt,
+>   is het één regel om te corrigeren.
+>
+> **Gatenlijst van deze sessie (65 nieuwe producten).** Norm: 0 leeg.
+> Levensduur: 8 leeg (6 EDELRID X-P*E, 2 UltraLink). Materiaal: 9 leeg
+> (ANNEAU's, TAZ). Artikelcode: 14 leeg. Handleiding-link: **54 leeg** — dat
+> is de grootste. Reden is steeds dezelfde: van hieruit is geen enkele
+> fabrikantensite bereikbaar (403 op CONNECT), dus een handleiding-URL komt
+> er alleen in als Jos hem meestuurt. Ter vergelijking: van de hele catalogus
+> mist 1112 van de 2700 een handleiding-link, dus dit is geen nieuw gat maar
+> wel een groeiend.
+
 > **Sluiting voluit in de naam bij de ISC Gecko (besluit Jos, 2026-08-25).**
 > `Gecko KH452` stond er zonder sluiting in en is nu `Gecko Supersafe (3-way)
 > KH452`. Reden van Jos: *"vaak wordt TL voor trilock gebruikt. Dit is
