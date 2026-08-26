@@ -1,0 +1,453 @@
+id,brand,name,manual_url
+cae082d9-dcb5-4eaf-90a9-c4dc7d542bc8,ART,"DoubleSnapper 3",https://climb-art.de/shared-assets/manuals/Manual-DoubleSnapper-3.pdf
+bc50893e-4b0f-4230-a183-89afdb943fd7,ART,"Link 2",https://climb-art.de/shared-assets/manuals/Manual-Link-2.pdf
+a4c6e287-0cf2-4aea-8b22-c50a2e76e139,ART,"LockJack Dyneema sling",https://climb-art.de/wp-content/uploads/2020/10/Manual-LockJack-2-Sport.pdf
+41035fdf-f443-44f9-8e2a-5856d24856c5,ART,"RopeGuide 2010 rope sling 150cm",https://climb-art.de/wp-content/uploads/2020/10/Manual-RopeGuide-2010.pdf
+155c9de8-80ac-4241-b36e-0984fcf61c57,ART,"RopeGuide 2010 rope sling 300cm",https://climb-art.de/wp-content/uploads/2020/10/Manual-RopeGuide-2010.pdf
+d270c5e0-4317-4029-afc6-214eb8a136bb,ART,"SpiderJack 2.1",https://climb-art.de/wp-content/uploads/2020/10/Manual-SpiderJack-2.pdf
+b184f974-6a1b-4c3f-87bd-3a568f13d9a6,At Height,"Wire Anchor Sling 0.5 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+bce04dec-5fcf-4792-9b12-7b64e2d4855a,At Height,"Wire Anchor Sling 1 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+18123092-619c-42e4-ac69-e4926ba34de4,At Height,"Wire Anchor Sling 1 m (stainless, thimble eye)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+8a2b7860-878d-4fca-b849-18be3d99d413,At Height,"Wire Anchor Sling 1.5 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+3ffdf330-b506-464e-ba16-9d75953675a2,At Height,"Wire Anchor Sling 1.5 m (stainless, thimble eye)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+0fe97040-ba44-42f0-a2ae-e5c2d1f9b447,At Height,"Wire Anchor Sling 2 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+1462c16e-c976-43c7-bb8a-b58d5b5bf2ba,At Height,"Wire Anchor Sling 2 m (stainless, thimble eye)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+6da7c5a7-5d12-4ce7-a234-8413a9798445,At Height,"Wire Anchor Sling 3 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+00f37d25-de30-487f-a0dc-0c9a90b0f087,At Height,"Wire Anchor Sling 4 m (galvanised)",https://atheightuk.com/wp-content/uploads/2020/08/WAS-UIM-AHL-Final.pdf
+e2caa5dc-9188-4dd7-ad94-e60452cc6969,Beal,"Access Unicore 10.5mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+ca2e0bed-d634-4821-9210-a4c9eb25e92a,Beal,"Access Unicore 11mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+6fa89c2a-4389-4c49-b4b4-ce34323701e9,Beal,"Air Smith 3-Matic",https://www.beal-planet.com/cdn/shop/files/CONNECTOR-17042024_NB_35e8196e-ba0e-4a39-94e6-00604eee7b42.pdf?v=1294764915770790795
+3df848dd-9eda-4c39-9a1d-632c82bd5cba,Beal,"Air Smith Screw-Lock",https://www.beal-planet.com/cdn/shop/files/CONNECTOR-17042024_NB_35e8196e-ba0e-4a39-94e6-00604eee7b42.pdf?v=1294764915770790795
+4d2895d1-fba4-434e-a9de-086aa9b32f55,Beal,"Antipodes 11.5mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+e2c231d0-22c7-439b-b5d9-98e6a6d33806,Beal,"Bonsai 13mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+86e65308-eae9-4627-a0e8-c70e3f67ee9c,Beal,"Contract 10.5mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+28aa42e2-3ddb-4ccb-898f-cf0455846f10,Beal,"Flat Sling 18mm 100cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+3eb2af6d-e6f8-4d62-9627-117e4380016c,Beal,"Flat Sling 18mm 120cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+717d26c3-8196-44a6-ad13-89bf889e3368,Beal,"Flat Sling 18mm 150cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+fb852c21-4227-4e58-8936-f9f6f305b4a8,Beal,"Flat Sling 18mm 175cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+ffececc8-6c1b-4360-9e44-0e3e17290a3a,Beal,"Flat Sling 18mm 40cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+d6a9dfe1-563a-4408-b75b-6ca612716fed,Beal,"Flat Sling 18mm 60cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+b0824e31-141c-436c-a474-c8238e0b6dbd,Beal,"Flat Sling 18mm 80cm",https://us.beal-planet.com/cdn/shop/files/BEAL_-_Anneaux_-_2510_-_Notice_livret_100x100_6935975e-7938-4a7c-82d8-ac469976c145.pdf?v=11970175365776752316
+f720f5a8-d64f-4ee3-bba5-d973a739f526,Beal,"Hero Pro size L",https://www.beal-planet.com/cdn/shop/files/BHPH_NOTICE.pdf?v=5580590993064519402
+06d4790b-aafc-4b43-9b5d-8ae62bdf5185,Beal,"Hero Pro size M",https://www.beal-planet.com/cdn/shop/files/BHPH_NOTICE.pdf?v=5580590993064519402
+eeb6b5c1-0d7f-4dd1-be19-40549d35656a,Beal,"Hero Pro size S",https://www.beal-planet.com/cdn/shop/files/BHPH_NOTICE.pdf?v=5580590993064519402
+a7fb652b-2ef5-48e6-ae40-f5510c552d03,Beal,"Hero Pro size XL",https://www.beal-planet.com/cdn/shop/files/BHPH_NOTICE.pdf?v=5580590993064519402
+e45b9502-2e29-4c37-b8fd-6ddc7cd0de40,Beal,"Industrie 11mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+2cb60ac1-20f4-46e6-8b9b-32ab0d0c1c54,Beal,"Industrie 12mm",https://www.beal-planet.com/cdn/shop/files/Semistatiques-20251007_-_95x205_ebbd5ad8-c502-4cb3-885e-e04aa67fe2af.pdf?v=5158862741089612480
+a2221839-d827-4519-af05-e2198ed591e4,Beal,"Mobile Lanyard",https://www.beal-planet.com/cdn/shop/files/BFAL_NOTICE_674b46b3-9076-4dd3-90da-cbfb595dee8c.pdf
+125c01e8-dbb7-4231-bb71-09a0b014cd6b,Beal,"Monitor",https://us.beal-planet.com/cdn/shop/files/MONITOR_2008082024_NB.pdf?v=3302518325895888356
+a726dc4d-5fe6-43a0-97ac-41396be353d6,Beal,"O'Smith 3-Matic",https://www.beal-planet.com/cdn/shop/files/CONNECTOR-17042024_NB_35e8196e-ba0e-4a39-94e6-00604eee7b42.pdf?v=1294764915770790795
+c9607bdc-48a4-48e2-8054-5defffab7d81,Beal,"O'Smith Screw-Lock",https://www.beal-planet.com/cdn/shop/files/CONNECTOR-17042024_NB_35e8196e-ba0e-4a39-94e6-00604eee7b42.pdf?v=1294764915770790795
+77ad83ec-ca6b-4f70-9379-d7b4cd704e7c,Beal,"Shaolin size L",https://www.beal-planet.com/cdn/shop/files/BHPSH_NOTICE_8254099d-e5ef-43f8-a1c5-362e30e8af6c.pdf?v=16276402958285426033
+c4fc71b2-fd4d-441e-86dc-65f7693aa366,Beal,"Shaolin size M",https://www.beal-planet.com/cdn/shop/files/BHPSH_NOTICE_8254099d-e5ef-43f8-a1c5-362e30e8af6c.pdf?v=16276402958285426033
+449b62ef-c1a2-4ab9-bf96-64da3d7a613a,Beal,"Shaolin size S",https://www.beal-planet.com/cdn/shop/files/BHPSH_NOTICE_8254099d-e5ef-43f8-a1c5-362e30e8af6c.pdf?v=16276402958285426033
+4acfc29f-01ba-42e3-8e65-f07b8a920fd0,Beal,"Ypsilon",https://www.beal-planet.com/cdn/shop/files/BHPY_NOTICE.pdf
+b6ed9b6f-845a-48c8-a7a6-cc7c3f4d8fc0,CAMP,"Retexo Rewind Double",https://caravan.itembox.cloud/item/img/brand/camp-work/technicaldatalist/retexo_manual.pdf
+77c501fc-bbe6-4d90-a671-2f516db1cc0d,CAMP,"Retexo Rewind Single",https://caravan.itembox.cloud/item/img/brand/camp-work/technicaldatalist/retexo_manual.pdf
+b185578b-abda-4d6c-acef-bef4411c8e6f,CAMP,"Shock Absorber Rewind Y MGO Aluminium",https://caravan.itembox.cloud/item/img/brand/camp-work/technicaldatalist/retexo_manual.pdf
+bdd8db39-3795-4415-9a7e-08a6d826725a,CAMP,"Shock Absorber Rope Adjustable Single",https://caravan.itembox.cloud/item/img/brand/camp-work/technicaldatalist/retexo_manual.pdf
+58b7943d-739f-4e46-8121-5612ddfe2cb2,Climbing Technology,"AXIS HMS SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+490eb97e-4b58-470c-bea2-2723d26160f8,Climbing Technology,"AXIS HMS SGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+3c50b13a-e063-40a1-b458-61a186097542,Climbing Technology,"AXIS HMS TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+cd9680ae-1eb1-4791-9c6e-7c8812879345,Climbing Technology,"AXIS HMS TGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+4a1074e6-dd34-42c9-af67-fadda9a8a8f7,Climbing Technology,"BIG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c4f0982a-0e1d-47e8-945d-28905fe4d5af,Climbing Technology,"CONCEPT SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+bce1f2c8-58f4-48c3-a217-921a971ad8cc,Climbing Technology,"CONCEPT SGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+71a4ab48-ca4b-41ef-862d-f997cbd32749,Climbing Technology,"CONCEPT SGL HC",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+59be8881-fddc-4240-8d60-699f0517e6fa,Climbing Technology,"CONCEPT TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+5dbac02f-71e9-4cbc-a2ca-fb5a28f81f6b,Climbing Technology,"CONCEPT TGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+f1840f19-cf48-44ae-9059-7918e1c1916c,Climbing Technology,"CONCEPT WG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c5e5b0ef-0fb7-433f-a914-9dcac9345756,Climbing Technology,"CRIC CORD",https://www.climbingtechnology.com/wp-content/uploads/2023/01/IST23-2D674CTS_rev1_03-23.pdf
+4815eafc-b17c-4a22-bd91-bbe953a98609,Climbing Technology,"D-SHAPE S-STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+1425bdba-2130-412d-a80d-5b74ef1bd266,Climbing Technology,"D-SHAPE S-STEEL TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+cd1f7d83-6e55-449a-b9a0-9ddfe4a1a7a1,Climbing Technology,"D-SHAPE SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+70e1b480-005d-4d83-98b9-673d55e0fd1a,Climbing Technology,"D-SHAPE STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+354ee216-9d1b-430d-ac07-fc494f0a5a9f,Climbing Technology,"D-SHAPE STEEL TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+9d9a9190-4bc0-4213-ae19-39f31e9381ed,Climbing Technology,"D-SHAPE TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+1d4c733d-4730-487d-92b0-06269ec02d02,Climbing Technology,"D-SHAPE WG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+69b5b0aa-6504-4210-b992-44968ab7a661,Climbing Technology,"FIX PRO+",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+6835f62b-0206-4afb-b85c-4a328c49e6f5,Climbing Technology,"FIX-O",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+228eb129-3faa-4be7-bd7c-3006e1facb2c,Climbing Technology,"FIXBAR",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+64576b64-22d4-4103-ba8d-68c3163a3f2a,Climbing Technology,"GIANT",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+1b2a5bc3-0491-47eb-a971-03f5f7c2a1d8,Climbing Technology,"GRYPHON ASCENDER size L-XL",https://www.climbingtechnology.com/wp-content/uploads/2021/10/IST52-AXGRYCTS1-S2_rev-1_03-23.pdf
+c23eb552-bbcb-497f-9124-6248468ac933,Climbing Technology,"GRYPHON ASCENDER size M-L",https://www.climbingtechnology.com/wp-content/uploads/2021/10/IST52-AXGRYCTS1-S2_rev-1_03-23.pdf
+0de234af-79c6-4fa5-891e-bfa58c2e42d7,Climbing Technology,"GRYPHON ASCENDER size S-M",https://www.climbingtechnology.com/wp-content/uploads/2021/10/IST52-AXGRYCTS1-S2_rev-1_03-23.pdf
+bbf2a774-3e19-40e4-bafb-7aed87a46747,Climbing Technology,"HOOK IT",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+95d05f88-3c72-41f2-84f0-f177c3e4c4cb,Climbing Technology,"JUMBO",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+144c7ab7-6a79-4670-b2bf-1d47279f6758,Climbing Technology,"K-ADVANCE SHELL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+19d9f084-c80a-48d4-b143-2758e5d022b5,Climbing Technology,"KEY SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+7affffd0-15aa-4777-913f-5c779e73a26c,Climbing Technology,"KEY TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+79ad6260-3ff5-4011-abb4-68adc223a0e0,Climbing Technology,"LARGE S-STEEL TGI",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+0e79d85a-9238-4aab-b4a3-f9eb7ec48920,Climbing Technology,"LARGE SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+fb2d61be-f179-4738-8819-a21d3614dc8e,Climbing Technology,"LARGE STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+afba273b-0360-4651-bf02-8351a98bba7a,Climbing Technology,"LARGE STEEL TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+e3190d0e-7356-438a-a62e-14f77e557bec,Climbing Technology,"LARGE TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+80942682-b3d5-4ad0-a5ed-7ed414999b1e,Climbing Technology,"NIMBLE SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+92758aa3-b2b5-430a-a523-e2546e39e01a,Climbing Technology,"OVAL S-STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+881fb47c-0d54-4842-9131-9f25aba9ed1f,Climbing Technology,"OVX SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+d4b0bd3d-3fc2-4751-9e0d-5bbb7bbf2185,Climbing Technology,"OVX TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+634f0e9c-05ec-4982-8c27-12d0bc5101f5,Climbing Technology,"PILLAR PRO SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c29f3cbb-9a7a-485e-8006-b776e80c29d6,Climbing Technology,"PILLAR PRO SGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+68cc3559-f8d2-4e52-be97-a4aecd2c9cdf,Climbing Technology,"PILLAR PRO SGL HC",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+a2217dfb-bad2-4c1a-8f4b-32f91ddb9947,Climbing Technology,"PILLAR PRO TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+07809c95-67ea-4295-bf71-388faee50d9e,Climbing Technology,"PILLAR PRO TGL",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c0250515-80f8-4826-b55c-0a6ce980b14c,Climbing Technology,"PILLAR PRO WG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+eff0ca64-b422-47cd-a314-7b28e0cdcf08,Climbing Technology,"PILLAR SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+0ba60fa5-dc56-43fb-b967-12f6e4172416,Climbing Technology,"PILLAR STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+1e93b70e-d1c1-4ad8-bd21-da4948680bce,Climbing Technology,"PILLAR STEEL TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+975d4745-5f5a-4f97-b071-4520767a0a8d,Climbing Technology,"PILLAR TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+5253e62c-1950-44fc-a41a-0824825f40ee,Climbing Technology,"PILLAR WG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+b053f715-5f88-402c-a382-5d2b2177991b,Climbing Technology,"PILLAR WG HC",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+8c440ad8-3212-4d55-8ba9-22ecb6494b2f,Climbing Technology,"Q-LINK 07",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+5508f7aa-d76f-48e9-ad95-1982ffd69cea,Climbing Technology,"Q-LINK 08",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c7f26dfa-21c0-4883-b292-0ad6091ab077,Climbing Technology,"Q-LINK 10",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+e2252742-6308-4839-b9bb-0c874a8254e3,Climbing Technology,"Q-LINK D 08",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+73562518-d617-4672-9d4e-ee1cc6cb6453,Climbing Technology,"Q-LINK D 10",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+8b94acdb-0df5-47a0-83c4-3ebf9e3126b4,Climbing Technology,"Q-LINK D S-STEEL 07",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+dc7a52fe-fac6-47bc-b31f-df4c1f01ce38,Climbing Technology,"Q-LINK HM",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+6cf2673d-085b-4e51-8e23-d4b28116d207,Climbing Technology,"Q-LINK S-STEEL 07",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+91ea47ed-5b27-406b-8697-28e74f1ea530,Climbing Technology,"Q-LINK S-STEEL 08",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+884590f0-4dc2-473d-b87c-4b95785ea2af,Climbing Technology,"Q-LINK TWIST",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+839426d9-9341-476c-a685-f23bc3997e98,Climbing Technology,"SHELTER EVO",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+8e3997db-2981-4c0a-bba2-bb7a6a33d648,Climbing Technology,"SNAPPY SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+f458d6c0-d617-4b1c-94aa-4b2e422e70a6,Climbing Technology,"SNAPPY STEEL SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+ea6e1242-d51b-4282-9fcf-21a9ffc4b6b8,Climbing Technology,"SNAPPY STEEL TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+36f6d0c4-cf67-4cfb-b56f-0422bf5ff8a8,Climbing Technology,"SNAPPY TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+346e8c0b-a550-4be3-8576-837f93485f28,Climbing Technology,"XL-D SG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+754db8bc-5d50-4e0a-aa63-3d9ee57a0679,Climbing Technology,"XL-D TG",https://www.climbingtechnology.com/wp-content/uploads/2023/12/IST01-LOCONCTS_rev-1_06-24.pdf
+c1c83ecf-1c99-4d7c-8426-3b8896dbfa33,Courant,"AKA",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+6a3c6f60-b4ac-45c9-bbcd-677c675ae2d8,Courant,"Atoll Ring L",https://vertical-living.mycourant.com/media/31724/1/0/1/COURANT-NOTICE-ATOLL.pdf
+e1b3dc68-f467-4e2e-83c7-87598c5990f7,Courant,"Atoll Ring S",https://vertical-living.mycourant.com/media/31724/1/0/1/COURANT-NOTICE-ATOLL.pdf
+807ba49f-5a7e-40e0-9fdd-6ca4501370fb,Courant,"Axxis",https://vertical-living.mycourant.com/media/30934/1/0/1/COURANT-NOTICE-CONNECTEUR-AXXIS+A+VIS.pdf
+0a3a3e5f-bce1-4307-9a60-af1e20674c1f,Courant,"Axxis TL",https://vertical-living.mycourant.com/media/30936/1/0/1/COURANT-NOTICE-CONNECTEUR-AXXIS+TL.pdf
+f5fe25e5-3d06-43df-8b00-017fb5100d94,Courant,"Bandit 10.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+961dbca5-5f86-4120-bcf2-23024fb0d81c,Courant,"Bandit 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+844fba3a-0431-48a1-be8b-e909968b4992,Courant,"Bandit 12.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+678db3cb-9820-488b-95ac-2f960133edf7,Courant,"CanyonX 9mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+3fa1164f-2023-46fe-88bd-5349c3d5bf8b,Courant,"Ellipse rope sling",https://vertical-living.mycourant.com/media/13682/1/0/1/COURANT-NOTICE-ANNEAU+DE+SANGLE-ELLIPSE.pdf
+2da6a115-bddf-401e-b298-f075d1cf53c6,Courant,"Extrema 10.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+2f1c4587-42ea-47f7-96d1-b811b653ebe8,Courant,"Extrema 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+314be49a-9a9e-4c74-b063-1e67590b20ad,Courant,"Flexible Lanyard Flexbee",https://vertical-living.mycourant.com/media/43949/1/0/1/FLEXBEE+2024+-+Notice+-+User+Manual.pdf
+eed39209-f942-477d-9558-f12f01b61767,Courant,"Flexible Lanyard Flexbee V2",https://vertical-living.mycourant.com/media/43949/1/0/1/FLEXBEE+2024+-+Notice+-+User+Manual.pdf
+03ffecda-b94d-430a-854d-bd341892c625,Courant,"Honos",https://vertical-living.mycourant.com/media/30940/1/0/1/COURANT-NOTICE-CONNECTEUR-HONOS.pdf
+861e4732-dad7-4e5a-bd01-7c5367bf37ad,Courant,"Honos L Blue",https://vertical-living.mycourant.com/media/30940/1/0/1/COURANT-NOTICE-CONNECTEUR-HONOS.pdf
+6cb1765e-587c-4f0f-a0c1-5dd54f6908de,Courant,"Honos L Red",https://vertical-living.mycourant.com/media/30940/1/0/1/COURANT-NOTICE-CONNECTEUR-HONOS.pdf
+f89945b0-2404-4496-964c-b18ccfd6881d,Courant,"Honos L Yellow",https://vertical-living.mycourant.com/media/30940/1/0/1/COURANT-NOTICE-CONNECTEUR-HONOS.pdf
+b32e83d5-01e1-4f36-92c6-318664e98bfe,Courant,"Hulk",https://vertical-living.mycourant.com/media/31727/1/0/1/COURANT-NOTICE-HULK.pdf
+90c1ec64-826d-46cd-a44a-4f526089ae8d,Courant,"Japora 11.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+fd4f36bd-b6c0-4fa2-aafa-f72f26a9f3b0,Courant,"Japora 11.5mm 35m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+bbae336e-e53d-499d-bcae-d1006d86b025,Courant,"Japora 11.5mm 35m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+fb6cd847-5453-4939-9551-04b70a9b4683,Courant,"Japora 11.5mm 45m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+042866d5-e4bf-470b-b1cd-a99be9134195,Courant,"Japora 11.5mm 45m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+124a63da-3865-4aa6-b487-76b78591f2f2,Courant,"Japora 11.5mm 60m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+74281443-4ca3-4334-9e9d-a0e038eca557,Courant,"Japora 11.5mm 60m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+f1f9fa0f-2817-41c1-ae9b-ac6f575188b3,Courant,"Kalimba 11.9mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+e5f80e28-596d-4d9e-9c56-59c43a72723e,Courant,"Kalimba 11.9mm 35m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+b167f3e8-a64b-47f2-8712-5c5590044c1e,Courant,"Kalimba 11.9mm 35m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+829494d1-8d6c-4b22-a92f-4a503bb94ebe,Courant,"Kalimba 11.9mm 45m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+e1ab9ab5-a668-49da-99f7-a033c23850a6,Courant,"Kalimba 11.9mm 45m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+0d4052d6-29f4-4488-943a-b7b014ed91aa,Courant,"Kalimba 11.9mm 60m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+ec3bdec1-91b0-4966-a928-4d93619b7ae8,Courant,"Kalimba 11.9mm 60m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+5a33511f-4c2d-48ba-ab72-4dffa2fc5b5f,Courant,"Kanopa 12.1mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+3891e9d3-f4e6-4a94-bd9e-b62d7bc22bb8,Courant,"Kanopa 12.1mm 35m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+83a5f3f6-bcc3-427c-be10-31aaed57935f,Courant,"Kanopa 12.1mm 35m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+251fd8ca-ea6a-4383-8bd5-b29f581c65fc,Courant,"Kanopa 12.1mm 45m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+913209e1-de54-4adc-830b-b7f342859961,Courant,"Kanopa 12.1mm 45m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+6dc5e1c4-6acf-44d6-9ac9-8fd9c8e45f99,Courant,"Kanopa 12.1mm 60m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+66469d10-e7e6-4f98-ac99-017ec8c8f6dd,Courant,"Kanopa 12.1mm 60m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+ad57c1fa-88e5-4af9-b422-4de274feec40,Courant,"Koala Harness L/XL",https://vertical-living.mycourant.com/media/31723/1/0/1/COURANT-NOTICE-HARNAIS-KOALA.pdf
+702869b3-cf32-441e-ad18-991eea6c2850,Courant,"Koala Harness M/L",https://vertical-living.mycourant.com/media/31723/1/0/1/COURANT-NOTICE-HARNAIS-KOALA.pdf
+aeed7be1-3864-471b-9228-b4ee47dc067e,Courant,"Koala Harness S",https://vertical-living.mycourant.com/media/31723/1/0/1/COURANT-NOTICE-HARNAIS-KOALA.pdf
+1b8f917b-b402-491e-be96-39461f9838fd,Courant,"Komora 11.7mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+e02cb84c-d532-4041-967d-76e1915f6051,Courant,"Komora 11.7mm 35m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+e974623e-ee52-4d08-a693-b556aaa4561d,Courant,"Komora 11.7mm 35m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+4f6a7371-18aa-4e9c-be92-7939b6d4ea4b,Courant,"Komora 11.7mm 45m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+f88943b5-07f1-4816-ba25-f9aa66e85acc,Courant,"Komora 11.7mm 45m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+2f7d4b36-9573-410a-b562-a000b2d97a81,Courant,"Komora 11.7mm 60m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+97d264c5-4486-418d-abff-4c31d63e8130,Courant,"Komora 11.7mm 60m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+f2f3429b-78e2-4513-ae9e-cf6228a8d33d,Courant,"Krysler 12.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+f15c9bb0-f5b3-482d-9d62-efd8f19f230a,Courant,"Millo Primary Bridge 25cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+474cf3e2-1111-407a-aea4-b846ab8f656f,Courant,"Millo Primary Bridge 30cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+3dfdd99c-a211-4922-8535-ae7e40589c2a,Courant,"Millo Primary Bridge 35cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+55ee5641-4b92-41f2-addf-b78f76e3c7f2,Courant,"Millo Secondary Bridge 25cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+807dd791-26d4-4f95-813c-b53a7ad6c898,Courant,"Millo Secondary Bridge 30cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+0d5d851e-ed2c-4bca-9986-60f94183b0d7,Courant,"Millo Secondary Bridge 35cm",https://vertical-living.mycourant.com/media/31725/1/0/1/COURANT-NOTICE-MILLO.pdf
+858b8b28-1348-4819-989c-cc51228e6490,Courant,"Moka",https://vertical-living.mycourant.com/media/28071/1/0/1/UE-DECLARATION-CONFORMITY-RMQCMOKA+-+Moka.pdf
+b395294f-8da2-4ac0-8ba8-6682ee527987,Courant,"Ozora 12.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+8e65e4ec-a651-4ade-8957-cc92d3c0d6a6,Courant,"Ozora 12.5mm 35m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+e522baff-e1f1-4b07-96de-2a46ad475c76,Courant,"Ozora 12.5mm 35m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+f56c870b-d468-4363-8c5f-29b5455942f3,Courant,"Ozora 12.5mm 45m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+1ba7705b-0670-438f-9add-d147904ddb6c,Courant,"Ozora 12.5mm 45m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+0eebd332-5e42-48c5-8b86-af2483bf7e5a,Courant,"Ozora 12.5mm 60m 1 spliced eye",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+fb5f5707-e989-4c9c-8036-f6d1a01cdb47,Courant,"Ozora 12.5mm 60m 2 spliced eyes",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+53c86e24-3e7c-416f-86eb-65655c2dda36,Courant,"Phoenix 10mm Hitch Cord",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+647b3a2a-1457-464c-8663-b518fcfa79eb,Courant,"Phoenix 10mm Hitch Cord 0.65 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+39517b7d-21a9-4695-9db5-e496f4d07534,Courant,"Phoenix 10mm Hitch Cord 0.70 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+4be45eb4-97d2-4b89-9eaf-ad06a37d55c3,Courant,"Phoenix 10mm Hitch Cord 0.75 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+a575ead2-7db7-4a11-9c9b-b5269d7fe497,Courant,"Phoenix 10mm Hitch Cord 0.80 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+648a806b-5223-4b14-8f1e-fb9d342a88b3,Courant,"Phoenix 10mm Hitch Cord 0.85 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+ba413bf2-7dbc-48c5-8f2a-18e213b7ce50,Courant,"Phoenix 10mm Hitch Cord 0.90 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+23b69209-d175-4446-8612-6e067ee8bdb0,Courant,"Phoenix 10mm Hitch Cord 1.00 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+1357ccba-7098-42a1-a3d7-40eba5b10abb,Courant,"Phoenix 10mm Hitch Cord 1.10 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+f0aeb5d7-a976-40e9-add8-e47168d148a7,Courant,"Phoenix 8mm Hitch Cord",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+6fbf77ca-43db-4cf9-ba5c-a3ca2e5f4be8,Courant,"Phoenix 8mm Hitch Cord 0.65 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+fac7cf8c-f9cb-4510-8b82-45abc8936ea6,Courant,"Phoenix 8mm Hitch Cord 0.70 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+98e28bb8-1544-4513-a1cc-2579c50fe4a4,Courant,"Phoenix 8mm Hitch Cord 0.75 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+1c896ef5-b24f-4fb2-81bb-553181fe1a9d,Courant,"Phoenix 8mm Hitch Cord 0.80 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+b31d8478-aff2-4955-a178-9aed5f4c8f15,Courant,"Phoenix 8mm Hitch Cord 0.85 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+33bd1274-eed7-4de8-9fd1-44286a329507,Courant,"Phoenix 8mm Hitch Cord 0.90 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+959952e8-41bf-46a2-8fe1-24a4e24a18f6,Courant,"Phoenix 8mm Hitch Cord 1.00 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+5713b6fa-3455-43f1-993a-f8a802b4862e,Courant,"Phoenix 8mm Hitch Cord 1.10 m",https://vertical-living.mycourant.com/media/13733/1/0/1/COURANT-NOTICE-PHOENIX.pdf
+b8b449c3-5fc9-4ecb-ae96-0d6b52d85b57,Courant,"Rebel 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+33924d34-8fb4-4927-9290-3baa9ffac668,Courant,"Squir 11.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+d9e13ef2-b096-4360-a9a8-c2368cecb29d,Courant,"Stileo lanyard with stitched eyes",https://vertical-living.mycourant.com/media/28036/1/0/1/COURANT-NOTICE-LONGE+STILEO.pdf
+c33b5726-13b5-495e-86b1-57807ac7c226,Courant,"Synchro friction saver",https://vertical-living.mycourant.com/media/13700/1/0/1/COURANT-NOTICE-FAUSSE+FOURCHE+SYNCHRO.pdf
+bf408054-1bf6-4c5d-a6a1-8f820da34c28,Courant,"Truck 10.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+ab8dc9dd-1060-45d1-9b22-ebc93f71344f,Courant,"Truck 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+92aca33a-f9ba-4e7c-b681-776f73cdf866,Courant,"Ultima 10.5mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+8cad3342-b9e3-4de6-9b8e-71100d9814b9,Courant,"Ultima 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+9d078e15-76d0-42e1-9013-a455083618b5,Courant,"Wild 11mm",https://vertical-living.mycourant.com/media/29306/1/0/1/COURANT-NOTICE-CORDES.pdf
+0a3e6f4e-0102-4e7c-8594-19f2ae4c5afa,Kask,"HP Plus Orange",https://www.kask-safety.com/media/download/img_3259.pdf
+11cf2dcc-8b5f-4cab-97b8-e3c33aa4c697,Kask,"HP Plus White",https://www.kask-safety.com/media/download/img_3259.pdf
+373e42de-7b1b-4144-9086-556fbf5b91a6,Kask,"HP Plus Yellow",https://www.kask-safety.com/media/download/img_3259.pdf
+04faf374-95bc-485d-8b65-8bd11e0e9af2,Kask,"Primero Air Black",https://www.kask-safety.com/media/download/img_4371.pdf
+1a7ef3d0-cafa-45fb-ad40-e045195e1357,Kask,"Primero Air Blue",https://www.kask-safety.com/media/download/img_4371.pdf
+f0764d6b-7bd9-4c3a-becf-b01e822ddb69,Kask,"Primero Air Hi-Viz",https://www.kask-safety.com/media/download/img_4371.pdf
+29316948-6880-4c99-a989-5a47a2fe8450,Kask,"Primero Air Orange",https://www.kask-safety.com/media/download/img_4371.pdf
+959ef476-3677-46ed-afac-16cb990fd7d2,Kask,"Primero Air Red",https://www.kask-safety.com/media/download/img_4371.pdf
+feb4c640-b988-4da6-80e3-24d1b8631ff6,Kask,"Primero Air White",https://www.kask-safety.com/media/download/img_4371.pdf
+1943501e-0f7a-41be-acf7-4fbc8acdf06b,Kask,"Primero Air Yellow",https://www.kask-safety.com/media/download/img_4371.pdf
+05f9acc6-50bf-4fc2-bac7-a670116cf183,Kask,"Primero PL Black",https://www.kask-safety.com/media/download/user-manual-primero-en12492-after-2025.pdf
+f696b7d0-f391-4fa3-a486-7fa9b2bff20c,Kask,"Primero PL Hi-Viz",https://www.kask-safety.com/media/download/user-manual-primero-en12492-after-2025.pdf
+6461c6f6-0a2f-492a-9862-c4a91b409b60,Kask,"Primero PL Orange",https://www.kask-safety.com/media/download/user-manual-primero-en12492-after-2025.pdf
+edf4f3d7-fba8-46aa-b64b-9c63640d4f53,Kask,"Primero PL White",https://www.kask-safety.com/media/download/user-manual-primero-en12492-after-2025.pdf
+a7da1318-6d9e-4c41-8298-50c7dbddb5e6,Kask,"Primero PL Yellow",https://www.kask-safety.com/media/download/user-manual-primero-en12492-after-2025.pdf
+17c9ffc4-1d03-4ae4-ae2f-ca7e709b6e11,Kask,"Superplasma AQ Black",https://www.kask-safety.com/media/download/img_1726.pdf
+61ad1b88-aaa8-4fff-897e-1915480fbd71,Kask,"Superplasma AQ Blue",https://www.kask-safety.com/media/download/img_1726.pdf
+9728066e-b05c-478c-b762-ee82def27c75,Kask,"Superplasma AQ Green",https://www.kask-safety.com/media/download/img_1726.pdf
+2b84f2c9-bddc-4570-83c1-66bf7136a706,Kask,"Superplasma AQ Orange",https://www.kask-safety.com/media/download/img_1726.pdf
+a2d5a0a0-913b-41f3-985b-0cdf7ed9ea42,Kask,"Superplasma AQ Red",https://www.kask-safety.com/media/download/img_1726.pdf
+73e26a00-56e2-4b50-8a3d-968d28cab989,Kask,"Superplasma AQ White",https://www.kask-safety.com/media/download/img_1726.pdf
+a69428bd-01fe-460d-8059-4f416712c34a,Kask,"Superplasma AQ Yellow",https://www.kask-safety.com/media/download/img_1726.pdf
+be0c4090-76aa-40ee-9ae7-49de048785e8,Kask,"Superplasma HD",https://www.kask-safety.com/media/download/user-manual-superplasma-hd.pdf
+edd8c557-497a-4b92-969a-be6a3bda39b7,Kask,"Superplasma HP",https://www.kask-safety.com/media/download/img_1726.pdf
+2d0e783b-ed37-4f00-af6f-5006c75751fa,Kask,"Superplasma HP Visor",https://www.kask-safety.com/media/download/img_1726.pdf
+c660ba93-5997-4bf3-a6c1-0a568ec44470,Kask,"Superplasma PL Black",https://www.kask-safety.com/media/download/img_1726.pdf
+87a4145c-0568-4485-9fff-c38dbffdbd76,Kask,"Superplasma PL Hi-Viz",https://www.kask-safety.com/media/download/img_1726.pdf
+f4178d93-0777-4f1d-81ca-c233f96b8193,Kask,"Superplasma PL Orange",https://www.kask-safety.com/media/download/img_1726.pdf
+ba0bd352-1d11-4dd4-8f0a-1724fbf81e5e,Kask,"Superplasma PL White",https://www.kask-safety.com/media/download/img_1726.pdf
+de8e2c66-1354-4e2f-8d4e-173e5dafbf18,Kask,"Superplasma PL Yellow",https://www.kask-safety.com/media/download/img_1726.pdf
+c5438bdc-3b16-46db-b749-7ec9e9f8a984,Kask,"Zenith Air Orange",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+90d1d221-c349-4269-8705-5719d1d48370,Kask,"Zenith Air White",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+084e59db-e21b-47a8-963e-179dbd7080ff,Kask,"Zenith Combo PL",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+cd8e3c84-9b48-40d6-8d6e-08831bfdad22,Kask,"Zenith Hi-Viz",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+6c8549b3-f279-4ebd-b3a4-a8799ede86fa,Kask,"Zenith PL Black",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+b3925b5f-71d5-45af-8896-ac1cdf2a60ac,Kask,"Zenith PL Orange",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+aa9ffeea-58fe-4555-9e83-aac136a931a0,Kask,"Zenith PL White",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+61f17977-2a27-4f73-ae9d-eeca3c6560e9,Kask,"Zenith PL Yellow",https://www.kask-safety.com/media/download/zenith-hi-viz-ansi-user-manual.pdf
+f78b051b-ef92-4a90-a880-8b7ae561136d,Kask,"Zenith X PL Black",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+944215b5-6aed-4ac0-b5d9-4881dded658c,Kask,"Zenith X PL Hi-Viz",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+f02f741c-4db4-42c6-87df-31cc54b586c6,Kask,"Zenith X PL Orange",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+516b5588-0a26-435b-b7e3-d7264e3f583d,Kask,"Zenith X PL White",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+40809c30-6f51-4cb2-9709-7150ad45b5f1,Kask,"Zenith X PL Yellow",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+0ac77477-34d6-413c-b250-106333234c86,Kask,"Zenith X-Air Black",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+497eb364-178a-42cd-a941-fe25267c74e3,Kask,"Zenith X-Air Blue",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+3a207d93-d821-40e3-bf70-8c864e321dd4,Kask,"Zenith X-Air Olive Green",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+5e7719c1-b3df-4d1b-a08b-94b8f3ce21fb,Kask,"Zenith X-Air Orange",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+4b5f76dc-6038-4af8-8231-9929c6c1fc28,Kask,"Zenith X-Air Pink",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+05b648ea-3319-47e3-ad9f-8fa2394f9b4e,Kask,"Zenith X-Air Red",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+ec74bac5-15d9-4697-be20-0ff1e0942cfa,Kask,"Zenith X-Air White",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+c5a8e1c1-b2b4-4da7-933c-87b7d3885eca,Kask,"Zenith X-Air Yellow",https://www.kask-safety.com/media/download/zenith-x-ansi-user-manual.pdf
+81f9288e-5353-4fb9-833f-c9356296388b,Kask,"Zenith X2 Air Black",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+0072e2a0-2161-471c-bcc0-a5ee770a7946,Kask,"Zenith X2 Air Blue",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+8aa39e4f-0158-4a9a-9862-4b4caef5c193,Kask,"Zenith X2 Air Hi-Viz",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+d21b177d-b425-466a-b0f8-92c39f5e25a4,Kask,"Zenith X2 Air Orange",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+217052e6-224f-4475-b4c4-0f79ae9bbf4b,Kask,"Zenith X2 Air Red",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+46ea4f93-e7ba-45eb-a35c-ecd78a62e030,Kask,"Zenith X2 Air White",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+adcb4cfa-557c-412c-bf73-c1bfa7a636db,Kask,"Zenith X2 Air Yellow",https://cdn.shopify.com/s/files/1/0923/3012/files/user-manual_zenith-x2-max_2.pdf?v=1758988641
+4b2a70dd-60b9-44e2-8b80-a95011925956,Rock Exotica,"Akimbo²",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/akimbo_user_manual.pdf
+bc0f405a-3aca-4b48-8da4-fa40e26f346b,Rock Exotica,"AZTEK Pulley (individual)",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/aztek-tech-notice.pdf
+c8a1babc-d248-4b4e-856e-3c5908977f62,Rock Exotica,"Enforcer",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/enforcer-tech-notice.pdf
+b117da3c-36d4-460a-b016-4614704f829e,Rock Exotica,"Hydra Triple Attachment Pulley",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/hydra-tech-notice.pdf
+27a45353-8f35-4f82-848f-87a54471f433,Rock Exotica,"Kootenay Ultra",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/kootenay-tech-notice.pdf
+437d0353-fef0-402e-959b-7cb5d04fe6ec,Rock Exotica,"Machined Mini Pulley 1.1"" Double",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+1f0f1c38-ebce-4e99-a5fb-701f133bdd5b,Rock Exotica,"Machined Mini Pulley 1.1"" Single",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+8367bc68-96ba-4da4-9555-73d019a5458d,Rock Exotica,"Machined Rescue Pulley 1.5"" Double",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+9569d7ad-679d-446f-b820-1100d734b29a,Rock Exotica,"Machined Rescue Pulley 1.5"" Single",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+d7955846-6223-4818-85ed-a8649297ab22,Rock Exotica,"NanoSwivel",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/swivel-tech-notice.pdf
+09440506-a676-4a91-a5b8-b7fc4364ac5d,Rock Exotica,"Omni-Block 1.1"" Single",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+631defa5-1ecc-40a7-b3b1-23865fd7ba68,Rock Exotica,"Omni-Block 1.5"" Double",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+46c45f6a-a84c-488f-8aae-54a00db3c5eb,Rock Exotica,"Omni-Block 1.5"" Shackle-Top",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+287fabd6-f174-4f8d-bd60-8a55d022cd05,Rock Exotica,"Omni-Block 1.5"" Single",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+0e372d35-05a2-4985-b02d-8133be3c7141,Rock Exotica,"Omni-Block 1.5"" Stainless Sheave",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+ce105569-99dc-486f-86cb-b969df0e421d,Rock Exotica,"Omni-Block 2.0"" Double",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+ab772252-9fb7-4920-87c0-690ce265ef1b,Rock Exotica,"Omni-Block 2.0"" Single",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+2aba8376-e0a1-4775-b9b4-fde1cfde6a15,Rock Exotica,"Omni-Block 2.6"" Single",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/omni-tech-notice.pdf
+e9b184d6-68f7-4899-b249-27d88dc9d771,Rock Exotica,"Orbitor Swivel",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/swivel-tech-notice.pdf
+83924dda-d8a7-41bc-99d5-c1296f76a087,Rock Exotica,"PentaPlate",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/rig-plate-tech-notice.pdf
+806a3f7e-8566-4301-9814-e10ddff5912b,Rock Exotica,"Pirate Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+6c41b8b1-5b30-4ebd-ba72-68d7248aac84,Rock Exotica,"Pirate ORCA-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+7d106209-7029-403b-98ff-69da3d91e792,Rock Exotica,"Pirate Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+2f10f342-abab-4b55-969f-014fbc507f5b,Rock Exotica,"Pirate Up-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+45385a84-4923-4fde-aa92-7aca7cf47bf0,Rock Exotica,"Pirate WireEye Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+11db507b-86e8-4b90-ad45-0af00ad73623,Rock Exotica,"Pirate WireEye Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+da99463f-c5cf-43ac-bee9-32506070d9fd,Rock Exotica,"PMP 2.0"" Double (Prusik Minding Pulley)",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+5359b3e7-7114-4912-b6c7-f61d54863094,Rock Exotica,"PMP 2.0"" Single (Prusik Minding Pulley)",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/machined-pulley-tech-notice.pdf
+49d2a79e-ac31-4484-a205-ea3b3d6218dd,Rock Exotica,"rockD ANSI LPA Stainless Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/stainless-carabiner-tech-notice.pdf
+9b0d1fff-5833-4b13-85be-2b1e2fdea753,Rock Exotica,"rockD ANSI Stainless Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/stainless-carabiner-tech-notice.pdf
+035d016d-3787-4462-8561-4f5135a04a33,Rock Exotica,"rockD Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+1cfe8169-80b4-4b34-be6d-2db242c1f1a9,Rock Exotica,"rockD Lanyard Pin Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+54d3631a-9a73-450a-b675-26f351cb0903,Rock Exotica,"rockD ORCA-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+733e3dfc-df70-40a3-8b83-1eeb51f69e46,Rock Exotica,"rockD Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+889f3a1c-ef31-4254-a54e-35f4f1697901,Rock Exotica,"rockD Stainless Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/stainless-carabiner-tech-notice.pdf
+882b69e0-5b57-428a-8d2a-94c4bba1fb1b,Rock Exotica,"rockD Stainless Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/stainless-carabiner-tech-notice.pdf
+4cbd6aaa-1fb7-4f39-9ca5-96821925ad76,Rock Exotica,"rockD Twistlock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+3639f437-8a7c-4df9-8de7-5ce76243acdd,Rock Exotica,"rockD Up-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+969b608f-e1d6-49b8-b476-6c8e20efbbf1,Rock Exotica,"RockGrab",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/RG2_RockGrab-tech-notice.pdf
+d534d0c7-4af1-492f-87a5-016fa7eefb72,Rock Exotica,"RockGrab .625"" 90°",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/RG2_RockGrab-tech-notice.pdf
+5a52d99d-68ee-4859-afec-8159cbc5ee0c,Rock Exotica,"RockGrab 90°",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/RG2_RockGrab-tech-notice.pdf
+1f5532ed-bdd5-4d3d-9c14-417ec52a2b07,Rock Exotica,"RockGrab MIL",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/RG2_RockGrab-tech-notice.pdf
+41560ec2-fa3d-4bd1-9cff-48f2bacb8db5,Rock Exotica,"rockO Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+2ac7699b-cf49-4338-b99e-d90dcb6d50e0,Rock Exotica,"rockO Non-Locking Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+b3a3981e-5a1e-4299-82d4-522048ca9fcb,Rock Exotica,"rockO ORCA-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+b177dd17-faea-4879-94f9-ef09ef136e7f,Rock Exotica,"rockO Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+7764ad45-638e-4934-bb7e-fc1e6aad3815,Rock Exotica,"rockO Up-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+b28e8616-09c0-4e4d-a531-bad07e5b0ebf,Rock Exotica,"rockO WireEye Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/aluminum-carabiner-tech-notice.pdf
+8348a486-f92e-4ba0-9ec5-583f2adb60fc,Rock Exotica,"RockStar 3D Rigplate",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/rig-plate-tech-notice.pdf
+16a005b7-e9d4-4e02-bf2f-1023cff0600a,Rock Exotica,"rockSteel Auto-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/steel-carabiner-tech-notice.pdf
+a887b772-eccb-42ba-a671-a994a7e97a45,Rock Exotica,"rockSteel Screw-Lock Carabiner",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/steel-carabiner-tech-notice.pdf
+e2e4b923-34de-4e79-99e0-8bfc5e95f255,Rock Exotica,"Rotator Round Swivel (Large)",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/swivel-tech-notice.pdf
+1dc18d22-d716-4c60-a901-85ab4571e4fe,Rock Exotica,"Se7en Rigplate",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/rig-plate-tech-notice.pdf
+d06c40c8-07a9-4949-b109-0ef5174db048,Rock Exotica,"Shackle Swivel",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/swivel-tech-notice.pdf
+94d195e3-54a7-4d3b-a019-90b1c1f2b8ae,Rock Exotica,"Stainless Steel Swivel",https://www.rockexotica.com/media/wysiwyg/rockexotica/tn/swivel-tech-notice.pdf
+135df392-f99f-4931-9532-574c28615c80,Rock Exotica,"The Bolt",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/rig-plate-tech-notice.pdf
+8981b48f-c02f-4ab7-8815-5d3537cea9e2,Rock Exotica,"Transporter",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/RG2_RockGrab-tech-notice.pdf
+c18cdfc7-6f9b-4725-8797-16464a2a7892,Rock Exotica,"TriRig (Black)",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/rig-plate-tech-notice.pdf
+bbd7b1e5-3340-4af0-926b-d9218c12f0a9,Rock Exotica,"Unicender",https://cdn.shopify.com/s/files/1/0749/9723/6013/files/unicender-tech-notice.pdf
+f0e6898d-5e77-4433-abfe-d1c0b78ff3ef,Skylotec,"ARIES",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+5f122252-1203-4630-a9b8-8d6c0c009e45,Skylotec,"ARIES AIR",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+da888d78-1e84-4f92-bcff-3fb3c8e2064a,Skylotec,"CRIC",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4322201?public=true&download=true&website=true
+46b6ef73-4636-417e-972a-cc732aa83190,Skylotec,"DOUBLE TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+1396b62b-7bae-4929-a3ca-99674748507e,Skylotec,"FS 110 ALU",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+701a6812-4776-4c71-9fd4-76287dda5c0f,Skylotec,"FS 51 ST",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+522713e9-f679-4d04-936b-7b939deebc69,Skylotec,"FS 90 ALU",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+1280b0b8-6aca-407a-ba67-7fbf39136a10,Skylotec,"FS 90 ST",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+121ef0f4-b821-4ad0-93f1-a7b4c8d5c4fc,Skylotec,"FS 92",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+b6a46e95-4ee1-4cfe-bc3b-9409162a3965,Skylotec,"HMS STEEL TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+37fa9747-b647-4916-b545-b7b9928c2c80,Skylotec,"INCEPTOR GRX",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+6f5b9db6-3144-47dc-863d-6df76b67ab73,Skylotec,"INCEPTOR GRX HIGH VOLTAGE",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+bb245d6e-cac2-4fea-97be-d98c9eeb0a41,Skylotec,"INCEPTOR GRX HIGH VOLTAGE REF",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+2def9765-6491-4553-9639-5a8a574f66a9,Skylotec,"INCEPTOR GRX REF",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4323295?public=true&download=true&website=true
+03f56406-731c-41e0-85ff-6e4cedb0ca01,Skylotec,"KOBRA TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+c55b21a9-3e76-4d72-84d4-fd42a67e9c89,Skylotec,"LORY PRO",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4340217?public=true&download=true&website=true
+4202c07e-c4be-47e1-a29d-9748bdcbb0b6,Skylotec,"OBX BG",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+635596c4-478b-4823-88bc-861c06b9625d,Skylotec,"OVAL STEEL TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+9b50b212-35bb-41cf-ab35-0713302f6eb4,Skylotec,"PASSO TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+57cd2dd6-0c7d-4705-ac39-5f021a4d7d1a,Skylotec,"PASSO-TWIST",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+2da13e62-c046-4cc4-8006-afd8eea791cc,Skylotec,"PEANUT I",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3914816?public=true&download=true&website=true
+04b65a9b-383f-49bb-afc8-54aedbeb0818,Skylotec,"PEANUT Y",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3914816?public=true&download=true&website=true
+cb57b67a-c7dd-4f84-ae50-43814933b141,Skylotec,"SKYSAFE ECO-R",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+fc98be54-9999-47cf-b649-202cdd9da468,Skylotec,"SKYSAFE ECO-W",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+806d45d9-3c53-4545-baf3-45d18736386c,Skylotec,"SKYSAFE PRO FLEX",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+4ab765b6-a59e-4d59-aa7b-9d0684f95ea4,Skylotec,"SKYSAFE PRO FLEX Y",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+166b5b73-8910-414a-b777-b6eac6640d2a,Skylotec,"SKYSAFE PRO+",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+09f539ba-a57b-431a-a4f3-fd89d61afc60,Skylotec,"SKYSAFE PRO+ Y FLEX",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/3803888?public=true&download=true&website=true
+5e2238e5-9b0e-44f0-9046-9f5d06eb7c1e,Skylotec,"STAK TRI",https://mediaservice.skylotec.com/v2/clients/2/sources/10/files/4315046?public=true&download=true&website=true
+eaf55b36-449b-40bb-8844-ddacbc777f6b,Tractel,"AS19S Anchor Sling (0.6m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+159b0a39-3f58-4519-99e2-162ca6913df0,Tractel,"AS19S Anchor Sling (0.8m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+a027cbc8-28d2-4fab-9d2b-c6abcf7faef8,Tractel,"AS19S Anchor Sling (1m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+7db8738f-db5d-4dcd-adbc-86280fb9ceff,Tractel,"AS30S Anchor Sling (0.6m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+62cf1073-f52c-47e1-a32d-5dbb8a58b993,Tractel,"AS30S Anchor Sling (1.5m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+b3e4c36d-9a57-4538-bc8b-14a1e2030617,Tractel,"AS30S Anchor Sling (1m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+e2774ede-ceef-4feb-9037-9a891473f268,Tractel,"AS30S Anchor Sling (2m)",https://www.tractel.com/PIM/Manuals/HSP/OLD%20MANUAL/IM_AS19S%20%26%20AS30S__146815_A02IND00.pdf
+3c805573-40c3-4d8d-8241-2343a2f5e689,Tractel,"Blocfor 1.8m (with steigerhaak)",https://www.safety-lifting.com/file/download/5910
+11e18fae-b29d-432f-a5f6-f825faa0e721,Tractel,"Blocfor 1.8m ESD 150kg",https://www.safety-lifting.com/file/download/5910
+cf4e9453-7a4e-4403-ab8f-9898ec57a64b,Tractel,"Blocfor 10m staalkabel ESD",https://www.safety-lifting.com/file/download/5910
+49910756-273f-44e5-a7d0-52bac6690b9b,Tractel,"Blocfor 10m synthetische kabel ESD",https://www.safety-lifting.com/file/download/5910
+1f889c52-d0bb-4e13-b900-0bfb9f8cfd32,Tractel,"Blocfor 20 ESD 150kg",https://www.safety-lifting.com/file/download/5910
+c20b7ec8-70e0-48c2-87ae-8ab74a586ec8,Tractel,"Blocfor 30R ESD 150kg",https://www.tractel.com/PIM/Manuals/HSP/Fall%20arrester/Blocfor/Blocfor%2020%20&%2030R%20100KG/28%2012%202014%20notice%20complement%202030%20fr%20gb%20d%20it%20V1.pdf
+4513e8f5-c028-4883-a6d9-92c529be4ec8,Tractel,"Blocfor 6 ESD 150kg",https://www.safety-lifting.com/file/download/5910
+007c2820-244f-4497-9db5-4d7c9d665f67,Tractel,"HT Access harness (M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Access/250355.ind-00.01-23%20HT%20Access.pdf
+d6777b06-a6e6-431a-9922-f7db0eb7ac2c,Tractel,"HT Access harness (S)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Access/250355.ind-00.01-23%20HT%20Access.pdf
+0f973b0b-0558-4030-a53f-7f429deb9afb,Tractel,"HT Access harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Access/250355.ind-00.01-23%20HT%20Access.pdf
+aca8b256-48df-45bc-a731-e625dcd2a674,Tractel,"HT Access harness (XXL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Access/250355.ind-00.01-23%20HT%20Access.pdf
+680f88cf-643c-40d9-ae64-93a20d75a219,Tractel,"HT Easyclimb harness (M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+878ce443-2d92-4a63-b492-0f0cae2a0aec,Tractel,"HT Easyclimb harness (S)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+cdd5c08a-2ec4-4874-b8a9-d7473d350d6b,Tractel,"HT Easyclimb harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+a78edede-cef8-49ce-948f-b9b54e6bac0c,Tractel,"HT Electra harness",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+3cc3de61-3c1f-40ea-a627-c63391d8c9ce,Tractel,"HT Greentool harness (M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+f73523fa-d8d2-4d39-8267-a1de4d535b6c,Tractel,"HT Greentool harness (S)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+81c1a97d-71fb-43a3-b111-cbfca967ea75,Tractel,"HT Greentool harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+c9e2bd62-cafc-40d8-befb-53c654150211,Tractel,"HT Ladytrac B harness (S/M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+467122e9-6172-4986-b6b9-28b6f7f33516,Tractel,"HT Ladytrac B harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+7ecd1ae5-d157-4a60-abc0-772d188817b6,Tractel,"HT Ladytrac harness (S/M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+3f43db80-f21c-4c60-8aa0-b1adaef7a349,Tractel,"HT Ladytrac harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+68e6a534-307c-4392-8c87-8db54f62a3f6,Tractel,"HT Promast harness (M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+b52e2ff8-6ccd-444b-a75a-ef236859cf47,Tractel,"HT Promast harness (S)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+1b462f1b-02c2-42a8-8851-fea328d34a1e,Tractel,"HT Promast harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+f62d491a-6293-45c6-87b7-279d3e3ef1e2,Tractel,"HT Secours harness",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+6bd8924d-6d91-4f25-953d-3399ad5ef4ab,Tractel,"HT Transport harness (M)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+96be7cbc-65d7-4867-a1e3-6837a90ede2b,Tractel,"HT Transport harness (S)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+b97c89e7-379a-43d2-9698-29881e117cbb,Tractel,"HT Transport harness (XL)",https://www.tractel.com/PIM/Manuals/HSP/Harness/Harnesses_ET_HT_2021_Range/HT%20Technic%20150kg/146505_harnais_Technique.pdf
+9cc813db-54dd-4a1a-b106-aae536a8788e,Tractel,"HT22 mtM harness",https://www.safetyliftingear.com/file/download/5808
+704c4a0b-c6bd-4ff7-8631-31d724922731,Tractel,"HT22 mtXL harness",https://www.safetyliftingear.com/file/download/5808
+ecdd8675-b871-42d2-85dc-07e97f429ede,Tractel,"HT22R Fall Arrest Harness",https://www.safetyliftingear.com/file/download/5808
+fb009d27-08d8-42e6-abcd-fb82ffe1f1f5,Tractel,"Stopcable S (150kg)",https://www.tractel.com/PIM/Manuals/HSS/Fall%20arrester/Stopcable%20S%20150kg/147815-03_ind-00_12-17.pdf
+8c07c72f-9ffb-409f-95b0-0038ead59946,Tractel,"Stopfor B",https://www.tractel.com/PIM/Manuals/HSP/Fall%20arrester/Stopfor/Stopfor%20150kg/IM_Stopfor%20150kg_150565_IND02.pdf
+c03b1322-ff77-4fd8-bcf3-9c0a2ba6004d,Tractel,"Stopfor BF",https://www.tractel.com/PIM/Manuals/HSP/Fall%20arrester/Stopfor/Stopfor%20150kg/IM_Stopfor%20150kg_150565_IND02.pdf
+d9012193-1292-4d67-b643-fe9bac0a84bd,Tractel,"Stopfor MSP",https://www.tractel.com/PIM/Manuals/HSP/Fall%20arrester/Stopfor/Stopfor%20150kg/IM_Stopfor%20150kg_150565_IND02.pdf
+2b8a1892-711c-457b-a166-6df096a97ad0,Tractel,"Stopfor SL",https://www.tractel.com/PIM/Manuals/HSP/Fall%20arrester/Stopfor/Stopfor%20150kg/IM_Stopfor%20150kg_150565_IND02.pdf
+585688ca-4e41-42ca-a780-657658868f12,Tree Runner,"P 3000 Rigging Bollard",https://cdn.grube.de/2024/08/21/Manual_Tree-Runner_71-877_71-879_en_082024.pdf
+8859c784-2d10-4c83-a20a-b5234dfed54d,Tree Runner,"P 500 Rigging Bollard",https://cdn.grube.de/2024/08/21/Manual_Tree-Runner_71-877_71-879_en_082024.pdf
+13235578-3fe2-4fcd-94d6-b7b28f9d2bda,Tree Runner,"P3000 Abseil Brake / Rigging Bollard",https://cdn.grube.de/2024/08/21/Manual_Tree-Runner_71-877_71-879_en_082024.pdf
+debdcefd-b044-482b-b10a-0cd5e32087f3,Tree Runner,"P500 Lowering Device / Abseil Brake",https://cdn.grube.de/2024/08/21/Manual_Tree-Runner_71-877_71-879_en_082024.pdf
+33926699-48cf-4cad-96b6-fb36ed76e9ba,Tree Runner,"Rigging Device / Abseil Brake",https://cdn.grube.de/2024/08/21/Manual_Tree-Runner_71-877_71-879_en_082024.pdf
+333ffc15-b76e-4c22-86dd-b06b3a7fbdd2,Tree Runner,"Super Flex Sidewinder Steel Lanyard 12.7 mm",https://cdn.grube.de/2025/08/05/Manual_Tree-Runner-Super-Flex-Attack_71-539_71-235_de_05082025.pdf
+b4552610-2ebd-4da0-a6c6-e214d6da31ba,Tree Runner,"Super Flex Steel Lanyard 12.7 mm",https://cdn.grube.de/2025/08/05/Manual_Tree-Runner-Super-Flex-Attack_71-539_71-235_de_05082025.pdf
+52496c06-eb76-4a89-b6f0-e7647c9edaa3,Yale Cordage,"Bee Line Black 10mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+0a89a484-9c45-4a06-9803-5bb4dafe06ed,Yale Cordage,"Bee Line Polyester Core 10mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+fd1fa69d-d646-41f2-b19e-fdfd0426d9a0,Yale Cordage,"Bee Line Vectran Core 10mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+587bd3c2-5b0f-4a33-ad96-6e4dab712b28,Yale Cordage,"Bee Line Vectran Core 8mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+18ec1d51-3bd4-4a22-a69f-304fd75e6ed0,Yale Cordage,"XTC-12 Buzzzline 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+ef0a643d-ce4c-4902-b5dd-bfcb77669492,Yale Cordage,"XTC-12 Code Yellow 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+32ceb7a0-59a8-45fc-98ba-a0968ff4d5f4,Yale Cordage,"XTC-12 Fire 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+9192e09a-8fa0-4a4f-a012-574c9f82f036,Yale Cordage,"XTC-12 Plus 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+93de0d2d-c20e-49f5-ac6e-31dac7891c20,Yale Cordage,"XTC-12 Rigging 3/4"" (19mm)",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+4c07eeb0-70b0-48f9-89e0-4d21c0224404,Yale Cordage,"XTC-12 Rigging 5/8"" (16mm)",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+15259dd4-6839-4b5d-884c-b1686b274db0,Yale Cordage,"XTC-12 Spearmint 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+5ff56975-48d1-4358-948f-85d482b63c55,Yale Cordage,"XTC-12 White 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+9d2fb98e-b5b2-4996-9e31-aefc29d73c14,Yale Cordage,"XTC-16 Fire 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+f1222bb2-8bbf-44a9-87bd-f2793feb3120,Yale Cordage,"XTC-16 Plus 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+51faba05-feb0-491f-86ee-8d1f3fa9e48c,Yale Cordage,"XTC-16 Spearmint 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+6fd28e1b-ae52-4d92-9922-7e25fd689948,Yale Cordage,"XTC-16 White 13mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+6a0b9c04-c1a7-410f-a15c-010021602b94,Yale Cordage,"XTC-24 Arrow Frog 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+a9f04976-c1b0-4678-a717-881b223b53d7,Yale Cordage,"XTC-24 Bandit 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+512e3bdd-20bc-4ec8-bb0a-66e049914ff0,Yale Cordage,"XTC-24 Blaze 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+a4f81273-e057-4a11-955a-a1e43fe11c70,Yale Cordage,"XTC-24 Blue Moon 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+c1343b71-bae8-4f44-8c78-5cfedc7e40f6,Yale Cordage,"XTC-24 Blue Tongue 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+ea61f9ef-a0da-48bf-8cc2-8bfde9d32e87,Yale Cordage,"XTC-24 Calamine 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+6c4e4345-c8fb-40a3-a0f3-0e23e9e2dc21,Yale Cordage,"XTC-24 CE Blaze 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+cc96eec2-f70c-4117-8a70-ab6f548ba2e1,Yale Cordage,"XTC-24 CE Imori Green 12mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+7ec9dfc9-7bd0-468f-9985-72ab71446d0f,Yale Cordage,"XTC-24 CE Imori Orange 12mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+7d9d1c2d-e1d4-4191-897d-1b958803c127,Yale Cordage,"XTC-24 CE Sunburst Orange 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+0d108349-5e15-4bff-855c-0927e8c7436f,Yale Cordage,"XTC-24 CE Sunburst Yellow 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+2670af16-5d8b-4b72-86e3-d91de6eaabac,Yale Cordage,"XTC-32 Blue 32 11.5mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+ce6fd3e8-80ce-49e7-a622-b3d2286d85de,Yale Cordage,"XTC-32 Blue 32 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+0b0d4349-1889-41c5-b231-047a28cfd89c,Yale Cordage,"XTC-48 Kernmaster Code Green 10mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+b9e53ecd-282b-4771-af28-64b6adbcb44b,Yale Cordage,"XTC-48 Kernmaster Code Green 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+e802d67c-9f58-4080-86a6-89f3ef04cad4,Yale Cordage,"XTC-48 Kernmaster Code Green 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+075d5d3f-bef8-49e3-8672-d3ab21a0e3f3,Yale Cordage,"XTC-48 Kernmaster Code Green 12mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+e10090d2-a98b-4072-8044-d7a597f209a2,Yale Cordage,"XTC-48 Kernmaster Code Green 16mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+c81d9b0a-364f-4b4b-8578-259867219d89,Yale Cordage,"XTC-48 Kernmaster Code Orange 10mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+00383e43-eb4d-4484-acac-44fa46be2963,Yale Cordage,"XTC-48 Kernmaster Code Orange 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+de1acc5f-a221-4b6a-8239-4af75b641bd2,Yale Cordage,"XTC-48 Kernmaster Code Orange 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+72f1f291-6eed-4d3e-8c13-c3d506d9a0cd,Yale Cordage,"XTC-48 Kernmaster Code Orange 12mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+f69a0b8b-3a68-4369-8279-615d94cddc6c,Yale Cordage,"XTC-48 Kernmaster Code Orange 16mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+d263b81b-87b0-4160-aa70-a45878b66bee,Yale Cordage,"XTC-48 Kernmaster Phantom Green 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+204e0c81-b199-4f83-be95-4a5bce800535,Yale Cordage,"XTC-48 Kernmaster Phantom Pink 11mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+45214e8b-d857-464f-8cd2-f56a0c15a2cc,Yale Cordage,"XTC-48 R.I.N.G. Rope 10.5mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+3336b4ff-5e38-4cf3-997e-2475eaa4257e,Yale Cordage,"XTC-48 R.I.N.G. Rope 11.5mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+e1617f89-1c76-4c7f-9ccc-03c04840806f,Yale Cordage,"XTC-48 Scandere Purple 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+a4872bc6-c5c7-4021-844a-fad97d4796eb,Yale Cordage,"XTC-48 Scandere Red 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+88f73566-8b8f-4f6a-b6b3-e3586553b7ff,Yale Cordage,"XTC-48 Scandere Yellow 11.7mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf
+0d5ce8fb-f6d1-4af9-bd6b-f2a6481f06bf,Yale Cordage,"XTC-48 Tech-Kern 11.4mm",https://www.yalecordage.com/wp-content/uploads/2021/09/Attachment-6-Use-Instructions-Card-XTC-24-English.pdf

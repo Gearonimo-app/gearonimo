@@ -124,6 +124,39 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Internet aan, en meteen de handleidingen nagelopen (2026-08-26).** Jos
+> zette het netwerkbeleid open en leverde een bestand aan waarin Grok
+> handleiding-links had ingevuld. Alles gecontroleerd, niet overgenomen.
+> - **484 nieuw ingevulde links, over 72 unieke URL's.** Elke URL opgehaald,
+>   de PDF gedownload en de eerste vier pagina's gelezen. 452 links
+>   overgenomen, **34 afgekeurd** omdat de handleiding bij een ánder product
+>   hoort: 24 Tree Runner-karabiners kregen een handleiding van **LACD** (een
+>   ander merk), 5 Tree Runner-touwen die van de Safe Vision, 3 ART
+>   SpliceAnchors die van de RopeGuide TwinLine, en de ZipAbsorber die van de
+>   RopeGuide 2010.
+> - **Ook de 394 links die er al stonden getest: 11 waren dood.** Twee ervan
+>   kon Grok repareren — bij de SpiderJack 2.1 en de DoubleSnapper 3 stonden
+>   de twee ART-adressen precies omgekeerd (`shared-assets` ↔ `wp-content`),
+>   allebei 404 op de plek waar wij ze hadden. Rechtgezet.
+> - **92 Courant-links zijn niet te controleren vanaf hier**: hun server
+>   levert een incomplete certificaatketen, dus de TLS-verbinding faalt.
+>   Overgenomen omdat het hun eigen domein is en de bestandsnaam het product
+>   noemt, maar niet zelf gezien.
+> - Handleiding-dekking: van 1112 ontbrekend naar **661**.
+>
+> **EDELRID HMS Strike, vier sluitingen (2026-08-26).** Nu met internet zelf
+> opgezocht: Screw, Twist, Slider en Triple bestaan, `strike-screw` zonder
+> `hms-` is een niet-bestaande pagina (de webshop geeft daar een zachte 404,
+> dus dat is met de paginatitel gecontroleerd).
+> - **De sluitingen verschillen in norm, en dat is het punt.** Screw (73769)
+>   en Triple (73770) dragen EN 12275 én EN 362; Twist (73819) en Slider
+>   (73771) alléén EN 12275. Bij die twee staat als LET OP in de opmerking dat
+>   ze niet als connector in een PBM-systeem gebruikt mogen worden.
+>   Bevestigd in EDELRID's eigen handleidingstabel, niet alleen op de
+>   productpagina.
+> - Keuringsinstructie van EDELRID (`Pruefanweisung_Karabiner.pdf`) in
+>   `inspection_notice_url` — het eerste EDELRID-product met dat veld gevuld.
+
 > **NEWTON-recall rechtgezet (aanlevering Jos, 2026-08-26).** Petzl riep op
 > 04-03-2025 de **Europese** uitvoeringen van NEWTON, NEWTON FAST en NEWTON
 > EASYFIT terug; de International Versions vallen er niet onder.
