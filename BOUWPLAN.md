@@ -124,6 +124,23 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Ocean Polyester e2e in alle lengtes (2026-08-26).** Zelf van de
+> Teufelberger-pagina gehaald: 8 mm in 0,76 / 0,85 / 0,90 / 0,95 m en 10 mm in
+> 0,65 / 0,80 / 0,85 / 0,90 / 0,95 / 1,00 / 1,05 m. Elf rijen erbij.
+> - **De twee diameters dragen niet dezelfde normen.** 8 mm: EN 795B + ANSI
+>   Z133. 10 mm: EN 795B + **EN 566** + ANSI Z133. Bevestigd in de twee
+>   aparte handleidingen (`OP 8mm e2e` en `OP 10mm e2e`), niet alleen op de
+>   productpagina. Staat ook als opmerking bij de 8 mm.
+> - **Levensduur 3 jaar, en de teller start bij het uitpakken**, niet bij
+>   eerste gebruik of productie: *"up to 3 years from the day the product was
+>   first taken out of the undamaged light-protected package"*. Teufelberger
+>   gaat ervan uit dat dat bij aankoop gebeurt. Dat staat uitgeschreven in de
+>   opmerking, want `max_age_use_years` kent dat onderscheid niet.
+> - **Aparte naadcontrole-instructie** van Teufelberger in
+>   `inspection_notice_url` bij alle 10 mm-rijen én bij de OP Loop 10 mm — dat
+>   document noemt zelf welke producten het dekt (multiSLING, OP e2e 10mm,
+>   OP Loop 10mm).
+
 > **Internet aan, en meteen de handleidingen nagelopen (2026-08-26).** Jos
 > zette het netwerkbeleid open en leverde een bestand aan waarin Grok
 > handleiding-links had ingevuld. Alles gecontroleerd, niet overgenomen.
