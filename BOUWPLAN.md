@@ -124,6 +124,33 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Handleidingen: 1112 → 467 in twee dagen (2026-08-26).** Na het openzetten
+> van het netwerk drie rondes gedaan; alles met de PDF in de hand
+> gecontroleerd, nooit een link overgenomen zonder hem te openen.
+> - Yale (31): hun algemene keuze- en inspectiegids, dezelfde die 103 andere
+>   Yale-touwen al hadden. Yale voert geen handleiding per touw.
+> - DMM (47): het boekje "Slings and Lanyards" voor de lanyards en
+>   Fidus-lussen; de drie Director Double-connectoren kregen het
+>   connectorenboekje **waarin de Director met naam staat** — gecontroleerd
+>   door beide boekjes te doorzoeken, in het andere komt hij niet voor.
+> - Climbing Technology (21), Teufelberger (9), Notch (3), Samson (2),
+>   treeAustria (3): van hun eigen productpagina's, met een filter dat
+>   conformiteitsverklaringen en catalogi overslaat.
+> - **Bijvangst: drie CMI-producten (RP130, RP145, RP146) bleken een
+>   terugroepbericht te hebben** dat wij niet hadden. Gevonden doordat de
+>   scraper die PDF als "notice" oppikte. Die staat nu in `recall_url`, niet
+>   in het handleidingveld — een recall is geen handleiding.
+> - **Wat niet lukt en waarom** (467 over): Kratos (47), FALL SAFE (28) en
+>   Skylotec (28) geven 403 op álles, ook op gewone productpagina's met een
+>   browser-user-agent. Ellersafe en Courant leveren een incomplete
+>   certificaatketen, dus de verbinding faalt. TreeUP is offline. Tree Runner
+>   (55) publiceert bij die producten alleen de conformiteitsverklaring; de
+>   handleidingen staan wél op hun CDN maar zijn niet aan het product
+>   gekoppeld. Liros, Sterling en Tractel laden hun documenten met JavaScript
+>   na, dus ze staan niet in de HTML.
+> - Zelf een bestandsnaam raden is niet gedaan. Dat is precies hoe die 24
+>   Tree Runner-karabiners een handleiding van LACD kregen.
+
 > **Dode links gerepareerd en handleidingen aangevuld (2026-08-26).**
 > 659 → **583** ontbrekend. Alle reparaties met de PDF in de hand
 > gecontroleerd, niet op goed geluk.
