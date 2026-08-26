@@ -124,6 +124,21 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **hipSTAR Glide compleet (2026-08-26).** Jos miste de lengtes en de
+> vervanglijnen. Alles komt uit Teufelberger's eigen handleiding
+> (`6801658`, 80 pagina's), niet van de productpagina — die noemt geen enkel
+> artikelnummer.
+> - **10 complete lijnen**: 11,5 en 12,9 mm in 3, 4, 5, 7 en 10 m.
+> - **10 vervanglijnen** (`hipSTAR Glide e2e`) mét artikelnummer, 7350455 t/m
+>   7350464. Dat zijn de "Ersatzteile" uit de handleiding.
+> - **3 extra lengtes Ocean Polyester e2e 8 mm** (0,60 / 0,65 / 0,70 m,
+>   art. 7350468-70) plus het artikelnummer 7350802 voor de 0,76 m die er al
+>   in stond. Die korte lengtes staan niet op de OP-productpagina maar wél in
+>   deze handleiding, als vervangonderdeel.
+> - **prusikLOOP thimble 0,34 m** (7350436) erbij.
+> - **Artikelnummer van de complete lijn ontbreekt** en dat staat zo in de
+>   opmerking: Teufelberger publiceert alleen de nummers van de losse delen.
+
 > **Handleidingen: 1112 → 467 in twee dagen (2026-08-26).** Na het openzetten
 > van het netwerk drie rondes gedaan; alles met de PDF in de hand
 > gecontroleerd, nooit een link overgenomen zonder hem te openen.
