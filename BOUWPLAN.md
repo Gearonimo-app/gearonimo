@@ -124,6 +124,35 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Dode links gerepareerd en handleidingen aangevuld (2026-08-26).**
+> 659 → **583** ontbrekend. Alle reparaties met de PDF in de hand
+> gecontroleerd, niet op goed geluk.
+> - **79 van de 80 dode links weer werkend.** De oorzaken waren banaal:
+>   Inter Action (55 producten) stond op `http` in plaats van `https`, en de
+>   FALL SAFE-link had een letterlijke spatie in plaats van `%20`. Verder
+>   verhuisde de Distel-instructie van `/2025/09/` naar `/2026/08/`, kreeg de
+>   Rock Exotica Akimbo een nieuw adres op Shopify, en werden drie
+>   CT-handleidingen hernummerd (`IST22` → `IST23`/`IST12`).
+> - **Kratos blijft de uitzondering:** hun server geeft 403 op álles, ook op
+>   productpagina's met een browser-user-agent. Die 47 handleidingen moet Jos
+>   zelf downloaden.
+> - **35 Petzl-producten** kregen hun technische handleiding, opgehaald van
+>   Petzl's eigen productpagina's. De juiste link is te herkennen aan
+>   `pdf_Notice` in het tracking-attribuut; elke PDF gecontroleerd op de
+>   producttitel op pagina 1 (bv. `TECHNICAL NOTICE ANNEAU G0007000G`).
+> - **37 EDELRID-producten** kregen hun GAL (`*_GAL_*.pdf` op avs.edelrid.com).
+> - **Tree Runner (55) lukt niet automatisch**: grube.eu toont bij die
+>   producten alleen de conformiteitsverklaring, niet de handleiding. Die
+>   staan wél op cdn.grube.de maar zijn niet aan het product gekoppeld — en
+>   zelf een bestandsnaam kiezen is precies hoe die 24 karabiners een
+>   LACD-handleiding kregen.
+> - **SpliceAnchor en ZipAbsorber houden hun handleiding** (besluit Jos): het
+>   zijn vervangonderdelen, dus de handleiding van het apparaat waar ze bij
+>   horen is de juiste.
+> - **Ocean Polyester e2e: 3 jaar gebruik / 5 jaar productie** (besluit Jos).
+>   De uitleg over "vanaf uitpakken" is uit de opmerking gehaald: gewoon als
+>   gebruiksduur lezen, niet moeilijker maken dan nodig.
+
 > **Ocean Polyester e2e in alle lengtes (2026-08-26).** Zelf van de
 > Teufelberger-pagina gehaald: 8 mm in 0,76 / 0,85 / 0,90 / 0,95 m en 10 mm in
 > 0,65 / 0,80 / 0,85 / 0,90 / 0,95 / 1,00 / 1,05 m. Elf rijen erbij.
