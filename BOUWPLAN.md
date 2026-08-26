@@ -124,6 +124,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **NEWTON-recall rechtgezet (aanlevering Jos, 2026-08-26).** Petzl riep op
+> 04-03-2025 de **Europese** uitvoeringen van NEWTON, NEWTON FAST en NEWTON
+> EASYFIT terug; de International Versions vallen er niet onder.
+> - Vijf Europese rijen dragen nu die link, met de datum in de opmerking.
+> - **Bij vijf International-rijen is de recall weer wéggehaald.** Die had ik
+>   er zelf op gezet door de melding van 2022 van de oude verzamelrij over te
+>   nemen op alles wat EASYFIT heette. Fout de andere kant op: een
+>   waarschuwing op een gordel die niet teruggeroepen is, kost een keurmeester
+>   tijd en vertrouwen in de melding.
+> - **Wissen kan niet via `ingest`** — een lege cel behoudt daar bewust de
+>   bestaande waarde. Dat moest dus rechtstreeks op de bronlijst, net als bij
+>   de hernoemingen zonder id.
+
 > **NEWTON EASYFIT in drie maten (besluit Jos, 2026-08-25).** Zowel de
 > European als de International Version stond als één rij met drie
 > artikelcodes in het codeveld (`C073EA00 / EA01 / EA02`). Die laatste twee
