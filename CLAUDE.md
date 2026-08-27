@@ -56,9 +56,13 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   praktijk trilock.
 - **Geen winkels in de catalogus** (Jos, 2026-08-26: *"geen winkels in de app,
   daar gaan concurrenten over vallen"*). Geen winkelnamen of winkel-artikel-
-  nummers in de opmerkingen, en links wijzen naar de fabrikant. Een dealerlink
-  alleen als de fabrikant zelf niets publiceert, en dan zonder de winkel te
-  noemen in de tekst. Controleren:
+  nummers in de opmerkingen, en links wijzen naar de fabrikant. Publiceert de
+  fabrikant niets, dan blijft het veld **leeg** — geen winkel als noodgreep
+  (Jos, 2026-08-27: *"wesspur mag eruit, als samson hem niet meer heeft dan
+  leeg laten"*). Uitzondering: huismerken waarvan de winkel de fabrikant ís
+  (Grube/Tree Runner, Fletcher Stewart/STEIN, Drayer/Haberkorn). Handleidingen
+  nooit van herpublicatiesites (manualslib en soortgenoten): die zetten er de
+  verkeerde revisie of zelfs het verkeerde product bij. Controleren:
   `node scripts/catalog/winkels.mts`.
 - **Handleiding-link is het belangrijkste veld** (Jos, 2026-08-25:
   *"vanaf nu alle handleidingen meenemen, dat is belangrijker dan

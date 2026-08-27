@@ -62,8 +62,11 @@ const DERDEN = ["manualslib.com", "manualzz.com", "manualsdir.com", "scribd.com"
  *    RIGIQ, BASHLIN) en `drayer.de` (Haberkorn) horen bij het merk zelf;
  *    Jos, 2026-08-27: *"grube, fletcher en drayer zijn onlosmakelijk met de
  *    merken verbonden"*.
- *  - `wesspur.com` (1 × Samson V-24): Samson publiceert deze lijn niet meer
- *    op samsonrope.com, dus er is geen fabrikantlink om naar te wijzen.
+ *
+ * Wat níét mag: een winkel invullen omdat de fabrikant niets publiceert. De
+ * Samson V-24 stond op wesspur.com omdat samsonrope.com die lijn niet meer
+ * voert; Jos, 2026-08-27: *"wesspur mag eruit, als samson hem niet meer heeft
+ * dan leeg laten"*. Leeg is dus het antwoord, geen winkel als noodgreep.
  */
 
 /** Winkelnamen zoals ze in vrije tekst opduiken. */

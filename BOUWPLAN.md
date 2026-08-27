@@ -124,6 +124,63 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Gordels met alle maten in één rij: 23 stuks gevonden en gesplitst
+> (2026-08-27).** Jos vroeg na het CAMP-werk: *"zijn er nog harnassen of
+> gordels waarbij meerdere maten in 1 rij staan?"*. Ja. Van de 530
+> gordelachtige rijen hadden er 104 geen maat in de naam; daarvan bleken er 23
+> écht meerdere maten in één rij te hebben.
+>
+> **Petzl (17 rijen → 46).** Het signaal was `manufacturer_code` met twee tot
+> vier nummers erin. De maat per nummer komt uit de tabel "References" op
+> Petzls eigen productpagina, want raden gaat mis:
+> - Bij de **TOP** zijn `C081AB00`/`01` géén maten maar kleuren (geel/zwart en
+>   zwart), één maat, lichaamslengte 160-200 cm. Die rij is dus níét gesplitst.
+> - Bij de **AVAO SIT** bestaat maat 0 niet: `00`/`01` zijn maat 1 en 2, en
+>   `02`/`03` diezelfde maten in het zwart.
+> - Bij de **NEWTON FAST International** net zo: `C073DA01/02` en
+>   `C073IA00/01` zijn dezelfde twee maten in twee kleuren.
+> - De oude VOLT (`C052AA00` = maat 1) telt anders dan de huidige
+>   (`C072AB00` = maat 0). Er is geen algemene regel.
+>
+> Elke maat heeft nu een eigen rij met de heupriem-, beenlus- en
+> lichaamslengtematen van Petzl in de opmerking, zodat een keurmeester bij een
+> onleesbaar label alsnog kan bepalen welke maat hij vasthoudt. Staat een
+> zelfde maat ook in een andere kleur, dan staat dát nummer in de opmerking —
+> geen extra rij per kleur. De recall van 04-03-2025 blijft op alle Europese
+> NEWTON-rijen staan.
+>
+> **ASTRO BOD FAST** is als enige overgeslagen: Petzl schermt die productpagina
+> af (login), dus de maten zijn niet te bevestigen. De rij houdt zijn drie
+> nummers tot dat wel kan.
+>
+> **EDELRID (6 rijen → 13).** Hier zat het niet in de code maar in de naam:
+> FLEX PRO, FLEX PRO PLUS, TREERAPTOR en VECTOR CHEST X in maat 1 en 2,
+> VERTIC TRIPLE LOCK in 0/1/2 en VERTIC TRIPLE LOCK BLACK in 1/2. Maten uit de
+> "Sizing Chart" op edelrid.com. Artikelnummers staan daar niet op (die zitten
+> in de shop-varianten die de pagina met JavaScript ophaalt) — die blijven leeg
+> in plaats van geraden. FAST SAVER, FAST SAVER AIR, MOUNTAIN RESCUE CHEST,
+> TREEREX BUNGEE CHEST en WING UNIVERSAL voert EDELRID als "VARIO" of zonder
+> maatkeuze en blijven één rij.
+>
+> **Gecontroleerd en goed:** DMM Kinisi AIR bestaat alléén in Medium (HC662);
+> CAMP Empire en Swifty Vest zijn "one size fits all"; CAMP Gravity en Orbital
+> stonden al per maat. Teufelberger, Skylotec, Climbing Technology en FALL SAFE
+> staan al gesplitst.
+>
+> **Open:** de rij *CAMP GT XT Harness* heeft nummer `216901`, en dat is bij
+> CAMP de **GT ANSI**; de huidige GT XT is `2661` (zwart `266103`). Beide
+> bestaan in twee maten (S-L en L-XXL), maar zolang niet vaststaat wélk product
+> dit is, is splitsen gokken. Vraag aan Jos. Verder nog niet nagekeken, per
+> merk: Tractel (5), Ellersafe (7), Inter (13), Kratos MUNE (7, lijken losse
+> modellen), TreeUP (4), Beal (2), Teufelberger treeMOTION evo en S.light,
+> Climbing Technology TOP X/TOP Y/SEAT TEC, Husqvarna en STEIN CAMBO V5.
+
+> **Winkellink is nooit een noodgreep (Jos, 2026-08-27).** *"wesspur mag eruit,
+> als samson hem niet meer heeft dan leeg laten"*. De Samson V-24 stond op
+> wesspur.com omdat samsonrope.com die lijn niet meer voert. Dat is dus geen
+> reden om een winkel in te vullen: leeg is het antwoord. Regel aangescherpt in
+> `CLAUDE.md`.
+
 > **CAMP: winkellinks eruit, en een fout handleiding-blok gevonden
 > (2026-08-27).** Jos: *"safetypro moet eruit!"*. Tien CAMP-rijen wezen naar
 > `safetypro.nl`; bij het opruimen bleek de elfde (Empire) naar `poelonline.nl`
