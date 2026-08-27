@@ -124,6 +124,63 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **CAMP: winkellinks eruit, en een fout handleiding-blok gevonden
+> (2026-08-27).** Jos: *"safetypro moet eruit!"*. Tien CAMP-rijen wezen naar
+> `safetypro.nl`; bij het opruimen bleek de elfde (Empire) naar `poelonline.nl`
+> te wijzen — ook een winkel. Alle elf staan nu op CAMP's eigen productblad,
+> `https://www.camp.it/api/GetSystemResource/211/<artikelnummer>` (Engels).
+> Elk nummer is gecontroleerd: HTTP 200, `application/pdf`, en de eerste
+> bladzijde noemt het juiste product. Gravity L-XXL (126502) heeft geen eigen
+> blad; die krijgt het modelblad 126501.
+>
+> Bij dat werk kwam een tweede, ergere fout boven: **zes van de zeven
+> CAMP-gordels hadden dezelfde `manualslib.com`-pagina van de *Swifty Vest* als
+> handleiding** — een herpublicatiesite én het verkeerde product (Empire,
+> Gravity S-L, Gravity L-XXL, GT XT, Orbital S-L, Orbital L-XXL). Dezelfde
+> soort fout als de LACD-handleidingen op de Tree Runner-karabiners. Die zes
+> zijn gewist in plaats van vervangen: liever geen link dan de verkeerde. Bij
+> de Swifty Vest zelf klopt het product wel, die blijft voorlopig staan.
+> CAMP publiceert zijn instructieboekjes onder
+> `/api/GetSystemResource/207/<bestandsnaam>.pdf` en die bestandsnaam
+> (`GIANT_MANUAL119 r3.pdf`-patroon) is niet te raden; de site is een
+> JS-applicatie zonder bruikbare API zonder token. Dat is dus een vraag aan
+> CAMP of aan Jos' browser.
+>
+> Terzijde gevonden: onze rij **GT XT Harness** draagt artikelnummer `216901`,
+> maar dat is bij CAMP de *GT ANSI*. De huidige GT XT is `2661` (zwart
+> `266103`). Naam en nummer horen niet bij elkaar — nog uit te zoeken.
+>
+> `scripts/catalog/winkels.mts` kreeg er een tweede categorie bij:
+> herpublicatiesites (manualslib, manualzz, scribd). Die zijn geen winkel maar
+> wel riskant — verkeerde revisie of verkeerd product. Staan er nog twee:
+> CAMP Swifty Vest en STEIN RC3100.
+
+> **Papertrail eruit, Skylotec zelf erin (2026-08-27).** Jos: *"papertrail is
+> volgens mij een cloud die skylotec gebruikt"*. Klopt — het is een
+> keuringsplatform dat Skylotecs algemene handleiding herpubliceert. Skylotec
+> host hem zelf (`mediaservice.skylotec.com/...3783038`, 88 bladzijden, 13
+> talen), dus die staat nu bij alle 41 Skylotec-rijen. Fabrikant boven
+> doorgeefluik.
+>
+> **Heyzine is geen winkel** en gaat uit de lijst: `cdnm.heyzine.com` is een
+> bladerboek-dienst waarop Ellersafe zijn eigen catalogus van 78 bladzijden
+> zet (18 rijen). Dat is de fabrikant zelf, alleen op andermans server.
+>
+> **Inter "Prus O"** wees naar Safety Green. De fabrikant is JMP International
+> (merk INTER, Bydgoszcz) en die heeft wél een eigen productpagina:
+> `jmpinter.com/produkt/prus-o/`. Beide lengtes staan daar nu op. Een
+> product-eigen handleiding publiceert JMP niet, alleen algemene catalogi.
+>
+> **Samson V-24** blijft op `wesspur.com` staan: Samson voert deze lijn niet
+> meer op samsonrope.com, dus er is geen fabrikantlink om naar te wijzen. Dat
+> is precies het geval waar de afspraak een dealerlink toestaat. Staat
+> genoteerd in `winkels.mts` zodat het niet elke keer opnieuw wordt uitgezocht.
+>
+> Winkelverwijzingen: 224 → 163 producten, en wat overblijft is Grube
+> (Tree Runner), Fletcher Stewart (STEIN/RIGIQ/BASHLIN), Drayer (Haberkorn) en
+> Notch' eigen webshop-CDN — merken waarvan Jos zei dat ze *"onlosmakelijk met
+> de merken verbonden"* zijn.
+
 > **hipSTAR Glide compleet (2026-08-26).** Jos miste de lengtes en de
 > vervanglijnen. Alles komt uit Teufelberger's eigen handleiding
 > (`6801658`, 80 pagina's), niet van de productpagina — die noemt geen enkel

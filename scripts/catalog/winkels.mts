@@ -36,9 +36,35 @@ const WINKELS = [
   "grube.eu",
   "grube.de",
   "papertrail.io",
-  "heyzine.com",
   "c2safety.com",
+  "poelonline.nl",
+  "itembox.cloud",
+  "treestuff.com",
+  "oliunid.com",
+  "elevatedsafety.com",
+  "heightsafety.uk.com",
 ];
+
+/**
+ * Geen winkels, maar ook geen fabrikant: sites die andermans handleidingen
+ * herpubliceren. Die zijn om een andere reden riskant — ze zetten er de
+ * verkeerde revisie of zelfs het verkeerde product bij. Zo stond bij zes
+ * CAMP-gordels de manualslib-pagina van de *Swifty Vest* (2026-08-27).
+ */
+const DERDEN = ["manualslib.com", "manualzz.com", "manualsdir.com", "scribd.com"];
+
+/**
+ * Wél in orde, staat hier zodat het niet elke keer opnieuw wordt uitgezocht:
+ *
+ *  - `cdnm.heyzine.com` (18 × Ellersafe) is een bladerboek-dienst waarop
+ *    Ellersafe zijn eigen catalogus van 78 bladzijden zet. Geen winkel.
+ *  - `grube.eu` / `grube.de` (Tree Runner), `fletcherstewart.com` (STEIN,
+ *    RIGIQ, BASHLIN) en `drayer.de` (Haberkorn) horen bij het merk zelf;
+ *    Jos, 2026-08-27: *"grube, fletcher en drayer zijn onlosmakelijk met de
+ *    merken verbonden"*.
+ *  - `wesspur.com` (1 × Samson V-24): Samson publiceert deze lijn niet meer
+ *    op samsonrope.com, dus er is geen fabrikantlink om naar te wijzen.
+ */
 
 /** Winkelnamen zoals ze in vrije tekst opduiken. */
 const NAMEN =
@@ -50,6 +76,7 @@ const lijst = process.argv.includes("--lijst");
 const perHost = new Map<string, number>();
 const inTekst: string[] = [];
 const geraakt = new Set<string>();
+const derden: string[] = [];
 
 for (const r of rows) {
   for (const veld of ["product_page_url", "manual_url"] as const) {
@@ -62,6 +89,7 @@ for (const r of rows) {
       geraakt.add(`${r.brand} ${r.name}`);
       if (lijst) console.log(`  [${veld}] ${r.brand} ${r.name} → ${r[veld]}`);
     }
+    if (DERDEN.some((d) => u.includes(d))) derden.push(`[${veld}] ${r.brand} ${r.name} → ${r[veld]}`);
   }
   if (NAMEN.test(r.notes)) inTekst.push(`${r.brand} ${r.name}`);
 }
@@ -79,5 +107,11 @@ if (inTekst.length > 0) {
   if (inTekst.length > 20) console.log(`  … en nog ${inTekst.length - 20}`);
 } else {
   console.log("\nGeen winkelnamen in de opmerkingen.");
+}
+
+if (derden.length > 0) {
+  console.log(`\n⚠ Handleiding van een herpublicatiesite bij ${derden.length} links:`);
+  for (const d of derden.slice(0, 20)) console.log(`  ${d}`);
+  if (derden.length > 20) console.log(`  … en nog ${derden.length - 20}`);
 }
 console.log("");
