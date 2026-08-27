@@ -54,6 +54,12 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   altijd voluit (screwgate / twistlock 2-weg / supersafe 3-weg / quadlock
   4-weg), nooit als lettercode: TL betekent bij ISC twistlock en in de
   praktijk trilock.
+- **Geen winkels in de catalogus** (Jos, 2026-08-26: *"geen winkels in de app,
+  daar gaan concurrenten over vallen"*). Geen winkelnamen of winkel-artikel-
+  nummers in de opmerkingen, en links wijzen naar de fabrikant. Een dealerlink
+  alleen als de fabrikant zelf niets publiceert, en dan zonder de winkel te
+  noemen in de tekst. Controleren:
+  `node scripts/catalog/winkels.mts`.
 - **Handleiding-link is het belangrijkste veld** (Jos, 2026-08-25:
   *"vanaf nu alle handleidingen meenemen, dat is belangrijker dan
   artikelnummers — handleidingen zijn juist een van de kernzaken waarom deze
