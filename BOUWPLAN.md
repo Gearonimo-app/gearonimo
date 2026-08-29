@@ -5,6 +5,64 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-27, handleidingen-ronde)
+
+> **Handleiding-links: 476 → 285 in één sessie.** Jos: *"waar hebben we nog
+> handleidingen nodig?"* gevolgd door *"lekker doorgaan zet hem op"*. Bij het
+> testen bleken meerdere eerder geblokkeerde fabrikantensites (403 vanuit
+> deze omgeving) ineens weer open: Kratos, FALL SAFE, Liros, Sterling en
+> Tractel. Merk voor merk gewerkt, elke gevonden PDF eerst geopend en
+> gecontroleerd op het juiste artikelnummer/product vóórdat hij in de rij
+> kwam — dezelfde discipline als bij de eerdere Tree Runner/CAMP-fouten:
+>
+> - **Kratos (47)**: PrestaShop-winkel, bijlage met naam die met
+>   "Instructions" begint is de echte handleiding. Val daar niet voor een
+>   bijlage die "instructions" alleen in de bestandsnaam heeft — bij de MUNE
+>   3R bleek dat een addendum van 2 bladzijden over het inkorten van de band.
+> - **FALL SAFE (28)**: 24 HARN-gordels delen één generieke "INSTRUCTION
+>   MANUAL PROFESSIONAL HARNESS"; de FS930/931/932-reeks kreeg zijn eigen
+>   leaflet, FS930E (sharp edge) een andere revisie.
+> - **Liros (36)**: geen handleiding per product, twee algemene brochures per
+>   norm (EN 1891 voor lijnen, EN 566 voor prusiklussen) — precies verdeeld
+>   op het standard-veld.
+> - **Tractel (16)**: de meeste productpagina's linken zelf naar
+>   `/PIM/Manuals/`; twee Duitse paginas (M10, M53) misten die link en kregen
+>   de handleiding van de andere stalen connectoren.
+> - **TreeUP (8 van 30)**: eigen site nog offline, maar de klimsporen en de
+>   PL101-katrol worden gemaakt door PROTEKT (Polen) — fabrikant, geen dealer.
+>   DR2/DR3 hebben op dit moment alleen een Poolse handleiding (genoteerd in
+>   de opmerking); 22 TU-producten hebben nergens een document.
+> - **Notch/Rope Logic (16 van 24)**: productpagina's zijn JS-gerenderd, maar
+>   `/downloads` is statisch. Rope Logic bestaat volledig uit friction savers
+>   en deelt Notch' generieke friction-saver-instructie.
+> - **At Height (9 van 11)**: elk product heeft een eigen UIM; PulleyOne staat
+>   niet meer in hun assortiment (404, ontbreekt in de sitemap).
+> - **Petzl (5 van 10)**: de 4 ANNEAU-slings hadden geen artikelnummer — de
+>   productpagina gaf de exacte codes en dezelfde handleiding als de zwarte
+>   ANNEAU Tactical. ASTRO BOD FAST en de oude VOLT (C052) staan bij Petzl
+>   achter een login (uitgefaseerd), geen vervangende link gevonden.
+> - **Teufelberger (17 van 19)**: één gedeelde Herstellerinfo per touwfamilie
+>   i.p.v. per product; Chameleon, KM III, Sirius Bull Rope en tREX Ploopie
+>   staan met naam in die documenten. Xstatic (verkocht via ISC) heeft een
+>   eigen UIM op iscwales.com.
+> - **EDELRID (8 van 11)**: de GAL (Gebrauchsanleitung) staat als los bestand
+>   op een asset-server, niet altijd gelinkt vanaf de productpagina zelf. De
+>   6 X-P*E-lengtes hadden zelfs geen productpagina — die is gevonden.
+> - **TAZ**: LOV3 kreeg zijn eigen "Notice d'utilisation".
+>
+> **Bewust niets gedaan** (echt uitgezocht, niet overgeslagen): Samson en CMI
+> publiceren alleen specsheets, geen echte gebruiksaanwijzing (Samsons
+> ANSI-only touwen zijn ook geen CE-PPE). ISC's tethers hebben hetzelfde.
+> Husqvarna en Sterling zijn volledig JS-gerenderd; de headless Chromium hier
+> kan de TLS-proxy niet vertrouwen (los infra-probleem). CAMP's
+> instructieboekjes zitten achter niet te raden bestandsnamen in een
+> JS-app zonder toegankelijke API. Courant zit alleen achter `mycourant.com`,
+> dat blijft geblokkeerd. Inter publiceert alleen algemene catalogi.
+>
+> Winst per merk staat in de git-commits van 2026-08-27 (`810faf9` t/m
+> `4a8edf0`); daar staan ook de precieze PDF-links en de onderbouwing per
+> product.
+
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
 > **App-iconen en splashscreen op het echte logo (Jos 2026-07-31).** Bij het
