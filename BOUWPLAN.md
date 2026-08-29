@@ -124,6 +124,44 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ## Voortgang (bijgewerkt 2026-07-31, catalogus)
 
+> **Tweede ronde maten, na Jos' screenshot en veldkennis (2026-08-27).** Jos
+> stuurde een screenshot van de maatkeuze bij ASTRO BOD FAST 2.0 (XXS/S,
+> S/L, L/XXL — drie maten) en beantwoordde de openstaande vragen uit de vorige
+> ronde:
+>
+> - **ASTRO BOD FAST** stond nog als één rij met drie codes
+>   (`C083AA00/01/02`), en Petzls eigen productpagina zit achter een login.
+>   De codes staan wél op Petzls recall-pagina van 23-02-2026 en kloppen met
+>   Jos' screenshot: `C083AA00` = maat 0 (XXS/S), `C083AA01` = maat 1 (S/L),
+>   `C083AA02` = maat 2 (L/XXL). Nu drie rijen.
+> - **CAMP GT XT**: Jos komt vooral de GT XT tegen, niet de GT ANSI —
+>   *"handleiding moet gewoon kloppen"*. De bestaande rij droeg per ongeluk
+>   het artikelnummer van de GT ANSI (`216901`). De echte GT XT-nummers komen
+>   uit de Shopify-voorraaddata van een dealer: `2661-1` = S-L, `2661-2` =
+>   L-XXL. Productpagina staat nu op CAMP's eigen spec-blad voor `2661`; een
+>   instructieboekje specifiek voor de GT XT heb ik niet kunnen vinden (CAMP's
+>   algemene harnas-handleiding noemt de GT ANSI-familie wel, de GT XT niet
+>   met naam) — blijft dus leeg in plaats van een gok.
+> - **EDELRID TREEREX**: stond al goed, drie rijen (size 0/1/2, codes
+>   `820250132190/142190/152190`). Geen actie nodig.
+> - **Tractel "heeft vaak 2 maten"**: klopte voor sommige, niet voor andere.
+>   Van Tractels eigen productpagina's (tabel "Model Name / Size (Apparel) /
+>   Product Code"): **HT Electra** 3 maten (S `65272`, M `65282`, XL `65292`),
+>   **HT Secours** 4 maten (S `66132`, M `66142`, XL `66152`, XXL `80802`),
+>   **HT22** 4 maten — de bestaande `mtM`/`mtXL`-rijen (`14002`/`28502`) plus
+>   nieuw S (`31592`) en XXL (`79412`) —, **HT22R** 3 maten (S `44952`, M
+>   `44962`, XL `44972`). Bij HT22 en HT22R wees de handleiding naar
+>   `safetyliftingear.com`, een reseller; vervangen door Tractels eigen PIM-
+>   manual. `safetyliftingear.com` staat nu ook in `winkels.mts`.
+> - **treeMOTION evo en S.light**: Jos dacht dat evo in S/M/L komt. Uit hun
+>   eigen handleidingen blijkt het tegendeel: evo is één verstelbare maat
+>   ("small to large", heup 76-105 cm) en S.light ook ("Standard", heup
+>   76-91 cm) — bevestigd door een reseller die evo letterlijk als "one-size"
+>   voert. Jos' S/M/L-ervaring hoort bij treeMOTION Pro/Essential, die al
+>   correct per maat in de catalogus staan. Geen wijziging.
+>
+> Bronlijst: 2860 → 2872 producten.
+
 > **Gordels met alle maten in één rij: 23 stuks gevonden en gesplitst
 > (2026-08-27).** Jos vroeg na het CAMP-werk: *"zijn er nog harnassen of
 > gordels waarbij meerdere maten in 1 rij staan?"*. Ja. Van de 530

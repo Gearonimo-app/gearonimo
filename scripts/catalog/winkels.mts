@@ -43,6 +43,7 @@ const WINKELS = [
   "oliunid.com",
   "elevatedsafety.com",
   "heightsafety.uk.com",
+  "safetyliftingear.com",
 ];
 
 /**
