@@ -5,6 +5,82 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-30)
+
+> **Nieuw testplan (ronde 3) + drie reparaties vooraf.** Jos vroeg om de beste
+> testvolgorde en om een voorspelling van waar de problemen zitten. Uit de
+> analyse kwamen drie dingen die eerst gebouwd moesten worden, plus een
+> herschreven plan.
+>
+> **De volgorde is nu op risico gesorteerd, niet als rondleiding.** Het oude
+> plan liep door de app heen; de nieuwste code (zelfcontroles, materiaalsoorten
+> — augustus) stond daardoor bijna achteraan. Nu: migraties + schone herstart →
+> **zelfcontroles** → de keurmeesterkant van dezelfde regel → koppelflow →
+> keuring → catalogus → offline → instellingen. Redenen staan in een tabel
+> bovenaan `TESTPLAN.md`.
+> - **Tabbladen hebben geen eigen fase meer.** Tabbladbugs tonen zich niet in de
+>   strook maar in wat je erin doet. Nu een korte smoketest in fase 0 en
+>   kruisproeven (**⇄ twee tabbladen**) verspreid door de fases heen.
+> - **Fase 1 controleert hetzelfde artikel op drie plekken** (dashboard, lijst,
+>   detailscherm). Dat is gericht op de zwakke plek hieronder.
+>
+> **Waar de problemen zitten (voorspelling, onderbouwd):**
+> - **De parallelle klant-app-RPC's.** `my_articles` is in vier migraties
+>   opnieuw gedefinieerd, `my_article_detail` in drie — elk met een eigen, met de
+>   hand bijgehouden kolommenlijst. 20260755 en 20260756 zijn allebei niets
+>   anders dan reparaties hiervan: bij het uitbreiden van de lijst werd het
+>   detailscherm vergeten, twee keer op één dag. Geverifieerd dat 20260756 een
+>   strikte superset is van 20260755 (niets verloren), maar de constructie
+>   blijft de kwetsbaarste plek in het systeem. Een gedeelde kolommenlijst of een
+>   view zou dit structureel oplossen — apart voorstel, niet in deze ronde.
+> - **Twaalf van de zestien pagina's ververste niet bij terugkeer op een
+>   tabblad** (alleen Customers, Inspections, Home en Requests deden dat).
+>   **Gerepareerd deze ronde**, zie hieronder.
+> - **`useViewVisible` in `composables/onReactivated.ts` is dode code** — gebouwd
+>   als bescherming tegen kruisbesmetting tussen tabbladen, door geen enkele
+>   pagina gebruikt, overbodig geworden toen de watcher uit `ArticleDetail`
+>   verdween. Niet verwijderd (buiten scope), wel gemeld: de enige echte
+>   bescherming is de keep-alive-sleutel.
+> - **Open vraag, geen bekende bug:** een artikel toevoegen ín de keuringswizard
+>   waarvan het type machine/overig is. De trigger zet `self_managed` dan aan,
+>   terwijl de wizard juist daarop filtert. Staat als stap 33 in het testplan met
+>   de vraag om te melden wat er gebeurt.
+>
+> **Gebouwd deze ronde:**
+> - **`onReactivated` op zes plekken bijgezet**: `CustomerDetail` (klant +
+>   lopend concept), `CustomerArticles` (lijst + sets, bewust niet de dure
+>   catalogus-typeahead), `CustomerCertificates` (dit liep het snelst achter:
+>   keuring afronden in tabblad B liet in A nog "Certificaten (0)" staan),
+>   `CustomerMembers`, `CatalogQueue` en `CatalogManager`. Voor
+>   `CustomerCertificates` is de laadcode uit `onMounted` in een eigen `load()`
+>   getrokken. Bewust hetzelfde patroon als de vier bestaande pagina's,
+>   inclusief het korte "Laden…" bij terugkeer — consistentie boven een eigen
+>   variant.
+> - **Nette melding bij een dubbel catalogusproduct.** Handmatig toevoegen deed
+>   een kale insert en toonde de rauwe Postgres-tekst ("duplicate key value
+>   violates unique constraint..."). Nu wordt foutcode `23505` herkend en
+>   vertaald (`duplicateExists`, nl + en). De importroute meldde dit al netjes;
+>   alleen de handmatige route niet.
+> - **Migratie hernummerd naar `20260757_products_unique_index.sql`** — het
+>   eerdere nummer 20260752 botste met `material_domains`.
+> - **Tooltip-fout hersteld** (`inspections.table.dayHelperTooltip`, nl + en):
+>   dag 123 is 3 mei, niet 1 mei. De rekenaar in `SerialCheatSheet.vue` was goed.
+>
+> **`MIGRATIES-UITVOEREN.md` + `supabase/UITVOEREN-2026-08-30.sql`.** Vier
+> migraties stonden open (20260755, 20260756, 20260757, 20260748) en de volgorde
+> is kritisch: 20260756 herschrijft `my_article_detail` die 20260755 ook
+> aanmaakt, dus omgekeerd draaien laat `self_performed_by` stil verdwijnen —
+> zonder foutmelding. Daarom een gecombineerd bestand, gegenereerd uit de echte
+> migraties (niets overgetypt), plus een uitgeschreven handleiding met
+> controlequery's en een foutwijzer. **Alle vier nog door Jos uit te voeren.**
+>
+> **Let op — de sessie begon op een verouderde kopie.** De container stond bij
+> aanvang op `1ae7003` (31 juli) en is halverwege gehersynchroniseerd naar
+> `fcfbc61` (13 augustus, 39 commits verder). Een eerder in deze sessie
+> geschreven testplan was daardoor tegen de juli-app geschreven en is vervangen.
+> Ook bleek `20260750` niet meer open te staan: `20260752_material_domains`
+> herschrijft `search_products` met het volledige lichaam van 20260750 erin.
+
 ## Voortgang (bijgewerkt 2026-08-13)
 
 > **Opmerking invullen tijdens het koppelen (Jos 2026-08-13).** Geen migratie

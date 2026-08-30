@@ -115,6 +115,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
 import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey } from '@gearonimo/core'
@@ -264,6 +265,17 @@ function toRow(f: ProductFormModel) {
   }
 }
 
+// Postgres-foutcode voor een geschonden unieke index. Sinds migratie
+// 20260757 ligt er een slot op merk + naam, en zonder deze vertaling krijgt de
+// curator de rauwe databasetekst ("duplicate key value violates unique
+// constraint ...") in het formulier. De importroute meldt dit al netjes
+// (`duplicateSkipped`); handmatig toevoegen deed dat nog niet.
+const UNIQUE_VIOLATION = '23505'
+
+function isDuplicateError(e: unknown): boolean {
+  return !!e && typeof e === 'object' && 'code' in e && (e as { code?: unknown }).code === UNIQUE_VIOLATION
+}
+
 async function save(f: ProductFormModel) {
   saving.value = true
   formError.value = ''
@@ -276,7 +288,9 @@ async function save(f: ProductFormModel) {
     closeForm()
     await load()
   } catch (e) {
-    formError.value = errorMessage(e)
+    formError.value = isDuplicateError(e)
+      ? t('settings.catalog.manager.duplicateExists')
+      : errorMessage(e)
   } finally {
     saving.value = false
   }
@@ -444,6 +458,10 @@ async function commitImport() {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw ophalen, zodat producten die in een ander
+// tabblad zijn toegevoegd, gewijzigd of verwijderd hier kloppen (zie
+// onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>
