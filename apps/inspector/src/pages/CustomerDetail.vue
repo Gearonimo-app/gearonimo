@@ -290,7 +290,17 @@ async function save() {
 async function remove() {
   deleting.value = true
   try {
-    await deleteCustomer(id)
+    const removed = await deleteCustomer(id)
+    if (!removed) {
+      // Geen fout, maar ook niets weg: de RLS-policy matchte niet. Dat gebeurt
+      // als je geen beheerder bent van het keurbedrijf, of -- vaker -- als de
+      // klant helemaal geen koppeling met een keurbedrijf heeft (zelf
+      // aangemelde klanten krijgen die bewust niet). Eerder liep dit stil door
+      // als "gelukt".
+      error.value = t('customers.detail.deleteNotAllowed')
+      showDelete.value = false
+      return
+    }
     showDelete.value = false
     router.push('/customers')
   } catch (e) {

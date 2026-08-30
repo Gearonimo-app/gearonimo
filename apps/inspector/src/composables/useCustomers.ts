@@ -104,7 +104,15 @@ export async function updateCustomer(
   return data
 }
 
-export async function deleteCustomer(id: string): Promise<void> {
-  const { error } = await supabase.from('customers').delete().eq('id', id)
+/** Verwijdert de klant en geeft terug hoeveel rijen er écht weg zijn (0 of 1).
+ *
+ * Die telling is geen franje. Raakt een DELETE geen enkele rij omdat de
+ * RLS-policy niet matcht, dan geeft Postgres GEEN fout: supabase-js levert
+ * `error: null` en een lege lijst. Zonder `.select()` en zonder deze telling
+ * ziet de app dat als "gelukt", stuurt de gebruiker terug naar de lijst, en
+ * staat de klant er gewoon nog (gemeld door Jos 2026-08-30). */
+export async function deleteCustomer(id: string): Promise<number> {
+  const { data, error } = await supabase.from('customers').delete().eq('id', id).select('id')
   if (error) throw error
+  return (data ?? []).length
 }

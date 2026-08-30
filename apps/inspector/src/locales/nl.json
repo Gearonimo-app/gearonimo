@@ -98,7 +98,8 @@
       "deleteTitle": "Klant verwijderen?",
       "deleteBody": "Dit kan niet ongedaan gemaakt worden.",
       "inviteCode": "Uitnodigingscode klant-app",
-      "deleteBlockedHistory": "Deze klant kan niet verwijderd worden: er is keurhistorie. Keurrapporten zijn een wettelijk bewijsstuk en blijven bewaard."
+      "deleteBlockedHistory": "Deze klant kan niet verwijderd worden: er is keurhistorie. Keurrapporten zijn een wettelijk bewijsstuk en blijven bewaard.",
+      "deleteNotAllowed": "Deze klant is niet verwijderd. Je moet beheerder zijn van het keurbedrijf, en de klant moet aan een keurbedrijf gekoppeld zijn. Een klant die zichzelf heeft aangemeld en nog geen keurbedrijf koos, valt onder niemand en kan (nog) niet vanuit de app verwijderd worden."
     }
   },
   "members": {

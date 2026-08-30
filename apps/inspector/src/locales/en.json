@@ -98,7 +98,8 @@
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
       "inviteCode": "Customer app invite code",
-      "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
+      "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept.",
+      "deleteNotAllowed": "This customer was not deleted. You must be an admin of the inspection company, and the customer must be linked to one. A customer who self-registered and has not yet chosen an inspection company belongs to nobody and cannot (yet) be deleted from the app."
     }
   },
   "members": {
