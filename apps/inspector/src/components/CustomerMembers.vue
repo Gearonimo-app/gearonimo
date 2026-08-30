@@ -71,6 +71,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getCustomerMembersForCustomer, errorMessage } from '@gearonimo/core'
 
@@ -195,6 +196,9 @@ async function remove() {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw ophalen, zodat een medewerker die in een
+// ander tabblad is toegevoegd hier ook verschijnt (zie onReactivated.ts).
+onReactivated(load)
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {

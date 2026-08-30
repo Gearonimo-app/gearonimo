@@ -216,6 +216,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
@@ -604,6 +605,16 @@ onMounted(async () => {
   }
   await load()
   await loadSets()
+})
+
+// Terug op dit tabblad: artikellijst en sets opnieuw ophalen. Zonder dit blijft
+// de lijst staan zoals hij was toen je wegging -- voeg je in een ander tabblad
+// een artikel toe of koppel je er een, dan zag je dat hier niet (zie
+// onReactivated.ts). Bewust NIET de catalogus-typeahead en de medewerkers uit
+// onMounted hierboven: die zijn duur en veranderen niet tijdens het werk.
+onReactivated(() => {
+  void load()
+  void loadSets()
 })
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).

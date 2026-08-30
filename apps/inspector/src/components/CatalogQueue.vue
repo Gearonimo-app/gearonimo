@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { supabase, errorMessage } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
@@ -183,6 +184,11 @@ async function reject(a: QueueArticle) {
 }
 
 onMounted(load)
+// Terug op dit tabblad: opnieuw ophalen. Accepteer je een aanmelding in een
+// ander tabblad, dan stond hij hier anders nog in de lijst -- en nog een keer
+// accepteren botst sinds migratie 20260757 op de unieke index (zie
+// onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>
