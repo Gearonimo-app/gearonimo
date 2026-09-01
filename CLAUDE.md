@@ -71,6 +71,14 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   niet te vinden, dan is dat **geen voetnoot achteraf maar het eerste wat je
   meldt**, met de vraag om de link — bij voorkeur vóór de rij wordt
   toegevoegd. Dekking checken: `node scripts/catalog/handleidingen.mts`.
+  **Een link die erin staat is niet automatisch een link die werkt** (Jos,
+  2026-08-29, na een 404 op de Sirius Loop: *"hoe weet ik of ons werk te
+  vertrouwen is?"*) — sites herstructureren en sturen dan vaak een "soft
+  404": een gewone 200-pagina die zegt dat er niets is, niet een echte
+  foutcode. Vóór elke levering aan Jos draaien:
+  `node scripts/catalog/linkcheck.mts` — die haalt elke unieke `manual_url`
+  écht op en telt hem alleen als goed wanneer de server ook `application/pdf`
+  teruggeeft.
 - **Voortgang bijhouden in `BOUWPLAN.md`** (sectie Voortgang) — dit is de
   geheugenbron tussen sessies. `DATAMODEL.md` is de veldenbron; `UX-FLOW.md`
   de ontwerpbron. Besluiten van Jos dáár vastleggen, met datum.

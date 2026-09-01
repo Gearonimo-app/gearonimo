@@ -5,6 +5,61 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-29, linkcheck)
+
+> **"Hoe weet ik of ons werk te vertrouwen is?"** Jos testte de Sirius Loop-
+> handleiding en kreeg een 404, terwijl de link zelf HTTP 200 teruggaf.
+> Teufelberger stuurt bij een verwijderde pagina een "soft 404": een gewone
+> 200-pagina die zegt dat er niets is. Alleen de statuscode controleren mist
+> dat — en dat hebben we tot nu toe steeds alleen bij het invoegen gedaan,
+> nooit achteraf over de hele bronlijst.
+>
+> Nieuw: `scripts/catalog/linkcheck.mts`. Haalt elke unieke `manual_url` (en
+> optioneel `product_page_url`) écht op en telt een handleiding pas goed als
+> de server `application/pdf` teruggeeft — met een `%PDF-`-headercheck als
+> vangnet voor een verkeerde content-type. Groepeert per unieke URL, want
+> dezelfde handleiding staat vaak bij tientallen producten tegelijk.
+>
+> **Teufelberger direct gerepareerd (38 producten):** twee dode merkpagina's
+> bleken de bron. 31 producten kregen de actuele PDF (Sirius Loop, Patron
+> treeACCESS, drenaLINE/Gravity/Tachyon/Xstatic, Fly, de multiTOOL-serie,
+> equaLIZA, hipSTAR Glide Next) — elke vondst gecontroleerd op het juiste
+> product, zoals de hele sessie. 7 producten (antiSHOCK Tool Lanyard, Arbor
+> Elite, PLATINUM arborACCESS ×2, pullDOWN, upMOTION SRT ×2) hebben geen
+> vindbare actuele vervanging — die staan nu leeg. Een lege handleiding is
+> eerlijker dan een dode link die een groen vinkje suggereert.
+>
+> **Een proefdraai over de hele bronlijst (533 unieke manual_url's) liet
+> zien dat dit geen incident was:** 108 kapotte links bij 519 producten,
+> vrijwel allemaal van vóór deze sessie:
+> - **Yale Cordage (189)** — alle producten delen twee links: een dode PDF en
+>   een algemene "rope selection guide"-pagina. Die pagina bleek bij nader
+>   inzien Yale's *industriële* touwlijn te beschrijven (Aracom, Maxibraid,
+>   Yalon...) — geen van onze Bee Line/XTC-boomklimlijnen staat erin. De
+>   juiste handleiding moet per productnaam gezocht worden, net als bij
+>   Kratos/Liros/EDELRID deze sessie. Nog niet gedaan: 189 producten is een
+>   ronde op zich.
+> - **Courant (92 treffers)** — de bekende TLS-blokkade (`mycourant.com`),
+>   niets nieuws.
+> - **EDELRID (74)** — het `manual_url`-veld wijst naar de productpagina zelf
+>   (een webpagina, geen PDF). Dezelfde situatie als bij MAXIOM RIG/OVAL
+>   POWER eerder deze sessie: de pagina zegt "raadpleeg de instructies" zonder
+>   een link. Vermoedelijk over de hele EDELRID-linkeuze heen gebeurd vóór
+>   deze sessie bestond.
+> - **Fletcher Stewart / RIGIQ (50)** — wijst naar een verzamelpagina met
+>   alle conformiteitsverklaringen, niet naar een specifieke handleiding.
+> - **ISC (33)**, **Petzl (23)**, **Rock Exotica (14, rate-limited — kan
+>   vals-positief zijn)**, en enkele losse gevallen (Notch, STEIN via
+>   manualslib).
+>
+> Dit is vervolgwerk, geen instortende situatie: de sessie van 2026-08-27 zelf
+> heeft niets stiekend laten rotten — elke link die dít weekend is toegevoegd
+> is bevestigd vóór hij de bronlijst inging. Het probleem zit in oudere
+> aanvoer en in sites die intussen zijn herbouwd. `linkcheck.mts` is er nu om
+> dat voortaan te laten opvallen in plaats van pas als Jos zelf een link
+> aanklikt. **Advies: voortaan draaien vóór elke levering aan Jos, niet
+> alleen bij het toevoegen van een nieuwe link.**
+
 ## Voortgang (bijgewerkt 2026-08-27, handleidingen-ronde)
 
 > **Handleiding-links: 476 → 285 in één sessie.** Jos: *"waar hebben we nog
