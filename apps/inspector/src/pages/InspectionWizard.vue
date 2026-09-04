@@ -183,7 +183,7 @@
              de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
              Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
              eigen dropdown die in álle artikelen van de klant zoekt. -->
-        <div v-if="activeField && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
+        <div v-if="activeField && activeField !== 'rowMatch' && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
           <button
             v-for="(s, i) in fieldSuggestions"
             :key="s"
