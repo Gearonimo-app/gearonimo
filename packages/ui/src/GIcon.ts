@@ -36,6 +36,35 @@ const ICONS: Record<string, string> = {
   // Mijn materiaal: gereedschapskist (zelf getekend + gerenderd/gecheckt)
   materials:
     '<rect x="3" y="8" width="18" height="12" rx="2"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><line x1="3" y1="13" x2="21" y2="13"/><rect x="10.5" y="12" width="3" height="2.4" rx="0.5"/>',
+  // ─── Materiaalsoort-tegels in de klant-app (2026-08-04) ───
+  // Klimmateriaal: veiligheidshelm (lucide `hard-hat`-vorm).
+  //
+  // De karabiner -- het beeldmerk van de app -- is vijf keer geprobeerd: smal
+  // met brede opening, D-vorm met rechte rug, ring met uitgesproken poort,
+  // peervorm, en touw-met-knoop. Alle varianten zijn gerenderd op de échte
+  // weergavemaat van 26px; daar valt de snapper telkens weg en blijft er een
+  // pil of een ei over. De helm houdt op die maat wél zijn silhouet (rand +
+  // koepel + kruinlipje) en is niet te verwarren met de gereedschapskist
+  // (Mijn materiaal) of het tandwiel (Instellingen).
+  climbing:
+    '<path d="M2 18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1H3a1 1 0 0 0-1 1z"/><path d="M10 10V5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v5"/><path d="M4 15v-3a6 6 0 0 1 6-6"/><path d="M14 6a6 6 0 0 1 6 6v3"/>',
+  // Machines: kettingzaag -- motorblok met beugel, zaagblad schuin omhoog.
+  //
+  // Het schuine blad is de reden dat dit werkt: recht naast het blok leest
+  // het als een hangslot met een stokje, schuin krijgt het de kenmerkende
+  // kettingzaag-houding. Tanden zijn er bewust uit -- die werden op 26px een
+  // bergketen. Tandwiel was al bezet door Instellingen.
+  machines:
+    '<rect x="2.5" y="9" width="7" height="7.5" rx="2"/><path d="M4.8 9V7.6a2 2 0 0 1 2-2h2.1"/><path d="m9.5 11.2 9.2-2.5a1.8 1.8 0 0 1 .9 3.5l-10.1 2.7z"/>',
+  // Kleding: werkbroek. Bewust geen T-shirt (Jos 2026-08-04: "mag een broek of
+  // schoen worden") -- de zaagbroek is hier het typische artikel, en een broek
+  // is in deze set nergens mee te verwarren.
+  clothing:
+    '<path d="M6 3h12l.6 18h-4.2L12 11l-2.4 10H5.4z"/><path d="M6 7h12"/>',
+  // Overig: pakket (lucide `package`-vorm) -- de restcategorie van de klant
+  // (EHBO-koffer, brandblusser, APK).
+  other:
+    '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/><path d="m7.5 4.27 9 5.15"/>',
   // Certificaten: keurmerk/zegel met lint
   certificates:
     '<circle cx="12" cy="9" r="6"/><path d="M15.5 13.5 17 22l-5-3-5 3 1.5-8.5"/>',
@@ -56,6 +85,11 @@ const ICONS: Record<string, string> = {
   // Vingerafdruk/Face ID-login (gebaseerd op de lucide "fingerprint"-vorm)
   fingerprint:
     '<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4"/><path d="M14 13.12c0 2.38 0 6.38-1 8.88"/><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02"/><path d="M2 12a10 10 0 0 1 18-6"/><path d="M2 16h.01"/><path d="M21.8 16c.2-2 .131-5.354 0-6"/><path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2"/><path d="M8.65 22c.21-.66.45-1.32.57-2"/><path d="M9 6.8a6 6 0 0 1 9 5.2v2"/>',
+  // Info: bolletje met i (lucide `info`-vorm) -- markeert dat er een
+  // opmerking uit de catalogus bij een artikel staat, zonder die opmerking
+  // zelf continu te tonen.
+  info:
+    '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
 };
 
 export const GIcon = defineComponent({

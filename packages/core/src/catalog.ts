@@ -52,23 +52,43 @@ export type CatalogColumn = (typeof CATALOG_COLUMNS)[number];
 export type CatalogRow = Record<CatalogColumn, string>;
 
 /**
- * De toegestane waarden van `product_type`. Dit is het *regime*, niet de
- * categorie: `getRegime()` zoekt hierop en valt bij een onbekende waarde stil
- * terug op 12 maanden. In NL is dat toevallig goed, in GB moet PPE op 6 —
- * daarom is een verkeerde waarde hier stil gevaarlijk en geen schoonheidsfout.
+ * De toegestane waarden van `product_type` in de **catalogus**. Dit is het
+ * *regime*, niet de categorie: `getRegime()` zoekt hierop en valt bij een
+ * onbekende waarde stil terug op 12 maanden. In NL is dat toevallig goed, in
+ * GB moet PPE op 6 — daarom is een verkeerde waarde hier stil gevaarlijk en
+ * geen schoonheidsfout.
  *
  * Bij de bronlijst-import van 2026-07-27 stond bij 156 van de 2294 rijen een
  * fijne artikeltaxonomie ("Locking Carabiner (Screw-Lock)", "Rigging Plate")
  * in dit veld. Die omschrijving hoort in `category`.
+ *
+ * Gewijzigd 2026-08-04 (besluit Jos):
+ * - `aerial_platform` eruit — andere doelgroep, stond op geen enkel product.
+ * - `clothing` erbij — kleding wordt nooit gekeurd, zie `NO_INSPECTION_TYPES`.
+ * - `other` eruit: **"overig" is geen catalogusproduct.** Het is de eigen
+ *   todo-lijst van de klant (brandblusser, EHBO-koffer, APK) en bestaat
+ *   alleen bij een vrij artikel. Een product uit de catalogus kiezen en het
+ *   daarna op `other` zetten kan daarmee niet meer — precies de regel die Jos
+ *   op 2026-08-04 stelde, hier afgedwongen in plaats van in een los vinkje.
  */
 export const PRODUCT_TYPES = [
   "ppe",
   "no_ppe",
   "rigging",
-  "aerial_platform",
   "machine",
-  "other",
+  "clothing",
 ] as const;
+
+/**
+ * De keuzes voor een **vrij artikel** (`articles.product_id` leeg): de
+ * catalogustypes plus `other`. Dit is de lijst achter de verplichte dropdown
+ * bij vrije invoer (besluit Jos 2026-08-04: "bij vrije invoer moet er een
+ * categorie gekozen worden, dropdown om fouten te voorkomen").
+ *
+ * Hangt een artikel wél aan een catalogusproduct, dan komt het type daarvandaan
+ * en is deze lijst niet in beeld.
+ */
+export const ARTICLE_TYPES = [...PRODUCT_TYPES, "other"] as const;
 
 /** Velden die een heel getal moeten zijn (of leeg). */
 const INT_FIELDS = [

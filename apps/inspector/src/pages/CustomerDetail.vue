@@ -91,6 +91,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { onReactivated } from '../composables/onReactivated'
 import { GIcon } from '@gearonimo/ui'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -321,6 +322,13 @@ onMounted(async () => {
     void onStartInspection()
   }
 })
+
+// Terug op dit tabblad: klantgegevens en het lopende concept opnieuw ophalen.
+// Rond je in een ander tabblad de keuring van deze klant af, dan bood deze
+// pagina anders nog "Hervat keuring" aan (zie onReactivated.ts). De blokken
+// eronder -- artikelen, certificaten, medewerkers -- verversen zichzelf; die
+// halen hun eigen gegevens op.
+onReactivated(load)
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {

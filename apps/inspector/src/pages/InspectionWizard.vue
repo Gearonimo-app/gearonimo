@@ -333,6 +333,13 @@
                       :title="$t('inspections.table.matchTooltip')"
                       @click="startMatch(row.it)"
                     >{{ row.label }}</button>
+                    <button
+                      v-else-if="itemProductNotes(row.it)"
+                      type="button"
+                      class="iw__match-btn iw__match-btn--notes"
+                      :title="$t('inspections.table.productNotesTitle')"
+                      @click="toggleNotes(row.it)"
+                    >{{ row.label }} <GIcon name="info" class="iw__notes-icon" /></button>
                     <span v-else>{{ row.label }}</span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
@@ -438,15 +445,16 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <!-- Opmerking uit de catalogus: altijd zichtbaar, niet achter
-                     een knop of tooltip (Jos 2026-08-01: "opmerkingen wil ik
-                     gewoon zien"). Het is geen waarschuwing maar context bij
-                     het artikel -- een afwijkende lengte bijvoorbeeld -- en die
-                     moet je kunnen lezen zonder te weten dát er iets staat.
-                     Waarschuwingen hebben hun eigen vlaggen: recall en
-                     inspection notice. Kost weinig ruimte: 1% van de producten
-                     heeft een opmerking, mediaan 28 tekens. -->
-                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: achter een klik op de naam
+                     (Jos 2026-09-04: dit is achtergrond over het producttype,
+                     niet de eigen keuringsopmerking van de keurmeester -- die
+                     ("Opmerking..."-veld) blijft wél altijd in beeld). Eerder
+                     stond dit altijd open (Jos 2026-08-01), maar bij elke
+                     regel dezelfde producttekst zien tijdens het keuren bleek
+                     juist té veel. Het info-icoontje bij de naam laat zien
+                     dát er iets is; verbergen na lezen kan geen kwaad, het
+                     staat niet vast (geen ✕ nodig, opnieuw klikken volstaat). -->
+                <tr v-if="itemProductNotes(row.it) && openNotesId === row.it.id" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
@@ -509,11 +517,13 @@ import {
   touchDownloadActivity,
   markInspectionPendingCompletion,
   getRegime,
+  isInspectedType,
+  inspectorVisibleArticles,
   isUnlimitedAge,
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
-import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
@@ -796,6 +806,15 @@ function setFieldValue(field: string | null, val: string) {
 // artikel, en kiest er zelf één uit — pas dan vullen merk/categorie/etc. zich.
 const matchingRowId = ref<string | null>(null)
 const matchSearch = ref('')
+
+// Opmerking uit de catalogus staat niet meer standaard open tijdens het
+// keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
+// relevant bij elke regel -- wél leuk om te zien bij een nieuw product). Eén
+// klik op de naam klapt 'm open; nogmaals klikken klapt 'm weer dicht.
+const openNotesId = ref<string | null>(null)
+function toggleNotes(it: Item) {
+  openNotesId.value = openNotesId.value === it.id ? null : it.id
+}
 
 function startMatch(it: Item) {
   matchingRowId.value = it.id
@@ -1268,12 +1287,22 @@ function addMonths(date: Date, months: number): Date {
 // onbekend land/type valt in getRegime terug op 12). Bewust NIET gekapt op
 // de levensduur — de keurmeester bepaalt zelf de datum; de levensduur-
 // waarschuwing (zie rowWarning) is alleen advies.
-function defaultIntervalMonths(it: Item): number {
+function defaultIntervalMonths(it: Item): number | null {
   const a = it.article
   if (a.interval_override_months != null) return a.interval_override_months
   if (a.product?.interval_override_months != null) return a.product.interval_override_months
+
   const type = a.product?.product_type
   const company = inspection.value?.company
+
+  // "Wordt dit type überhaupt gekeurd?" staat bewust vóór de
+  // bedrijfsinstellingen (besluit Jos 2026-08-04). Die instellingen zijn
+  // `not null default 12`, dus ze zijn er altijd -- kwam deze vraag erna, dan
+  // zou kleding via de tak "alles wat geen rigging is telt als PBM" alsnog
+  // stilletjes 12 maanden krijgen. Precies de val waar `no_ppe` tot vandaag
+  // in zat.
+  if (type != null && !isInspectedType(type as ProductType)) return null
+
   if (type === 'rigging' && company?.default_interval_rigging_months != null) {
     return company.default_interval_rigging_months
   }
@@ -1286,8 +1315,20 @@ function defaultIntervalMonths(it: Item): number {
   )
 }
 
-function suggestedNextDue(it: Item): Date {
-  return addMonths(new Date(), defaultIntervalMonths(it))
+/** `null` = dit artikel wordt niet gekeurd, dus er is geen volgende keuring. */
+function suggestedNextDue(it: Item): Date | null {
+  const months = defaultIntervalMonths(it)
+  return months == null ? null : addMonths(new Date(), months)
+}
+
+/**
+ * De voorgestelde datum als ISO-string voor `inspection_items.next_due`, of
+ * `null` bij een type zonder keurtermijn. Eén helper in plaats van op drie
+ * plekken dezelfde null-check rond `toIsoDate`.
+ */
+function suggestedNextDueIso(it: Item): string | null {
+  const d = suggestedNextDue(it)
+  return d == null ? null : toIsoDate(d)
 }
 
 function endOfLife(it: Item): Date | null {
@@ -1314,7 +1355,11 @@ function rowWarning(it: Item): { icon: string; text: string } | null {
   if (!eol) return null
   const now = Date.now()
   if (eol.getTime() <= now) return { icon: '⛔', text: t('inspections.table.ageWarningOverdue') }
-  if (eol.getTime() <= suggestedNextDue(it).getTime()) {
+  // Geen keurtermijn = geen datum om de levensduur tegen af te zetten. De
+  // "verloopt binnenkort"-waarschuwing slaat dan over; de harde ⛔ hierboven
+  // blijft wel staan, want een versleten zaagbroek mag je best melden.
+  const next = suggestedNextDue(it)
+  if (next != null && eol.getTime() <= next.getTime()) {
     const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
     return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
   }
@@ -1509,10 +1554,12 @@ async function load() {
   // Al bekende artikelen van deze klant als extra suggestiebron (zie
   // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
   // catalogus nog (vrijwel) leeg is.
-  const { data: custArts } = await supabase
-    .from('articles')
-    .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
-    .eq('customer_id', insp.customer_id)
+  const { data: custArts } = await inspectorVisibleArticles(
+    supabase
+      .from('articles')
+      .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
+      .eq('customer_id', insp.customer_id)
+  )
   customerArticles.value = (custArts ?? []).map((a: any) => ({
     id: a.id,
     serial: a.serial_number ?? '',
@@ -1747,7 +1794,7 @@ async function addRow() {
       .single()
     if (artErr) throw artErr
 
-    const initialNextDue = newResult.value === 'passed' ? toIsoDate(suggestedNextDue({ article } as Item)) : null
+    const initialNextDue = newResult.value === 'passed' ? suggestedNextDueIso({ article } as Item) : null
     const { data: item, error: itemErr } = await supabase
       .from('inspection_items')
       .insert({
@@ -1840,7 +1887,7 @@ async function addRowOffline() {
 
   const articleWithProduct = { ...articleRow, product: product ?? null } as unknown as Article
   const initialNextDue =
-    newResult.value === 'passed' ? toIsoDate(suggestedNextDue({ article: articleWithProduct } as Item)) : null
+    newResult.value === 'passed' ? suggestedNextDueIso({ article: articleWithProduct } as Item) : null
   const itemId = crypto.randomUUID()
   const itemRow = {
     id: itemId,
@@ -1898,7 +1945,7 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
     it.next_due = null
   } else {
     it.result = result
-    it.next_due = result === 'passed' ? toIsoDate(suggestedNextDue(it)) : null
+    it.next_due = result === 'passed' ? suggestedNextDueIso(it) : null
     if (result === 'passed') it.rejection_code_id = null
   }
   saveRow(it)
@@ -2167,6 +2214,9 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
+.iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+.iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
+.iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;

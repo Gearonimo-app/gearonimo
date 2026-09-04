@@ -4,7 +4,7 @@
          de keurmeester gebruikt; de products-leespolicy geldt voor alle
          ingelogden). Geen match = vrije invoer, die automatisch de
          catalogus-wachtrij in gaat (add_my_article). -->
-    <template v-if="!chosen && !freeMode">
+    <template v-if="hasCatalogue && !chosen && !freeMode">
       <!-- Merk is een keuzelijst (geen los zoekveld meer -- dat leek te veel
            op het naam-veld eronder, Jos 2026-07-13): kies een merk en blader
            zonder zoekterm door de hele catalogus van dat merk ("soms is een
@@ -53,40 +53,29 @@
       <input ref="descriptionInput" v-model="freeDescription" class="aa__input" :placeholder="$t('home.addArticle.description')" />
       <input v-model="freeBrand" class="aa__input" :placeholder="$t('home.addArticle.brand')" />
       <input v-model="freeCategory" class="aa__input" :placeholder="$t('home.addArticle.category')" />
-      <p class="aa__note">{{ $t('home.addArticle.queueNote') }}</p>
-      <button type="button" class="aa__free-toggle" @click="backToSearch">
+      <!-- Alleen bij Klimmateriaal: die tegel bundelt ppe/no_ppe/rigging, dus
+           daar is de tegel zelf niet specifiek genoeg. -->
+      <label v-if="needsTypeChoice" class="aa__date">
+        {{ $t('home.addArticle.type') }}
+        <select v-model="freeType" class="aa__input">
+          <option v-for="pt in domainTypes" :key="pt" :value="pt">
+            {{ $t(`productTypes.${pt}`) }}
+          </option>
+        </select>
+      </label>
+      <!-- "Overig" gaat bewust niet de catalogus-wachtrij in. -->
+      <p v-if="hasCatalogue" class="aa__note">{{ $t('home.addArticle.queueNote') }}</p>
+      <button v-if="hasCatalogue" type="button" class="aa__free-toggle" @click="backToSearch">
         {{ $t('home.addArticle.backToSearch') }}
       </button>
     </template>
 
     <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
-    <!-- Gebruiker: typeahead op de medewerkerslijst (Jos, 2026-07-13: "piet"
-         en "Piet" stonden er al naast elkaar) -- zelfde patroon/composable
-         als de Pro-app (useFieldSuggest, CustomerArticles.vue). Vrije invoer
-         blijft mogelijk voor wie niet als medewerker geregistreerd staat. -->
-    <div class="aa__field">
-      <input
-        v-model="userName"
-        class="aa__input"
-        :placeholder="$t('home.addArticle.user')"
-        autocomplete="off"
-        @focus="activeField = 'user'"
-        @blur="closeSuggest"
-        @keydown="onSuggestKeydown"
-      />
-      <ul v-if="activeField === 'user' && userSuggestions.length" class="aa__suggest">
-        <li v-for="(s, i) in userSuggestions" :key="s">
-          <button
-            type="button"
-            ref="userItemRefs"
-            class="aa__suggest-item"
-            :class="{ 'aa__suggest-item--active': i === suggestIndex }"
-            @mousedown.prevent="pickSuggestion(s)"
-            @mouseenter="suggestIndex = i"
-          >{{ s }}</button>
-        </li>
-      </ul>
-    </div>
+    <!-- Gebruiker: keuzelijst uit de medewerkers (besluit Jos 2026-08-04).
+         Vrij typen gaf "Jan de Vries" naast "J. de Vries" en maakte elk
+         overzicht per persoon onbetrouwbaar. Zie UserPicker voor de drie
+         gevallen die blijven werken. -->
+    <UserPicker v-model="userName" :members="memberNames" />
     <div class="aa__row">
       <input v-model.number="year" type="number" min="1990" max="2100" class="aa__input" :placeholder="$t('home.addArticle.year')" />
       <input v-model.number="month" type="number" min="1" max="12" class="aa__input" :placeholder="$t('home.addArticle.month')" />
@@ -112,19 +101,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick, watch, onMounted } from "vue";
+import { ref, computed, nextTick, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { supabase, errorMessage } from "@gearonimo/core";
-import { useFieldSuggest, fuzzyFilter } from "@gearonimo/ui";
+import {
+  supabase,
+  errorMessage,
+  DOMAIN_PRODUCT_TYPES,
+  type MaterialDomain,
+} from "@gearonimo/core";
 
-// knownUsers: de namen die al op andere artikelen van deze klant staan
-// (Materials.vue's memberNames). Nodig naast de officiële medewerkerslijst
-// (my_members): "Piet"/"piet" waren nooit als medewerker toegevoegd, alleen
-// getypt op een ander artikel -- zonder deze bron bleef de typeahead leeg
-// voor precies de namen die de duplicatie veroorzaakten (Jos, 2026-07-13).
-const props = defineProps<{ knownUsers?: string[] }>();
+// domain: de materiaalsoort-tegel waarin je toevoegt (UX-FLOW §9.6). Die
+// bepaalt drie dingen: welk deel van de catalogus doorzocht wordt, welk
+// producttype een vrij artikel krijgt, en of er überhaupt een catalogus is.
+//
+// `knownUsers` is hier weg (2026-08-04): dat waren de namen die al op andere
+// artikelen getypt stonden, als extra suggestiebron naast de medewerkerslijst.
+// Met een keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen.
+const props = defineProps<{ domain?: MaterialDomain }>();
 const emit = defineEmits<{ (e: "close"): void; (e: "added"): void }>();
 const { t } = useI18n();
+
+const domain = computed<MaterialDomain>(() => props.domain ?? "climbing");
+const domainTypes = computed(() => DOMAIN_PRODUCT_TYPES[domain.value]);
+
+// "Overig" (EHBO-koffer, brandblusser, APK) krijgt bewust geen catalogus:
+// daar valt nooit een kloppende lijst van te maken (besluit Jos 2026-08-04).
+// Meteen vrije invoer dus, zonder een zoekveld dat toch niets vindt.
+const hasCatalogue = computed(() => domain.value !== "other");
+
+// Binnen één soort hoeft er niets gekozen te worden -- de tegel ís de keuze.
+// Alleen Klimmateriaal bundelt drie types (ppe/no_ppe/rigging); daar staat wél
+// een keuzelijst, precies de "dropdown om fouten te voorkomen" die Jos wilde.
+const needsTypeChoice = computed(() => domainTypes.value.length > 1);
+const freeType = ref<string>(domainTypes.value[0] ?? "ppe");
 
 interface ProductHit {
   id: string;
@@ -140,7 +149,9 @@ const suggestions = ref<ProductHit[]>([]);
 const highlightIndex = ref(-1);
 const itemRefs = ref<HTMLElement[]>([]);
 const chosen = ref<ProductHit | null>(null);
-const freeMode = ref(false);
+// Zonder catalogus (tegel "Overig") is vrije invoer de enige route -- dan niet
+// eerst een leeg zoekveld tonen.
+const freeMode = ref(!hasCatalogue.value);
 const freeDescription = ref("");
 const freeBrand = ref("");
 const freeCategory = ref("");
@@ -166,32 +177,14 @@ onMounted(async () => {
     supabase.rpc("my_members"),
   ]);
   brandOptions.value = ((brandsRes.data ?? []) as { brand: string }[]).map((r) => r.brand);
-  const registeredNames = ((membersRes.data ?? []) as { name: string; active: boolean }[])
+  // Alléén echte medewerkers in de keuzelijst (besluit Jos 2026-08-04). Tot nu
+  // stonden ook de namen die al op andere artikelen getypt waren erbij; als
+  // keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen -- precies het
+  // probleem dat we hiermee oplossen. Wie er niet in staat, kiest "Andere
+  // naam..." in de UserPicker.
+  memberNames.value = ((membersRes.data ?? []) as { name: string; active: boolean }[])
     .filter((m) => m.active)
     .map((m) => m.name);
-  // Beide bronnen samen, exacte duplicaten eruit -- verschillende
-  // schrijfwijzen ("piet"/"Piet") blijven bewust allebei zichtbaar, dat is
-  // eerlijker dan er zomaar één van te laten verdwijnen.
-  memberNames.value = [...new Set([...registeredNames, ...(props.knownUsers ?? [])])];
-});
-
-// Gebruiker-typeahead: zelfde composable als de Pro-app (packages/ui),
-// hier met één veld ("user").
-type SuggestField = "user";
-const {
-  activeField,
-  suggestIndex,
-  suggestions: userSuggestions,
-  itemRefs: userItemRefs,
-  pick: pickSuggestion,
-  close: closeSuggest,
-  onKeydown: onSuggestKeydown,
-} = useFieldSuggest<SuggestField>({
-  resolve: () => fuzzyFilter(memberNames.value, userName.value),
-  select: (_field, value) => {
-    userName.value = value;
-  },
-  scrollToActive: true,
 });
 
 let searchTimer: ReturnType<typeof setTimeout> | undefined;
@@ -212,6 +205,8 @@ function triggerSearch() {
       q: term || null,
       brand_filter: brandTerm || null,
       limit_count: browsing ? 50 : 15,
+      // Alleen binnen deze tegel zoeken: één catalogus, gefilterd venster.
+      type_filter: domainTypes.value,
     });
     suggestions.value = (data ?? []) as ProductHit[];
     highlightIndex.value = -1;
@@ -304,6 +299,9 @@ async function save() {
       p_manufacture_month: month.value || null,
       p_first_use_date: firstUse.value || null,
       p_purchase_date: purchaseDate.value || null,
+      // Alleen zinnig bij een vrij artikel; een catalogusproduct draagt zijn
+      // eigen type (de RPC negeert dit dan ook).
+      p_free_product_type: chosen.value ? null : freeType.value,
     });
     if (err) throw err;
     emit("added");

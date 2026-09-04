@@ -31,6 +31,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { supabase, errorMessage, useOnline } from '@gearonimo/core'
 
 const props = defineProps<{ customerId: string }>()
@@ -57,11 +58,13 @@ function openPdf(c: CertRow) {
   window.open(data.publicUrl, '_blank')
 }
 
-onMounted(async () => {
+async function load() {
   if (!isOnline.value) {
     loading.value = false
     return
   }
+  loading.value = true
+  error.value = ''
   try {
     // !inner zodat de customer_id-filter op de gejoinde keuring werkt en
     // certificaten zonder (leesbare) keuring niet als losse rijen verschijnen.
@@ -77,7 +80,13 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
-})
+}
+
+onMounted(load)
+// Terug op dit tabblad: opnieuw ophalen. Dit is het scherm dat het snelst
+// achterloopt -- rond je in een ander tabblad een keuring af, dan stond hier
+// anders nog "Certificaten (0)" (zie onReactivated.ts).
+onReactivated(load)
 </script>
 
 <style scoped>

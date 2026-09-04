@@ -83,7 +83,10 @@
       "first_inspection_due": "Eerste keuring nodig",
       "overdue": "Verlopen",
       "rejected": "Afgekeurd",
-      "never_inspected": "Nog niet gekeurd"
+      "never_inspected": "Nog niet gekeurd",
+      "no_inspection": "Wordt niet gekeurd",
+      "self_check_due": "Zelf controleren",
+      "never_checked": "Nog niet gecontroleerd"
     },
     "certificates": "Certificaten",
     "noCertificates": "Nog geen certificaten.",
@@ -116,7 +119,8 @@
       "queueNote": "Onbekende producten bieden we automatisch aan voor de Gearonimo-catalogus.",
       "save": "Toevoegen",
       "cancel": "Annuleren",
-      "needProductOrDescription": "Kies een product uit de catalogus of vul een omschrijving in."
+      "needProductOrDescription": "Kies een product uit de catalogus of vul een omschrijving in.",
+      "type": "Soort"
     }
   },
   "materials": {
@@ -125,7 +129,15 @@
     "everyone": "Iedereen",
     "attention": "Aandacht nodig",
     "noMatches": "Niets gevonden binnen deze filters.",
-    "clearFilters": "Filters wissen"
+    "clearFilters": "Filters wissen",
+    "domains": {
+      "climbing": "Klimmateriaal",
+      "machines": "Machines",
+      "clothing": "Kleding",
+      "other": "Overig"
+    },
+    "allDomains": "Alle materiaalsoorten",
+    "attentionCount": "{n} met aandacht"
   },
   "articleDetail": {
     "notFound": "Artikel niet gevonden.",
@@ -168,6 +180,13 @@
         "province": "Provincie",
         "country": "Land"
       }
+    },
+    "domains": {
+      "title": "Materiaalsoorten",
+      "hint": "Kies welke soorten materiaal je in deze app bijhoudt. Klimmateriaal staat altijd aan. Een soort met materiaal erin kun je niet uitzetten — voer dat eerst af.",
+      "always": "Staat altijd aan",
+      "inUse": "{n} artikel(en)",
+      "save": "Opslaan"
     }
   },
   "members": {
@@ -229,5 +248,27 @@
       "declined": "Afgewezen",
       "withdrawn": "Ingetrokken"
     }
+  },
+  "productTypes": {
+    "ppe": "PBM",
+    "no_ppe": "Geen PBM",
+    "rigging": "Rigging",
+    "machine": "Machine",
+    "clothing": "Kleding",
+    "other": "Overig"
+  },
+  "selfCheck": {
+    "action": "Afvinken",
+    "save": "Afvinken",
+    "checkedAt": "Gecontroleerd op",
+    "performedByPlaceholder": "Door wie? (optioneel, bv. Stihl-dealer Jansen)",
+    "dialogText": "\"{name}\" afvinken als gecontroleerd. Dit is geen keuring door een keurbedrijf — je legt het zelf vast.",
+    "lastChecked": "afgevinkt op {date}",
+    "lastCheckLabel": "Laatste controle",
+    "nextCheckLabel": "Volgende controle",
+    "neverChecked": "Nog niet gecontroleerd",
+    "performedByLabel": "Gecontroleerd door",
+    "recordedByLabel": "Vastgelegd door",
+    "historyLabel": "Controles"
   }
 }

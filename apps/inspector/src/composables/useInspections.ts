@@ -21,6 +21,7 @@ import {
   deleteInspectionCache,
   deleteMutationsForInspection,
   touchDownloadActivity,
+  inspectorVisibleArticles,
 } from '@gearonimo/core'
 
 export interface Inspector {
@@ -131,11 +132,15 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
   const { isOnline } = useOnline()
 
   if (isOnline.value) {
-    const { data, error } = await supabase
-      .from('articles')
-      .select('id')
-      .eq('customer_id', customerId)
-      .eq('retired', false)
+    // Kleding, machines en overig vallen buiten het keurbedrijf en horen dus
+    // niet in een keuring te belanden (besluit Jos 2026-08-04).
+    const { data, error } = await inspectorVisibleArticles(
+      supabase
+        .from('articles')
+        .select('id')
+        .eq('customer_id', customerId)
+        .eq('retired', false)
+    )
     if (error) throw error
     const allIds = (data ?? []).map((a) => a.id).filter((id) => !exclude.has(id))
     if (!allIds.length) return { allIds: [], newIds: [] }
@@ -150,8 +155,13 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
   }
 
   const key = requireOfflineKey()
-  const articles = await getArticlesForCustomer<{ id: string; retired: boolean }>(key, customerId)
-  const allIds = articles.filter((a) => !a.retired).map((a) => a.id).filter((id) => !exclude.has(id))
+  const articles = await getArticlesForCustomer<{ id: string; retired: boolean; self_managed?: boolean }>(key, customerId)
+  // Spiegel van het serverfilter hierboven; een offline gedownloade klant kan
+  // ook kleding bevatten.
+  const allIds = articles
+    .filter((a) => !a.retired && !a.self_managed)
+    .map((a) => a.id)
+    .filter((id) => !exclude.has(id))
   if (!allIds.length) return { allIds: [], newIds: [] }
   const inspectedSet = await getLocallyInspectedArticleIds(key)
   const newIds = allIds.filter((id) => !inspectedSet.has(id))

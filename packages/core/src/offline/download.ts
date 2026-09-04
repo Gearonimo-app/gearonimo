@@ -1,4 +1,5 @@
 import { supabase } from "../supabase";
+import { inspectorVisibleArticles } from "../domains";
 import { getOfflineDb, type DownloadEntry } from "./db";
 import {
   putCustomer,
@@ -87,11 +88,17 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
     .single();
   if (custErr) throw custErr;
 
-  const { data: articles, error: artErr } = await supabase
-    .from("articles")
-    .select("*")
-    .eq("customer_id", customerId)
-    .eq("retired", false);
+  // Kleding, machines en overig vallen buiten het keurbedrijf (besluit Jos
+  // 2026-08-04) en worden dus ook niet mee offline gezet -- anders staat een
+  // keurmeester zonder netwerk alsnog naar de kledingkast van zijn klant te
+  // kijken.
+  const { data: articles, error: artErr } = await inspectorVisibleArticles(
+    supabase
+      .from("articles")
+      .select("*")
+      .eq("customer_id", customerId)
+      .eq("retired", false)
+  );
   if (artErr) throw artErr;
 
   // Medewerkers en sets horen bij het klantdetailscherm (toonden offline

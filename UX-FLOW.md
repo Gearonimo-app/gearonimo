@@ -525,6 +525,105 @@ bouw van fase 2/3. Iconen/labels zijn placeholders.
 | Afgekeurd-lijst | `inspection_items` waar `result='rejected'`, met `article_snapshot` (naam/SN) en `rejection_code_id` |
 | OK – opslaan | `inspections.status='completed'`, `completed_at=now()` (onveranderlijk vanaf hier); bij sync: `certificates` aanmaken (`number`, `storage_path`, `pdf_hash`, `verify_token`) en `usage_counters.items_inspected` ophogen met aantal beoordeelde items |
 
+## 9.6 Materiaalsoorten als tegels in de klant-app (besloten Jos 2026-08-04)
+
+Aanleiding: kleding moest erbij, en daarmee komen er soorten materiaal in de
+klant-app die niets met elkaar te maken hebben — een klimgordel naast een
+T-shirt naast een EHBO-koffer in één ongedeelde lijst.
+
+### De indeling
+
+Vier tegels, één niveau **onder** "Mijn materiaal" (niet op het hoofdmenu):
+
+| tegel | `product_type` | keuring |
+|---|---|---|
+| Klimmateriaal | `ppe`, `no_ppe`, `rigging` | keurmeester (behalve `no_ppe`) |
+| Machines | `machine` | 12 mnd, wie afvinkt is los instelbaar |
+| Kleding | `clothing` | nooit |
+| Overig | `other` | klant vinkt zelf af, herinnering na 12 mnd |
+
+**Niet op het hoofdmenu (besloten):** de bestaande tegels daar zijn
+taakgericht ("wat kom je doen?" — Mijn materiaal, Certificaten, Aanvragen,
+Instellingen, zie §8/§9.2). Deze zijn inhoudsgericht ("welk soort spullen?").
+Twee logica's in één raster maakt onvoorspelbaar wat een tegel doet. Jos:
+*"1 niveau dieper past bij het 1-keuze-per-scherm idee."*
+
+**Naam "Klimmateriaal"** (Jos): past in alle gevallen. "Valbeveiliging" was
+het alternatief maar wordt in de praktijk minder gebruikt.
+
+### De architectuurregel
+
+**Een tegel is een weergave, geen eigenschap van een artikel.**
+
+- Eén classificatie: `product_type`. Die bepaalt het regime (zie DATAMODEL §2).
+- Eén afbeelding type → tegel, **vast in code** (`packages/core`), niet per
+  klant instelbaar. De tegellaag bestaat om keurjargon te verbergen, niet om
+  de klant een nieuwe as te geven om te beheren.
+- Eén klantinstelling: welke tegels aan staan. **Verder niets op het artikel.**
+
+Zodra een artikel zowel een type als een tegel zou hebben, kunnen die twee het
+oneens zijn (catalogusproduct zegt `ppe`, klant zette het in Machines) en zijn
+er verzoeningsregels nodig. Met de tegel als afgeleide kan er niets uit de pas
+lopen: een tegel uitzetten verandert geen data.
+
+### Aan/uit per klant
+
+De tegels staan aan/uit in de instellingen, **alleen voor `is_admin`** (Jos:
+*"niet iedereen hoeft hem te kunnen zien"*). De tegels zelf zijn voor iedereen
+zichtbaar.
+
+**Waarom een instelling en niet afgeleid uit inhoud.** Eerste voorstel was:
+toon een tegel zodra er materiaal in zit. Dat kan niet — Jos: *"als er geen
+tegel is wanneer er niks in staat, kan deze ook niet gevuld worden."*
+Toevoegen gebeurt ín een tegel (met de bijbehorende gefilterde catalogus), dus
+de tegel moet bestaan vóór de inhoud.
+
+**Veiligheidsregel: een tegel met inhoud kan niet uit.** Wil je van kleding af,
+voer dan eerst de kleding af. Eén zin, en daarmee bestaat "onzichtbaar
+materiaal met een verlopende keuring" niet. Het alternatief (uitzetten mag,
+maar spullen blijven meetellen in het stoplicht) zou betekenen dat er een
+waarschuwing staat over iets dat je niet kunt zien.
+
+**Startpunt bij invoeren (besloten):** alles wat er nu staat is klimmateriaal,
+dus die tegel staat bij iedereen aan en de rest uit.
+
+### Catalogus per tegel
+
+**Eén `products`-tabel, per tegel een gefilterd venster** (`product_type in
+(...)`) — géén aparte kledingcatalogus of machinecatalogus. Zelfde mechanisme
+als `allowed_product_types` per keurbedrijf (DATAMODEL §1). Aparte tabellen
+zouden drie keer import, zoekfunctie en wachtrij betekenen.
+
+- **Kleding en machines:** de catalogus bevat vandaag nul kleding en één
+  machine. Vrije invoer is dus voorlopig de enige route; via het bestaande
+  `suggest_for_catalog` groeit de catalogus vanzelf uit wat klanten invoeren.
+- **Overig:** bewust **geen** catalogus. EHBO-koffers en brandblussers zijn een
+  restcategorie; een catalogus daarvoor gaat nooit kloppen.
+
+**Gevolg: de tegel ís de dropdown.** Voeg je toe vanuit Kleding, dan is het
+type `clothing`. De verplichte keuzelijst voor een vrij artikel is daarmee
+alleen nog nodig als iemand búiten een tegel om toevoegt.
+
+### Producttype blijft zichtbaar
+
+`ppe` / `no_ppe` / `rigging` mogen gewoon op de artikelregel staan (Jos). Er
+zit informatie in die de klant aangaat: `no_ppe` wordt niet gekeurd, `ppe` wel.
+Zichtbaar maken verklaart waarom een klimspoor geen keurdatum heeft.
+
+### Machines: nog niet beslist, en dat hoeft niet
+
+Twee onafhankelijke assen houden dit open:
+
+| as | bepaalt |
+|---|---|
+| `product_type` | *of* en *hoe vaak* er gekeurd wordt |
+| `self_managed` | *wie* het afvinkt: keurbedrijf of klant zelf |
+
+Machine staat op 12 maanden; wie het vastlegt is los instelbaar. Vandaag vinkt
+de klant zelf af — Jos: *"of dit type keurmeesters op een app zit te wachten
+denk ik niet."* Stapt Gearonimo later toch bij machinedealers binnen, dan gaat
+`self_managed` uit voor die klant en verandert er niets aan het model.
+
 ## 10. Open punten volgende sparringronde
 
 1. Visuele wireframes/mockups (Figma of vergelijkbaar) op basis van de

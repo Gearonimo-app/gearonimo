@@ -216,8 +216,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
+import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
-import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
@@ -260,12 +261,14 @@ async function toggleRetired() {
 async function loadRetired() {
   if (!isOnline.value) return
   loadingRetired.value = true
-  const { data, error: err } = await supabase
-    .from('articles')
-    .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, retired_reason, product:products(id, brand, name)')
-    .eq('customer_id', props.customerId)
-    .eq('retired', true)
-    .order('retired_at', { ascending: false })
+  const { data, error: err } = await inspectorVisibleArticles(
+    supabase
+      .from('articles')
+      .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, retired_reason, product:products(id, brand, name)')
+      .eq('customer_id', props.customerId)
+      .eq('retired', true)
+      .order('retired_at', { ascending: false })
+  )
   loadingRetired.value = false
   if (err) { error.value = err.message; return }
   retiredArticles.value = (data ?? []) as unknown as Article[]
@@ -513,12 +516,16 @@ async function load() {
     return
   }
 
-  const { data, error: err } = await supabase
-    .from('articles')
-    .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
-    .eq('customer_id', props.customerId)
-    .eq('retired', false)
-    .order('created_at', { ascending: false })
+  // Kleding/machines/overig vallen buiten het keurbedrijf (besluit Jos
+  // 2026-08-04) -- de keurmeester ziet ze dus ook niet op de klantpagina.
+  const { data, error: err } = await inspectorVisibleArticles(
+    supabase
+      .from('articles')
+      .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
+      .eq('customer_id', props.customerId)
+      .eq('retired', false)
+      .order('created_at', { ascending: false })
+  )
   if (err) error.value = err.message
   else articles.value = (data ?? []) as unknown as Article[]
   loading.value = false
@@ -598,6 +605,16 @@ onMounted(async () => {
   }
   await load()
   await loadSets()
+})
+
+// Terug op dit tabblad: artikellijst en sets opnieuw ophalen. Zonder dit blijft
+// de lijst staan zoals hij was toen je wegging -- voeg je in een ander tabblad
+// een artikel toe of koppel je er een, dan zag je dat hier niet (zie
+// onReactivated.ts). Bewust NIET de catalogus-typeahead en de medewerkers uit
+// onMounted hierboven: die zijn duur en veranderen niet tijdens het werk.
+onReactivated(() => {
+  void load()
+  void loadSets()
 })
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).

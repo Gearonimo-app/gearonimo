@@ -183,7 +183,8 @@
       "relink": "Ander product kiezen",
       "unlink": "Ontkoppelen",
       "queueEdit": "Staat op de wachtrij — aanpassen",
-      "notesPlaceholder": "Bijzonderheden bij dit artikel…"
+      "notesPlaceholder": "Bijzonderheden bij dit artikel…",
+      "notesSaveError": "Opmerking niet opgeslagen: {msg}"
     }
   },
   "sets": {
@@ -321,7 +322,7 @@
       "ageWarningOverdue": "Levensduur verstreken",
       "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)",
       "dayHelper": "Productiedag (uit SN):",
-      "dayHelperTooltip": "Het dagnummer van het jaar, vaak 3 cijfers in het serienummer verwerkt. 003 = 3 januari, 123 = dag 123 van het jaar (1 mei). Loopt op tot maximaal 365 (366 in een schrikkeljaar) — niet hetzelfde als een datum.",
+      "dayHelperTooltip": "Het dagnummer van het jaar, vaak 3 cijfers in het serienummer verwerkt. 003 = 3 januari, 123 = dag 123 van het jaar (3 mei, of 2 mei in een schrikkeljaar). Loopt op tot maximaal 365 (366 in een schrikkeljaar) — niet hetzelfde als een datum.",
       "dayPlaceholder": "bv. 045",
       "weekHelper": "Weeknummer:",
       "weekHelperTooltip": "Het weeknummer van het jaar (1-53), soms verwerkt in het serienummer. Een week kan over twee maanden lopen, daarom zie je hier mogelijk twee maanden — kies zelf de juiste.",
@@ -636,6 +637,7 @@
         "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
         "readError": "Bestand kon niet gelezen worden.",
         "duplicateSkipped": "Rij {line}: {product} staat al in de catalogus.",
+        "duplicateExists": "Er staat al een product met dit merk en deze naam in de catalogus. Pas het bestaande product aan, of geef dit een eigen naam — bijvoorbeeld met de maat erachter.",
         "andMore": "… en nog {count}.",
         "importProgress": "{done} van {total} toegevoegd…",
         "delete": "Product verwijderen",
@@ -671,8 +673,8 @@
         "ppe": "PBM",
         "no_ppe": "Geen PBM",
         "rigging": "Rigging",
-        "aerial_platform": "Hoogwerker",
         "machine": "Machine",
+        "clothing": "Kleding",
         "other": "Overig"
       },
       "placeholders": {

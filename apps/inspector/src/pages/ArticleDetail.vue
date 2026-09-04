@@ -45,6 +45,10 @@
             {{ savingNotes ? $t('common.saving') : $t('common.save') }}
           </button>
         </div>
+        <!-- Eigen foutregel: een mislukte opmerking mag niet de hele pagina
+             vervangen door een foutmelding (dat deed de gedeelde `error`), want
+             dan ben je én je tekst én je plek in de lijst kwijt. -->
+        <p v-if="notesError" class="ad__error">{{ notesError }}</p>
       </section>
 
       <!-- Al gekoppeld: laten zien wááraan, en dat kunnen herzien. Een misklik
@@ -158,7 +162,7 @@
 
     <!-- Bewerken -->
     <div v-else class="ad__body">
-      <div v-for="f in fieldDefs" :key="f.col" class="ad__field">
+      <div v-for="f in editFieldDefs" :key="f.col" class="ad__field">
         <label class="ad__field-label">{{ label(f.label) }}</label>
         <textarea v-if="f.textarea" v-model="form[f.col]" class="ad__input" rows="3"></textarea>
         <input v-else-if="f.type === 'checkbox'" type="checkbox" v-model="form[f.col]" class="ad__checkbox" />
@@ -301,14 +305,18 @@ const viewFieldDefs = fieldDefs.filter((f) => f.col !== 'notes')
 
 const notesDraft = ref('')
 const savingNotes = ref(false)
+const notesError = ref('')
 const notesDirty = computed(() => notesDraft.value !== ((article.value?.notes as string | null) ?? ''))
 
 function resetNotes() {
   notesDraft.value = (article.value?.notes as string | null) ?? ''
+  notesError.value = ''
 }
 
-async function saveNotes() {
+/** @returns of het opslaan lukte -- het doorloop-pad hangt hierop. */
+async function saveNotes(): Promise<boolean> {
   savingNotes.value = true
+  notesError.value = ''
   const { data, error: err } = await supabase
     .from('articles')
     .update({ notes: notesDraft.value.trim() || null })
@@ -316,9 +324,23 @@ async function saveNotes() {
     .select('*, customer:customers(name), product:products(id, brand, name)')
     .single()
   savingNotes.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { notesError.value = t('articles.detail.notesSaveError', { msg: err.message }); return false }
   article.value = data
   notesDraft.value = data.notes ?? ''
+  return true
+}
+
+/**
+ * Een getypte opmerking eerst wegschrijven vóór we van artikel wisselen.
+ * Tijdens het koppelen van een hele import (Weijtmans: 278 artikelen) typ je de
+ * opmerking en klik je meteen door naar het volgende vrije artikel; zonder dit
+ * verdween die tekst zonder waarschuwing (Jos 2026-08-13). Lukt opslaan niet,
+ * dan blijven we staan mét de foutregel in beeld, zodat de tekst niet alsnog
+ * met de pagina verdwijnt.
+ */
+async function saveNotesBeforeLeaving(): Promise<boolean> {
+  if (!notesDirty.value || !isOnline.value || article.value?.retired) return true
+  return await saveNotes()
 }
 
 const brandLabel = computed(() => {
@@ -346,6 +368,16 @@ const productListOpen = ref(false)
 const productsError = ref('')
 const linking = ref(false)
 const isFreeArticle = computed(() => !!article.value && !article.value.product_id)
+
+// Alleen bij een vrij artikel: merk/omschrijving zijn dan de enige plek waar
+// de naam vandaan komt (zie brandLabel), dus die moeten in het
+// bewerk-formulier staan. Bij een gekoppeld artikel komt de naam uit het
+// catalogusproduct -- corrigeren gaat daar via "Herkoppelen", niet hier.
+const freeNameFieldDefs: FieldDef[] = [
+  { col: 'free_brand', label: 'articles.fields.brand' },
+  { col: 'free_description', label: 'articles.fields.description' },
+]
+const editFieldDefs = computed(() => (isFreeArticle.value ? [...freeNameFieldDefs, ...fieldDefs] : fieldDefs))
 
 function closeProductListSoon() {
   // Korte vertraging zodat een klik op een item nog telt (mousedown vóór blur),
@@ -435,7 +467,8 @@ async function loadSiblings() {
   }
 }
 
-function goTo(articleId: string) {
+async function goTo(articleId: string) {
+  if (!(await saveNotesBeforeLeaving())) return
   router.push(`/articles/${articleId}`)
 }
 
@@ -594,7 +627,7 @@ async function loadProducts() {
 
 function startEdit() {
   const f: Record<string, unknown> = {}
-  for (const def of fieldDefs) {
+  for (const def of editFieldDefs.value) {
     const v = article.value?.[def.col]
     f[def.col] = def.type === 'checkbox' ? !!v : (v ?? '')
   }
@@ -607,7 +640,7 @@ async function save() {
   saving.value = true
   formError.value = ''
   const patch: Record<string, unknown> = {}
-  for (const def of fieldDefs) {
+  for (const def of editFieldDefs.value) {
     const v = form.value[def.col]
     if (def.type === 'checkbox') patch[def.col] = !!v
     else if (def.type === 'number') patch[def.col] = v === '' ? null : Number(v)
@@ -682,7 +715,9 @@ async function reinstate() {
   await loadSiblings()
 }
 
-function back() {
+async function back() {
+  // Zelfde bescherming als bij doorlopen: eerst de opmerking wegschrijven.
+  if (!(await saveNotesBeforeLeaving())) return
   // Gaat terug naar waar je vandaan kwam (serienummer-/recall-zoeken,
   // setdetail, ...) als die geschiedenis er is -- Vue Router (createWebHistory)
   // zet history.state.back op elke navigatie, null bij de eerste pagina in dit

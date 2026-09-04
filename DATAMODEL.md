@@ -201,11 +201,35 @@ Eigenaar van artikelen en historie (besloten: de klant bezit de data).
 | country_code | text | legacy; de UI gebruikt nu het vrije tekstveld `country` |
 | address | text? | **niet meer gebruikt** — vervangen door `street`/`house_number` (2026-06-23) |
 | invite_code | text, uniek | uitnodigingscode/QR voor nieuwe medewerkers (besloten 2026-06-14, zie onboarding bij `customer_members`) |
+| enabled_domains | text[] | welke materiaal-tegels deze klant gebruikt (besloten 2026-08-04, **nog te bouwen**) — zie hieronder |
 
 > **Implementatie fase 2.2 (2026-06-23):** bovenstaande extra velden zijn als
 > kolommen toegevoegd via `supabase/migrations/20260622_customers_extra_fields.sql`
 > in de Gearonimo-repo. Alleen `name` en `email` zijn in de UI verplicht; de rest
 > is vrije invoer (data-minimalisatie/AVG).
+
+> **`enabled_domains` — materiaal-tegels (besloten Jos 2026-08-04, nog te
+> bouwen).** De klant-app krijgt onder "Mijn materiaal" vier tegels:
+> Klimmateriaal (`ppe`/`no_ppe`/`rigging`), Machines (`machine`), Kleding
+> (`clothing`) en Overig (`other`). Het volledige ontwerpbesluit met de
+> afwegingen staat in `UX-FLOW.md §9.6`; hier alleen wat het voor het
+> datamodel betekent:
+> - **Dit is de enige opslag.** De afbeelding `product_type` → tegel staat
+>   vast in `packages/core`; op `articles` komt géén tegel-kolom. Eén
+>   classificatie (`product_type`), één afgeleide weergavelaag. Zou een artikel
+>   zowel een type als een tegel hebben, dan kunnen die twee het oneens zijn.
+> - **Alleen `is_admin` mag het wijzigen**; de tegels zelf zijn voor elke
+>   medewerker zichtbaar.
+> - **Een tegel met inhoud kan niet uit** — dat maakt "onzichtbaar materiaal
+>   met een verlopende keuring" onmogelijk. Af te dwingen in de RPC die dit
+>   veld zet, niet alleen in de UI.
+> - **Startwaarde bij invoeren:** `{climbing}` voor iedereen — alles wat er nu
+>   staat is klimmateriaal.
+> - Let op de twee andere `text[]`-verzamelingen van producttypes in dit model,
+>   die een **andere vraag** beantwoorden en bewust niet samengevoegd worden:
+>   `customer_links.scope_product_types` (wat de klant *deelt* met een
+>   keurbedrijf) en `inspection_companies.allowed_product_types` (wat een
+>   keurbedrijf *keurt*). Zelfde woordenschat, drie verschillende vragen.
 
 ### `customer_members` (medewerkers/eindgebruikers)
 | kolom | type | uitleg |
@@ -275,7 +299,7 @@ keurbedrijf B.
 |---|---|---|
 | brand | text | merk |
 | name | text | omschrijving |
-| product_type | text | `ppe` / `rigging` / `aerial_platform` / `machine` (kettingzaag, accuboor, versnipperaar) / `other` / … — bepaalt standaardregime |
+| product_type | text | `ppe` / `no_ppe` / `rigging` / `machine` (kettingzaag, accuboor, versnipperaar) / `clothing` — bepaalt standaardregime. `other` kan hier **niet**: dat bestaat alleen bij een vrij artikel (besluit 2026-08-04, zie hieronder) |
 | category | text? | huidige `categorie` |
 | material | text? | |
 | standard | text? | EN-norm (huidige `norm`) |
@@ -315,6 +339,54 @@ dit klopt dus gewoon"* — de bronlijst bevat legitiem `130-150` (bereik) en
 net als `breaking_strength` en `working_load_limit` die om dezelfde reden al
 text zijn. Er wordt nergens op dit veld gerekend of gesorteerd.
 Migratie: `20260727_products_max_user_weight_text.sql`.
+
+**De zes producttypes en hun regime (besloten Jos 2026-08-04):** de lijst is
+opnieuw vastgesteld toen kleding erbij moest. `aerial_platform` is eruit
+(hoogwerkers zijn een andere doelgroep; stond op geen enkel product).
+
+| type | keurtermijn | door wie |
+|---|---|---|
+| `ppe` | 12 mnd (GB 6, zwaar gebruik 3) | keurmeester |
+| `no_ppe` | **nooit** | — |
+| `rigging` | 12 mnd (ook GB) | keurmeester |
+| `machine` | 12 mnd | keurmeester |
+| `clothing` | **nooit** | — |
+| `other` | **nooit** (klant vinkt zelf af, herinnering na 12 mnd) | klant |
+
+- **`no_ppe` op "nooit" (Jos):** klimsporen, voetklemmen, elastiek om een zaag
+  aan te hangen. *"Worden vaak wel meegekeurd, maar is niet verplicht."* Wie
+  het tóch periodiek wil zien, zet een `interval_override_months` op product of
+  artikel. Tot 2026-08-04 stond `no_ppe` wél in de catalogus-typelijst maar
+  níét in `REGIMES`; via de tak "alles wat geen rigging is telt als PBM" in
+  `defaultIntervalMonths()` kregen die 167 producten stilletjes het
+  PBM-interval van het keurbedrijf. Dat is nu een expliciet besluit in plaats
+  van een gat.
+- **`clothing` op "nooit" (Jos):** een zaagbroek ís formeel een PBM, maar
+  *"er is nog geen enkele fabrikant die vertelt hoe je een broek moet keuren."*
+  Kleding zit in Gearonimo om bij te houden wie wat wanneer kreeg, niet om te
+  keuren.
+- **`rigging` in GB van 6 naar 12 (Jos, met bronbevestiging):** stond op 6
+  vanuit LOLER 1998 reg. 9(3), dat voor *lifting accessories* (stroppen,
+  harpen, blokken) 6 maanden voorschrijft. Jos heeft het nagevraagd bij een
+  Britse keurmeester, die schriftelijk bevestigt: *"Thorough examinations are
+  every 6 months for PPE and 12 months for rigging."* De verklaring is dat
+  rigging in de boomverzorging takken laat **zakken** in plaats van hijst —
+  daarmee geen hijsoperatie in de zin van LOLER. PBM in GB blijft 6 maanden.
+- **`other` is geen catalogusproduct (Jos):** *"wanneer er iets uit de
+  catalogus gekozen wordt kan dit niet naar other gezet worden."* Het is de
+  eigen todo-lijst van de klant (brandblusser, EHBO-koffer, APK) en bestaat
+  daarom alleen bij een vrij artikel. Afgedwongen door `other` uit
+  `PRODUCT_TYPES` te halen en alleen in `ARTICLE_TYPES` te zetten
+  (`packages/core/src/catalog.ts`), niet met een losse controle.
+- **"Nooit" is `null`, niet `0`.** `getRegime()` geeft sinds 2026-08-04
+  `number | null` terug. Nul zou via `addMonths()` betekenen "volgende keuring
+  is vandaag" — dus meteen rood. De fallback voor een *onbekend* type blijft
+  bewust 12 maanden: onbekend betekent "voor de zekerheid keuren", nooit "voor
+  de zekerheid nooit keuren".
+- **Volgorde in `defaultIntervalMonths()`:** de vraag "wordt dit type
+  gekeurd?" staat vóór de bedrijfsinstellingen. Die zijn `not null default 12`
+  en dus altijd gevuld; stond de vraag erna, dan kreeg kleding alsnog stil 12
+  maanden.
 
 **`product_type` is het regime, niet de categorie (bevestigd 2026-07-27):**
 bij de bronlijst-import bleek `product_type` bij 156 van de 2294 rijen (6,8%)
@@ -368,17 +440,28 @@ productdata van de keuringsdatum toont.
 |---|---|---|
 | product_type | text | |
 | country_code | text | |
-| interval_months | int | NL/ppe → 12; GB/ppe → 6; NL/machine → 12 (NEN 3140); nieuw land of type = rijen toevoegen |
+| interval_months | int | NL/ppe → 12; GB/ppe → 6; rigging → 12 (ook GB); machine → 12; nieuw land of type = rijen toevoegen |
 | severe_use_interval_months | int? | verkort interval bij zwaar gebruik (VK/INDG367: 3 mnd bij bijv. scherpe randen); artikel krijgt vlag `severe_use` |
-| legal_reference | text? | "Arbobesluit" / "LOLER 1998" / "NEN 3140" / "DGUV Regel 112-198" — op certificaat |
 
 Intervalresolutie: artikel-override → product-override → regime(type × land).
+Types zonder termijn (`no_ppe`, `clothing`, `other`) leveren `null` — geen
+volgende keuring, geen stoplichtstatus. Een expliciete override wint daar wél
+van: zo krijgen de Stein-afdaalapparaten, waarvoor de fabrikant zelf 6 maanden
+voorschrijft, gewoon een termijn.
 
 > **Implementatie fase 2.5 (2026-06-24):** geen eigen DB-tabel — leeft als
-> statische `REGIMES`-lijst in `packages/core/src/regimes.ts` (NL/GB ×
-> ppe/rigging/machine/aerial_platform), met `getLegalReference()` als
-> nieuwe helper die het certificaat-PDF voedt. Een DB-tabel is pas nodig
-> zodra een keurbedrijf eigen regimes/landen moet kunnen instellen.
+> statische `REGIMES`-lijst in `packages/core/src/regimes.ts`. Een DB-tabel is
+> pas nodig zodra een keurbedrijf eigen regimes/landen moet kunnen instellen.
+>
+> **`legal_reference` verwijderd (besluit Jos 2026-08-04).** Het veld stond in
+> `Regime` en er was een `getLegalReference()`-helper, maar die werd in de hele
+> codebase **nooit aangeroepen** — er heeft dus nooit een wettelijke basis op
+> een certificaat gestaan, ondanks wat hieronder bij §`certificates` stond.
+> Jos: *"gekeurd volgens LOLER eraf halen, dat is aan het keurbedrijf of in de
+> voettekst te zetten."* Welke norm een keurbedrijf claimt is aan dat
+> keurbedrijf; daarvoor bestaat `inspection_companies.cert_footer` al (en is
+> bij Safety Green al gevuld). Veld én functie zijn weggehaald in plaats van
+> blijven staan — zelfde lijn als `max_age_years` op 2026-07-09.
 
 ### `rejection_codes` (afkeurcodes)
 | kolom | type | uitleg |
@@ -472,7 +555,8 @@ Intervalresolutie: artikel-override → product-override → regime(type × land
 | retired | boolean | afgevoerd |
 | retired_at | timestamptz? | |
 | suggest_for_catalog | boolean | klant-vinkje "voeg toe aan de productendatabase" bij een vrij artikel (`product_id` leeg) — besloten 2026-06-14, zie BLAUWDRUK §2. Aangevinkt: artikel komt in de catalogus-wachtrij (`products`, status=`pending`) en `free_description`/`free_brand`/`free_manual_url` worden verplicht. Niet aangevinkt: blijft puur eigen artikel, buiten de wachtrij |
-| self_managed | boolean | `true` = vrij, niet-PBM artikel uit de "zelf te keuren spullen"-lijst (EHBO-trommel, brandblusser, auto-APK, kettingzaag bij externe dealer, …) — besloten 2026-06-14, zie BLAUWDRUK §2. Staat los van de catalogus (`product_id` leeg) en komt nooit in de keuring-wizard van een keurmeester, ook niet via een actieve `customer_link`. Status volgt uit `self_checks` i.p.v. `inspection_items` |
+| self_managed | boolean | `true` = **dit artikel valt buiten het keurbedrijf**: geen keurmeester ziet het, ook niet via een actieve `customer_link`, en de status komt niet uit `inspection_items`. Wordt automatisch gezet voor `clothing` / `machine` / `other` (zie hieronder) |
+| free_product_type | text? | producttype van een **vrij artikel** (`product_id` leeg) — bij een catalogusartikel komt het type van het product. Leeg = van vóór 2026-08-04, telt overal als klimmateriaal/`ppe` |
 
 Status (groen/oranje/"nog niet gekeurd"/rood) wordt **berekend**, nooit
 opgeslagen: de "volgende keuring uiterlijk"-datum (`next_due`) van de laatste
@@ -482,6 +566,27 @@ levensduur kan dus eerder rood geven dan het keuringsinterval. Nooit gekeurd ⇒
 "vraag een keuring aan" (geen rood alarm, zie blauwdruk §7).
 Terminologie bewust: nergens "goed tot" — een keuring is een momentopname,
 geen garantie tot een datum.
+
+**`self_managed` verbreed (besluit Jos 2026-08-04).** Het veld stond hier
+beschreven als "zelf te keuren spullen" (EHBO-trommel, brandblusser, APK) — de
+oorspronkelijke bedoeling van 2026-06-14. De operationele betekenis was altijd
+al ruimer: *dit artikel valt buiten het keurbedrijf*. Dat is precies wat er ook
+voor kleding moet gelden, ook al "keurt" de klant die niet zelf.
+
+- Automatisch `true` voor `clothing`, `machine` en `other`. Jos: *"voor nu
+  standaard self managed"* — kettingzaagkeurmeesters zitten voorlopig niet op
+  een app te wachten. Afgedwongen door `type_is_self_managed()` en een trigger
+  op `articles` (migratie `20260753_self_managed_domains.sql`), dus ook als het
+  type later wijzigt.
+- **`no_ppe` blijft er bewust buiten**: klimsporen en voetklemmen worden in de
+  praktijk vaak meegekeurd, dus die moet de keurmeester gewoon zien.
+- De trigger zet het alleen **aan**, nooit uit: stapt Gearonimo later bij
+  machinedealers binnen, dan kan `self_managed` handmatig uit zonder dat een
+  volgende update het stilletjes terugdraait.
+- Eén kolom in plaats van overal op producttype filteren — het type zit soms op
+  `products` (via een join) en soms op `articles.free_product_type`. In de apps
+  loopt het via één helper, `inspectorVisibleArticles()` in
+  `packages/core/src/domains.ts`.
 
 Poolmateriaal (besloten 2026-06-12): `assigned_member_id` leeg is normaal
 gebruik — voorraad en niet-PPE hebben zelden een vaste gebruiker, en gedeelde
@@ -580,6 +685,27 @@ Status/`next_due` van een `self_managed`-artikel volgt uitsluitend uit
 een keurmeester-certificaat, om verwarring over de juridische status te
 voorkomen.
 
+> **Gebouwd 2026-08-04 (migratie `20260754_self_checks.sql`).** De tabel
+> bestond al live maar had géén `create table` in de repo; de kolommen zijn
+> door Jos opgevraagd en komen exact overeen met bovenstaande opzet. De
+> migratie maakt hem alleen aan als hij ontbreekt en zet de FK's expliciet
+> goed (`article_id` → `articles` met cascade, `created_by_member_id` →
+> `customer_members` met set null).
+>
+> - **Afvinktermijn per type** staat in `selfCheckIntervalMonths()`
+>   (`packages/core/src/domains.ts`): `other` en `machine` 12 maanden,
+>   `clothing` nooit. Bewust géén onderdeel van `REGIMES` — dat is de termijn
+>   waarop een *keurbedrijf* keurt; dit is de eigen todo-lijst van de klant.
+>   `add_my_self_check()` rekent de volgende datum server-side uit, zodat die
+>   regel op één plek staat.
+> - **Alleen voor `self_managed`-artikelen**: de RPC weigert een artikel dat
+>   door een keurbedrijf gekeurd wordt. Twee statussen op één artikel zou de
+>   juridische status vertroebelen.
+> - `attachment_url` (extern rapport/bonnetje) is nog niet in gebruik; de RPC
+>   zet het veld niet.
+> - Historie per artikel via `my_self_checks(article_id)` — bestaat, wordt nog
+>   niet aangeroepen (artikeldetailscherm volgt).
+
 ---
 
 ## 4. Keuringen en certificaten
@@ -653,10 +779,15 @@ zie BOUWPLAN.
 
 Op de PDF staan verplicht: "volgende keuring uiterlijk" (LOLER-eis; per item
 `next_due`, begrensd door einde levensduur — bewust niet "goed tot"), naam +
-kwalificatie van de keurmeester, wettelijke basis
-(`legal_reference`), handtekening (PNG) en de verificatie-QR. Voor de Duitse
-markt later uitbreidbaar met een automatisch cryptografisch zegel
+kwalificatie van de keurmeester, handtekening (PNG) en de verificatie-QR. Voor
+de Duitse markt later uitbreidbaar met een automatisch cryptografisch zegel
 (eIDAS-niveau "geavanceerd", server-side, geen handeling voor de keurmeester).
+
+**Géén wettelijke basis vanuit het systeem (besluit Jos 2026-08-04).** Hier
+stond dat `legal_reference` verplicht op de PDF komt. Dat is nooit gebouwd —
+`getLegalReference()` werd nergens aangeroepen — en het gaat er ook niet
+komen: welke norm een keurbedrijf claimt is aan dat keurbedrijf, via
+`cert_footer`. Zie §`inspection_regimes`.
 
 > **Implementatie fase 2.5 (2026-06-24, inspector-app):** `certificates`
 > gebouwd zoals hierboven (migratie `supabase/migrations/20260624_certificates.sql`),
@@ -675,10 +806,8 @@ markt later uitbreidbaar met een automatisch cryptografisch zegel
 > heeft geen rechten op `customers`/`inspections`/`inspection_items`. De
 > publieke pagina zelf is `/verify/:token` in de inspector-app (geen apart
 > publiek app'tje, kiss). `handtekening (PNG)` en het cryptografische
-> DE-zegel zijn nog niet gebouwd; de wettelijke basis per item komt uit de
-> statische `REGIMES`-lijst in `packages/core` (zie §`inspection_regimes`),
-> niet uit een DB-tabel. Certificaatnummer-formaat: `JJJJMMDD-KLANTNAAM`
-> (Jos' huidige praktijk).
+> DE-zegel zijn nog niet gebouwd. Certificaatnummer-formaat:
+> `JJJJMMDD-KLANTNAAM` (Jos' huidige praktijk).
 >
 > **Bedrijfsgegevens en afkeurcodes ingevuld (2026-06-25):** Safety Green
 > B.V.'s echte bedrijfsgegevens en de 8 echte afkeurcodes zijn nu gezet (zie

@@ -5,6 +5,82 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-08-30)
+
+> **Nieuw testplan (ronde 3) + drie reparaties vooraf.** Jos vroeg om de beste
+> testvolgorde en om een voorspelling van waar de problemen zitten. Uit de
+> analyse kwamen drie dingen die eerst gebouwd moesten worden, plus een
+> herschreven plan.
+>
+> **De volgorde is nu op risico gesorteerd, niet als rondleiding.** Het oude
+> plan liep door de app heen; de nieuwste code (zelfcontroles, materiaalsoorten
+> — augustus) stond daardoor bijna achteraan. Nu: migraties + schone herstart →
+> **zelfcontroles** → de keurmeesterkant van dezelfde regel → koppelflow →
+> keuring → catalogus → offline → instellingen. Redenen staan in een tabel
+> bovenaan `TESTPLAN.md`.
+> - **Tabbladen hebben geen eigen fase meer.** Tabbladbugs tonen zich niet in de
+>   strook maar in wat je erin doet. Nu een korte smoketest in fase 0 en
+>   kruisproeven (**⇄ twee tabbladen**) verspreid door de fases heen.
+> - **Fase 1 controleert hetzelfde artikel op drie plekken** (dashboard, lijst,
+>   detailscherm). Dat is gericht op de zwakke plek hieronder.
+>
+> **Waar de problemen zitten (voorspelling, onderbouwd):**
+> - **De parallelle klant-app-RPC's.** `my_articles` is in vier migraties
+>   opnieuw gedefinieerd, `my_article_detail` in drie — elk met een eigen, met de
+>   hand bijgehouden kolommenlijst. 20260755 en 20260756 zijn allebei niets
+>   anders dan reparaties hiervan: bij het uitbreiden van de lijst werd het
+>   detailscherm vergeten, twee keer op één dag. Geverifieerd dat 20260756 een
+>   strikte superset is van 20260755 (niets verloren), maar de constructie
+>   blijft de kwetsbaarste plek in het systeem. Een gedeelde kolommenlijst of een
+>   view zou dit structureel oplossen — apart voorstel, niet in deze ronde.
+> - **Twaalf van de zestien pagina's ververste niet bij terugkeer op een
+>   tabblad** (alleen Customers, Inspections, Home en Requests deden dat).
+>   **Gerepareerd deze ronde**, zie hieronder.
+> - **`useViewVisible` in `composables/onReactivated.ts` is dode code** — gebouwd
+>   als bescherming tegen kruisbesmetting tussen tabbladen, door geen enkele
+>   pagina gebruikt, overbodig geworden toen de watcher uit `ArticleDetail`
+>   verdween. Niet verwijderd (buiten scope), wel gemeld: de enige echte
+>   bescherming is de keep-alive-sleutel.
+> - **Open vraag, geen bekende bug:** een artikel toevoegen ín de keuringswizard
+>   waarvan het type machine/overig is. De trigger zet `self_managed` dan aan,
+>   terwijl de wizard juist daarop filtert. Staat als stap 33 in het testplan met
+>   de vraag om te melden wat er gebeurt.
+>
+> **Gebouwd deze ronde:**
+> - **`onReactivated` op zes plekken bijgezet**: `CustomerDetail` (klant +
+>   lopend concept), `CustomerArticles` (lijst + sets, bewust niet de dure
+>   catalogus-typeahead), `CustomerCertificates` (dit liep het snelst achter:
+>   keuring afronden in tabblad B liet in A nog "Certificaten (0)" staan),
+>   `CustomerMembers`, `CatalogQueue` en `CatalogManager`. Voor
+>   `CustomerCertificates` is de laadcode uit `onMounted` in een eigen `load()`
+>   getrokken. Bewust hetzelfde patroon als de vier bestaande pagina's,
+>   inclusief het korte "Laden…" bij terugkeer — consistentie boven een eigen
+>   variant.
+> - **Nette melding bij een dubbel catalogusproduct.** Handmatig toevoegen deed
+>   een kale insert en toonde de rauwe Postgres-tekst ("duplicate key value
+>   violates unique constraint..."). Nu wordt foutcode `23505` herkend en
+>   vertaald (`duplicateExists`, nl + en). De importroute meldde dit al netjes;
+>   alleen de handmatige route niet.
+> - **Migratie hernummerd naar `20260757_products_unique_index.sql`** — het
+>   eerdere nummer 20260752 botste met `material_domains`.
+> - **Tooltip-fout hersteld** (`inspections.table.dayHelperTooltip`, nl + en):
+>   dag 123 is 3 mei, niet 1 mei. De rekenaar in `SerialCheatSheet.vue` was goed.
+>
+> **`MIGRATIES-UITVOEREN.md` + `supabase/UITVOEREN-2026-08-30.sql`.** Vier
+> migraties stonden open (20260755, 20260756, 20260757, 20260748) en de volgorde
+> is kritisch: 20260756 herschrijft `my_article_detail` die 20260755 ook
+> aanmaakt, dus omgekeerd draaien laat `self_performed_by` stil verdwijnen —
+> zonder foutmelding. Daarom een gecombineerd bestand, gegenereerd uit de echte
+> migraties (niets overgetypt), plus een uitgeschreven handleiding met
+> controlequery's en een foutwijzer. **Alle vier nog door Jos uit te voeren.**
+>
+> **Let op — de sessie begon op een verouderde kopie.** De container stond bij
+> aanvang op `1ae7003` (31 juli) en is halverwege gehersynchroniseerd naar
+> `fcfbc61` (13 augustus, 39 commits verder). Een eerder in deze sessie
+> geschreven testplan was daardoor tegen de juli-app geschreven en is vervangen.
+> Ook bleek `20260750` niet meer open te staan: `20260752_material_domains`
+> herschrijft `search_products` met het volledige lichaam van 20260750 erin.
+
 ## Voortgang (bijgewerkt 2026-08-29, linkcheck)
 
 > **"Hoe weet ik of ons werk te vertrouwen is?"** Jos testte de Sirius Loop-
@@ -117,6 +193,355 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > Winst per merk staat in de git-commits van 2026-08-27 (`810faf9` t/m
 > `4a8edf0`); daar staan ook de precieze PDF-links en de onderbouwing per
 > product.
+
+## Voortgang (bijgewerkt 2026-08-13)
+
+> **Opmerking invullen tijdens het koppelen (Jos 2026-08-13).** Geen migratie
+> nodig.
+>
+> Het opmerkingenveld stáát al sinds 2026-07-29 op het artikeldetail, boven het
+> koppelblok — nagerenderd met een tijdelijke mock-opzet en het staat er
+> gewoon. In Jos' schermafbeelding ontbreekt het, dus die app draaide nog op een
+> oudere, gecachete versie (de bekende PWA-landmijn uit `CLAUDE.md`).
+>
+> Wat wél ontbrak: het veld overleefde het doorlopen niet. Tijdens een
+> koppel-marathon (Weijtmans: 278 artikelen) typ je de opmerking en klik je
+> meteen op "Volgende" of "Volgend vrij artikel" — de getypte tekst verdween
+> dan zonder waarschuwing, want opslaan ging alleen via de aparte knop.
+> Nu schrijft `saveNotesBeforeLeaving()` een openstaande opmerking eerst weg
+> (ook bij de terugknop); mislukt dat, dan blijven we op het artikel staan.
+>
+> Tweede fout eruit: een mislukte opmerking zette de gedeelde `error`, en die
+> vervángt het hele scherm door een foutregel — je was dan én je tekst én je
+> plek in de lijst kwijt. Er is nu een eigen foutregel in het opmerkingenblok
+> (`articles.detail.notesSaveError`, nl + en).
+
+## Voortgang (bijgewerkt 2026-08-04, deel 4)
+
+> **Drie wensen na de tweede testronde (Jos 2026-08-04).** Geen migratie nodig.
+>
+> **1. Gebruiker als keuzelijst.** Vrij typen gaf "Jan de Vries" naast
+> "J. de Vries"; die schuld stond al sinds de eerste analyse open en is nu
+> weg. Nieuw component `apps/customer/src/components/UserPicker.vue`, gebruikt
+> door zowel het toevoegformulier als het bewerkscherm — het stond op twee
+> plekken en dat is precies waar het vorige week misging.
+> Drie gevallen die moesten blijven werken:
+> - klant mét medewerkers → keuzelijst;
+> - klant zónder medewerkers → vrij tekstveld plus hint naar Instellingen,
+>   anders kan zo iemand niets meer toevoegen;
+> - artikel met een naam die geen medewerker is → die naam blijft in de lijst
+>   en geselecteerd, anders wist het openen van het bewerkscherm stilletjes de
+>   gebruiker.
+> Plus een "Andere naam…"-uitweg. De keuzelijst bevat **alleen echte
+> medewerkers**: de eerder getypte namen zaten er als suggestie bij, maar als
+> keuzelijst zou dat "piet" naast "Piet" juist vereeuwigen. De prop
+> `knownUsers` op `AddArticleForm` is daarmee dood en verwijderd.
+>
+> **2. Laatste vijf controles in het overzichtskaartje.** Datum + wie het deed,
+> nieuwste eerst. Geen migratie: `my_self_checks()` lag er al sinds 20260754 en
+> werd nog nergens aangeroepen. De losse regels "Laatste controle" en
+> "Gecontroleerd door" zijn erin opgegaan; "Volgende controle" blijft apart.
+>
+> **3. "Vastgelegd door" weg** (Jos: "mag achterwege blijven"). Alleen uit de
+> UI; de kolom `self_checked_by_member` blijft in `my_article_detail` staan.
+> Bewust géén migratie voor het schrappen van één ongebruikte kolom — dat is
+> een ronde SQL voor Jos zonder enig gevolg voor de gebruiker. Verdwijnt vanzelf
+> als die functie ooit om een andere reden herschreven wordt.
+
+## Voortgang (bijgewerkt 2026-08-04, deel 3)
+
+> **Live gegaan en meteen twee bugs (test Jos 2026-08-04).** De drie migraties
+> zijn uitgevoerd, `main` staat op f3aebb4. Jos voegde een EHBO-tas toe en
+> vond twee dingen:
+>
+> 1. **"Bij keuring staat nog niet gekeurd" op het artikeldetailscherm**, ook
+>    na afvinken. Oorzaak: `ArticleDetail.vue` heeft een eigen RPC
+>    (`my_article_detail`) en berekende de status zélf. Bij het bouwen van de
+>    tegels zijn `my_articles` en `my_customer` uitgebreid, deze niet.
+> 2. **"Deze wordt niet gekeurd maar gecontroleerd."** Terecht: het scherm zei
+>    overal "keuring", ook voor een artikel dat per definitie niet gekeurd
+>    wordt.
+>
+> En zelf gezien in zijn schermafbeelding: een **net toegevoegde** EHBO-tas
+> stond meteen oranje. Dat is dezelfde fout die de app bij keuringen bewust
+> níét maakt — daar is "nooit gekeurd" rustig grijs en wordt het pas na 12
+> maanden een aandachtspunt (blauwdruk §7: uitnodigend, geen alarm).
+>
+> **De echte oorzaak is er één: de statusberekening stond op drie plekken.**
+> `Home.vue`, `Materials.vue` én `ArticleDetail.vue` deden het elk zelf. Twee
+> pasten we aan, de derde bleef achter — exact het patroon uit CLAUDE.md
+> ("nooit hetzelfde patroon op N plekken"). Opgelost door
+> `customerArticleStatus()` in `packages/core/src/status.ts` te zetten; alle
+> drie de schermen roepen nu diezelfde functie aan. 9 tests erbij.
+>
+> - Nieuwe toestand `never_checked` (grijs) naast `self_check_due` (oranje),
+>   spiegelbeeld van `never_inspected` / `first_inspection_due`. De termijn
+>   loopt vanaf ingebruikname, en anders vanaf de aankoopdatum.
+> - `my_article_detail` geeft nu `product_type`, `self_managed`,
+>   `self_checked_at` en `self_next_due`; `my_articles` kreeg `purchase_date`.
+>   Migratie **`20260755_article_detail_self_checks.sql` — moet nog
+>   uitgevoerd worden.**
+> - Het detailscherm zegt "Laatste controle" / "Volgende controle" in plaats
+>   van "Laatste keuring" zodra een artikel zelf afgevinkt wordt, en heeft nu
+>   ook een eigen afvinkknop.
+> - Die knop is omlijnd en niet dichtgroen: naast de bestaande Bewerken-knop
+>   stonden anders twee identieke groene blokken (gerenderd en gezien).
+
+## Voortgang (bijgewerkt 2026-08-04, deel 2)
+
+> **Materiaal-tegels gebouwd.** Het ontwerp uit `UX-FLOW.md §9.6` staat nu in de
+> app. Ontwerp zelf is niet gewijzigd tijdens het bouwen.
+>
+> **⚠ Migratie `20260752_material_domains.sql` moet nog uitgevoerd worden in de
+> Supabase SQL-editor.** Zonder die migratie werkt de klant-app niet: `my_customer`
+> en `my_articles` krijgen nieuwe kolommen.
+>
+> Wat de migratie doet:
+> - `customers.enabled_domains text[]`, standaard `{climbing}` — de enige opslag
+>   van de tegelkeuze. Géén tegel-kolom op `articles`.
+> - `articles.free_product_type` — het type van een vrij artikel. Bewust
+>   nullable en niet gebackfilld: `null` = "van vóór de splitsing" en wordt
+>   overal als klimmateriaal/ppe behandeld, precies wat er nu al gebeurt.
+> - `domain_for_type()` in SQL — de afbeelding type → tegel. Bewuste duplicatie
+>   van `packages/core/src/domains.ts`; de controle "een tegel met inhoud kan
+>   niet uit" moet serverside staan, en SQL kan geen TypeScript importeren.
+> - `set_my_enabled_domains()` — beheerder-only, weigert een tegel met inhoud.
+> - `my_customer()` en `my_articles()` uitgebreid (drop + recreate, return-type
+>   wijzigt); `add_my_article()` en `search_products()` kregen een parameter.
+>
+> **Twee valkuilen onderweg:**
+> - **Overloads.** `create or replace` met een extra parameter maakt een
+>   *nieuwe* functie naast de oude, geen vervanging — dan wordt de aanroep
+>   dubbelzinnig. Zowel `add_my_article` (10 args) als `search_products` (3 args)
+>   worden daarom eerst expliciet gedropt. Zelfde les als `retire_my_article` in
+>   migratie 20260712.
+> - **Bijna het fuzzy zoeken gesloopt.** `search_products` is bij het toevoegen
+>   van het typefilter opnieuw uitgeschreven; het origineel bleek `similarity()`
+>   (pg_trgm) te gebruiken voor tolerantie én sortering, plus een cap op 60. Het
+>   volledige lichaam van 20260750 is nu overgenomen met alleen het filter erbij,
+>   en bewust géén `set search_path` — `similarity()` staat niet in `public`.
+>
+> **App-kant:**
+> - `packages/core/src/domains.ts` — tegels, de afbeelding type → tegel,
+>   `normalizeDomains`, `typeIsInspected`. 15 tests, waaronder een die bewaakt
+>   dat elk artikeltype in precies één tegel valt.
+> - `Materials.vue` — tegelscherm bij >1 soort, anders meteen de lijst (een
+>   scherm met één knop is zinloos). De gekozen tegel staat in `?domain=`, niet
+>   in het pad: `/materials/:id` is al het artikeldetail. `?filter=aandacht`
+>   vanaf de stoplichtkaart slaat de tegels over en toont alles — aandacht gaat
+>   over soorten heen.
+> - Nieuwe status `no_inspection` in `Materials.vue` én `Home.vue`. Zonder die
+>   toestand zou een T-shirt na 12 maanden als "eerste keuring te laat" onder
+>   Aandacht komen. Het oordeel op de stoplichtkaart telt nu alleen keurbaar
+>   materiaal; "nog geen materiaal" kijkt wél naar alles, anders krijgt iemand
+>   met alleen kleding een welkomsttekst alsof hij nog moet beginnen.
+> - `AddArticleForm.vue` — de tegel ís de typekeuze. Catalogus-zoeken gefilterd
+>   op de tegel; "Overig" krijgt helemaal geen catalogus en gaat ook niet de
+>   wachtrij in. Alleen Klimmateriaal toont een keuzelijst, want die bundelt
+>   drie types.
+> - `Members.vue` — tegels aan/uit, beheerder-only, met het aantal artikelen per
+>   soort zodat zichtbaar is waarom iets niet uit kan.
+> - `GIcon` — vier nieuwe iconen: `climbing`, `machines`, `clothing`, `other`.
+>
+> **Over het klim-icoon (shortcut, expliciet gemeld).** Eerst een karabiner
+> geprobeerd — het beeldmerk van de app — in drie varianten. Op de échte
+> weergavemaat (26px) valt de snapper telkens weg en blijft er een pil over;
+> gerenderd en bekeken vóór de keuze. Het is nu een veiligheidshelm. Wil Jos
+> tóch de karabiner, dan is dat één regel in `GIcon.ts`.
+>
+> **Iconen opnieuw (feedback Jos 2026-08-04):** *"deze iconen zien er goedkoop
+> uit"* — terecht, ze waren met de hand getekend terwijl de bestaande set op
+> lucide/feather-vormen staat. Nu: helm en pakket in lucide-vorm, kettingzaag
+> met schuin blad (recht naast het blok las het als een hangslot met stokje),
+> en een werkbroek in plaats van een T-shirt (Jos: *"mag een broek of schoen
+> worden"* — de zaagbroek is hier het typische artikel). Alle varianten
+> gerenderd op de échte weergavemaat van 26px én naast de bestaande set gelegd
+> om te zien of het één familie is. De karabiner is vijf keer geprobeerd en
+> haalt die maat niet: er blijft een pil of een ei over.
+>
+> **`self_managed` verbreed en aangezet (besluit Jos 2026-08-04):**
+> *"voor nu standaard self managed"*. Migratie
+> `20260753_self_managed_domains.sql` — **moet ook nog uitgevoerd worden**.
+> - `type_is_self_managed()` + trigger op `articles`: `clothing`, `machine` en
+>   `other` krijgen automatisch `self_managed = true`, ook als het type later
+>   wijzigt. De trigger zet alleen áán, nooit uit — anders overschrijft hij
+>   ooit de bewuste keuze om machines tóch door een dealer te laten keuren.
+> - `no_ppe` blijft er bewust buiten (wordt vaak meegekeurd).
+> - Zie `DATAMODEL.md §3` voor de verbrede betekenis van het veld.
+>
+> **Keurmeester-app ziet geen kleding meer.** Zes queries liepen langs
+> `articles`; die gaan nu allemaal door `inspectorVisibleArticles()` uit
+> `packages/core/src/domains.ts` — één helper in plaats van zes losse
+> `.eq('self_managed', false)`. Plekken: klantpagina (actief + afgevoerd),
+> keuringsomvang (`fetchArticleScope`, óók de offline-tak), de suggestiebron in
+> de wizard, SN-zoeken (3 queries) en de recall-zoeker. **En de
+> offline-download** (`packages/core/src/offline/download.ts`) — anders staat
+> een keurmeester zonder netwerk alsnog naar de kledingkast te kijken.
+>
+> Let op: de helper heeft een **ongebonden** typeparameter. Met een structurele
+> constraint (`Q extends { eq(...) }`) rolt TypeScript de PostgREST-buildertypes
+> uit en klapt `vue-tsc` op TS2589 "type instantiation is excessively deep".
+>
+> **Zelf afvinken gebouwd (2026-08-04, na de vraag van Jos "waarom nog open bij
+> zelf?").** Terecht: met alleen de `self_managed`-vlag was de tegel Overig
+> half af — je kon een brandblusser toevoegen, maar niet afvinken, en hij toonde
+> "Wordt niet gekeurd" terwijl de spec juist een herinnering na 12 maanden was.
+>
+> **⚠ Migratie `20260754_self_checks.sql` moet ook uitgevoerd worden** (na
+> 20260752 en 20260753).
+>
+> - **De tabel `self_checks` bestond live maar had geen `create table` in de
+>   repo** — ooit rechtstreeks in Supabase aangemaakt. Jos heeft de kolommen
+>   opgevraagd (2026-08-04): ze komen exact overeen met DATAMODEL §3. De
+>   migratie maakt hem daarom alleen aan als hij ontbreekt, en zet verder de
+>   FK's expliciet goed (`article_id` → `articles`, `created_by_member_id` →
+>   `customer_members`) — bekend patroon in deze repo, drie keer misgegaan met
+>   FK's naar het lege `public.users`.
+> - **`selfCheckIntervalMonths()`** in `packages/core/src/domains.ts`: `other`
+>   en `machine` 12 maanden, kleding nooit. Bewust los van `REGIMES` — dat is
+>   de termijn waarop een *keurbedrijf* keurt, dit is de eigen todo-lijst.
+> - De **server** bepaalt de volgende datum, niet de app: zo staat die regel op
+>   één plek en is hij niet te omzeilen. `add_my_self_check()` weigert een
+>   artikel dat wél door een keurbedrijf gekeurd wordt en een datum in de
+>   toekomst.
+> - RLS blijft aan zonder policies; alles loopt via security definer-RPC's,
+>   zelfde lijn als de rest van de klant-app sinds 20260713.
+> - `my_articles()` geeft nu ook `self_managed`, `self_checked_at` en
+>   `self_next_due`. De app vertakt op de **vlag** en niet op het producttype:
+>   zet Jos machines ooit terug naar een keurbedrijf, dan volgt de app vanzelf.
+> - Nieuwe status `self_check_due`; telt mee in "Aandacht" en in het oordeel op
+>   de stoplichtkaart. De regel toont "afgevinkt op …", bewust andere taal dan
+>   "volgende keuring" — het verschil in juridische status moet zichtbaar
+>   blijven.
+> - Ook gerepareerd: een geen-PBM-artikel dat een keurmeester tóch heeft
+>   meegekeurd en handmatig een `next_due` gaf, viel eerst terug op "wordt niet
+>   gekeurd". Een gezette datum wint nu.
+>
+> **Twee UI-besluiten, gerenderd vóór de keuze:**
+> - De afvinkknop is een compact ☑-icoon en geen tekstknop: "Afvinken" duwde op
+>   een telefoon van 390px de artikelnaam over drie regels.
+> - Het setknopje (🔗+) is weg bij materiaal buiten het keurbedrijf. Een set is
+>   bedoeld voor bij elkaar horend klimmateriaal (fliplijn = lijn + karabiner);
+>   een brandblusser hoort daar niet in. Scheelt meteen een vierde knop in een
+>   toch al krappe rij.
+>
+> **Nog te doen:** `retired_reason` als keuzelijstje i.p.v. vrije tekst, en de
+> historie van zelfcontroles tonen op het artikeldetailscherm (de RPC
+> `my_self_checks()` staat er al, wordt nog niet aangeroepen).
+
+## Voortgang (bijgewerkt 2026-08-04)
+
+> **Producttypes herzien + kleding erbij (besluiten Jos 2026-08-04).**
+> Aanleiding: het eerste verzoek van een grote klant — *"per persoon kunnen
+> bijhouden wie wat wanneer heeft gehad / kapot gemaakt; sommige werknemers
+> gebruiken veel meer spullen dan de rest. Ook kleding wil hij erin kunnen
+> zetten."*
+>
+> **Wat er ná overleg níét gebouwd wordt.** Eerste analyse stelde een
+> uitgifteregister voor (`article_assignments`, historie per persoon per
+> artikel, ±5 sessies). Jos: *"ik denk eigenlijk dat jij het te ingewikkeld
+> wilt maken."* Terecht, om twee redenen die de analyse miste:
+> - **Bij kleding is één artikel = één uitgifte.** Een zaagbroek gaat niet van
+>   Jan naar Piet en terug; hij wordt uitgegeven, gedragen, versleten,
+>   afgevoerd. `first_use_date` ís dus de uitgiftedatum en de artikelenlijst
+>   zelf is het register.
+> - **Filteren per persoon bestond al** (`Materials.vue`, chips uit
+>   `assigned_user_name`).
+>
+> Doorgevraagd op het enige echte gat — als lijn A van Jan naar Piet gaat en
+> bij Piet stukgaat, is Jan weg. Antwoord: dat is geen probleem voor de vragen
+> die de klant stelt (Piet maakte hem stuk, Piet staat erbij). En voor de
+> incidentvraag is het al gedekt: `useInspections.ts` schrijft bij elk
+> keuringsitem `article_snapshot: a` weg met een `select('*')`, dus inclusief
+> `assigned_user_name` bevroren op de keuringsdatum. Bij een jaarlijkse keuring
+> is dat een jaarlijks stempel van wie het artikel toen had. **Uitgifteregister
+> geschrapt.**
+>
+> **De typelijst opnieuw vastgesteld.** Zie `DATAMODEL.md §products` voor de
+> tabel met alle zes types en de onderbouwing per besluit. Samengevat:
+> `aerial_platform` eruit (andere doelgroep, stond op geen enkel product),
+> `clothing` erbij, `no_ppe`/`clothing`/`other` op "nooit keuren",
+> `rigging` in GB van 6 naar 12, `other` alleen bij vrije invoer.
+>
+> **Twee gaten die hierbij boven water kwamen:**
+> - **`no_ppe` werd stilletjes als PBM gekeurd.** Het stond wél in
+>   `PRODUCT_TYPES` (167 producten in de catalogus) maar níét in `REGIMES`, en
+>   `defaultIntervalMonths()` heeft een tak "alles wat geen rigging is telt als
+>   PBM". TypeScript zag het niet door de cast `(type as ProductType)`. Nu een
+>   expliciet besluit in plaats van een gat.
+> - **`getLegalReference()` was dode code.** Het werd nergens aangeroepen; er
+>   heeft dus nooit een wettelijke basis op een certificaat gestaan, ondanks
+>   wat `DATAMODEL.md` beweerde. Jos wil het ook niet: dat hoort in de
+>   voettekst van het keurbedrijf. Veld `legal_reference` én functie
+>   verwijderd, documentatie rechtgezet.
+>
+> **Gebouwd deze sessie (kernlaag, geen migratie, niets zichtbaar veranderd
+> voor gebruikers):**
+> - `regimes.ts`: nieuwe `ProductType`, `NO_INSPECTION_TYPES`,
+>   `getRegime()` → `number | null`, `isInspectedType()`, `legal_reference`
+>   weg, GB/rigging op 12.
+> - `catalog.ts`: `PRODUCT_TYPES` (catalogus, zonder `other`) naast
+>   `ARTICLE_TYPES` (vrij artikel, mét `other`) — zo is "een catalogusproduct
+>   kan niet op overig" een structuurregel en geen losse controle.
+> - `nextDue.ts`: `calcNextDue()` → `Date | null`. De null-check staat vóór de
+>   levensduur-caps, anders krijgt een zaagbroek met een maximale gebruiksduur
+>   alsnog een keurdatum.
+> - `InspectionWizard.vue`: "wordt dit type gekeurd?" staat nu vóór de
+>   bedrijfsinstellingen in `defaultIntervalMonths()` — die zijn
+>   `not null default 12` en dus altijd gevuld, dus erna had kleding alsnog stil
+>   12 maanden gekregen. Nieuwe helper `suggestedNextDueIso()` in plaats van op
+>   drie plekken dezelfde null-check.
+> - Locales nl+en: `clothing` erbij, `aerial_platform` eruit.
+> - 6 nieuwe tests in `nextDue.test.ts` (types zonder termijn, override wint
+>   van "nooit", GB ppe 6 / rigging 12).
+>
+> **Ontwerp afgerond in dezelfde sessie: materiaal-tegels in de klant-app.**
+> Volledig besluit met afwegingen in `UX-FLOW.md §9.6`, veldkant in
+> `DATAMODEL.md §customers`. Kern: vier tegels (Klimmateriaal / Machines /
+> Kleding / Overig) één niveau **onder** "Mijn materiaal" — niet op het
+> hoofdmenu, want daar staan taakgerichte tegels en dit zijn inhoudsgerichte.
+> Een tegel is een **weergave**, geen eigenschap van een artikel: de afbeelding
+> type → tegel staat vast in code, het enige dat opgeslagen wordt is
+> `customers.enabled_domains`. Aan/uit alleen door `is_admin`; een tegel met
+> inhoud kan niet uit. Eén catalogus met per tegel een gefilterd venster, géén
+> aparte kledingcatalogus.
+>
+> Twee dingen die het ontwerp vereenvoudigden en die uit Jos' tegenwerpingen
+> kwamen:
+> - **Tegels kunnen niet afgeleid worden uit inhoud.** Eerste voorstel was
+>   "toon een tegel zodra er materiaal in zit". Jos: *"als er geen tegel is
+>   wanneer er niks in staat, kan deze ook niet gevuld worden."* Toevoegen
+>   gebeurt ín een tegel, dus de tegel moet er eerst zijn.
+> - **De tegel ís de dropdown.** Voeg je toe vanuit Kleding, dan is het type
+>   `clothing`. De verplichte keuzelijst voor een vrij artikel is daarmee
+>   alleen nog nodig buiten een tegel om — scheelt bouwwerk én invoerfouten.
+>
+> **Nog te bouwen (volgende slice), in deze volgorde:**
+> 1. Migratie: `customers.enabled_domains` + kolom op `articles` voor het type
+>    van een **vrij artikel**. `product_type` staat op `products`; een vrij
+>    artikel heeft nu alleen `free_category` (vrije tekst). `ARTICLE_TYPES`
+>    staat klaar, de kolommen nog niet. Startwaarde `{climbing}` voor alle
+>    bestaande klanten.
+> 2. Klant-app: tegelscherm onder "Mijn materiaal", toevoegen per tegel met
+>    gefilterde catalogus.
+> 3. Statuslogica in `Materials.vue`: `uiStatus`/`isFirstInspectionOverdue`
+>    moeten types zonder termijn overslaan, anders staat de kledingkast na 12
+>    maanden onder "Aandacht". **Ook de stoplichtkaart op `Home.vue`**: die
+>    telt nu alle artikelen, dus 40 T-shirts zouden de tellers vervuilen.
+> 4. Filter op persoon binnen een tegel. Bewust **geen teller** — Jos: *"die 5
+>    T-shirts, paar schoenen en 2 broeken per jaar blijft echt wel
+>    overzichtelijk genoeg"*; een lijst op datumvolgorde volstaat.
+> 5. `other` + `machine` → `self_managed` + `self_checks` aanzetten (kolom en
+>    tabel bestaan sinds 2026-06-23 en zijn nog nergens gebruikt), met
+>    herinnering na 12 mnd.
+> - Open: `retired_reason` als kort keuzelijstje i.p.v. vrije tekst, zodat
+>   "kapot" op te tellen is.
+> - **Live database gecontroleerd (Jos 2026-08-04):** er staat niets op
+>   `aerial_platform` of `other`, ook niet in de database. Klopt met
+>   `catalog/producten.csv` (alle 2598 rijen nagerekend: alleen `ppe` 2262,
+>   `rigging` 168, `no_ppe` 167, `machine` 1). Het verwijderen van
+>   `aerial_platform` en het weghalen van `other` uit `PRODUCT_TYPES` laat dus
+>   geen enkele bestaande rij in de 12-maanden-fallback vallen.
 
 ## Voortgang (bijgewerkt 2026-07-31, deel 3)
 
