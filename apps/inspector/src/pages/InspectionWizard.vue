@@ -302,8 +302,26 @@
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
                   </td>
-                  <td class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
-                  <td :data-label="$t('inspections.table.colBrand')">{{ row.brand || '—' }}</td>
+                  <td class="iw__category" :data-label="$t('inspections.table.colCategory')">
+                    <input
+                      v-if="!row.it.article.product"
+                      v-model="row.it.article.free_category"
+                      class="iw__cell-input"
+                      :placeholder="$t('inspections.table.category')"
+                      @change="saveArticle(row.it)"
+                    />
+                    <span v-else>{{ row.category || '—' }}</span>
+                  </td>
+                  <td :data-label="$t('inspections.table.colBrand')">
+                    <input
+                      v-if="!row.it.article.product"
+                      v-model="row.it.article.free_brand"
+                      class="iw__cell-input"
+                      :placeholder="$t('inspections.table.brand')"
+                      @change="saveArticle(row.it)"
+                    />
+                    <span v-else>{{ row.brand || '—' }}</span>
+                  </td>
                   <td class="iw__match-cell" :data-label="$t('inspections.table.colDescription')">
                     <template v-if="matchingRowId === row.it.id">
                       <input
@@ -2003,6 +2021,15 @@ async function saveArticle(it: Item) {
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
+    // Merk/categorie alleen aanpasbaar bij een vrij artikel (geen
+    // catalogusproduct) -- bij een gekoppeld artikel komen die uit het
+    // product zelf en tonen we ze read-only (zie iw__category/colBrand).
+    ...(a.product
+      ? {}
+      : {
+          free_brand: a.free_brand?.toString().trim() || null,
+          free_category: a.free_category?.toString().trim() || null,
+        }),
   }
   if (!isOnline.value) {
     try {
