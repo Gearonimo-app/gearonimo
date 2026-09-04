@@ -333,6 +333,13 @@
                       :title="$t('inspections.table.matchTooltip')"
                       @click="startMatch(row.it)"
                     >{{ row.label }}</button>
+                    <button
+                      v-else-if="itemProductNotes(row.it)"
+                      type="button"
+                      class="iw__match-btn iw__match-btn--notes"
+                      :title="$t('inspections.table.productNotesTitle')"
+                      @click="toggleNotes(row.it)"
+                    >{{ row.label }} <GIcon name="info" class="iw__notes-icon" /></button>
                     <span v-else>{{ row.label }}</span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
@@ -438,15 +445,16 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <!-- Opmerking uit de catalogus: altijd zichtbaar, niet achter
-                     een knop of tooltip (Jos 2026-08-01: "opmerkingen wil ik
-                     gewoon zien"). Het is geen waarschuwing maar context bij
-                     het artikel -- een afwijkende lengte bijvoorbeeld -- en die
-                     moet je kunnen lezen zonder te weten dát er iets staat.
-                     Waarschuwingen hebben hun eigen vlaggen: recall en
-                     inspection notice. Kost weinig ruimte: 1% van de producten
-                     heeft een opmerking, mediaan 28 tekens. -->
-                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: achter een klik op de naam
+                     (Jos 2026-09-04: dit is achtergrond over het producttype,
+                     niet de eigen keuringsopmerking van de keurmeester -- die
+                     ("Opmerking..."-veld) blijft wél altijd in beeld). Eerder
+                     stond dit altijd open (Jos 2026-08-01), maar bij elke
+                     regel dezelfde producttekst zien tijdens het keuren bleek
+                     juist té veel. Het info-icoontje bij de naam laat zien
+                     dát er iets is; verbergen na lezen kan geen kwaad, het
+                     staat niet vast (geen ✕ nodig, opnieuw klikken volstaat). -->
+                <tr v-if="itemProductNotes(row.it) && openNotesId === row.it.id" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
@@ -515,7 +523,7 @@ import {
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
-import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
@@ -798,6 +806,15 @@ function setFieldValue(field: string | null, val: string) {
 // artikel, en kiest er zelf één uit — pas dan vullen merk/categorie/etc. zich.
 const matchingRowId = ref<string | null>(null)
 const matchSearch = ref('')
+
+// Opmerking uit de catalogus staat niet meer standaard open tijdens het
+// keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
+// relevant bij elke regel -- wél leuk om te zien bij een nieuw product). Eén
+// klik op de naam klapt 'm open; nogmaals klikken klapt 'm weer dicht.
+const openNotesId = ref<string | null>(null)
+function toggleNotes(it: Item) {
+  openNotesId.value = openNotesId.value === it.id ? null : it.id
+}
 
 function startMatch(it: Item) {
   matchingRowId.value = it.id
@@ -2197,6 +2214,9 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
+.iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
+.iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
+.iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
