@@ -162,7 +162,7 @@
 
     <!-- Bewerken -->
     <div v-else class="ad__body">
-      <div v-for="f in fieldDefs" :key="f.col" class="ad__field">
+      <div v-for="f in editFieldDefs" :key="f.col" class="ad__field">
         <label class="ad__field-label">{{ label(f.label) }}</label>
         <textarea v-if="f.textarea" v-model="form[f.col]" class="ad__input" rows="3"></textarea>
         <input v-else-if="f.type === 'checkbox'" type="checkbox" v-model="form[f.col]" class="ad__checkbox" />
@@ -368,6 +368,16 @@ const productListOpen = ref(false)
 const productsError = ref('')
 const linking = ref(false)
 const isFreeArticle = computed(() => !!article.value && !article.value.product_id)
+
+// Alleen bij een vrij artikel: merk/omschrijving zijn dan de enige plek waar
+// de naam vandaan komt (zie brandLabel), dus die moeten in het
+// bewerk-formulier staan. Bij een gekoppeld artikel komt de naam uit het
+// catalogusproduct -- corrigeren gaat daar via "Herkoppelen", niet hier.
+const freeNameFieldDefs: FieldDef[] = [
+  { col: 'free_brand', label: 'articles.fields.brand' },
+  { col: 'free_description', label: 'articles.fields.description' },
+]
+const editFieldDefs = computed(() => (isFreeArticle.value ? [...freeNameFieldDefs, ...fieldDefs] : fieldDefs))
 
 function closeProductListSoon() {
   // Korte vertraging zodat een klik op een item nog telt (mousedown vóór blur),
@@ -617,7 +627,7 @@ async function loadProducts() {
 
 function startEdit() {
   const f: Record<string, unknown> = {}
-  for (const def of fieldDefs) {
+  for (const def of editFieldDefs.value) {
     const v = article.value?.[def.col]
     f[def.col] = def.type === 'checkbox' ? !!v : (v ?? '')
   }
@@ -630,7 +640,7 @@ async function save() {
   saving.value = true
   formError.value = ''
   const patch: Record<string, unknown> = {}
-  for (const def of fieldDefs) {
+  for (const def of editFieldDefs.value) {
     const v = form.value[def.col]
     if (def.type === 'checkbox') patch[def.col] = !!v
     else if (def.type === 'number') patch[def.col] = v === '' ? null : Number(v)
