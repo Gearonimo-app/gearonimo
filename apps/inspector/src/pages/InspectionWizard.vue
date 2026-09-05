@@ -183,7 +183,7 @@
              de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
              Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
              eigen dropdown die in álle artikelen van de klant zoekt. -->
-        <div v-if="activeField && activeField !== 'rowMatch' && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
+        <div v-if="activeField && !ROW_FIELDS.includes(activeField) && fieldSuggestions.length" class="iw__suggest iw__suggest--main">
           <button
             v-for="(s, i) in fieldSuggestions"
             :key="s"
@@ -317,6 +317,7 @@
                         v-for="(s, i) in fieldSuggestions"
                         :key="s"
                         type="button"
+                        ref="suggestItemRefs"
                         class="iw__suggest-item"
                         :class="{ 'iw__suggest-item--active': i === suggestIndex }"
                         @mousedown.prevent="pickSuggestion(s)"
@@ -325,15 +326,31 @@
                     </div>
                   </td>
                   <td v-else class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
-                  <td :data-label="$t('inspections.table.colBrand')">
+                  <td v-if="!row.it.article.product" class="iw__category--edit" :data-label="$t('inspections.table.colBrand')">
                     <input
-                      v-if="!row.it.article.product"
                       v-model="row.it.article.free_brand"
                       class="iw__cell-input"
                       :placeholder="$t('inspections.table.brand')"
+                      @focus="activeField = 'rowBrand'; brandRowId = row.it.id"
+                      @blur="closeSuggest"
+                      @keydown="onSuggestKeydown"
                       @change="saveArticle(row.it)"
                     />
-                    <span v-else>{{ row.brand || '—' }}</span>
+                    <div v-if="activeField === 'rowBrand' && brandRowId === row.it.id && fieldSuggestions.length" class="iw__suggest iw__suggest--row">
+                      <button
+                        v-for="(s, i) in fieldSuggestions"
+                        :key="s"
+                        type="button"
+                        ref="suggestItemRefs"
+                        class="iw__suggest-item"
+                        :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+                        @mousedown.prevent="pickSuggestion(s)"
+                        @mouseenter="suggestIndex = i"
+                      >{{ s }}</button>
+                    </div>
+                  </td>
+                  <td v-else :data-label="$t('inspections.table.colBrand')">
+                    <span>{{ row.brand || '—' }}</span>
                   </td>
                   <td class="iw__match-cell" :data-label="$t('inspections.table.colDescription')">
                     <template v-if="matchingRowId === row.it.id">
@@ -350,6 +367,7 @@
                           v-for="(s, i) in fieldSuggestions"
                           :key="s"
                           type="button"
+                          ref="suggestItemRefs"
                           class="iw__suggest-item"
                           :class="{ 'iw__suggest-item--active': i === suggestIndex }"
                           @mousedown.prevent="pickSuggestion(s)"
@@ -810,6 +828,9 @@ const matchingArticleNames = computed(() => unique(catalogMatches('name').map(e 
 // schrijfwijze van dezelfde categorie (Jos 2026-09-04: "3 verschillende
 // schrijfwijzen van connectors" bij maar 2 vrije producten).
 const allCategories = computed(() => unique(catalogEntries.value.map(e => e.category)))
+// Zelfde als allCategories, maar voor het per-rij merkveld -- zoekt bewust
+// alleen in merken, niet in categorieën of omschrijvingen (Jos 2026-09-05).
+const allBrands = computed(() => unique(catalogEntries.value.map(e => e.brand)))
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
@@ -819,7 +840,13 @@ function unique(arr: (string | null)[]): string[] {
 // de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Artikel/
 // Merk/Categorie zoeken in de catalogus; Serienummer heeft een eigen, rijkere
 // dropdown (snResults) die in álle artikelen van de klant zoekt.
-type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'user' | 'rowMatch' | 'rowCategory'
+type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'user' | 'rowMatch' | 'rowCategory' | 'rowBrand'
+// Rij-gebonden velden: hun dropdown staat al inline bij de rij zelf
+// (iw__suggest--row), dus die mogen de gedeelde bovenaan-de-pagina-dropdown
+// niet ook nog laten meetekenen -- die duwt dan de hele tabel (en dus de
+// rij-dropdown erin) omhoog/omlaag bij elke toetsaanslag (bug gemeld door Jos
+// 2026-09-04: "ik kan het juiste artikel niet aanklikken, het springt weg").
+const ROW_FIELDS: WizardField[] = ['rowMatch', 'rowCategory', 'rowBrand']
 
 // Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
 // (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
@@ -848,6 +875,8 @@ const matchSearch = ref('')
 // (zie iw__category hieronder): welke rij momenteel focus heeft, zodat de
 // dropdown alleen ónder díe rij verschijnt en niet bij alle rijen tegelijk.
 const categoryRowId = ref<string | null>(null)
+// Zelfde, voor het per-rij merkveld.
+const brandRowId = ref<string | null>(null)
 
 // Opmerking uit de catalogus staat niet meer standaard open tijdens het
 // keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
@@ -935,6 +964,10 @@ const {
         const it = items.value.find((i) => i.id === categoryRowId.value)
         return suggestFilter(allCategories.value, it?.article.free_category ?? '')
       }
+      case 'rowBrand': {
+        const it = items.value.find((i) => i.id === brandRowId.value)
+        return suggestFilter(allBrands.value, it?.article.free_brand ?? '')
+      }
       default: return []
     }
   },
@@ -952,18 +985,27 @@ const {
       }
       return
     }
+    if (field === 'rowBrand' && brandRowId.value) {
+      const it = items.value.find((i) => i.id === brandRowId.value)
+      if (it) {
+        it.article.free_brand = value
+        saveArticle(it)
+      }
+      return
+    }
     setFieldValue(field, value)
   },
   onEnter: (field) => focusNextField(field),
 })
 
-// Bij blur ook een lopende rij-match/rij-categorie sluiten (extra t.o.v. de
-// generieke close).
+// Bij blur ook een lopende rij-match/rij-categorie/rij-merk sluiten (extra
+// t.o.v. de generieke close).
 function closeSuggest() {
   rawCloseSuggest()
   window.setTimeout(() => {
     matchingRowId.value = null
     categoryRowId.value = null
+    brandRowId.value = null
   }, 120)
 }
 
