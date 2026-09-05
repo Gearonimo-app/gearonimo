@@ -302,16 +302,29 @@
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
                   </td>
-                  <td class="iw__category" :data-label="$t('inspections.table.colCategory')">
+                  <td v-if="!row.it.article.product" class="iw__category iw__category--edit" :data-label="$t('inspections.table.colCategory')">
                     <input
-                      v-if="!row.it.article.product"
                       v-model="row.it.article.free_category"
                       class="iw__cell-input"
                       :placeholder="$t('inspections.table.category')"
+                      @focus="activeField = 'rowCategory'; categoryRowId = row.it.id"
+                      @blur="closeSuggest"
+                      @keydown="onSuggestKeydown"
                       @change="saveArticle(row.it)"
                     />
-                    <span v-else>{{ row.category || '—' }}</span>
+                    <div v-if="activeField === 'rowCategory' && categoryRowId === row.it.id && fieldSuggestions.length" class="iw__suggest iw__suggest--row">
+                      <button
+                        v-for="(s, i) in fieldSuggestions"
+                        :key="s"
+                        type="button"
+                        class="iw__suggest-item"
+                        :class="{ 'iw__suggest-item--active': i === suggestIndex }"
+                        @mousedown.prevent="pickSuggestion(s)"
+                        @mouseenter="suggestIndex = i"
+                      >{{ s }}</button>
+                    </div>
                   </td>
+                  <td v-else class="iw__category" :data-label="$t('inspections.table.colCategory')">{{ row.category || '—' }}</td>
                   <td :data-label="$t('inspections.table.colBrand')">
                     <input
                       v-if="!row.it.article.product"
@@ -791,6 +804,12 @@ function catalogMatches(self: 'brand' | 'category' | 'name'): CatalogEntry[] {
 const matchingBrands = computed(() => unique(catalogMatches('brand').map(e => e.brand)))
 const matchingCategories = computed(() => unique(catalogMatches('category').map(e => e.category)))
 const matchingArticleNames = computed(() => unique(catalogMatches('name').map(e => e.name)))
+// Ongefilterde categorielijst voor het per-rij categorieveld (zie rowCategory
+// hieronder): geen kruisfilter op merk/omschrijving nodig, dat zijn daar geen
+// aparte invoervelden. Zonder deze lijst typt iedereen zijn eigen
+// schrijfwijze van dezelfde categorie (Jos 2026-09-04: "3 verschillende
+// schrijfwijzen van connectors" bij maar 2 vrije producten).
+const allCategories = computed(() => unique(catalogEntries.value.map(e => e.category)))
 
 function unique(arr: (string | null)[]): string[] {
   return Array.from(new Set(arr.filter((v): v is string => !!v))).sort((a, b) => a.localeCompare(b))
@@ -800,7 +819,7 @@ function unique(arr: (string | null)[]): string[] {
 // de tabel heen viel, tonen we een inline lijst onder de toevoegrij. Artikel/
 // Merk/Categorie zoeken in de catalogus; Serienummer heeft een eigen, rijkere
 // dropdown (snResults) die in álle artikelen van de klant zoekt.
-type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'user' | 'rowMatch'
+type WizardField = 'article' | 'brand' | 'category' | 'serial' | 'user' | 'rowMatch' | 'rowCategory'
 
 // Tolerante matching uit @gearonimo/ui: vindt ook "OK TriactLock" bij "ok tl"
 // (acroniem van woord-initialen), niet alleen bij een aaneengesloten "ok t".
@@ -824,6 +843,11 @@ function setFieldValue(field: string | null, val: string) {
 // artikel, en kiest er zelf één uit — pas dan vullen merk/categorie/etc. zich.
 const matchingRowId = ref<string | null>(null)
 const matchSearch = ref('')
+
+// Categorie-suggesties bij het per-rij categorieveld van een vrij artikel
+// (zie iw__category hieronder): welke rij momenteel focus heeft, zodat de
+// dropdown alleen ónder díe rij verschijnt en niet bij alle rijen tegelijk.
+const categoryRowId = ref<string | null>(null)
 
 // Opmerking uit de catalogus staat niet meer standaard open tijdens het
 // keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
@@ -907,6 +931,10 @@ const {
       case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
       case 'user': return suggestFilter(knownUsers.value, newUser.value)
       case 'rowMatch': return suggestFilter(allArticleNames.value, matchSearch.value)
+      case 'rowCategory': {
+        const it = items.value.find((i) => i.id === categoryRowId.value)
+        return suggestFilter(allCategories.value, it?.article.free_category ?? '')
+      }
       default: return []
     }
   },
@@ -916,15 +944,27 @@ const {
       if (it) applyRowMatch(it, value)
       return
     }
+    if (field === 'rowCategory' && categoryRowId.value) {
+      const it = items.value.find((i) => i.id === categoryRowId.value)
+      if (it) {
+        it.article.free_category = value
+        saveArticle(it)
+      }
+      return
+    }
     setFieldValue(field, value)
   },
   onEnter: (field) => focusNextField(field),
 })
 
-// Bij blur ook een lopende rij-match sluiten (extra t.o.v. de generieke close).
+// Bij blur ook een lopende rij-match/rij-categorie sluiten (extra t.o.v. de
+// generieke close).
 function closeSuggest() {
   rawCloseSuggest()
-  window.setTimeout(() => { matchingRowId.value = null }, 120)
+  window.setTimeout(() => {
+    matchingRowId.value = null
+    categoryRowId.value = null
+  }, 120)
 }
 
 // Toevoegrij
@@ -2336,6 +2376,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__notes-row strong { color: #111827; }
 .iw__category { color: #374151; }
+.iw__category--edit { position: relative; }
 .iw__sn { color: #6b7280; }
 .iw__prev--pass { color: #16a34a; }
 .iw__prev--fail { color: #dc2626; }
