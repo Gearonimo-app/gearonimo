@@ -297,7 +297,7 @@
                     </template>
                     <span v-else-if="itemRecallClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemRecallClearedNote(row.it)}`">✓</span>
                     <template v-if="itemNoticeUrl(row.it)">
-                      <a :href="itemNoticeUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.noticeFlag')" :title="itemNoticeTitle(row.it)!">⚠️</a>
+                      <a :href="itemNoticeUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.noticeFlag')" :title="itemNoticeTitle(row.it)!"><GIcon name="alert" class="iw__notice-flag-icon" /></a>
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
@@ -2326,6 +2326,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
 .iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
 .iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
+/* Inspection-notice-vlag: bewust oranje, nooit rood (Jos 2026-09-07) -- rood
+   blijft gereserveerd voor een echte recall (zie iw__warn-icon/🚩 hierboven).
+   Zelfde amber-token als de "aandacht"-status op het klantdashboard
+   (Home.vue .dh__verdict--warn), voor consistentie tussen de twee apps. */
+.iw__notice-flag-icon { width: 1rem; height: 1rem; color: #d97706; }
 
 .iw__input, .iw__select {
   padding: 0.6rem 0.85rem; border-radius: 8px; border: 1px solid #ddd;
