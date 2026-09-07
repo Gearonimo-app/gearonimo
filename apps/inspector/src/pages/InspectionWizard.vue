@@ -601,6 +601,7 @@ interface Product {
   // erkende partner") noodgedwongen in `inspection_notice_url` belandden --
   // een linkveld, dus daar werd lopende tekst een kapotte link van.
   notes: string | null
+  manufacturer_code: string | null
 }
 interface Article {
   id: string
@@ -770,10 +771,10 @@ const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 // catalogus nog groeit (BLAUWDRUK §3): vaak staat een merk/categorie/
 // omschrijving alleen bij de (bv. zojuist geïmporteerde) artikelen van de
 // klant en nog niet in de catalogus. Zonder die bron blijven de dropdowns leeg.
-interface CatalogEntry { brand: string | null; name: string | null; category: string | null }
+interface CatalogEntry { brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 const customerEntries = ref<CatalogEntry[]>([])
 const catalogEntries = computed<CatalogEntry[]>(() => [
-  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category })),
+  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category, manufacturer_code: p.manufacturer_code })),
   ...customerEntries.value,
 ])
 
@@ -809,19 +810,33 @@ const customerArticles = ref<CustArticle[]>([])
 // voert en Artikel alleen FALL SAFE-artikelen. Het veld dat je zelf invult
 // filtert niet op zichzelf (anders verdween je eigen keuze); op de andere
 // velden matchen we op deeltekst, zodat de lijst al meekrimpt terwijl je typt.
+// Artikel mag ook op het artikelnummer van de fabrikant (manufacturer_code)
+// matchen, niet alleen op de naam.
 function catalogMatches(self: 'brand' | 'category' | 'name'): CatalogEntry[] {
   const b = newBrand.value.trim().toLowerCase()
   const c = newCategory.value.trim().toLowerCase()
   const n = newDescription.value.trim().toLowerCase()
-  return catalogEntries.value.filter(e =>
+  const filtered = catalogEntries.value.filter(e =>
     (self === 'brand'    || !b || (e.brand ?? '').toLowerCase().includes(b)) &&
     (self === 'category' || !c || (e.category ?? '').toLowerCase().includes(c)) &&
-    (self === 'name'     || !n || (e.name ?? '').toLowerCase().includes(n))
+    (self === 'name'     || !n || (e.name ?? '').toLowerCase().includes(n) || (e.manufacturer_code ?? '').toLowerCase().includes(n))
   )
+  // Vrije invoer (een artikel dat niet in de catalogus staat): de kruisfilter
+  // op de andere twee velden mag dan niet de hele lijst leegvegen, anders
+  // blijven Merk/Categorie potdicht zodra Artikel vrije tekst bevat (Jos
+  // 2026-09-07). Val terug op de ongefilterde catalogus.
+  return filtered.length ? filtered : catalogEntries.value
 }
 const matchingBrands = computed(() => unique(catalogMatches('brand').map(e => e.brand)))
 const matchingCategories = computed(() => unique(catalogMatches('category').map(e => e.category)))
-const matchingArticleNames = computed(() => unique(catalogMatches('name').map(e => e.name)))
+const CODE_SEP = '  ·  '
+function articleLabel(e: CatalogEntry): string {
+  return e.manufacturer_code ? `${e.name}${CODE_SEP}${e.manufacturer_code}` : (e.name ?? '')
+}
+function stripArticleCode(label: string): string {
+  return label.split(CODE_SEP)[0].trim()
+}
+const matchingArticleLabels = computed(() => unique(catalogMatches('name').map(articleLabel)))
 // Ongefilterde categorielijst voor het per-rij categorieveld (zie rowCategory
 // hieronder): geen kruisfilter op merk/omschrijving nodig, dat zijn daar geen
 // aparte invoervelden. Zonder deze lijst typt iedereen zijn eigen
@@ -856,7 +871,7 @@ function suggestFilter(list: string[], typed: string): string[] {
 
 function setFieldValue(field: string | null, val: string) {
   switch (field) {
-    case 'article': newDescription.value = val; break
+    case 'article': newDescription.value = stripArticleCode(val); break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
     case 'serial': newSerial.value = val; break
@@ -954,7 +969,7 @@ const {
   scrollToActive: true,
   resolve: (field) => {
     switch (field) {
-      case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+      case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
       case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
@@ -1642,7 +1657,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url, manufacturer_code')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -1692,7 +1707,7 @@ async function load() {
   }
   // Suggestiebron (merk/artikel/categorie) alleen uit actief materiaal.
   customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
-    brand: a.brand || null, name: a.name || null, category: a.category || null,
+    brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
   }))
 
   await loadArticleSetInfo(insp.customer_id)
@@ -1817,7 +1832,7 @@ async function loadOffline() {
       last: null,
     }))
     customerEntries.value = customerArticles.value.map((a) => ({
-      brand: a.brand || null, name: a.name || null, category: a.category || null,
+      brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
     }))
 
     if (insp.status === 'completed') finished.value = true
