@@ -49,7 +49,7 @@
   },
   "join": {
     "title": "Lier votre entreprise",
-    "subtitle": "Saisissez le code d'invitation reçu de votre organisme de contrôle.",
+    "subtitle": "Saisissez le code d'invitation reçu de votre inspecteur.",
     "code": "Code d'invitation",
     "name": "Votre nom",
     "namePlaceholder": "ex. Jean Dupont",
@@ -251,10 +251,10 @@
   },
   "productTypes": {
     "ppe": "EPI",
-    "no_ppe": "Non-EPI",
+    "no_ppe": "Hors EPI",
     "rigging": "Rigging",
     "machine": "Machine",
-    "clothing": "Vêtement",
+    "clothing": "Vêtements",
     "other": "Autre"
   },
   "selfCheck": {

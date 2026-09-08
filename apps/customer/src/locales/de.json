@@ -49,7 +49,7 @@
   },
   "join": {
     "title": "Unternehmen verknüpfen",
-    "subtitle": "Geben Sie den Einladungscode ein, den Sie von Ihrer Prüfstelle erhalten haben.",
+    "subtitle": "Geben Sie den Einladungscode ein, den Sie von Ihrem Prüfer erhalten haben.",
     "code": "Einladungscode",
     "name": "Ihr Name",
     "namePlaceholder": "z. B. Jan Jansen",
@@ -219,7 +219,7 @@
     "subtitle": "Wie möchten Sie beginnen?",
     "haveCode": {
       "title": "Ich habe einen Einladungscode",
-      "desc": "Ihre Prüfstelle hat Ihnen einen Code gegeben."
+      "desc": "Ihr Prüfunternehmen hat Ihnen einen Code gegeben."
     },
     "self": {
       "title": "Selbst beginnen",
@@ -231,11 +231,11 @@
   },
   "request": {
     "title": "Prüfung anfragen",
-    "intro": "Wählen Sie eine Prüfstelle auf der Karte oder suchen Sie nach Namen und senden Sie eine Anfrage.",
+    "intro": "Wählen Sie ein Prüfunternehmen auf der Karte oder suchen Sie nach Namen und senden Sie eine Anfrage.",
     "mine": "Meine Anfragen",
-    "searchPlaceholder": "Prüfstelle nach Namen suchen",
+    "searchPlaceholder": "Prüfunternehmen nach Namen suchen",
     "mapUnavailable": "Die Karte konnte nicht geladen werden — nutzen Sie die Liste unten.",
-    "noneFound": "Keine Prüfstelle gefunden.",
+    "noneFound": "Kein Prüfunternehmen gefunden.",
     "confirmTitle": "Anfrage an {company} senden?",
     "messagePlaceholder": "Nachricht (optional)",
     "send": "Anfrage senden",
@@ -262,7 +262,7 @@
     "save": "Abhaken",
     "checkedAt": "Kontrolliert am",
     "performedByPlaceholder": "Von wem? (optional, z. B. Stihl-Händler Jansen)",
-    "dialogText": "„{name}“ als kontrolliert abhaken. Dies ist keine Prüfung durch eine Prüfstelle — Sie erfassen es selbst.",
+    "dialogText": "„{name}“ als kontrolliert abhaken. Dies ist keine Prüfung durch ein Prüfunternehmen — Sie erfassen es selbst.",
     "lastChecked": "abgehakt am {date}",
     "lastCheckLabel": "Letzte Kontrolle",
     "nextCheckLabel": "Nächste Kontrolle",
