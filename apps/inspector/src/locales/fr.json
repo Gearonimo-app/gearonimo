@@ -884,7 +884,7 @@
     "weekPh": "Semaine (1-53)",
     "invalidDay": "N'existe pas cette année-là",
     "filterPh": "Filtrer par marque...",
-    "legend": "A = année · M = mois · J = jour · S = semaine · x = autre chiffre · # = lettre",
+    "legend": "Y = année · M = mois · D = jour · W = semaine · x = autre chiffre · # = lettre",
     "example": "Exemple",
     "format": "Format",
     "manualLink": "Explication du fabricant →"
