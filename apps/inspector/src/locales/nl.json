@@ -230,7 +230,20 @@
     "forgotHint": "Nog geen wachtwoord, of vergeten? Vul je e-mailadres in, dan sturen we een link waarmee je een wachtwoord kunt instellen.",
     "sendReset": "Stuur reset-link",
     "backToLogin": "Terug naar inloggen",
-    "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen."
+    "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen.",
+    "haveInviteCode": "Ik heb een uitnodigingscode"
+  },
+  "joinInspector": {
+    "subtitle": "Koppel je account aan je keurbedrijf met de code die je van je beheerder kreeg.",
+    "choosePassword": "Kies een wachtwoord",
+    "nameLabel": "Je naam",
+    "namePlaceholder": "Voor- en achternaam",
+    "codeLabel": "Uitnodigingscode",
+    "submit": "Koppelen",
+    "confirmEmailSent": "Check je e-mail — klik op de bevestigingslink en kom hierna terug om verder te gaan.",
+    "doneMessage": "Gelukt! Je account is gekoppeld aan {company}.",
+    "continue": "Verder",
+    "backToLogin": "Terug naar inloggen"
   },
   "inspections": {
     "newTitle": "Nieuwe keuring",
@@ -486,6 +499,8 @@
       "shareHint": "Aan = een openbare kopie van dit bewijs is te bekijken via de QR-code op het certificaat. Uit = alleen intern zichtbaar.",
       "deleteTitle": "Keurmeester verwijderen?",
       "deleteBody": "Dit verwijdert de keurmeester en zijn kwalificaties. Dit kan niet ongedaan worden gemaakt. Keuringen die deze keurmeester heeft uitgevoerd blijven bestaan.",
+      "inviteCode": "Uitnodigingscode",
+      "inviteHint": "Geef deze code door aan de keurmeester (bv. via WhatsApp of e-mail). Op gearonimo.net/join vult die 'm zelf in en maakt daarmee zijn account aan.",
       "fields": {
         "name": "Naam",
         "admin": "Beheerder (mag keurmeesters/instellingen beheren)",

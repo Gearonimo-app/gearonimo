@@ -19,6 +19,9 @@
         <button type="button" class="lg__link" @click="switchToForgot">
           {{ $t("login.forgotPassword") }}
         </button>
+        <button type="button" class="lg__link" @click="router.push('/join')">
+          {{ $t("login.haveInviteCode") }}
+        </button>
       </form>
 
       <div v-else-if="mode === 'forgot' && !resetSent">

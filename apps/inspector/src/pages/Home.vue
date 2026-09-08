@@ -21,6 +21,10 @@
     <div v-else-if="notInspector" class="home__wrong-app">
       <p>{{ $t('home.notInspector') }}</p>
       <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
+      <!-- Ingelogd (bv. net de bevestigingsmail geklikt) maar de
+           keurmeester-rij nog niet gekoppeld: hier alsnog de
+           uitnodigingscode kunnen invullen i.p.v. vast te lopen. -->
+      <router-link class="home__wrong-app-link" to="/join">{{ $t('login.haveInviteCode') }}</router-link>
     </div>
 
     <!-- Melding + tegelmenu: alleen voor een echt keurmeester-account. Een

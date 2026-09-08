@@ -21,7 +21,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   verborgen; per keurmeester weer aan te zetten via Instellingen →
 >   Keurmeesters (nieuw veld `inspectors.offline_enabled`, standaard uit).
 >   **Migratie `20260758_inspector_offline_enabled.sql` moet Jos nog zelf
->   draaien in de Supabase SQL-editor.**
+>   draaien in de Supabase SQL-editor.** *(2026-09-08: gedraaid, live.)*
+> - **Uitnodig-knop voor keurmeesters zonder eigen account** (Jos vroeg hoe
+>   hij `frits@novaforequipement.com` -- tot dan alleen een naam zonder
+>   account -- kon uitnodigen; bleek nog niet gebouwd). Zelfde patroon als de
+>   klant-app-uitnodiging (20260708/20260738): een korte code per
+>   keurmeester-rij (`inspectors.invite_code`, migratie
+>   `20260759_inspector_invite.sql`), zichtbaar voor de beheerder bij
+>   Instellingen → Keurmeesters → (kies de keurmeester zonder account), met
+>   kopieerknop. De uitgenodigde vult 'm in op de nieuwe pagina
+>   `gearonimo.net/join` (account aanmaken + koppelen in één stap; werkt ook
+>   als iemand al is ingelogd maar nog niet gekoppeld). De code wordt bewust
+>   NIET meegegeven in de gewone rij-select (elke collega kan elkaars rij
+>   lezen) maar alleen via een beheerder-only RPC
+>   (`get_inspector_invite_code`) -- anders zou een gewone keurmeester de
+>   nog niet geclaimde code van bijvoorbeeld een beheerder-rij kunnen
+>   aflezen en zichzelf zo beheerdersrechten toe-eigenen.
+>   **Migratie `20260759_inspector_invite.sql` moet Jos nog zelf draaien.**
+>   Nog te checken door Jos: of e-mailbevestiging aanstaat in het
+>   Supabase-project (Authentication-instellingen) -- zo ja, moet
+>   `gearonimo.net/join` in de Redirect URLs-allowlist staan, anders komt de
+>   bevestigingslink nergens uit.
 
 ## Voortgang (bijgewerkt 2026-08-30)
 
