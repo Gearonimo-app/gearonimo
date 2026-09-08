@@ -6,6 +6,8 @@ import "./style.css";
 import App from "./App.vue";
 import nl from "./locales/nl.json";
 import en from "./locales/en.json";
+import fr from "./locales/fr.json";
+import de from "./locales/de.json";
 import { useAuth, supabase } from "@gearonimo/core";
 import { initialLocale } from "@gearonimo/ui";
 import { ensureInspector } from "./composables/useInspections";
@@ -36,7 +38,7 @@ const i18n = createI18n({
   // Onthouden voorkeur (LangToggle in de kopbalk), anders de browsertaal.
   locale: initialLocale(),
   fallbackLocale: "en",
-  messages: { nl, en },
+  messages: { nl, en, fr, de },
 });
 
 const router = createRouter({

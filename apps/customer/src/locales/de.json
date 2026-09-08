@@ -1,0 +1,274 @@
+{
+  "common": {
+    "loading": "Wird geladen...",
+    "busy": "Bitte warten...",
+    "saving": "Wird gespeichert...",
+    "save": "Speichern",
+    "signOut": "Abmelden",
+    "cancel": "Abbrechen",
+    "back": "Zurück"
+  },
+  "sets": {
+    "addPart": {
+      "title": "Teil hinzufügen",
+      "linkedTo": "Wird verknüpft mit: {name}",
+      "rolePlaceholder": "Funktion (z. B. Brücke, Karabiner)",
+      "replaces": "Dies ersetzt",
+      "replacesNone": "Nichts — neues Teil",
+      "errors": {
+        "missing": "Beschreibung ist erforderlich."
+      }
+    }
+  },
+  "login": {
+    "title": "Anmelden",
+    "appLabel": "Kundenportal · für Kunden",
+    "subtitle": "Ihre Ausrüstung, immer in Ordnung",
+    "email": "E-Mail-Adresse",
+    "submit": "Anmeldelink senden",
+    "busy": "Bitte warten...",
+    "check_email": "Prüfen Sie Ihre E-Mails — wir haben Ihnen einen Anmeldelink gesendet.",
+    "again": "Andere E-Mail-Adresse verwenden",
+    "hint": "Kein Passwort nötig: Sie erhalten einen Link per E-Mail."
+  },
+  "passkey": {
+    "loginButton": "Anmelden mit Fingerabdruck / Face ID",
+    "or": "oder",
+    "promptTitle": "Künftig ohne E-Mail anmelden?",
+    "promptBody": "Nutzen Sie Fingerabdruck oder Face ID auf diesem Gerät für eine schnellere Anmeldung — kein Anmeldelink per E-Mail mehr nötig.",
+    "promptAccept": "Ja, aktivieren",
+    "promptDecline": "Jetzt nicht",
+    "settingsTitle": "Sicherheit",
+    "settingsBody": "Melden Sie sich auf diesem Gerät mit Fingerabdruck oder Face ID an statt jedes Mal mit einer E-Mail.",
+    "add": "+ Gerät hinzufügen",
+    "remove": "Entfernen",
+    "removeConfirm": "„{name}“ entfernen? Dieses Gerät kann sich dann nicht mehr per Fingerabdruck oder Face ID anmelden — ein neuer Anmeldelink per E-Mail funktioniert weiterhin.",
+    "added": "Hinzugefügt am {date}",
+    "unnamed": "Dieses Gerät",
+    "empty": "Noch kein Gerät verknüpft."
+  },
+  "join": {
+    "title": "Unternehmen verknüpfen",
+    "subtitle": "Geben Sie den Einladungscode ein, den Sie von Ihrer Prüfstelle erhalten haben.",
+    "code": "Einladungscode",
+    "name": "Ihr Name",
+    "namePlaceholder": "z. B. Jan Jansen",
+    "submit": "Verknüpfen"
+  },
+  "home": {
+    "title": "Gearonimo",
+    "subtitle": "Ihre Ausrüstung, immer in Ordnung",
+    "verdict": {
+      "good": "Alles in Ordnung",
+      "warn": "Prüfung bald fällig",
+      "bad": "Aktion erforderlich: Ausrüstung abgelehnt oder Prüfung überfällig",
+      "empty": "Willkommen bei Gearonimo!",
+      "emptyBody": "Registrieren Sie hier Ihre erste Ausrüstung. Je vollständiger Ihre Daten, desto mehr profitieren Sie davon: automatische Rückruf-Meldungen und die Anleitung mit einem Klick."
+    },
+    "counts": {
+      "ok": "in Ordnung",
+      "dueSoon": "bald zu prüfen",
+      "action": "Aktion erforderlich",
+      "never": "noch nie geprüft"
+    },
+    "articles": "Ausrüstung",
+    "noArticles": "Noch keine Ausrüstung registriert.",
+    "untitled": "(ohne Beschreibung)",
+    "manual": "Anleitung",
+    "recall": "Rückruf",
+    "nextDue": "nächste Prüfung",
+    "status": {
+      "ok": "In Ordnung",
+      "due_soon": "Bald fällig",
+      "first_inspection_due": "Erstprüfung erforderlich",
+      "overdue": "Überfällig",
+      "rejected": "Abgelehnt",
+      "never_inspected": "Noch nicht geprüft",
+      "no_inspection": "Wird nicht geprüft",
+      "self_check_due": "Selbst kontrollieren",
+      "never_checked": "Noch nicht kontrolliert"
+    },
+    "certificates": "Zertifikate",
+    "noCertificates": "Noch keine Zertifikate.",
+    "tiles": {
+      "materials": "Meine Ausrüstung",
+      "certificates": "Zertifikate",
+      "request": "Prüfung anfragen",
+      "settings": "Einstellungen"
+    },
+    "retire": "Ersetzt? Ausmustern",
+    "retireConfirm": "„{name}“ ausmustern? Es verschwindet aus dieser Übersicht und aus künftigen Prüfungen. Prüfhistorie und Zertifikate bleiben erhalten.",
+    "retireOther": "Ausmustern",
+    "retireReasonPlaceholder": "Grund (optional, z. B. ersetzt / verloren / gestohlen)",
+    "retireReasonReplaced": "nach Ablehnung ersetzt",
+    "addArticle": {
+      "button": "+ Hinzufügen",
+      "allBrands": "Alle Marken",
+      "search": "Katalog durchsuchen (Marke oder Name)",
+      "freeToggle": "Nicht dabei? Selbst eintragen",
+      "backToSearch": "‹ Doch im Katalog suchen",
+      "description": "Beschreibung *",
+      "brand": "Marke",
+      "category": "Kategorie (z. B. Helm, Verbindungsmittel)",
+      "serial": "Seriennummer",
+      "user": "Nutzer (wer es trägt)",
+      "year": "Baujahr",
+      "month": "Monat",
+      "purchaseDate": "Kaufdatum (optional)",
+      "firstUse": "In Gebrauch seit (optional)",
+      "queueNote": "Unbekannte Produkte werden automatisch für den Gearonimo-Katalog vorgeschlagen.",
+      "save": "Hinzufügen",
+      "cancel": "Abbrechen",
+      "needProductOrDescription": "Wählen Sie ein Produkt aus dem Katalog oder geben Sie eine Beschreibung ein.",
+      "type": "Art"
+    }
+  },
+  "materials": {
+    "title": "Meine Ausrüstung",
+    "searchPlaceholder": "Suche nach Name, Marke oder Seriennummer",
+    "everyone": "Alle",
+    "attention": "Aufmerksamkeit erforderlich",
+    "noMatches": "Mit diesen Filtern wurde nichts gefunden.",
+    "clearFilters": "Filter zurücksetzen",
+    "domains": {
+      "climbing": "Kletterausrüstung",
+      "machines": "Maschinen",
+      "clothing": "Kleidung",
+      "other": "Sonstiges"
+    },
+    "allDomains": "Alle Materialarten",
+    "attentionCount": "{n} mit Handlungsbedarf"
+  },
+  "articleDetail": {
+    "notFound": "Artikel nicht gefunden.",
+    "edit": "Bearbeiten",
+    "noUser": "Nicht zugewiesen",
+    "lastInspection": "Letzte Prüfung",
+    "noLastInspection": "Noch nicht geprüft",
+    "firstUseLocked": "einmalig eingetragen, nicht mehr änderbar",
+    "fields": {
+      "article": "Artikel",
+      "brand": "Marke",
+      "category": "Kategorie",
+      "material": "Material",
+      "serial": "Seriennummer",
+      "user": "Nutzer",
+      "year": "Baujahr",
+      "purchaseDate": "Kaufdatum",
+      "firstUse": "In Gebrauch seit",
+      "nextDue": "Nächste Prüfung"
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "company": {
+      "title": "Firmendaten",
+      "edit": "Bearbeiten",
+      "empty": "Noch nichts eingetragen.",
+      "fields": {
+        "email": "E-Mail-Adresse",
+        "phone": "Telefon",
+        "contactPerson": "Ansprechpartner",
+        "kvkNumber": "Handelsregisternummer",
+        "vatNumber": "USt-IdNr.",
+        "address": "Adresse",
+        "street": "Straße",
+        "houseNumber": "Hausnummer",
+        "addition": "Zusatz",
+        "postalCode": "Postleitzahl",
+        "city": "Ort",
+        "province": "Bundesland",
+        "country": "Land"
+      }
+    },
+    "domains": {
+      "title": "Materialarten",
+      "hint": "Wählen Sie, welche Materialarten Sie in dieser App verwalten. Kletterausrüstung ist immer aktiv. Eine Art, die noch Material enthält, kann nicht deaktiviert werden — mustern Sie es zuerst aus.",
+      "always": "Immer aktiv",
+      "inUse": "{n} Artikel",
+      "save": "Speichern"
+    }
+  },
+  "members": {
+    "title": "Mitarbeiter",
+    "back": "Zurück",
+    "add": "+ Mitarbeiter",
+    "edit": "Bearbeiten",
+    "empty": "Noch keine Mitarbeiter.",
+    "badgeAdmin": "Administrator",
+    "badgeInactive": "Inaktiv",
+    "badgeNoAccount": "noch kein Konto",
+    "you": "Sie",
+    "fields": {
+      "name": "Name *",
+      "role": "Funktion",
+      "phone": "Telefon",
+      "email": "E-Mail-Adresse",
+      "active": "Aktiv",
+      "admin": "Administrator (darf Mitarbeiter verwalten)"
+    },
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "inviteTitle": "Kollegen einladen",
+    "inviteHint": "Lassen Sie einen Kollegen sich selbst in dieser App anmelden und mit diesem Code verknüpfen. Verwenden Sie dieselbe E-Mail-Adresse wie hier beim Mitarbeiter hinterlegt, dann werden Konto und Mitarbeiter automatisch zusammengeführt.",
+    "copy": "Kopieren",
+    "readOnly": "Nur ein Administrator kann Mitarbeiter bearbeiten."
+  },
+  "start": {
+    "title": "Willkommen bei Gearonimo",
+    "subtitle": "Wie möchten Sie beginnen?",
+    "haveCode": {
+      "title": "Ich habe einen Einladungscode",
+      "desc": "Ihre Prüfstelle hat Ihnen einen Code gegeben."
+    },
+    "self": {
+      "title": "Selbst beginnen",
+      "desc": "Erfassen Sie Ihre eigene Ausrüstung und beantragen Sie später eine Prüfung.",
+      "nameLabel": "Ihr Name oder Firmenname",
+      "namePlaceholder": "z. B. Jansen Klimtechniek",
+      "submit": "Beginnen"
+    }
+  },
+  "request": {
+    "title": "Prüfung anfragen",
+    "intro": "Wählen Sie eine Prüfstelle auf der Karte oder suchen Sie nach Namen und senden Sie eine Anfrage.",
+    "mine": "Meine Anfragen",
+    "searchPlaceholder": "Prüfstelle nach Namen suchen",
+    "mapUnavailable": "Die Karte konnte nicht geladen werden — nutzen Sie die Liste unten.",
+    "noneFound": "Keine Prüfstelle gefunden.",
+    "confirmTitle": "Anfrage an {company} senden?",
+    "messagePlaceholder": "Nachricht (optional)",
+    "send": "Anfrage senden",
+    "withdraw": "Zurückziehen",
+    "pendingCaption": "Wartet auf Genehmigung durch {company}",
+    "linkedTo": "Verknüpft mit {company}",
+    "status": {
+      "pending": "In Bearbeitung",
+      "accepted": "Genehmigt",
+      "declined": "Abgelehnt",
+      "withdrawn": "Zurückgezogen"
+    }
+  },
+  "productTypes": {
+    "ppe": "PSA",
+    "no_ppe": "Keine PSA",
+    "rigging": "Rigging",
+    "machine": "Maschine",
+    "clothing": "Kleidung",
+    "other": "Sonstiges"
+  },
+  "selfCheck": {
+    "action": "Abhaken",
+    "save": "Abhaken",
+    "checkedAt": "Kontrolliert am",
+    "performedByPlaceholder": "Von wem? (optional, z. B. Stihl-Händler Jansen)",
+    "dialogText": "„{name}“ als kontrolliert abhaken. Dies ist keine Prüfung durch eine Prüfstelle — Sie erfassen es selbst.",
+    "lastChecked": "abgehakt am {date}",
+    "lastCheckLabel": "Letzte Kontrolle",
+    "nextCheckLabel": "Nächste Kontrolle",
+    "neverChecked": "Noch nicht kontrolliert",
+    "performedByLabel": "Kontrolliert von",
+    "recordedByLabel": "Erfasst von",
+    "historyLabel": "Kontrollen"
+  }
+}

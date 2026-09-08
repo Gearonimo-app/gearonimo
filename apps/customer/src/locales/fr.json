@@ -1,0 +1,274 @@
+{
+  "common": {
+    "loading": "Chargement...",
+    "busy": "Veuillez patienter...",
+    "saving": "Enregistrement...",
+    "save": "Enregistrer",
+    "signOut": "Se déconnecter",
+    "cancel": "Annuler",
+    "back": "Retour"
+  },
+  "sets": {
+    "addPart": {
+      "title": "Ajouter un élément",
+      "linkedTo": "Sera lié à : {name}",
+      "rolePlaceholder": "Rôle (ex. pont, mousqueton)",
+      "replaces": "Ceci remplace",
+      "replacesNone": "Rien — nouvel élément",
+      "errors": {
+        "missing": "La description est obligatoire."
+      }
+    }
+  },
+  "login": {
+    "title": "Connexion",
+    "appLabel": "Portail client · pour les clients",
+    "subtitle": "Votre matériel, toujours en ordre",
+    "email": "Adresse e-mail",
+    "submit": "Envoyer le lien de connexion",
+    "busy": "Veuillez patienter...",
+    "check_email": "Vérifiez votre e-mail — nous vous avons envoyé un lien de connexion.",
+    "again": "Utiliser une autre adresse e-mail",
+    "hint": "Pas de mot de passe nécessaire : vous recevrez un lien par e-mail."
+  },
+  "passkey": {
+    "loginButton": "Se connecter par empreinte / Face ID",
+    "or": "ou",
+    "promptTitle": "Se connecter sans e-mail à l'avenir ?",
+    "promptBody": "Utilisez l'empreinte digitale ou Face ID sur cet appareil pour vous connecter plus vite — plus besoin de lien de connexion par e-mail.",
+    "promptAccept": "Oui, activer",
+    "promptDecline": "Pas maintenant",
+    "settingsTitle": "Sécurité",
+    "settingsBody": "Connectez-vous sur cet appareil par empreinte digitale ou Face ID au lieu d'un e-mail à chaque fois.",
+    "add": "+ Ajouter un appareil",
+    "remove": "Supprimer",
+    "removeConfirm": "Supprimer « {name} » ? Cet appareil ne pourra plus se connecter par empreinte ou Face ID — un nouveau lien de connexion par e-mail fonctionnera toujours.",
+    "added": "Ajouté le {date}",
+    "unnamed": "Cet appareil",
+    "empty": "Aucun appareil lié pour l'instant."
+  },
+  "join": {
+    "title": "Lier votre entreprise",
+    "subtitle": "Saisissez le code d'invitation reçu de votre organisme de contrôle.",
+    "code": "Code d'invitation",
+    "name": "Votre nom",
+    "namePlaceholder": "ex. Jean Dupont",
+    "submit": "Lier"
+  },
+  "home": {
+    "title": "Gearonimo",
+    "subtitle": "Votre matériel, toujours en ordre",
+    "verdict": {
+      "good": "Tout est en ordre",
+      "warn": "Contrôle à prévoir bientôt",
+      "bad": "Action requise : matériel refusé ou contrôle expiré",
+      "empty": "Bienvenue sur Gearonimo !",
+      "emptyBody": "Enregistrez ici votre premier matériel. Plus vos données sont complètes, plus vous en profitez : alertes de rappel automatiques et la notice en un clic."
+    },
+    "counts": {
+      "ok": "en ordre",
+      "dueSoon": "à contrôler bientôt",
+      "action": "action requise",
+      "never": "jamais contrôlé"
+    },
+    "articles": "Matériel",
+    "noArticles": "Aucun matériel enregistré pour l'instant.",
+    "untitled": "(sans description)",
+    "manual": "Notice",
+    "recall": "Rappel",
+    "nextDue": "prochain contrôle",
+    "status": {
+      "ok": "En ordre",
+      "due_soon": "Bientôt",
+      "first_inspection_due": "Premier contrôle requis",
+      "overdue": "Expiré",
+      "rejected": "Refusé",
+      "never_inspected": "Pas encore contrôlé",
+      "no_inspection": "Non soumis à contrôle",
+      "self_check_due": "À vérifier soi-même",
+      "never_checked": "Pas encore vérifié"
+    },
+    "certificates": "Certificats",
+    "noCertificates": "Aucun certificat pour l'instant.",
+    "tiles": {
+      "materials": "Mon matériel",
+      "certificates": "Certificats",
+      "request": "Demander un contrôle",
+      "settings": "Paramètres"
+    },
+    "retire": "Remplacé ? Retirer",
+    "retireConfirm": "Retirer « {name} » ? Il disparaît de cet aperçu et des contrôles futurs. L'historique des contrôles et les certificats sont conservés.",
+    "retireOther": "Retirer",
+    "retireReasonPlaceholder": "Motif (facultatif, ex. remplacé / perdu / volé)",
+    "retireReasonReplaced": "remplacé après refus",
+    "addArticle": {
+      "button": "+ Ajouter",
+      "allBrands": "Toutes les marques",
+      "search": "Rechercher dans le catalogue (marque ou nom)",
+      "freeToggle": "Introuvable ? Saisir vous-même",
+      "backToSearch": "‹ Rechercher plutôt dans le catalogue",
+      "description": "Description *",
+      "brand": "Marque",
+      "category": "Catégorie (ex. casque, longe)",
+      "serial": "Numéro de série",
+      "user": "Utilisateur (qui le porte)",
+      "year": "Année de fabrication",
+      "month": "Mois",
+      "purchaseDate": "Date d'achat (facultatif)",
+      "firstUse": "En service depuis (facultatif)",
+      "queueNote": "Les produits inconnus sont automatiquement proposés pour le catalogue Gearonimo.",
+      "save": "Ajouter",
+      "cancel": "Annuler",
+      "needProductOrDescription": "Choisissez un produit du catalogue ou saisissez une description.",
+      "type": "Type"
+    }
+  },
+  "materials": {
+    "title": "Mon matériel",
+    "searchPlaceholder": "Rechercher par nom, marque ou numéro de série",
+    "everyone": "Tout le monde",
+    "attention": "Attention requise",
+    "noMatches": "Rien trouvé avec ces filtres.",
+    "clearFilters": "Effacer les filtres",
+    "domains": {
+      "climbing": "Matériel d'escalade",
+      "machines": "Machines",
+      "clothing": "Vêtements",
+      "other": "Autre"
+    },
+    "allDomains": "Tous les types de matériel",
+    "attentionCount": "{n} nécessitant une attention"
+  },
+  "articleDetail": {
+    "notFound": "Article introuvable.",
+    "edit": "Modifier",
+    "noUser": "Non attribué",
+    "lastInspection": "Dernier contrôle",
+    "noLastInspection": "Pas encore contrôlé",
+    "firstUseLocked": "renseigné une seule fois, non modifiable",
+    "fields": {
+      "article": "Article",
+      "brand": "Marque",
+      "category": "Catégorie",
+      "material": "Matériau",
+      "serial": "Numéro de série",
+      "user": "Utilisateur",
+      "year": "Année de fabrication",
+      "purchaseDate": "Date d'achat",
+      "firstUse": "En service depuis",
+      "nextDue": "Prochain contrôle"
+    }
+  },
+  "settings": {
+    "title": "Paramètres",
+    "company": {
+      "title": "Coordonnées de l'entreprise",
+      "edit": "Modifier",
+      "empty": "Rien de renseigné pour l'instant.",
+      "fields": {
+        "email": "Adresse e-mail",
+        "phone": "Téléphone",
+        "contactPerson": "Personne de contact",
+        "kvkNumber": "Numéro d'immatriculation",
+        "vatNumber": "Numéro de TVA",
+        "address": "Adresse",
+        "street": "Rue",
+        "houseNumber": "Numéro",
+        "addition": "Complément",
+        "postalCode": "Code postal",
+        "city": "Ville",
+        "province": "Région",
+        "country": "Pays"
+      }
+    },
+    "domains": {
+      "title": "Types de matériel",
+      "hint": "Choisissez les types de matériel que vous suivez dans cette application. Le matériel d'escalade est toujours actif. Un type contenant encore du matériel ne peut pas être désactivé — retirez-le d'abord.",
+      "always": "Toujours actif",
+      "inUse": "{n} article(s)",
+      "save": "Enregistrer"
+    }
+  },
+  "members": {
+    "title": "Collaborateurs",
+    "back": "Retour",
+    "add": "+ Collaborateur",
+    "edit": "Modifier",
+    "empty": "Aucun collaborateur pour l'instant.",
+    "badgeAdmin": "Administrateur",
+    "badgeInactive": "Inactif",
+    "badgeNoAccount": "pas encore de compte",
+    "you": "vous",
+    "fields": {
+      "name": "Nom *",
+      "role": "Fonction",
+      "phone": "Téléphone",
+      "email": "Adresse e-mail",
+      "active": "Actif",
+      "admin": "Administrateur (peut gérer les collaborateurs)"
+    },
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "inviteTitle": "Inviter des collègues",
+    "inviteHint": "Laissez un collègue se connecter lui-même à cette application et se lier avec ce code. Utilisez la même adresse e-mail que celle indiquée ici pour le collaborateur : le compte et la fiche seront alors fusionnés automatiquement.",
+    "copy": "Copier",
+    "readOnly": "Seul un administrateur peut modifier les collaborateurs."
+  },
+  "start": {
+    "title": "Bienvenue sur Gearonimo",
+    "subtitle": "Comment souhaitez-vous commencer ?",
+    "haveCode": {
+      "title": "J'ai un code d'invitation",
+      "desc": "Votre organisme de contrôle vous a donné un code."
+    },
+    "self": {
+      "title": "Commencer seul",
+      "desc": "Saisissez votre propre matériel et demandez un contrôle plus tard.",
+      "nameLabel": "Votre nom ou raison sociale",
+      "namePlaceholder": "ex. Dupont Grimpe",
+      "submit": "Commencer"
+    }
+  },
+  "request": {
+    "title": "Demander un contrôle",
+    "intro": "Choisissez un organisme de contrôle sur la carte ou recherchez par nom, puis envoyez une demande.",
+    "mine": "Mes demandes",
+    "searchPlaceholder": "Rechercher un organisme de contrôle par nom",
+    "mapUnavailable": "La carte n'a pas pu être chargée — utilisez la liste ci-dessous.",
+    "noneFound": "Aucun organisme de contrôle trouvé.",
+    "confirmTitle": "Envoyer une demande à {company} ?",
+    "messagePlaceholder": "Message (facultatif)",
+    "send": "Envoyer la demande",
+    "withdraw": "Retirer",
+    "pendingCaption": "En attente d'approbation de {company}",
+    "linkedTo": "Lié à {company}",
+    "status": {
+      "pending": "En cours",
+      "accepted": "Approuvée",
+      "declined": "Refusée",
+      "withdrawn": "Retirée"
+    }
+  },
+  "productTypes": {
+    "ppe": "EPI",
+    "no_ppe": "Non-EPI",
+    "rigging": "Rigging",
+    "machine": "Machine",
+    "clothing": "Vêtement",
+    "other": "Autre"
+  },
+  "selfCheck": {
+    "action": "Cocher",
+    "save": "Cocher",
+    "checkedAt": "Vérifié le",
+    "performedByPlaceholder": "Par qui ? (facultatif, ex. revendeur Stihl Dupont)",
+    "dialogText": "Cocher « {name} » comme vérifié. Il ne s'agit pas d'un contrôle par un organisme de contrôle — vous l'enregistrez vous-même.",
+    "lastChecked": "vérifié le {date}",
+    "lastCheckLabel": "Dernière vérification",
+    "nextCheckLabel": "Prochaine vérification",
+    "neverChecked": "Pas encore vérifié",
+    "performedByLabel": "Vérifié par",
+    "recordedByLabel": "Enregistré par",
+    "historyLabel": "Vérifications"
+  }
+}

@@ -112,18 +112,23 @@ export interface CertData {
   /** Ingebedde handtekening-PNG/JPG van de keurmeester, of null. */
   signature: Uint8Array | null
   /**
-   * Taal van de vaste PDF-teksten (fase 5, 2026-07-19). Afgeleid van het
-   * land van het keurbedrijf: NL/BE = nl, al het andere = en — dezelfde
-   * regel als het language-metadataveld op certificates. Optioneel zodat
-   * bestaande aanroepen (preview) zonder wijziging Nederlands blijven.
+   * Taal van de vaste PDF-teksten (fase 5, 2026-07-19; fr/de erbij
+   * 2026-09-08). Afgeleid van het land van het keurbedrijf: NL/BE = nl,
+   * FR = fr, DE/AT/CH = de, al het andere = en — dezelfde regel als het
+   * language-metadataveld op certificates. Optioneel zodat bestaande
+   * aanroepen (preview) zonder wijziging Nederlands blijven.
    */
   language?: CertLanguage
 }
 
-export type CertLanguage = 'nl' | 'en'
+export type CertLanguage = 'nl' | 'en' | 'fr' | 'de'
 
 export function certLanguageForCountry(countryCode: string | null): CertLanguage {
-  return ['NL', 'BE'].includes(countryCode ?? 'NL') ? 'nl' : 'en'
+  const c = countryCode ?? 'NL'
+  if (['NL', 'BE'].includes(c)) return 'nl'
+  if (c === 'FR') return 'fr'
+  if (['DE', 'AT', 'CH'].includes(c)) return 'de'
+  return 'en'
 }
 
 // Vaste PDF-teksten per taal. De afkeurcode-labels zelf komen uit de eigen
@@ -165,6 +170,44 @@ const CERT_LABELS = {
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
       year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS',
       note: 'Rejection code / comment',
+    } as Record<string, string>,
+  },
+  fr: {
+    dateLocale: 'fr-FR',
+    title: 'Certificat de contrôle',
+    number: 'Numéro de certificat',
+    customer: 'Client',
+    inspectionDate: 'Date de contrôle',
+    inspector: 'Inspecteur',
+    signature: 'Signature',
+    issued: 'Délivré',
+    scanToVerify: 'Scanner pour vérifier',
+    verifiedWith: 'vérifié avec gearonimo',
+    page: (n: number, total: number) => `Page ${n} sur ${total}`,
+    cols: {
+      article: 'Article', brand: 'Marque', category: 'Catégorie',
+      sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
+      year: 'Année', user: 'Utilisateur', norm: 'Norme', mbs: 'MBS',
+      note: 'Code de refus / remarque',
+    } as Record<string, string>,
+  },
+  de: {
+    dateLocale: 'de-DE',
+    title: 'Prüfzertifikat',
+    number: 'Zertifikatnummer',
+    customer: 'Kunde',
+    inspectionDate: 'Prüfdatum',
+    inspector: 'Prüfer',
+    signature: 'Unterschrift',
+    issued: 'Ausgestellt',
+    scanToVerify: 'Zum Verifizieren scannen',
+    verifiedWith: 'verifiziert mit gearonimo',
+    page: (n: number, total: number) => `Seite ${n} von ${total}`,
+    cols: {
+      article: 'Artikel', brand: 'Marke', category: 'Kategorie',
+      sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
+      year: 'Baujahr', user: 'Nutzer', norm: 'Norm', mbs: 'MBS',
+      note: 'Ablehnungscode / Anmerkung',
     } as Record<string, string>,
   },
 } as const

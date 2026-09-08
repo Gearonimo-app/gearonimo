@@ -180,9 +180,9 @@ function countryName(code: string): string {
   }
 }
 
-// Gesorteerd op de vertaalde naam; de bouwplan-markten (NL/BE/DE/GB/CA)
+// Gesorteerd op de vertaalde naam; de bouwplan-markten (NL/BE/DE/FR/GB/CA)
 // staan bovenaan voor snel kiezen.
-const PRIORITY = ['NL', 'BE', 'DE', 'GB', 'CA']
+const PRIORITY = ['NL', 'BE', 'DE', 'FR', 'GB', 'CA']
 const COUNTRY_OPTIONS = computed(() => {
   const rest = ISO_COUNTRIES.filter((c) => !PRIORITY.includes(c))
     .sort((a, b) => countryName(a).localeCompare(countryName(b), locale.value))
