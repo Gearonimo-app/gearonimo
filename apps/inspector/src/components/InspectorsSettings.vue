@@ -59,6 +59,7 @@
             <code class="ins__invite-code">{{ inviteCode }}</code>
             <button type="button" class="ins__invite-copy" :title="$t('common.copy')" @click="copyInviteCode">{{ inviteCopied ? '✓' : '⧉' }}</button>
           </div>
+          <p v-if="inviteCode" class="ins__invite-url">{{ $t('customers.detail.inviteUrlLabel') }} <code>gearonimo.net/join</code></p>
           <p v-if="inviteCode" class="ins__note">{{ $t('settings.inspectors.inviteHint') }}</p>
         </template>
         <p v-else class="ins__note">{{ $t('settings.inspectors.accountNote') }}</p>
@@ -541,6 +542,8 @@ onMounted(load)
 .ins__invite-label { color: #6b7280; font-size: 0.85rem; flex: 1; }
 .ins__invite-code { font-weight: 700; letter-spacing: 0.12em; font-size: 1rem; }
 .ins__invite-copy { border: none; background: #fff; border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; }
+.ins__invite-url { margin: 0.35rem 0 0; font-size: 0.8rem; color: #6b7280; }
+.ins__invite-url code { font-weight: 600; color: #374151; }
 .ins__error { color: #dc2626; font-size: 0.9rem; margin: 0; }
 
 .ins__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }

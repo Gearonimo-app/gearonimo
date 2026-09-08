@@ -98,6 +98,7 @@
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
       "inviteCode": "Customer app invite code",
+      "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
     }
   },
@@ -502,7 +503,7 @@
       "deleteTitle": "Delete inspector?",
       "deleteBody": "This removes the inspector and their qualifications. This cannot be undone. Inspections carried out by this inspector are kept.",
       "inviteCode": "Invite code",
-      "inviteHint": "Share this code with the inspector (e.g. by WhatsApp or email). At gearonimo.net/join they enter it themselves to create their account.",
+      "inviteHint": "Share this code and the link above with the inspector (e.g. by WhatsApp or email). There they enter it themselves to create their account.",
       "fields": {
         "name": "Name",
         "admin": "Administrator (can manage inspectors/settings)",
