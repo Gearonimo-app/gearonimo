@@ -329,6 +329,8 @@
       "colWarning": "",
       "pass": "Pass",
       "fail": "Fail",
+      "notAssessedShort": "Not assessed yet",
+      "exportCsv": "Export to Excel",
       "totals": "{passed} passed · {rejected} rejected · {open} open",
       "finish": "Finish →",
       "notAssessedConfirm": "{count} item(s) were not inspected and will not appear on the certificate (they remain with the customer for next time):",

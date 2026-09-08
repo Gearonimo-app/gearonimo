@@ -5,6 +5,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-08, Excel-export)
+
+> **Excel-export bij een keuring.** Jos deed zijn eerste echte keuring met
+> de nieuwe uitnodig-knop-sessie en wilde de gegevens erbij plakken in zijn
+> huidige (bestaande) certificaat. Handmatig de tabel selecteren en
+> kopiëren propte alles in één Excel-cel (de tabel zit vol knoppen/iconen
+> door elkaar met de data). Nieuwe knop "Exporteer naar Excel" boven de
+> tabel in de keuring-wizard: nette CSV met alleen de zichtbare kolommen
+> (categorie/merk/artikel/serienummer/bouwjaar/gebruiker/resultaat/
+> afkeurcode/opmerking/volgende keuring), zelfde aanpak als de bestaande
+> recall-CSV-export (SerialSearch.vue): BOM voor Excel, `;` als
+> scheidingsteken. Geen migratie nodig, puur frontend.
+
 ## Voortgang (bijgewerkt 2026-09-08)
 
 > **Twee kleine reparaties/uitbreidingen op verzoek Jos, los van het testplan

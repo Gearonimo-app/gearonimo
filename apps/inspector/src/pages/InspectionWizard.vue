@@ -247,6 +247,17 @@
           <SnReferencePanel />
         </div>
 
+        <!-- Excel-export (Jos, 2026-09-08): browser-tabellen bevatten
+             knoppen/iconen door elkaar, dus plakken in Excel plakt alles in
+             één cel. Een schone CSV met alleen de zichtbare gegevens werkt
+             wél netjes -- zelfde patroon als de recall-export in
+             SerialSearch.vue. -->
+        <div class="iw__export">
+          <button type="button" class="iw__btn iw__btn--copy" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+            ⧉ {{ $t('inspections.table.exportCsv') }}
+          </button>
+        </div>
+
         <div class="iw__table-wrap">
           <table class="iw__table">
             <thead>
@@ -1385,6 +1396,47 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Excel-export (Jos, 2026-09-08): alleen de zichtbare gegevens, geen
+// knoppen/iconen -- die propte de browser bij een handmatige kopieer-plak
+// allemaal in één cel. Zelfde CSV-aanpak als exportRecallCsv in
+// SerialSearch.vue (BOM voor Excel, ; als scheidingsteken, elk veld tussen
+// quotes zodat een komma of ; in bv. een opmerking niet de kolommen verschuift).
+function resultLabel(result: Item['result']): string {
+  if (result === 'passed') return t('inspections.table.pass')
+  if (result === 'rejected') return t('inspections.table.fail')
+  return t('inspections.table.notAssessedShort')
+}
+function exportInspectionCsv() {
+  if (!sortedRows.value.length) return
+  const header = [
+    t('inspections.table.colCategory'), t('inspections.table.colBrand'), t('inspections.table.colDescription'),
+    t('inspections.table.colSerial'), t('inspections.table.colYear'), t('inspections.table.colFirstUse'),
+    t('inspections.table.colUser'), t('inspections.table.colResult'), t('inspections.noCode'),
+    t('inspections.commentPlaceholder'), t('inspections.table.colNextDue'),
+  ].join(';')
+  const lines = sortedRows.value.map((row) => {
+    const it = row.it
+    const year = it.article.manufacture_year
+      ? String(it.article.manufacture_year) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '')
+      : ''
+    const code = it.result === 'rejected' ? rejectionCodes.value.find((c) => c.id === it.rejection_code_id)?.code ?? '' : ''
+    return [
+      row.category, row.brand, row.label, it.article.serial_number, year, it.article.first_use_date,
+      it.article.assigned_user_name, resultLabel(it.result), code, it.comment,
+      it.result === 'passed' ? it.next_due : '',
+    ].map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')
+  })
+  const csv = '﻿' + header + '\n' + lines.join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  const customerPart = (inspection.value?.customer?.name ?? 'keuring').replace(/[^a-zA-Z0-9]+/g, '_')
+  a.download = `keuring_${customerPart}_${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const passedCount = computed(() => items.value.filter(i => i.result === 'passed').length)
 const rejectedCount = computed(() => items.value.filter(i => i.result === 'rejected').length)
 const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed').length)
@@ -2369,6 +2421,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   font-size: 0.8rem; cursor: pointer; padding: 0;
 }
 .iw__snref { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; }
+.iw__export { display: flex; justify-content: flex-end; margin-bottom: 0.5rem; }
 .iw__cheatsheet-label { white-space: nowrap; }
 .iw__cheatsheet-result { font-weight: 600; color: #16a34a; white-space: nowrap; }
 .iw__cheatsheet-apply { border: 1px solid #16a34a; color: #16a34a; background: #fff; border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.75rem; cursor: pointer; }

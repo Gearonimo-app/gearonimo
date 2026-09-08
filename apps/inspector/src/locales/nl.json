@@ -329,6 +329,8 @@
       "colWarning": "",
       "pass": "Goed",
       "fail": "Afkeur",
+      "notAssessedShort": "Nog niet beoordeeld",
+      "exportCsv": "Exporteer naar Excel",
       "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
       "finish": "Afronden →",
       "notAssessedConfirm": "{count} artikel(en) zijn niet gekeurd en komen niet op het certificaat (ze blijven bij de klant staan voor een volgende keer):",
