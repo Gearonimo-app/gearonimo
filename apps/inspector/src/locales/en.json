@@ -489,7 +489,8 @@
       "fields": {
         "name": "Name",
         "admin": "Administrator (can manage inspectors/settings)",
-        "active": "Active"
+        "active": "Active",
+        "offlineEnabled": "Can download customers offline to inspect"
       },
       "qFields": {
         "name": "Qualification name",

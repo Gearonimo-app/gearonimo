@@ -5,6 +5,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-08)
+
+> **Twee kleine reparaties/uitbreidingen op verzoek Jos, los van het testplan
+> hieronder.**
+> - **Merk/Categorie-dropdown tijdens keuren bleef leeg bij vrije invoer.**
+>   Artikel/Merk/Categorie filteren elkaar wederzijds; typte je bij Artikel
+>   iets dat niet in de catalogus staat, dan gaf die kruisfilter voor Merk en
+>   Categorie altijd nul resultaten. `catalogMatches()` in `InspectionWizard.vue`
+>   valt nu terug op de ongefilterde catalogus. Het Artikel-veld doorzoekt
+>   daarbij ook het artikelnummer (`manufacturer_code`), dat werd tijdens het
+>   keuren nog niet eens opgehaald.
+> - **Offline downloaden staat nog niet in gebruik** (internet is bij alle
+>   keurmeesters altijd aanwezig). De tegel op het hoofdmenu is nu standaard
+>   verborgen; per keurmeester weer aan te zetten via Instellingen →
+>   Keurmeesters (nieuw veld `inspectors.offline_enabled`, standaard uit).
+>   **Migratie `20260758_inspector_offline_enabled.sql` moet Jos nog zelf
+>   draaien in de Supabase SQL-editor.**
+
 ## Voortgang (bijgewerkt 2026-08-30)
 
 > **Nieuw testplan (ronde 3) + drie reparaties vooraf.** Jos vroeg om de beste

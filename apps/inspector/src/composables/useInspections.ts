@@ -30,6 +30,9 @@ export interface Inspector {
   can_curate_catalog?: boolean
   // Beheerder van het keurbedrijf (ensure_inspector geeft de hele rij terug).
   is_admin?: boolean
+  // Offline-download-knop nog niet in gebruik (besluit Jos 2026-09-08): staat
+  // standaard uit, alleen aangewezen keurmeesters krijgen 'm aangezet.
+  offline_enabled?: boolean
 }
 
 let cached: Inspector | null = null

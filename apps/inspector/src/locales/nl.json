@@ -489,7 +489,8 @@
       "fields": {
         "name": "Naam",
         "admin": "Beheerder (mag keurmeesters/instellingen beheren)",
-        "active": "Actief"
+        "active": "Actief",
+        "offlineEnabled": "Mag klanten offline downloaden om te keuren"
       },
       "qFields": {
         "name": "Naam kwalificatie",

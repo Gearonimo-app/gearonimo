@@ -51,6 +51,7 @@
           <input v-model="editForm.name" class="ins__input" /></label>
         <label class="ins__check"><input type="checkbox" v-model="editForm.is_admin" /> {{ $t('settings.inspectors.fields.admin') }}</label>
         <label class="ins__check"><input type="checkbox" v-model="editForm.active" /> {{ $t('settings.inspectors.fields.active') }}</label>
+        <label class="ins__check"><input type="checkbox" v-model="editForm.offline_enabled" /> {{ $t('settings.inspectors.fields.offlineEnabled') }}</label>
         <p v-if="!selected.user_id" class="ins__note">{{ $t('settings.inspectors.noAccountNote') }}</p>
         <p v-else class="ins__note">{{ $t('settings.inspectors.accountNote') }}</p>
         <p v-if="editError" class="ins__error">{{ editError }}</p>
@@ -154,6 +155,7 @@ interface Inspector {
   name: string | null
   active: boolean
   is_admin: boolean
+  offline_enabled: boolean
   user_id: string | null
   signature_path: string | null
 }
@@ -182,7 +184,7 @@ const formError = ref('')
 const addForm = reactive({ name: '', is_admin: false, active: true })
 
 // --- detail: bewerken ---
-const editForm = reactive({ name: '', is_admin: false, active: true })
+const editForm = reactive({ name: '', is_admin: false, active: true, offline_enabled: false })
 const savingEdit = ref(false)
 const editError = ref('')
 const showDelete = ref(false)
@@ -227,7 +229,7 @@ async function load() {
     companyId.value = me.company_id
     const { data, error: err } = await supabase
       .from('inspectors')
-      .select('id, name, active, is_admin, user_id, signature_path')
+      .select('id, name, active, is_admin, offline_enabled, user_id, signature_path')
       .eq('company_id', me.company_id)
       .order('created_at')
     if (err) throw err
@@ -268,6 +270,7 @@ function select(i: Inspector) {
   editForm.name = i.name ?? ''
   editForm.is_admin = i.is_admin
   editForm.active = i.active
+  editForm.offline_enabled = i.offline_enabled
   editError.value = ''
   showQual.value = false
   loadQuals(i.id)
@@ -283,7 +286,7 @@ async function saveInspector() {
   savingEdit.value = true
   const { error: err } = await supabase
     .from('inspectors')
-    .update({ name: editForm.name.trim() || null, is_admin: editForm.is_admin, active: editForm.active })
+    .update({ name: editForm.name.trim() || null, is_admin: editForm.is_admin, active: editForm.active, offline_enabled: editForm.offline_enabled })
     .eq('id', selected.value.id)
   savingEdit.value = false
   if (err) { editError.value = err.message; return }
