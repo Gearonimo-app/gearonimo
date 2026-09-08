@@ -19,6 +19,11 @@
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
         </a>
+        <!-- Ook na afronden bruikbaar (Jos, 2026-09-08): de items staan nog
+             gewoon geladen, alleen dit scherm toont de tabel niet meer. -->
+        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+          ⧉ {{ $t('inspections.table.exportCsv') }}
+        </button>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
           {{ $t('inspections.backToCustomer') }}
         </button>
