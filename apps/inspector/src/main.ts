@@ -125,6 +125,14 @@ const router = createRouter({
       meta: { noTabs: true },
     },
     {
+      // Uitnodig-knop (2026-09-08): werkt zowel zonder sessie (account
+      // aanmaken + code) als met een sessie zonder gekoppelde
+      // keurmeester-rij (alleen nog de code) -- geen requiresAuth.
+      path: "/join",
+      component: () => import("./pages/JoinInspector.vue"),
+      meta: { noTabs: true },
+    },
+    {
       // Landt hier vanuit de reset-wachtwoord-e-mail; geen requiresAuth
       // (de tijdelijke recovery-sessie is er al door detectSessionInUrl,
       // maar dit is bewust los van de normale keurmeester-gate).

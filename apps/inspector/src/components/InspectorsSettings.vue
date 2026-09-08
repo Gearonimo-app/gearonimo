@@ -51,7 +51,17 @@
           <input v-model="editForm.name" class="ins__input" /></label>
         <label class="ins__check"><input type="checkbox" v-model="editForm.is_admin" /> {{ $t('settings.inspectors.fields.admin') }}</label>
         <label class="ins__check"><input type="checkbox" v-model="editForm.active" /> {{ $t('settings.inspectors.fields.active') }}</label>
-        <p v-if="!selected.user_id" class="ins__note">{{ $t('settings.inspectors.noAccountNote') }}</p>
+        <label class="ins__check"><input type="checkbox" v-model="editForm.offline_enabled" /> {{ $t('settings.inspectors.fields.offlineEnabled') }}</label>
+        <template v-if="!selected.user_id">
+          <p class="ins__note">{{ $t('settings.inspectors.noAccountNote') }}</p>
+          <div v-if="inviteCode" class="ins__invite">
+            <span class="ins__invite-label">{{ $t('settings.inspectors.inviteCode') }}</span>
+            <code class="ins__invite-code">{{ inviteCode }}</code>
+            <button type="button" class="ins__invite-copy" :title="$t('common.copy')" @click="copyInviteCode">{{ inviteCopied ? '✓' : '⧉' }}</button>
+          </div>
+          <p v-if="inviteCode" class="ins__invite-url">{{ $t('customers.detail.inviteUrlLabel') }} <code>gearonimo.net/join</code></p>
+          <p v-if="inviteCode" class="ins__note">{{ $t('settings.inspectors.inviteHint') }}</p>
+        </template>
         <p v-else class="ins__note">{{ $t('settings.inspectors.accountNote') }}</p>
         <p v-if="editError" class="ins__error">{{ editError }}</p>
         <div class="ins__actions">
@@ -154,6 +164,7 @@ interface Inspector {
   name: string | null
   active: boolean
   is_admin: boolean
+  offline_enabled: boolean
   user_id: string | null
   signature_path: string | null
 }
@@ -182,7 +193,7 @@ const formError = ref('')
 const addForm = reactive({ name: '', is_admin: false, active: true })
 
 // --- detail: bewerken ---
-const editForm = reactive({ name: '', is_admin: false, active: true })
+const editForm = reactive({ name: '', is_admin: false, active: true, offline_enabled: false })
 const savingEdit = ref(false)
 const editError = ref('')
 const showDelete = ref(false)
@@ -197,6 +208,24 @@ const qualError = ref('')
 const opening = ref<string | null>(null)
 const qualForm = reactive({ name: '', number: '', valid_until: '' })
 let qualFile: File | null = null
+
+// --- uitnodigen (2026-09-08) ---
+// De code zelf staat niet in de gewone rij-select (zie migratie
+// 20260759): elke collega bij het bedrijf mag de rij wel zien, maar de code
+// kunnen lezen is meteen kunnen claimen, dus alleen deze beheerder-RPC.
+const inviteCode = ref<string | null>(null)
+const inviteCopied = ref(false)
+async function loadInviteCode(inspectorId: string) {
+  inviteCode.value = null
+  const { data } = await supabase.rpc('get_inspector_invite_code', { p_inspector_id: inspectorId })
+  inviteCode.value = (data as string | null) ?? null
+}
+async function copyInviteCode() {
+  if (!inviteCode.value) return
+  await navigator.clipboard.writeText(inviteCode.value)
+  inviteCopied.value = true
+  window.setTimeout(() => { inviteCopied.value = false }, 1500)
+}
 
 // --- handtekening ---
 const savingSig = ref(false)
@@ -227,7 +256,7 @@ async function load() {
     companyId.value = me.company_id
     const { data, error: err } = await supabase
       .from('inspectors')
-      .select('id, name, active, is_admin, user_id, signature_path')
+      .select('id, name, active, is_admin, offline_enabled, user_id, signature_path')
       .eq('company_id', me.company_id)
       .order('created_at')
     if (err) throw err
@@ -268,13 +297,16 @@ function select(i: Inspector) {
   editForm.name = i.name ?? ''
   editForm.is_admin = i.is_admin
   editForm.active = i.active
+  editForm.offline_enabled = i.offline_enabled
   editError.value = ''
   showQual.value = false
   loadQuals(i.id)
+  if (!i.user_id) loadInviteCode(i.id)
 }
 function deselect() {
   selected.value = null
   quals.value = []
+  inviteCode.value = null
 }
 
 async function saveInspector() {
@@ -283,7 +315,7 @@ async function saveInspector() {
   savingEdit.value = true
   const { error: err } = await supabase
     .from('inspectors')
-    .update({ name: editForm.name.trim() || null, is_admin: editForm.is_admin, active: editForm.active })
+    .update({ name: editForm.name.trim() || null, is_admin: editForm.is_admin, active: editForm.active, offline_enabled: editForm.offline_enabled })
     .eq('id', selected.value.id)
   savingEdit.value = false
   if (err) { editError.value = err.message; return }
@@ -506,6 +538,12 @@ onMounted(load)
 .ins__input { padding: 0.65rem 0.75rem; border-radius: 8px; border: 1px solid #ddd; font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit; }
 .ins__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
 .ins__note { font-size: 0.8rem; color: #6b7280; margin: 0; background: #f9fafb; border-radius: 8px; padding: 0.5rem 0.7rem; }
+.ins__invite { display: flex; align-items: center; gap: 0.6rem; background: #f9fafb; border-radius: 8px; padding: 0.6rem 0.7rem; }
+.ins__invite-label { color: #6b7280; font-size: 0.85rem; flex: 1; }
+.ins__invite-code { font-weight: 700; letter-spacing: 0.12em; font-size: 1rem; }
+.ins__invite-copy { border: none; background: #fff; border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; }
+.ins__invite-url { margin: 0.35rem 0 0; font-size: 0.8rem; color: #6b7280; }
+.ins__invite-url code { font-weight: 600; color: #374151; }
 .ins__error { color: #dc2626; font-size: 0.9rem; margin: 0; }
 
 .ins__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }

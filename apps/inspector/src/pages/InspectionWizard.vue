@@ -19,6 +19,11 @@
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
         </a>
+        <!-- Ook na afronden bruikbaar (Jos, 2026-09-08): de items staan nog
+             gewoon geladen, alleen dit scherm toont de tabel niet meer. -->
+        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+          ⧉ {{ $t('inspections.table.exportCsv') }}
+        </button>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
           {{ $t('inspections.backToCustomer') }}
         </button>
@@ -245,6 +250,17 @@
         </div>
         <div v-if="showSnRef" class="iw__snref">
           <SnReferencePanel />
+        </div>
+
+        <!-- Excel-export (Jos, 2026-09-08): browser-tabellen bevatten
+             knoppen/iconen door elkaar, dus plakken in Excel plakt alles in
+             één cel. Een schone CSV met alleen de zichtbare gegevens werkt
+             wél netjes -- zelfde patroon als de recall-export in
+             SerialSearch.vue. -->
+        <div class="iw__export">
+          <button type="button" class="iw__btn iw__btn--copy" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+            ⧉ {{ $t('inspections.table.exportCsv') }}
+          </button>
         </div>
 
         <div class="iw__table-wrap">
@@ -601,6 +617,7 @@ interface Product {
   // erkende partner") noodgedwongen in `inspection_notice_url` belandden --
   // een linkveld, dus daar werd lopende tekst een kapotte link van.
   notes: string | null
+  manufacturer_code: string | null
 }
 interface Article {
   id: string
@@ -770,10 +787,10 @@ const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 // catalogus nog groeit (BLAUWDRUK §3): vaak staat een merk/categorie/
 // omschrijving alleen bij de (bv. zojuist geïmporteerde) artikelen van de
 // klant en nog niet in de catalogus. Zonder die bron blijven de dropdowns leeg.
-interface CatalogEntry { brand: string | null; name: string | null; category: string | null }
+interface CatalogEntry { brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 const customerEntries = ref<CatalogEntry[]>([])
 const catalogEntries = computed<CatalogEntry[]>(() => [
-  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category })),
+  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category, manufacturer_code: p.manufacturer_code })),
   ...customerEntries.value,
 ])
 
@@ -809,19 +826,33 @@ const customerArticles = ref<CustArticle[]>([])
 // voert en Artikel alleen FALL SAFE-artikelen. Het veld dat je zelf invult
 // filtert niet op zichzelf (anders verdween je eigen keuze); op de andere
 // velden matchen we op deeltekst, zodat de lijst al meekrimpt terwijl je typt.
+// Artikel mag ook op het artikelnummer van de fabrikant (manufacturer_code)
+// matchen, niet alleen op de naam.
 function catalogMatches(self: 'brand' | 'category' | 'name'): CatalogEntry[] {
   const b = newBrand.value.trim().toLowerCase()
   const c = newCategory.value.trim().toLowerCase()
   const n = newDescription.value.trim().toLowerCase()
-  return catalogEntries.value.filter(e =>
+  const filtered = catalogEntries.value.filter(e =>
     (self === 'brand'    || !b || (e.brand ?? '').toLowerCase().includes(b)) &&
     (self === 'category' || !c || (e.category ?? '').toLowerCase().includes(c)) &&
-    (self === 'name'     || !n || (e.name ?? '').toLowerCase().includes(n))
+    (self === 'name'     || !n || (e.name ?? '').toLowerCase().includes(n) || (e.manufacturer_code ?? '').toLowerCase().includes(n))
   )
+  // Vrije invoer (een artikel dat niet in de catalogus staat): de kruisfilter
+  // op de andere twee velden mag dan niet de hele lijst leegvegen, anders
+  // blijven Merk/Categorie potdicht zodra Artikel vrije tekst bevat (Jos
+  // 2026-09-07). Val terug op de ongefilterde catalogus.
+  return filtered.length ? filtered : catalogEntries.value
 }
 const matchingBrands = computed(() => unique(catalogMatches('brand').map(e => e.brand)))
 const matchingCategories = computed(() => unique(catalogMatches('category').map(e => e.category)))
-const matchingArticleNames = computed(() => unique(catalogMatches('name').map(e => e.name)))
+const CODE_SEP = '  ·  '
+function articleLabel(e: CatalogEntry): string {
+  return e.manufacturer_code ? `${e.name}${CODE_SEP}${e.manufacturer_code}` : (e.name ?? '')
+}
+function stripArticleCode(label: string): string {
+  return label.split(CODE_SEP)[0].trim()
+}
+const matchingArticleLabels = computed(() => unique(catalogMatches('name').map(articleLabel)))
 // Ongefilterde categorielijst voor het per-rij categorieveld (zie rowCategory
 // hieronder): geen kruisfilter op merk/omschrijving nodig, dat zijn daar geen
 // aparte invoervelden. Zonder deze lijst typt iedereen zijn eigen
@@ -856,7 +887,7 @@ function suggestFilter(list: string[], typed: string): string[] {
 
 function setFieldValue(field: string | null, val: string) {
   switch (field) {
-    case 'article': newDescription.value = val; break
+    case 'article': newDescription.value = stripArticleCode(val); break
     case 'brand': newBrand.value = val; break
     case 'category': newCategory.value = val; break
     case 'serial': newSerial.value = val; break
@@ -954,7 +985,7 @@ const {
   scrollToActive: true,
   resolve: (field) => {
     switch (field) {
-      case 'article': return suggestFilter(matchingArticleNames.value, newDescription.value)
+      case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
       case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
@@ -1370,6 +1401,47 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Excel-export (Jos, 2026-09-08): alleen de zichtbare gegevens, geen
+// knoppen/iconen -- die propte de browser bij een handmatige kopieer-plak
+// allemaal in één cel. Zelfde CSV-aanpak als exportRecallCsv in
+// SerialSearch.vue (BOM voor Excel, ; als scheidingsteken, elk veld tussen
+// quotes zodat een komma of ; in bv. een opmerking niet de kolommen verschuift).
+function resultLabel(result: Item['result']): string {
+  if (result === 'passed') return t('inspections.table.pass')
+  if (result === 'rejected') return t('inspections.table.fail')
+  return t('inspections.table.notAssessedShort')
+}
+function exportInspectionCsv() {
+  if (!sortedRows.value.length) return
+  const header = [
+    t('inspections.table.colCategory'), t('inspections.table.colBrand'), t('inspections.table.colDescription'),
+    t('inspections.table.colSerial'), t('inspections.table.colYear'), t('inspections.table.colFirstUse'),
+    t('inspections.table.colUser'), t('inspections.table.colResult'), t('inspections.noCode'),
+    t('inspections.commentPlaceholder'), t('inspections.table.colNextDue'),
+  ].join(';')
+  const lines = sortedRows.value.map((row) => {
+    const it = row.it
+    const year = it.article.manufacture_year
+      ? String(it.article.manufacture_year) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '')
+      : ''
+    const code = it.result === 'rejected' ? rejectionCodes.value.find((c) => c.id === it.rejection_code_id)?.code ?? '' : ''
+    return [
+      row.category, row.brand, row.label, it.article.serial_number, year, it.article.first_use_date,
+      it.article.assigned_user_name, resultLabel(it.result), code, it.comment,
+      it.result === 'passed' ? it.next_due : '',
+    ].map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')
+  })
+  const csv = '﻿' + header + '\n' + lines.join('\n')
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  const customerPart = (inspection.value?.customer?.name ?? 'keuring').replace(/[^a-zA-Z0-9]+/g, '_')
+  a.download = `keuring_${customerPart}_${new Date().toISOString().slice(0, 10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
 const passedCount = computed(() => items.value.filter(i => i.result === 'passed').length)
 const rejectedCount = computed(() => items.value.filter(i => i.result === 'rejected').length)
 const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed').length)
@@ -1642,7 +1714,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url, manufacturer_code')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -1692,7 +1764,7 @@ async function load() {
   }
   // Suggestiebron (merk/artikel/categorie) alleen uit actief materiaal.
   customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
-    brand: a.brand || null, name: a.name || null, category: a.category || null,
+    brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
   }))
 
   await loadArticleSetInfo(insp.customer_id)
@@ -1817,7 +1889,7 @@ async function loadOffline() {
       last: null,
     }))
     customerEntries.value = customerArticles.value.map((a) => ({
-      brand: a.brand || null, name: a.name || null, category: a.category || null,
+      brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
     }))
 
     if (insp.status === 'completed') finished.value = true
@@ -2354,6 +2426,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   font-size: 0.8rem; cursor: pointer; padding: 0;
 }
 .iw__snref { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; }
+.iw__export { display: flex; justify-content: flex-end; margin-bottom: 0.5rem; }
 .iw__cheatsheet-label { white-space: nowrap; }
 .iw__cheatsheet-result { font-weight: 600; color: #16a34a; white-space: nowrap; }
 .iw__cheatsheet-apply { border: 1px solid #16a34a; color: #16a34a; background: #fff; border-radius: 6px; padding: 0.15rem 0.5rem; font-size: 0.75rem; cursor: pointer; }

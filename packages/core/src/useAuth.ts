@@ -26,6 +26,22 @@ export function useAuth() {
     if (error) throw error;
   }
 
+  // Zelf-registratie voor een nieuwe keurmeester met een uitnodigingscode
+  // (JoinInspector.vue). redirectTo: waar de e-mail-bevestigingslink (als
+  // het project dat vereist) naartoe wijst -- inclusief de code in de query,
+  // zodat iemand na het bevestigen automatisch op de koppelstap terugkomt
+  // i.p.v. de code opnieuw te moeten opzoeken. Geeft de sessie terug (null
+  // als er eerst een e-mailbevestiging nodig is).
+  async function signUpWithEmail(email: string, password: string, redirectTo?: string) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: redirectTo ? { emailRedirectTo: redirectTo } : undefined,
+    });
+    if (error) throw error;
+    return data;
+  }
+
   // redirectTo: waar de inloglink moet landen (bv. de klant-app op /klant/).
   // Zonder dit valt Supabase terug op de Site URL -- de inspector-app -- en
   // komt een klant na het klikken op de link op de verkeerde app uit. De URL
@@ -95,6 +111,7 @@ export function useAuth() {
     loading,
     isLoggedIn,
     signInWithEmail,
+    signUpWithEmail,
     signInWithMagicLink,
     signOut,
     resetPasswordForEmail,

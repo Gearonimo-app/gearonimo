@@ -29,6 +29,7 @@
         <code class="cd__invite-code">{{ customer.invite_code }}</code>
         <button class="cd__invite-copy" :title="$t('common.copy')" @click="copyInvite">{{ inviteCopied ? '✓' : '⧉' }}</button>
       </div>
+      <p v-if="customer.invite_code" class="cd__invite-url">{{ $t('customers.detail.inviteUrlLabel') }} <code>gearonimo.net/portal/</code></p>
       <CustomerMembers :customer-id="id" />
       <!-- Het aparte "Sets"-blok is weg: de artikellijst groepeert al per set
            en de setkoppen daarin klikken door naar het setdetail (dubbelop,
@@ -374,6 +375,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .cd__invite-label { color: #6b7280; font-size: 0.85rem; flex: 1; }
 .cd__invite-code { font-weight: 700; letter-spacing: 0.12em; font-size: 1rem; }
 .cd__invite-copy { border: none; background: #f3f4f6; border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; }
+.cd__invite-url { margin: 0.35rem 0 0; font-size: 0.8rem; color: #6b7280; }
+.cd__invite-url code { font-weight: 600; color: #374151; }
 
 .cd__delete {
   margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;

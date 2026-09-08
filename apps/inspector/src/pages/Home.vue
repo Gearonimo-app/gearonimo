@@ -21,6 +21,10 @@
     <div v-else-if="notInspector" class="home__wrong-app">
       <p>{{ $t('home.notInspector') }}</p>
       <a class="home__wrong-app-link" href="/portal/">{{ $t('home.goToCustomerApp') }}</a>
+      <!-- Ingelogd (bv. net de bevestigingsmail geklikt) maar de
+           keurmeester-rij nog niet gekoppeld: hier alsnog de
+           uitnodigingscode kunnen invullen i.p.v. vast te lopen. -->
+      <router-link class="home__wrong-app-link" to="/join">{{ $t('login.haveInviteCode') }}</router-link>
     </div>
 
     <!-- Melding + tegelmenu: alleen voor een echt keurmeester-account. Een
@@ -68,6 +72,10 @@ const { signOut, user } = useAuth()
 const notInspector = ref(false)
 const isPlatformAdmin = ref(false)
 const pendingRequests = ref(0)
+// Offline downloaden staat nog niet in gebruik (besluit Jos 2026-09-08):
+// tegel blijft verborgen tenzij deze keurmeester expliciet is aangewezen
+// (Instellingen -> Keurmeesters).
+const offlineEnabled = ref(false)
 
 async function onSignOut() {
   await signOut()
@@ -108,7 +116,8 @@ async function loadHeroPhoto() {
 // zag dan alleen lege lijsten. ensureInspector werpt dan een fout.
 async function load() {
   try {
-    await ensureInspector()
+    const inspector = await ensureInspector()
+    offlineEnabled.value = !!inspector.offline_enabled
   } catch {
     notInspector.value = true
     // Platform-admin zonder keurmeester-rij (besluit Jos 2026-07-19): geen
@@ -131,7 +140,7 @@ onMounted(() => {
 // terugkomt.
 onReactivated(load)
 
-const tiles = [
+const allTiles = [
   { key: 'inspections',      icon: 'inspections', label: 'home.tiles.inspections',  route: '/inspections' },
   { key: 'customers',        icon: 'customers',   label: 'home.tiles.customers',    route: '/customers' },
   { key: 'requests',         icon: 'requests',    label: 'home.tiles.requests',     route: '/requests' },
@@ -139,6 +148,7 @@ const tiles = [
   { key: 'serial-search',    icon: 'search',      label: 'home.tiles.serialSearch', route: '/serial-search' },
   { key: 'settings',         icon: 'settings',    label: 'home.tiles.settings',     route: '/settings' },
 ]
+const tiles = computed(() => allTiles.filter((t) => t.key !== 'offline' || offlineEnabled.value))
 
 function navigate(route: string | null) {
   if (route) router.push(route)

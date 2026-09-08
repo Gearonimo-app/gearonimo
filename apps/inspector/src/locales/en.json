@@ -98,6 +98,7 @@
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
       "inviteCode": "Customer app invite code",
+      "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
     }
   },
@@ -230,7 +231,20 @@
     "forgotHint": "No password yet, or forgot it? Enter your email address and we'll send you a link to set a password.",
     "sendReset": "Send reset link",
     "backToLogin": "Back to sign in",
-    "resetSent": "Check your email — we sent you a link to set a new password."
+    "resetSent": "Check your email — we sent you a link to set a new password.",
+    "haveInviteCode": "I have an invite code"
+  },
+  "joinInspector": {
+    "subtitle": "Link your account to your inspection company with the code you got from your admin.",
+    "choosePassword": "Choose a password",
+    "nameLabel": "Your name",
+    "namePlaceholder": "First and last name",
+    "codeLabel": "Invite code",
+    "submit": "Link account",
+    "confirmEmailSent": "Check your email — click the confirmation link and come back here to continue.",
+    "doneMessage": "Done! Your account is linked to {company}.",
+    "continue": "Continue",
+    "backToLogin": "Back to sign in"
   },
   "inspections": {
     "newTitle": "New inspection",
@@ -316,6 +330,8 @@
       "colWarning": "",
       "pass": "Pass",
       "fail": "Fail",
+      "notAssessedShort": "Not assessed yet",
+      "exportCsv": "Export to Excel",
       "totals": "{passed} passed · {rejected} rejected · {open} open",
       "finish": "Finish →",
       "notAssessedConfirm": "{count} item(s) were not inspected and will not appear on the certificate (they remain with the customer for next time):",
@@ -486,10 +502,13 @@
       "shareHint": "On = a public copy of this document can be viewed via the QR code on the certificate. Off = internal only.",
       "deleteTitle": "Delete inspector?",
       "deleteBody": "This removes the inspector and their qualifications. This cannot be undone. Inspections carried out by this inspector are kept.",
+      "inviteCode": "Invite code",
+      "inviteHint": "Share this code and the link above with the inspector (e.g. by WhatsApp or email). There they enter it themselves to create their account.",
       "fields": {
         "name": "Name",
         "admin": "Administrator (can manage inspectors/settings)",
-        "active": "Active"
+        "active": "Active",
+        "offlineEnabled": "Can download customers offline to inspect"
       },
       "qFields": {
         "name": "Qualification name",

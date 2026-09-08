@@ -98,6 +98,7 @@
       "deleteTitle": "Klant verwijderen?",
       "deleteBody": "Dit kan niet ongedaan gemaakt worden.",
       "inviteCode": "Uitnodigingscode klant-app",
+      "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "Deze klant kan niet verwijderd worden: er is keurhistorie. Keurrapporten zijn een wettelijk bewijsstuk en blijven bewaard."
     }
   },
@@ -230,7 +231,20 @@
     "forgotHint": "Nog geen wachtwoord, of vergeten? Vul je e-mailadres in, dan sturen we een link waarmee je een wachtwoord kunt instellen.",
     "sendReset": "Stuur reset-link",
     "backToLogin": "Terug naar inloggen",
-    "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen."
+    "resetSent": "Check je e-mail — we hebben je een link gestuurd om een nieuw wachtwoord in te stellen.",
+    "haveInviteCode": "Ik heb een uitnodigingscode"
+  },
+  "joinInspector": {
+    "subtitle": "Koppel je account aan je keurbedrijf met de code die je van je beheerder kreeg.",
+    "choosePassword": "Kies een wachtwoord",
+    "nameLabel": "Je naam",
+    "namePlaceholder": "Voor- en achternaam",
+    "codeLabel": "Uitnodigingscode",
+    "submit": "Koppelen",
+    "confirmEmailSent": "Check je e-mail — klik op de bevestigingslink en kom hierna terug om verder te gaan.",
+    "doneMessage": "Gelukt! Je account is gekoppeld aan {company}.",
+    "continue": "Verder",
+    "backToLogin": "Terug naar inloggen"
   },
   "inspections": {
     "newTitle": "Nieuwe keuring",
@@ -316,6 +330,8 @@
       "colWarning": "",
       "pass": "Goed",
       "fail": "Afkeur",
+      "notAssessedShort": "Nog niet beoordeeld",
+      "exportCsv": "Exporteer naar Excel",
       "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
       "finish": "Afronden →",
       "notAssessedConfirm": "{count} artikel(en) zijn niet gekeurd en komen niet op het certificaat (ze blijven bij de klant staan voor een volgende keer):",
@@ -486,10 +502,13 @@
       "shareHint": "Aan = een openbare kopie van dit bewijs is te bekijken via de QR-code op het certificaat. Uit = alleen intern zichtbaar.",
       "deleteTitle": "Keurmeester verwijderen?",
       "deleteBody": "Dit verwijdert de keurmeester en zijn kwalificaties. Dit kan niet ongedaan worden gemaakt. Keuringen die deze keurmeester heeft uitgevoerd blijven bestaan.",
+      "inviteCode": "Uitnodigingscode",
+      "inviteHint": "Geef deze code én de link hierboven door aan de keurmeester (bv. via WhatsApp of e-mail). Daar vult die 'm zelf in en maakt daarmee zijn account aan.",
       "fields": {
         "name": "Naam",
         "admin": "Beheerder (mag keurmeesters/instellingen beheren)",
-        "active": "Actief"
+        "active": "Actief",
+        "offlineEnabled": "Mag klanten offline downloaden om te keuren"
       },
       "qFields": {
         "name": "Naam kwalificatie",
