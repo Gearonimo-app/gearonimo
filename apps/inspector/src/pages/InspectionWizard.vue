@@ -865,7 +865,24 @@ function articleLabel(e: CatalogEntry): string {
 function stripArticleCode(label: string): string {
   return label.split(CODE_SEP)[0].trim()
 }
-const matchingArticleLabels = computed(() => unique(catalogMatches('name').map(articleLabel)))
+// Dedupliceren op label (unique()) volstond niet meer zodra Artikel ook op
+// artikelnummer matcht: een klant-echo van dit artikel zonder code (eerder
+// vrij getypt) en het catalogusproduct mét code ("Am'D TRIACT-LOCK" naast
+// "Am'D TRIACT-LOCK · M34A TL / M34AB TL") zijn dan twee verschillende
+// strings en bleven allebei staan (Jos, 2026-09-09: "ik snap niet waarom
+// triact lock er dubbel in staat"). Nu eerst op naam dedupliceren, met
+// voorkeur voor de catalogusversie (heeft een code) boven de kale
+// klant-echo van dezelfde naam.
+const matchingArticleLabels = computed(() => {
+  const byName = new Map<string, CatalogEntry>()
+  for (const e of catalogMatches('name')) {
+    if (!e.name) continue
+    const key = e.name.trim().toLowerCase()
+    const existing = byName.get(key)
+    if (!existing || (!existing.manufacturer_code && e.manufacturer_code)) byName.set(key, e)
+  }
+  return Array.from(byName.values()).map(articleLabel).sort((a, b) => a.localeCompare(b))
+})
 // Ongefilterde categorielijst voor het per-rij categorieveld (zie rowCategory
 // hieronder): geen kruisfilter op merk/omschrijving nodig, dat zijn daar geen
 // aparte invoervelden. Zonder deze lijst typt iedereen zijn eigen
