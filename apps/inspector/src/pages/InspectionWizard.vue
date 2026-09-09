@@ -167,7 +167,7 @@
              inspection notice, zodat je dat al ziet vóór je op Toevoegen klikt. -->
         <p v-if="addRowRecallInfo" class="iw__add-recall-hint">
           🚩
-          <a :href="addRowRecallInfo.url" target="_blank">
+          <a :href="addRowRecallInfo.url" target="_blank" :title="addRowRecallInfo.title">
             {{ addRowRecallInfo.kind === 'recall' ? $t('inspections.table.recallHint') : $t('inspections.table.noticeHint') }}
           </a>
         </p>
@@ -1092,11 +1092,23 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 // Subtiele melding tijdens het invullen zelf, niet pas nadat het artikel al
 // aan de tabel is toegevoegd (feedback Jos 2026-07-11): zodra het getypte
 // artikel een catalogusproduct met een recall of inspection notice matcht.
-const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice' } | null>(() => {
+const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice'; title: string } | null>(() => {
   const p = matchProduct()
   if (!p) return null
-  if (p.recall_url) return { url: p.recall_url, kind: 'recall' }
-  if (p.inspection_notice_url) return { url: p.inspection_notice_url, kind: 'notice' }
+  // Zelfde titel-opbouw als itemRecallTitle/itemNoticeTitle (rijvlaggen
+  // hieronder in de tabel): datum als bekend, dan de link zelf. Zonder dit
+  // had de klikbare tekst hier geen title-attribuut, dus was er niets te
+  // zien bij hoveren (gemeld door Jos tijdens het keuren, 2026-09-09) --
+  // en als de link zelf kapot is (bv. foute catalogusdata) leek de melding
+  // nergens naartoe te gaan zonder eerst de URL te kunnen zien.
+  if (p.recall_url) {
+    const dated = p.recall_date ? `${t('inspections.table.noticeDateLabel')} ${p.recall_date} — ` : ''
+    return { url: p.recall_url, kind: 'recall', title: `${dated}${t('inspections.table.recallHint')}: ${p.recall_url}` }
+  }
+  if (p.inspection_notice_url) {
+    const dated = p.inspection_notice_date ? `${t('inspections.table.noticeDateLabel')} ${p.inspection_notice_date} — ` : ''
+    return { url: p.inspection_notice_url, kind: 'notice', title: `${dated}${t('inspections.table.noticeHint')}: ${p.inspection_notice_url}` }
+  }
   return null
 })
 
