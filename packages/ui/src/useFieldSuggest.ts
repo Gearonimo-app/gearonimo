@@ -35,18 +35,39 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
 
   /** Alleen aanroepen ná toetsenbordnavigatie (zie onKeydown) -- NIET via een
    * generieke watch op suggestIndex. Zo'n watch vuurt ook bij muisbeweging
-   * (@mouseenter zet suggestIndex ook), en scrollIntoView bij élke wijziging
-   * gaf dan een lus: scrollen verschuift de lijst onder de stilstaande muis,
-   * dat triggert een nieuwe mouseenter op het item dat nu toevallig onder de
+   * (@mouseenter zet suggestIndex ook), en scrollen bij élke wijziging gaf
+   * dan een lus: scrollen verschuift de lijst onder de stilstaande muis, dat
+   * triggert een nieuwe mouseenter op het item dat nu toevallig onder de
    * cursor staat, dat zet de index weer, dat scrollt weer -- de rij
-   * "verspringt" en selecteren (met muis én pijltjestoetsen) lukte niet meer
-   * (gemeld door Jos, 2026-09-09). Hoveren hoeft sowieso nooit te scrollen:
-   * de muis kan alleen iets hoveren dat al in beeld is. */
+   * "verspringt" en selecteren lukte niet meer (gemeld door Jos, 2026-09-09).
+   * Hoveren hoeft sowieso nooit te scrollen: de muis kan alleen iets hoveren
+   * dat al in beeld is.
+   *
+   * Bleek met alléén die aanpassing nog niet genoeg (Jos, tweede melding
+   * dezelfde dag): de native `scrollIntoView({block:'nearest'})` scrolde
+   * ook bij zuiver toetsenbordgebruik een stuk verder dan nodig (2 rijen
+   * i.p.v. 0/1) -- deze lijst staat in een flex-column met een eigen
+   * scrollbalk, en scrollIntoView's "nearest"-berekening bleek daar niet op
+   * te vertrouwen. Nu zelf berekenen met getBoundingClientRect (altijd
+   * viewport-coördinaten, onafhankelijk van positioning/flex-eigenaardig-
+   * heden) en zelf scrollTop bijstellen -- alleen als het item écht buiten
+   * beeld valt, en dan maar net genoeg. */
   function scrollActiveIntoView() {
     if (!opts.scrollToActive) return;
     const i = suggestIndex.value;
     if (i < 0) return;
-    nextTick(() => itemRefs.value[i]?.scrollIntoView({ block: "nearest" }));
+    nextTick(() => {
+      const el = itemRefs.value[i];
+      const container = el?.parentElement;
+      if (!el || !container) return;
+      const elRect = el.getBoundingClientRect();
+      const containerRect = container.getBoundingClientRect();
+      if (elRect.top < containerRect.top) {
+        container.scrollTop -= containerRect.top - elRect.top;
+      } else if (elRect.bottom > containerRect.bottom) {
+        container.scrollTop += elRect.bottom - containerRect.bottom;
+      }
+    });
   }
 
   /** Klik op een suggestie. */
