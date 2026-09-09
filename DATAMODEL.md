@@ -315,7 +315,9 @@ keurbedrijf B.
 | manual_url | text? | link naar PDF-handleiding |
 | product_page_url | text? | link naar productpagina van de fabrikant |
 | recall_url | text? | link naar recall-bericht. Bewust géén automatische waarschuwing aan eigenaren (besloten 2026-06-12): recalls gelden vrijwel altijd voor déélreeksen (serienummers van–tot, productiejaar, vóór/na datum) die een systeem niet betrouwbaar kan interpreteren — vals alarm of schijnveiligheid. In plaats daarvan: de app toont de recall als vlag aan de **keurmeester tijdens de keuring** van een gekoppeld artikel ("controleer of dit serienummer eronder valt"); beoordeling blijft mensenwerk. De recall-zoekfunctie uit KlimKeur Pro blijft als feature |
+| recall_date | date? | **toegevoegd 2026-09-09** — datum van het recall-bericht zélf (niet een automatisch toe te passen serienummer-grens, zie hierboven). Staat zichtbaar naast de vlag in de keuringstabel, zodat de keurmeester 'm meteen naast het bouwjaar van het artikel kan leggen in plaats van door te klikken. Aanleiding: een jonge gordel kreeg dezelfde vlag als een oude, zonder enig aanknopingspunt |
 | inspection_notice_url | text? | link naar inspection notice / veiligheidsbulletin van de fabrikant; zelfde vlag-gedrag als recall_url |
+| inspection_notice_date | date? | **toegevoegd 2026-09-09** — zelfde als recall_date, voor de inspection notice |
 | notes | text? | bijzonderheden |
 | interval_override_months | int? | wijkt af van het regime voor dit product |
 | status | text | `approved` / `pending` (wachtrij) / `rejected` / `archived` |

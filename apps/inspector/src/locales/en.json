@@ -351,6 +351,7 @@
       "addManualUrl": "Add manual link",
       "recallHint": "Recall known for this product",
       "noticeHint": "Inspection notice known for this product",
+      "noticeDateLabel": "Notice date:",
       "manualUrlPrompt": "Manual link:",
       "suggestForCatalog": "Suggest for product database",
       "norm": "Standard (e.g. EN 361)",
@@ -684,7 +685,9 @@
         "manualUrl": "Manual (link)",
         "productPageUrl": "Manufacturer product page (link)",
         "recallUrl": "Recall notice (link)",
+        "recallDate": "Recall notice date",
         "inspectionNoticeUrl": "Safety bulletin (link)",
+        "inspectionNoticeDate": "Safety bulletin date",
         "notes": "Notes",
         "maxAgeHint": "999 = unlimited service life. Empty = not looked up yet."
       },

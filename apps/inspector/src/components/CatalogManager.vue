@@ -260,7 +260,9 @@ function toRow(f: ProductFormModel) {
     manual_url: f.manual_url.trim() || null,
     product_page_url: f.product_page_url.trim() || null,
     recall_url: f.recall_url.trim() || null,
+    recall_date: f.recall_date || null,
     inspection_notice_url: f.inspection_notice_url.trim() || null,
+    inspection_notice_date: f.inspection_notice_date || null,
     notes: f.notes.trim() || null,
   }
 }
@@ -386,7 +388,9 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
       manual_url: String(raw.manual_url ?? '').trim(),
       product_page_url: String(raw.product_page_url ?? '').trim(),
       recall_url: String(raw.recall_url ?? '').trim(),
+      recall_date: String(raw.recall_date ?? '').trim(),
       inspection_notice_url: String(raw.inspection_notice_url ?? '').trim(),
+      inspection_notice_date: String(raw.inspection_notice_date ?? '').trim(),
       notes: String(raw.notes ?? '').trim(),
     }
     if (!f.brand || !f.name) {

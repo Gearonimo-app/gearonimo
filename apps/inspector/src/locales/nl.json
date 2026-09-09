@@ -351,6 +351,7 @@
       "addManualUrl": "Handleiding-link toevoegen",
       "recallHint": "Recall bekend voor dit product",
       "noticeHint": "Inspection notice bekend voor dit product",
+      "noticeDateLabel": "Datum melding:",
       "manualUrlPrompt": "Handleiding-link:",
       "suggestForCatalog": "Toevoegen aan productendatabase",
       "norm": "Norm (bijv. EN 361)",
@@ -684,7 +685,9 @@
         "manualUrl": "Handleiding (link)",
         "productPageUrl": "Productpagina fabrikant (link)",
         "recallUrl": "Recall-bericht (link)",
+        "recallDate": "Datum recall-bericht",
         "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
+        "inspectionNoticeDate": "Datum veiligheidsbulletin",
         "notes": "Opmerkingen",
         "maxAgeHint": "999 = onbeperkte levensduur. Leeg = nog niet opgezocht."
       },

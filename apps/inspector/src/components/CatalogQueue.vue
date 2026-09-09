@@ -142,7 +142,9 @@ async function createProduct(form: ProductFormModel) {
         manual_url: form.manual_url.trim() || null,
         product_page_url: form.product_page_url.trim() || null,
         recall_url: form.recall_url.trim() || null,
+        recall_date: form.recall_date || null,
         inspection_notice_url: form.inspection_notice_url.trim() || null,
+        inspection_notice_date: form.inspection_notice_date || null,
         notes: form.notes.trim() || null,
       })
       .select('id')
