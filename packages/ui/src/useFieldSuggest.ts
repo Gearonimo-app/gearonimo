@@ -33,11 +33,20 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
     suggestIndex.value = -1;
   });
 
-  if (opts.scrollToActive) {
-    watch(suggestIndex, (i) => {
-      if (i < 0) return;
-      nextTick(() => itemRefs.value[i]?.scrollIntoView({ block: "nearest" }));
-    });
+  /** Alleen aanroepen ná toetsenbordnavigatie (zie onKeydown) -- NIET via een
+   * generieke watch op suggestIndex. Zo'n watch vuurt ook bij muisbeweging
+   * (@mouseenter zet suggestIndex ook), en scrollIntoView bij élke wijziging
+   * gaf dan een lus: scrollen verschuift de lijst onder de stilstaande muis,
+   * dat triggert een nieuwe mouseenter op het item dat nu toevallig onder de
+   * cursor staat, dat zet de index weer, dat scrollt weer -- de rij
+   * "verspringt" en selecteren (met muis én pijltjestoetsen) lukte niet meer
+   * (gemeld door Jos, 2026-09-09). Hoveren hoeft sowieso nooit te scrollen:
+   * de muis kan alleen iets hoveren dat al in beeld is. */
+  function scrollActiveIntoView() {
+    if (!opts.scrollToActive) return;
+    const i = suggestIndex.value;
+    if (i < 0) return;
+    nextTick(() => itemRefs.value[i]?.scrollIntoView({ block: "nearest" }));
   }
 
   /** Klik op een suggestie. */
@@ -69,9 +78,11 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
     if (e.key === "ArrowDown" && sugg.length) {
       e.preventDefault();
       suggestIndex.value = (suggestIndex.value + 1) % sugg.length;
+      scrollActiveIntoView();
     } else if (e.key === "ArrowUp" && sugg.length) {
       e.preventDefault();
       suggestIndex.value = suggestIndex.value <= 0 ? sugg.length - 1 : suggestIndex.value - 1;
+      scrollActiveIntoView();
     } else if (e.key === "Escape") {
       activeField.value = null;
     } else if (e.key === "Enter" || e.key === "Tab") {
