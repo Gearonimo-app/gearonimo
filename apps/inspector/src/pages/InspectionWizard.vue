@@ -167,7 +167,7 @@
              inspection notice, zodat je dat al ziet vóór je op Toevoegen klikt. -->
         <p v-if="addRowRecallInfo" class="iw__add-recall-hint">
           🚩
-          <a :href="addRowRecallInfo.url" target="_blank">
+          <a :href="addRowRecallInfo.url" target="_blank" :title="addRowRecallInfo.title">
             {{ addRowRecallInfo.kind === 'recall' ? $t('inspections.table.recallHint') : $t('inspections.table.noticeHint') }}
           </a>
         </p>
@@ -309,11 +309,17 @@
                          vlag voor altijd staan, ook na beoordeling. -->
                     <template v-if="itemRecallUrl(row.it)">
                       <a :href="itemRecallUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.recallFlag')" :title="itemRecallTitle(row.it)!">🚩</a>
+                      <!-- Jaartal van de melding zélf, altijd zichtbaar naast het
+                           bouwjaar in de tabel -- niet pas na hoveren/klikken
+                           (Jos 2026-09-09: een jonge gordel kreeg dezelfde vlag
+                           als een oude, zonder enig aanknopingspunt). -->
+                      <span v-if="itemRecallDate(row.it)" class="iw__flag-date" :title="itemRecallTitle(row.it)!">{{ itemRecallDate(row.it)!.slice(0, 4) }}</span>
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearRecallFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemRecallClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemRecallClearedNote(row.it)}`">✓</span>
                     <template v-if="itemNoticeUrl(row.it)">
                       <a :href="itemNoticeUrl(row.it)!" target="_blank" class="iw__warn-icon" :aria-label="$t('inspections.table.noticeFlag')" :title="itemNoticeTitle(row.it)!"><GIcon name="alert" class="iw__notice-flag-icon" /></a>
+                      <span v-if="itemNoticeDate(row.it)" class="iw__flag-date" :title="itemNoticeTitle(row.it)!">{{ itemNoticeDate(row.it)!.slice(0, 4) }}</span>
                       <button type="button" class="iw__flag-clear" :title="$t('inspections.table.clearFlag')" @click="clearNoticeFlag(row.it)">✕</button>
                     </template>
                     <span v-else-if="itemNoticeClearedNote(row.it)" class="iw__flag-cleared" :title="`${$t('inspections.table.clearedTitle')}: ${itemNoticeClearedNote(row.it)}`">✓</span>
@@ -609,7 +615,14 @@ interface Product {
   max_age_mfr_years: number | null
   max_age_use_years: number | null
   recall_url: string | null
+  // Datum van het recall-/notice-bericht zélf, niet een serienummer-grens
+  // (zie packages/core/src/catalog.ts DATE_FIELDS). Naast het bouwjaar in de
+  // tabel kan de keurmeester hiermee zelf snel inschatten of dit artikel er
+  // nog onder valt, zonder door te klikken (Jos 2026-09-09: een jonge gordel
+  // kreeg dezelfde vlag als een oude, zonder enig aanknopingspunt).
+  recall_date: string | null
   inspection_notice_url: string | null
+  inspection_notice_date: string | null
   manual_url: string | null
   // Opmerking uit de catalogus. Stond hier eerder niet: de keurmeester zag
   // `products.notes` tijdens een keuring dus helemaal niet, waardoor
@@ -852,7 +865,24 @@ function articleLabel(e: CatalogEntry): string {
 function stripArticleCode(label: string): string {
   return label.split(CODE_SEP)[0].trim()
 }
-const matchingArticleLabels = computed(() => unique(catalogMatches('name').map(articleLabel)))
+// Dedupliceren op label (unique()) volstond niet meer zodra Artikel ook op
+// artikelnummer matcht: een klant-echo van dit artikel zonder code (eerder
+// vrij getypt) en het catalogusproduct mét code ("Am'D TRIACT-LOCK" naast
+// "Am'D TRIACT-LOCK · M34A TL / M34AB TL") zijn dan twee verschillende
+// strings en bleven allebei staan (Jos, 2026-09-09: "ik snap niet waarom
+// triact lock er dubbel in staat"). Nu eerst op naam dedupliceren, met
+// voorkeur voor de catalogusversie (heeft een code) boven de kale
+// klant-echo van dezelfde naam.
+const matchingArticleLabels = computed(() => {
+  const byName = new Map<string, CatalogEntry>()
+  for (const e of catalogMatches('name')) {
+    if (!e.name) continue
+    const key = e.name.trim().toLowerCase()
+    const existing = byName.get(key)
+    if (!existing || (!existing.manufacturer_code && e.manufacturer_code)) byName.set(key, e)
+  }
+  return Array.from(byName.values()).map(articleLabel).sort((a, b) => a.localeCompare(b))
+})
 // Ongefilterde categorielijst voor het per-rij categorieveld (zie rowCategory
 // hieronder): geen kruisfilter op merk/omschrijving nodig, dat zijn daar geen
 // aparte invoervelden. Zonder deze lijst typt iedereen zijn eigen
@@ -1062,11 +1092,23 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 // Subtiele melding tijdens het invullen zelf, niet pas nadat het artikel al
 // aan de tabel is toegevoegd (feedback Jos 2026-07-11): zodra het getypte
 // artikel een catalogusproduct met een recall of inspection notice matcht.
-const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice' } | null>(() => {
+const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice'; title: string } | null>(() => {
   const p = matchProduct()
   if (!p) return null
-  if (p.recall_url) return { url: p.recall_url, kind: 'recall' }
-  if (p.inspection_notice_url) return { url: p.inspection_notice_url, kind: 'notice' }
+  // Zelfde titel-opbouw als itemRecallTitle/itemNoticeTitle (rijvlaggen
+  // hieronder in de tabel): datum als bekend, dan de link zelf. Zonder dit
+  // had de klikbare tekst hier geen title-attribuut, dus was er niets te
+  // zien bij hoveren (gemeld door Jos tijdens het keuren, 2026-09-09) --
+  // en als de link zelf kapot is (bv. foute catalogusdata) leek de melding
+  // nergens naartoe te gaan zonder eerst de URL te kunnen zien.
+  if (p.recall_url) {
+    const dated = p.recall_date ? `${t('inspections.table.noticeDateLabel')} ${p.recall_date} — ` : ''
+    return { url: p.recall_url, kind: 'recall', title: `${dated}${t('inspections.table.recallHint')}: ${p.recall_url}` }
+  }
+  if (p.inspection_notice_url) {
+    const dated = p.inspection_notice_date ? `${t('inspections.table.noticeDateLabel')} ${p.inspection_notice_date} — ` : ''
+    return { url: p.inspection_notice_url, kind: 'notice', title: `${dated}${t('inspections.table.noticeHint')}: ${p.inspection_notice_url}` }
+  }
   return null
 })
 
@@ -1320,9 +1362,15 @@ function itemRecallUrl(it: Item): string | null {
   const url = itemRecallRawUrl(it)
   return url && url === it.article.recall_cleared_url ? null : url
 }
+function itemRecallDate(it: Item): string | null {
+  return it.article.product?.recall_date ?? null
+}
 function itemRecallTitle(it: Item): string | null {
   const url = itemRecallUrl(it)
-  return url ? `${t('inspections.table.recallHint')}: ${url}` : null
+  if (!url) return null
+  const date = itemRecallDate(it)
+  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${date} — ` : ''
+  return `${dated}${t('inspections.table.recallHint')}: ${url}`
 }
 function itemRecallClearedNote(it: Item): string | null {
   const url = itemRecallRawUrl(it)
@@ -1351,9 +1399,15 @@ function itemNoticeUrl(it: Item): string | null {
   const url = itemNoticeRawUrl(it)
   return url && url === it.article.notice_cleared_url ? null : url
 }
+function itemNoticeDate(it: Item): string | null {
+  return it.article.product?.inspection_notice_date ?? null
+}
 function itemNoticeTitle(it: Item): string | null {
   const url = itemNoticeUrl(it)
-  return url ? `${t('inspections.table.noticeHint')}: ${url}` : null
+  if (!url) return null
+  const date = itemNoticeDate(it)
+  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${date} — ` : ''
+  return `${dated}${t('inspections.table.noticeHint')}: ${url}`
 }
 /**
  * Opmerking uit de catalogus (`products.notes`).
@@ -1714,7 +1768,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, inspection_notice_url, manual_url, manufacturer_code')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2486,6 +2540,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__flag-clear:hover { opacity: 1; }
 .iw__flag-cleared { margin-right: 0.25rem; opacity: 0.45; cursor: help; }
+.iw__flag-date { font-size: 0.7rem; color: #6b7280; margin-right: 0.35rem; cursor: help; }
 /* Opmerking uit de catalogus. Bewust neutraal grijs en niet rood/oranje: dit
    is context bij het artikel, geen waarschuwing -- die hebben hun eigen
    vlaggen (recall, inspection notice) en moeten daar niet mee concurreren. */

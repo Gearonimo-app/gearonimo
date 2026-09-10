@@ -351,6 +351,7 @@
       "addManualUrl": "Ajouter un lien vers la notice",
       "recallHint": "Rappel connu pour ce produit",
       "noticeHint": "Avis de contrôle connu pour ce produit",
+      "noticeDateLabel": "Date de l'avis :",
       "manualUrlPrompt": "Lien vers la notice :",
       "suggestForCatalog": "Proposer pour la base de produits",
       "norm": "Norme (ex. EN 361)",
@@ -684,7 +685,9 @@
         "manualUrl": "Notice (lien)",
         "productPageUrl": "Page produit fabricant (lien)",
         "recallUrl": "Avis de rappel (lien)",
+        "recallDate": "Date de l'avis de rappel",
         "inspectionNoticeUrl": "Bulletin de sécurité (lien)",
+        "inspectionNoticeDate": "Date du bulletin de sécurité",
         "notes": "Remarques",
         "maxAgeHint": "999 = durée de vie illimitée. Vide = pas encore recherché."
       },

@@ -42,7 +42,9 @@ export const CATALOG_COLUMNS = [
   "manual_url",
   "product_page_url",
   "recall_url",
+  "recall_date",
   "inspection_notice_url",
+  "inspection_notice_date",
   "notes",
 ] as const;
 
@@ -109,6 +111,21 @@ const URL_FIELDS = [
   "product_page_url",
   "recall_url",
   "inspection_notice_url",
+] as const satisfies readonly CatalogColumn[];
+
+/**
+ * Velden die de datum van de melding zelf bevatten (of leeg) - "wanneer heeft
+ * de fabrikant dit gepubliceerd", niet "vanaf welk serienummer geldt het nog".
+ * Aanleiding (Jos, 2026-09-09): een jonge gordel kreeg dezelfde inspection-
+ * notice-vlag als een oude, zonder enig aanknopingspunt om zelf te kunnen
+ * inschatten of de melding hem nog raakt. Automatisch filteren op
+ * bouwjaar/serienummer is bewust niet gebouwd (zie `recall_url` hierboven,
+ * besluit 2026-06-12): dat blijft mensenwerk. Deze datum maakt dat oordeel
+ * wel snel te vellen, naast het bouwjaar dat al in de keuringstabel staat.
+ */
+const DATE_FIELDS = [
+  "recall_date",
+  "inspection_notice_date",
 ] as const satisfies readonly CatalogColumn[];
 
 /**
@@ -357,6 +374,15 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
       if (!raw) continue;
       if (!/^https?:\/\/\S+$/i.test(raw)) {
         add(warnings, `"${raw}" ziet er niet uit als een link`, field);
+      }
+    }
+
+    // --- Data -----------------------------------------------------------
+    for (const field of DATE_FIELDS) {
+      const raw = (row[field] ?? "").trim();
+      if (!raw) continue;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(Date.parse(raw))) {
+        add(errors, `"${raw}" is geen geldige datum (verwacht: JJJJ-MM-DD)`, field);
       }
     }
 

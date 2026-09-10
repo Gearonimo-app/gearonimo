@@ -112,8 +112,16 @@
       <input v-model="form.recall_url" :placeholder="$t('settings.catalog.placeholders.recallUrl')" type="url" class="pf__input" />
     </label>
     <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.recallDate') }}</span>
+      <input v-model="form.recall_date" type="date" class="pf__input" />
+    </label>
+    <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.inspectionNoticeUrl') }}</span>
       <input v-model="form.inspection_notice_url" :placeholder="$t('settings.catalog.placeholders.inspectionNoticeUrl')" type="url" class="pf__input" />
+    </label>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.inspectionNoticeDate') }}</span>
+      <input v-model="form.inspection_notice_date" type="date" class="pf__input" />
     </label>
     <label class="pf__field">
       <span>{{ $t('settings.catalog.fields.notes') }}</span>

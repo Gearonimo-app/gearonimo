@@ -24,7 +24,12 @@ export interface ProductFormModel {
   manual_url: string
   product_page_url: string
   recall_url: string
+  // Datum van het recall-bericht zélf, niet een serienummer-grens (zie
+  // packages/core/src/catalog.ts DATE_FIELDS). Leeg = onbekend/niet ingevuld,
+  // net als de andere tekstvelden.
+  recall_date: string
   inspection_notice_url: string
+  inspection_notice_date: string
   notes: string
 }
 
@@ -37,14 +42,16 @@ export function emptyProductForm(): ProductFormModel {
     rope_diameter_min_mm: null, rope_diameter_max_mm: null,
     serial_number_location: '',
     interval_override_months: null,
-    manual_url: '', product_page_url: '', recall_url: '', inspection_notice_url: '', notes: '',
+    manual_url: '', product_page_url: '', recall_url: '', recall_date: '',
+    inspection_notice_url: '', inspection_notice_date: '', notes: '',
   }
 }
 
 const STRING_FIELDS = [
   'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code',
   'breaking_strength', 'working_load_limit', 'max_user_weight_kg', 'serial_number_location',
-  'manual_url', 'product_page_url', 'recall_url', 'inspection_notice_url', 'notes',
+  'manual_url', 'product_page_url', 'recall_url', 'recall_date',
+  'inspection_notice_url', 'inspection_notice_date', 'notes',
 ] as const satisfies readonly (keyof ProductFormModel)[]
 
 // products.* laat de meeste tekstvelden null zijn in de database, ook al

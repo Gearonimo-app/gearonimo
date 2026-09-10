@@ -351,6 +351,7 @@
       "addManualUrl": "Link zur Anleitung hinzufügen",
       "recallHint": "Rückruf für dieses Produkt bekannt",
       "noticeHint": "Prüfhinweis für dieses Produkt bekannt",
+      "noticeDateLabel": "Datum des Hinweises:",
       "manualUrlPrompt": "Link zur Anleitung:",
       "suggestForCatalog": "Für Produktdatenbank vorschlagen",
       "norm": "Norm (z. B. EN 361)",
@@ -684,7 +685,9 @@
         "manualUrl": "Anleitung (Link)",
         "productPageUrl": "Produktseite des Herstellers (Link)",
         "recallUrl": "Rückrufmitteilung (Link)",
+        "recallDate": "Datum der Rückrufmitteilung",
         "inspectionNoticeUrl": "Sicherheitsbulletin (Link)",
+        "inspectionNoticeDate": "Datum des Sicherheitsbulletins",
         "notes": "Anmerkungen",
         "maxAgeHint": "999 = unbegrenzte Lebensdauer. Leer = noch nicht recherchiert."
       },
