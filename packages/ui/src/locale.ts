@@ -1,23 +1,31 @@
 // Gedeelde taalvoorkeur voor beide apps (wens Jos 2026-07-19: de taal moet
 // in de app zelf te wisselen zijn -- de en.json's bestonden al maar waren
-// onbereikbaar met de hardcoded locale "nl").
+// onbereikbaar met de hardcoded locale "nl"; fr/de erbij op verzoek Jos
+// 2026-09-08).
 //
 // Voorkeur staat in localStorage (per toestel, net als de passkey-voorkeur);
 // eerste bezoek volgt de browsertaal. Zelfde sleutel voor inspector- en
 // klant-app: één toestel, één taalkeuze.
 
-export type UiLocale = "nl" | "en";
+export type UiLocale = "nl" | "en" | "fr" | "de";
+
+const LOCALES: readonly UiLocale[] = ["nl", "en", "fr", "de"];
 
 const KEY = "gearonimo.locale";
 
 export function initialLocale(): UiLocale {
   try {
     const stored = localStorage.getItem(KEY);
-    if (stored === "nl" || stored === "en") return stored;
+    if (isUiLocale(stored)) return stored;
   } catch {
     /* private mode e.d.: val terug op browsertaal */
   }
-  return navigator.language?.toLowerCase().startsWith("en") ? "en" : "nl";
+  const browser = navigator.language?.toLowerCase().slice(0, 2);
+  return isUiLocale(browser) ? browser : "nl";
+}
+
+function isUiLocale(value: string | null): value is UiLocale {
+  return !!value && (LOCALES as readonly string[]).includes(value);
 }
 
 export function storeLocale(locale: UiLocale): void {

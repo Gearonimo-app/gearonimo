@@ -84,7 +84,7 @@
       "overdue": "Overdue",
       "rejected": "Rejected",
       "never_inspected": "Not inspected yet",
-      "no_inspection": "Not inspected",
+      "no_inspection": "Not subject to inspection",
       "self_check_due": "Check yourself",
       "never_checked": "Not checked yet"
     },
