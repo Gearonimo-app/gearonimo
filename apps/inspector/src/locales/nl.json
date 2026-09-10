@@ -332,6 +332,8 @@
       "fail": "Afkeur",
       "notAssessedShort": "Nog niet beoordeeld",
       "exportCsv": "Exporteer naar Excel",
+      "refresh": "Ververs",
+      "othersActiveConfirm": "{names} is/zijn ook nog bezig met deze keuring. Weet je zeker dat je wilt afronden?",
       "totals": "{passed} goed · {rejected} afgekeurd · {open} nog te doen",
       "finish": "Afronden →",
       "notAssessedConfirm": "{count} artikel(en) zijn niet gekeurd en komen niet op het certificaat (ze blijven bij de klant staan voor een volgende keer):",

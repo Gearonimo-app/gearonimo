@@ -258,10 +258,17 @@
              wél netjes -- zelfde patroon als de recall-export in
              SerialSearch.vue. -->
         <div class="iw__export">
+          <!-- Ververs (Jos, 2026-09-10): geen automatische live-updates, maar
+               wel snel kunnen zien wat een collega intussen heeft toegevoegd
+               aan deze gedeelde keuring. -->
+          <button type="button" class="iw__btn iw__btn--copy" :disabled="refreshing" @click="refreshItems">
+            ↻ {{ refreshing ? $t('common.loading') : $t('inspections.table.refresh') }}
+          </button>
           <button type="button" class="iw__btn iw__btn--copy" :disabled="!sortedRows.length" @click="exportInspectionCsv">
             ⧉ {{ $t('inspections.table.exportCsv') }}
           </button>
         </div>
+        <p v-if="refreshError" class="iw__state iw__state--error">{{ refreshError }}</p>
 
         <div class="iw__table-wrap">
           <table class="iw__table">
@@ -566,7 +573,7 @@
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
 import SnReferencePanel from '../components/SnReferencePanel.vue'
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
@@ -595,7 +602,7 @@ import {
   type CountryCode,
 } from '@gearonimo/core'
 import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
-import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields } from '../composables/useInspections'
+import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
@@ -2311,6 +2318,16 @@ async function finish() {
     completeError.value = t('inspections.table.finishBlockedUnsaved')
     return
   }
+  // Waarschuwen (niet blokkeren, besluit Jos 2026-09-10): misschien is die
+  // collega toevallig bijna klaar, of heeft alleen nog een tabblad open
+  // staan. Zelf inschatten of doorgaan oké is.
+  if (isOnline.value) {
+    const peers = await activePeerNames()
+    if (peers.length) {
+      const ok = confirm(t('inspections.table.othersActiveConfirm', { names: peers.join(', ') }))
+      if (!ok) return
+    }
+  }
   const notAssessed = items.value.filter((i) => i.result === 'not_assessed' && !i.article.retired)
   if (notAssessed.length) {
     const names = notAssessed.map((i) => itemLabel(i)).join('\n - ')
@@ -2362,6 +2379,71 @@ async function finish() {
 }
 
 onMounted(load)
+
+// ── "Wie is hier nog bezig" (Jos, 2026-09-10) ───────────────────────────────
+// Bij een grote klant werken soms 2-4 keurmeesters tegelijk in dezelfde
+// openstaande keuring, elk aan hun eigen sets. Geen live-verbinding (bewust,
+// besluit Jos): elke open keuring schrijft af en toe een tijdstempel weg
+// ("ik ben hier nog"), en bij Afronden wordt dat één keer opgevraagd. Nieuwe
+// sets van collega's zie je met de ververs-knop hieronder, niet automatisch.
+let presenceTimer: ReturnType<typeof setInterval> | undefined
+async function sendPresenceHeartbeat() {
+  if (!isOnline.value || finished.value) return
+  try {
+    const me = await ensureInspector()
+    await supabase.from('inspection_presence').upsert({ inspection_id: id, inspector_id: me.id, last_seen: new Date().toISOString() })
+  } catch {
+    // Presence is een hint, geen kritiek pad -- stil negeren bij falen
+    // (bv. net offline geraakt).
+  }
+}
+onMounted(() => {
+  void sendPresenceHeartbeat()
+  presenceTimer = setInterval(() => void sendPresenceHeartbeat(), 60_000)
+})
+onUnmounted(() => {
+  if (presenceTimer) clearInterval(presenceTimer)
+})
+
+// Namen van collega's die de afgelopen 5 minuten ook nog met deze keuring
+// bezig zijn geweest (voor de waarschuwing bij Afronden hieronder).
+async function activePeerNames(): Promise<string[]> {
+  const me = await ensureInspector()
+  const cutoff = new Date(Date.now() - 5 * 60_000).toISOString()
+  const { data } = await supabase
+    .from('inspection_presence')
+    .select('last_seen, inspector:inspectors(name)')
+    .eq('inspection_id', id)
+    .neq('inspector_id', me.id)
+    .gt('last_seen', cutoff)
+  return (data ?? [])
+    .map((r: any) => r.inspector?.name as string | null)
+    .filter((name): name is string => !!name)
+}
+
+// Ververs-knop (Jos, 2026-09-10): geen automatische live-updates, maar wel
+// snel kunnen zien wat collega's intussen hebben toegevoegd. Ververst bewust
+// alléén de artikelregels, niet de hele catalogus (die haalt load() met
+// paginering op -- dat zou de knop traag maken).
+const refreshing = ref(false)
+const refreshError = ref('')
+async function refreshItems() {
+  if (!isOnline.value) return
+  refreshing.value = true
+  refreshError.value = ''
+  const { data: rowsData, error: itemsErr } = await supabase
+    .from('inspection_items')
+    .select('id, article_id, result, next_due, rejection_code_id, comment, article:articles(*, product:products(*))')
+    .eq('inspection_id', id)
+    .order('created_at')
+  if (itemsErr) {
+    refreshError.value = itemsErr.message
+  } else {
+    items.value = (rowsData ?? []) as unknown as Item[]
+    previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
+  }
+  refreshing.value = false
+}
 
 // Na ontgrendelen via de statusbalk alsnog uit de cache laden (zie Customers.vue).
 watch(useOfflineSession().isUnlocked, (unlocked) => {

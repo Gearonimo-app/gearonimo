@@ -5,6 +5,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-10, meerdere keurmeesters in één keuring)
+
+> **Afronden terwijl een collega nog bezig is.** Bij een grote klant werken
+> soms 2-4 keurmeesters tegelijk in dezelfde openstaande keuring, elk aan hun
+> eigen sets. Risico: iemand klikt te vroeg op "Afronden" terwijl een collega
+> nog een set aan het toevoegen is — die set komt dan wel in de database te
+> staan, maar nooit op het certificaat. Besproken met Jos (2026-09-10):
+> bewust géén Supabase Realtime (nieuwe, kwetsbare techniek, weinig winst
+> t.o.v. de complexiteit). In plaats daarvan:
+> - Nieuwe tabel `inspection_presence`: elke open keuring schrijft af en toe
+>   een tijdstempel weg ("ik ben hier nog"), zonder live-verbinding.
+> - Nieuwe knop "↻ Ververs" boven de artikeltabel: haalt alleen de
+>   artikelregels opnieuw op (niet de hele catalogus), zodat je snel ziet wat
+>   een collega heeft toegevoegd.
+> - Bij "Afronden": als een collega de afgelopen 5 minuten nog actief was,
+>   een waarschuwing met naam/namen — niet blokkerend, zelf inschatten of
+>   doorgaan oké is.
+> **Migratie `20260761_inspection_presence.sql` nog door Jos uit te voeren**
+> in de Supabase SQL-editor.
+
 ## Voortgang (bijgewerkt 2026-09-08, Excel-export)
 
 > **Excel-export bij een keuring.** Jos deed zijn eerste echte keuring met
