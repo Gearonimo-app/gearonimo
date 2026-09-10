@@ -605,10 +605,12 @@ import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 const id = route.params.id as string
 const { isOnline } = useOnline()
 
@@ -810,7 +812,9 @@ const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 interface CatalogEntry { brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 const customerEntries = ref<CatalogEntry[]>([])
 const catalogEntries = computed<CatalogEntry[]>(() => [
-  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category, manufacturer_code: p.manufacturer_code })),
+  // category vertaald: sinds de opschoning naar vaste codes (2026-09-10)
+  // staat er in products.category bv. "harnesses", niet "Harnas".
+  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: categoryLabel(p.category) || null, manufacturer_code: p.manufacturer_code })),
   ...customerEntries.value,
 ])
 
@@ -1346,13 +1350,13 @@ watch(newDescription, (name) => {
   const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
   if (p) {
     if (p.brand) newBrand.value = p.brand
-    if (p.category) newCategory.value = p.category
+    if (p.category) newCategory.value = categoryLabel(p.category)
   }
 })
 
 function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
 function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
-function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
+function itemCategory(it: Item) { return categoryLabel(it.article.product?.category) || it.article.free_category || '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
 // Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
@@ -1798,7 +1802,7 @@ async function load() {
     serial: a.serial_number ?? '',
     brand: (a.product?.brand ?? a.free_brand) ?? '',
     name: (a.product?.name ?? a.free_description) ?? '',
-    category: (a.product?.category ?? a.free_category) ?? '',
+    category: (categoryLabel(a.product?.category) || a.free_category) ?? '',
     user: a.assigned_user_name ?? '',
     retired: !!a.retired,
     retiredReason: a.retired_reason ?? null,
@@ -1943,7 +1947,7 @@ async function loadOffline() {
       serial: a.serial_number ?? '',
       brand: (productById.get(a.product_id ?? '')?.brand ?? a.free_brand) ?? '',
       name: (productById.get(a.product_id ?? '')?.name ?? a.free_description) ?? '',
-      category: (productById.get(a.product_id ?? '')?.category ?? a.free_category) ?? '',
+      category: (categoryLabel(productById.get(a.product_id ?? '')?.category) || a.free_category) ?? '',
       user: a.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
@@ -2052,7 +2056,7 @@ async function addRow() {
       serial: article.serial_number ?? '',
       brand: (article.product?.brand ?? article.free_brand) ?? '',
       name: (article.product?.name ?? article.free_description) ?? '',
-      category: (article.product?.category ?? article.free_category) ?? '',
+      category: (categoryLabel(article.product?.category) || article.free_category) ?? '',
       user: article.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
@@ -2150,7 +2154,7 @@ async function addRowOffline() {
     serial: articleRow.serial_number ?? '',
     brand: (product?.brand ?? articleRow.free_brand) ?? '',
     name: (product?.name ?? articleRow.free_description) ?? '',
-    category: (product?.category ?? articleRow.free_category) ?? '',
+    category: (categoryLabel(product?.category) || articleRow.free_category) ?? '',
     user: articleRow.assigned_user_name ?? '',
     retired: false,
     retiredReason: null,

@@ -5,6 +5,55 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-10, category-opschoning)
+
+> **`products.category` van vrije tekst naar vaste, vertaalde lijst.**
+> Aanleiding: 138 losse, deels dubbele waardes (Harness/Harnesses/harness
+> door elkaar) over 2890 producten, zichtbaar in ~20 schermen én op het
+> certificaat-PDF. In twee fases met Jos doorgenomen (fase 1: opschonen +
+> voorstel, fase 2: bouwen na akkoord).
+> - **Opgeschoond tot 27 canonieke codes** in `CATEGORIES`
+>   (`packages/core/src/catalog.ts`), ingedeeld "zoals de keurmeester het
+>   herkent" — niet zoals de CE-norm het indeelt. Volledige mapping
+>   (oude waarde → nieuwe code, incl. de ~190 producten die individueel
+>   herbeoordeeld zijn omdat hun oude categorie een verzamelbak was) staat in
+>   de gespreksgeschiedenis met Jos, niet apart gedocumenteerd bestand.
+> - `catalog/producten.csv` eenmalig gemigreerd (2890/2890 producten,
+>   0 openstaand) — de bronlijst staat er dus al vertaalbaar in.
+> - Vertaling (NL/EN/FR/DE) toegevoegd als `settings.catalog.categories.*` /
+>   `categories.*` in de 8 taalbestanden, zelfde patroon als `productTypes`.
+> - Nieuwe composable `useCategoryLabel()` (inspector + customer) vertaalt een
+>   bekende code en laat vrije tekst (`free_category`, of een rij van vóór de
+>   migratie) met rust. Certificaat-PDF (`useCertificate.ts`) doet hetzelfde
+>   zonder vue-i18n, door de taalbestanden rechtstreeks te importeren.
+> - `ProductForm.vue`: category is nu een keuzelijst, geen vrij tekstveld
+>   meer (zelfde reden als `product_type` destijds: voorkomt dat er weer 138
+>   losse schrijfwijzen ontstaan).
+> - `scripts/catalog/normaliseer.mts` en `validateCatalog()` melden voortaan
+>   een `category`-waarde die niet in de vaste lijst staat (waarschuwing,
+>   geen blokkerende fout — net zo min geraden als bij `product_type`, dat
+>   oordeel is vakwerk).
+> - **`material` (345 losse waardes) bewust buiten deze opschoning gehouden**
+>   (besluit Jos): vrijwel allemaal echt verschillende
+>   constructie-beschrijvingen, geen dezelfde term anders geschreven, en een
+>   ondergeschikt veld. Blijft Engels, geen i18n.
+> - Build (`vue-tsc` + `vite build`) en tests groen voor beide apps; nieuwe
+>   tests in `packages/core/src/catalog.test.ts` voor de `CATEGORIES`-check.
+>
+> **Nog door Jos te doen: de live database staat nog op de oude vrije tekst.**
+> Deze ronde heeft alleen de bronlijst (`catalog/producten.csv`) en de code
+> bijgewerkt — dat is niet hetzelfde als de Supabase `products`-tabel. Om de
+> 2890 producten ook live om te zetten: `npm run catalog:export`, de Excel
+> importeren via Instellingen → Catalogus → Importeren (zie
+> `catalog/README.md`). Tot die import gedraaid is, tonen de schermen voor
+> bestaande producten dus nog de oude vrije tekst (die blijft gewoon zichtbaar
+> — `useCategoryLabel()` laat een onbekende waarde met rust in plaats van hem
+> te verbergen).
+> **Open vraag voor Jos:** `product_type` heeft in de database een
+> check-constraint op de vaste codes (zie `ProductForm.vue`); of `category`
+> zoiets ook heeft of moet krijgen, is niet aangenomen — daar is eerst een
+> live-schema-check voor nodig (projectregel: nooit het schema raden).
+
 ## Voortgang (bijgewerkt 2026-09-10, meerdere keurmeesters in één keuring)
 
 > **Afronden terwijl een collega nog bezig is.** Bij een grote klant werken

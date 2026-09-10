@@ -100,7 +100,7 @@
       <li v-for="p in filtered" :key="p.id" class="cm__item" @click="openEdit(p)">
         <div class="cm__item-body">
           <div class="cm__name">{{ p.brand }} {{ p.name }}</div>
-          <div class="cm__meta">{{ [p.category, p.product_type].filter(Boolean).join(' · ') }}</div>
+          <div class="cm__meta">{{ [categoryLabel(p.category), p.product_type].filter(Boolean).join(' · ') }}</div>
         </div>
         <button
           type="button"
@@ -121,6 +121,7 @@ import * as XLSX from 'xlsx'
 import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey } from '@gearonimo/core'
 import { fuzzySearch } from '@gearonimo/ui'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import ProductForm from './ProductForm.vue'
 
 interface Product extends ProductFormModel {
@@ -128,6 +129,7 @@ interface Product extends ProductFormModel {
 }
 
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 
 const products = ref<Product[]>([])
 const loading = ref(true)
@@ -167,7 +169,9 @@ async function load() {
 // staat in merk, "seq" in de naam). Zelfde fuzzy zoeker als de "bedoelt
 // u"-koppeling, inclusief de artikelcode van de fabrikant.
 function productSearchText(p: Product): string {
-  return [p.brand, p.name, p.category, p.manufacturer_code].filter(Boolean).join(' ')
+  // category ook vertaald meezoeken: sinds de opschoning naar codes (2026-09-10)
+  // staat er "harnesses" in de kolom, maar Jos zoekt op "harnas".
+  return [p.brand, p.name, p.category, categoryLabel(p.category), p.manufacturer_code].filter(Boolean).join(' ')
 }
 
 const filtered = computed(() => {

@@ -92,6 +92,68 @@ export const PRODUCT_TYPES = [
  */
 export const ARTICLE_TYPES = [...PRODUCT_TYPES, "other"] as const;
 
+/**
+ * De toegestane waarden van `category` in de **catalogus**: de fijne
+ * artikeltaxonomie die `product_type` juist niet mag bevatten (zie hierboven).
+ * Net als `PRODUCT_TYPES` een kleine, beheerde lijst — vertaald (NL/EN/FR/DE)
+ * via de sleutel `settings.catalog.categories.<code>` in de taalbestanden,
+ * in plaats van vrije tekst.
+ *
+ * Vastgesteld met Jos (2026-09-10) uit de opschoning van 138 losse, deels
+ * dubbele waardes over 2890 producten (Harness/Harnesses/harness, Prusik/
+ * Hitch Cords/prusik cord, enz.) tot deze 27 canonieke termen — "zoals de
+ * keurmeester het herkent", niet zoals de CE-norm het indeelt (EN 566 dekt
+ * bijvoorbeeld zowel `slings` als `anchor_strop`, maar dat zijn voor een
+ * keurmeester twee andere dingen).
+ *
+ * Enkele niet-vanzelfsprekende scheidingen, zodat ze niet per ongeluk weer
+ * samengevoegd worden:
+ * - `harnesses` vs `climbing_harness`: EN 361 (valbeveiliging, ook in
+ *   combinatie met EN 813/EN 358) is `harnesses`; EN 813/EN 358/EN 12277
+ *   zónder EN 361 is `climbing_harness` (klimgordel/positioneringsgordel).
+ * - `anchor_strop` vs `accessory_cord`: een lus/lijn die voldoet aan EN 566
+ *   of EN 795B is `anchor_strop`; draagt hij uitsluitend EN 564 (hulplijn),
+ *   dan is dat geen lastdragende PBM-norm en blijft het apart als
+ *   `accessory_cord` — dat verbloemt geen fabrieksfout in de certificering.
+ * - `mechanical_prusik` (grijpt de lijn zelf, bv. ZigZag) vs `line_brake`
+ *   (rem/geleider, de hitch cord eronder doet het grijpwerk, bv. rope
+ *   wrench, Chicane, Freexion).
+ * - `srl` (oprolautomaat, EN 360) vs `mobile_fall_arrester` (meelopend
+ *   valstopapparaat, EN 353 / EN 12841-A, bv. Petzl ASAP).
+ */
+export const CATEGORIES = [
+  "connectors",
+  "harnesses",
+  "climbing_harness",
+  "harness_accessories",
+  "climbing_ropes",
+  "positioning_lanyards",
+  "slings",
+  "anchor_strop",
+  "accessory_cord",
+  "anchor_hardware",
+  "pulleys",
+  "rope_clamps",
+  "mechanical_prusik",
+  "descenders",
+  "line_brake",
+  "bollard",
+  "throw_hook",
+  "rigging_line",
+  "cambium_saver",
+  "srl",
+  "mobile_fall_arrester",
+  "energy_absorber",
+  "swivel",
+  "tree_spurs",
+  "helmet",
+  "tool_lanyard",
+  "lifting_sling",
+  "other_non_ppe",
+] as const;
+
+export type Category = (typeof CATEGORIES)[number];
+
 /** Velden die een heel getal moeten zijn (of leeg). */
 const INT_FIELDS = [
   "max_age_use_years",
@@ -301,6 +363,16 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
         errors,
         `"${type}" is geen producttype maar een categorie — toegestaan: ${PRODUCT_TYPES.join(", ")}. Zet de omschrijving in de kolom category`,
         "product_type"
+      );
+    }
+
+    // --- category is de fijne taxonomie, een vaste lijst sinds 2026-09-10 --
+    const category = (row.category ?? "").trim();
+    if (category && !(CATEGORIES as readonly string[]).includes(category)) {
+      add(
+        warnings,
+        `"${category}" staat niet in de vaste categorielijst — controleer of dit een van de bestaande codes moet zijn (${CATEGORIES.join(", ")}) of dat er een nieuwe bij moet in packages/core/src/catalog.ts`,
+        "category"
       );
     }
 

@@ -221,6 +221,7 @@ import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
 import AddPartDialog from './AddPartDialog.vue'
 
@@ -228,6 +229,7 @@ const { isOnline } = useOnline()
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 
 interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
@@ -283,13 +285,18 @@ const formError = ref('')
 // terugkoppelen aan een catalogusproduct.
 const products = ref<Product[]>([])
 const allBrands = computed(() => unique(products.value.map(p => p.brand)))
-const allCategories = computed(() => unique(products.value.map(p => p.category)))
-// Producten die binnen de gekozen trechter (merk + categorie) vallen.
+// Vertaald label, niet de ruwe code (sinds de opschoning van category naar
+// vaste codes, 2026-09-10) -- anders ziet de inspecteur "harnesses" in de
+// suggestielijst in plaats van "Harnas".
+const allCategories = computed(() => unique(products.value.map(p => categoryLabel(p.category) || null)))
+// Producten die binnen de gekozen trechter (merk + categorie) vallen. De
+// categorie wordt op het vertaalde label vergeleken, zodat de trechter
+// overeenkomt met wat de suggestielijst toont.
 const matchingProducts = computed(() =>
   products.value.filter(p =>
     p.name &&
     (!newBrand.value.trim()    || (p.brand ?? '').toLowerCase() === newBrand.value.trim().toLowerCase()) &&
-    (!newCategory.value.trim() || (p.category ?? '').toLowerCase() === newCategory.value.trim().toLowerCase())
+    (!newCategory.value.trim() || categoryLabel(p.category).toLowerCase() === newCategory.value.trim().toLowerCase())
   )
 )
 
@@ -312,7 +319,7 @@ const matchingArticleLabels = computed(() => unique(matchingProducts.value.map(p
 const matchingCategories = computed(() => {
   const b = newBrand.value.trim().toLowerCase()
   if (!b) return allCategories.value
-  const forBrand = unique(products.value.filter(p => (p.brand ?? '').toLowerCase() === b).map(p => p.category))
+  const forBrand = unique(products.value.filter(p => (p.brand ?? '').toLowerCase() === b).map(p => categoryLabel(p.category) || null))
   return forBrand.length ? forBrand : allCategories.value
 })
 
@@ -378,7 +385,7 @@ watch(newDescription, (name) => {
   const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
   if (p) {
     if (p.brand) newBrand.value = p.brand
-    if (p.category) newCategory.value = p.category
+    if (p.category) newCategory.value = categoryLabel(p.category)
   }
 })
 

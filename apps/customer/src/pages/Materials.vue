@@ -238,9 +238,11 @@ import { GIcon } from "@gearonimo/ui";
 import AddArticleForm from "../components/AddArticleForm.vue";
 import AddPartForm from "../components/AddPartForm.vue";
 import PageHeader from "../components/PageHeader.vue";
+import { useCategoryLabel } from "../composables/useCategoryLabel";
 
 const route = useRoute();
 const router = useRouter();
+const categoryLabel = useCategoryLabel();
 const { t } = useI18n();
 
 interface ArticleRow {
@@ -398,7 +400,7 @@ const filteredArticles = computed(() => {
     if (attentionOnly.value && !ATTENTION.includes(a.uiStatus)) return false;
     if (memberFilter.value && a.assigned_user_name !== memberFilter.value) return false;
     if (q) {
-      const haystack = [a.brand, a.name, a.serial_number, a.category, a.assigned_user_name]
+      const haystack = [a.brand, a.name, a.serial_number, a.category, categoryLabel(a.category), a.assigned_user_name]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();

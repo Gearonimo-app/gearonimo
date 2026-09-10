@@ -31,7 +31,15 @@
       </label>
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.category') }}</span>
-        <input v-model="form.category" :placeholder="$t('settings.catalog.placeholders.category')" class="pf__input" />
+        <!-- Keuzelijst, net als productType hierboven (Jos, 2026-09-10): de
+             138 losse vrije-tekstwaardes die hier ooit stonden zijn opgeschoond
+             tot 27 vaste, vertaalde termen. -->
+        <select v-model="form.category" class="pf__input">
+          <option value="">—</option>
+          <option v-for="key in categoryKeys" :key="key" :value="key">
+            {{ $t(`settings.catalog.categories.${key}`) }}
+          </option>
+        </select>
       </label>
     </div>
     <div class="pf__row">
@@ -140,7 +148,7 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { PRODUCT_TYPES } from '@gearonimo/core'
+import { PRODUCT_TYPES, CATEGORIES } from '@gearonimo/core'
 import type { ProductFormModel } from '../composables/productForm'
 
 const props = defineProps<{
@@ -154,6 +162,7 @@ const emit = defineEmits<{ (e: 'submit', value: ProductFormModel): void; (e: 'ca
 // Gedeeld met de controle op de bronlijst (packages/core), zodat een
 // producttype dat hier gekozen kan worden daar niet als fout geldt.
 const productTypeKeys = PRODUCT_TYPES
+const categoryKeys = CATEGORIES
 
 const form = ref<ProductFormModel>({ ...props.modelValue })
 watch(() => props.modelValue, (v) => { form.value = { ...v } })

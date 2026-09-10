@@ -1,7 +1,11 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { supabase } from '@gearonimo/core'
+import { supabase, CATEGORIES } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
+import nlLocale from '../locales/nl.json'
+import enLocale from '../locales/en.json'
+import frLocale from '../locales/fr.json'
+import deLocale from '../locales/de.json'
 
 // Genereert het certificaat-PDF bij het afronden van een keuring
 // (DATAMODEL §certificates). Client-side gebouwd; de PDF wordt eenmalig
@@ -129,6 +133,27 @@ export function certLanguageForCountry(countryCode: string | null): CertLanguage
   if (c === 'FR') return 'fr'
   if (['DE', 'AT', 'CH'].includes(c)) return 'de'
   return 'en'
+}
+
+// Vertaling van de `category`-code (products.category, vaste lijst sinds
+// 2026-09-10, zie CATEGORIES in packages/core) naar het certificaat-label.
+// Hergebruikt de bestaande taalbestanden in plaats van de 27×4 vertalingen
+// hier nog eens over te typen — dezelfde bron als de app-schermen.
+const CATEGORY_LABELS: Record<CertLanguage, Record<string, string>> = {
+  nl: nlLocale.settings.catalog.categories,
+  en: enLocale.settings.catalog.categories,
+  fr: frLocale.settings.catalog.categories,
+  de: deLocale.settings.catalog.categories,
+}
+
+/**
+ * Een waarde die niet in CATEGORIES staat is vrije tekst — `free_category`
+ * van een vrij artikel, of een catalogusrij van vóór de migratie — en blijft
+ * ongemoeid, net als bij `useCategoryLabel` in de app-schermen.
+ */
+function categoryLabel(code: string | null, lang: CertLanguage): string | null {
+  if (!code) return code
+  return (CATEGORIES as readonly string[]).includes(code) ? CATEGORY_LABELS[lang][code] ?? code : code
 }
 
 // Vaste PDF-teksten per taal. De afkeurcode-labels zelf komen uit de eigen
@@ -884,6 +909,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     company: CompanyRow
     inspector: { name: string | null; signature_path: string | null }
   }
+  // Vroeg bepaald, want de items hieronder hebben 'm al nodig om category te
+  // vertalen -- zelfde regel als de rest van de vaste PDF-teksten.
+  const certLanguage = certLanguageForCountry(inspection.company.country_code)
 
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
@@ -944,7 +972,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       serial_number: a?.serial_number ?? null,
       manufacture_year: a?.manufacture_year ?? null,
       manufacture_month: a?.manufacture_month ?? null,
-      category: (p ? p.category : a?.free_category) ?? null,
+      category: p ? categoryLabel(p.category, certLanguage) : (a?.free_category ?? null),
       norm: (p ? p.standard : a?.free_norm) ?? null,
       mbs: (p ? p.breaking_strength : a?.free_mbs) ?? null,
       user: a?.assigned_user_name ?? null,
@@ -988,7 +1016,6 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const logoBytes = await fetchLogoBytes(company.logo_path)
   const signatureBytes = await fetchSignatureBytes(inspection.inspector?.signature_path ?? null)
 
-  const certLanguage = certLanguageForCountry(company.country_code)
   const data: CertData = {
     company,
     customerName: inspection.customer.name,

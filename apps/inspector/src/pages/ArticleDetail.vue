@@ -105,7 +105,7 @@
               <!-- Code erbij: op oude certificaten staat vaak alleen die code,
                    dus zo zie je meteen dát het de juiste variant is. -->
               <span v-if="p.manufacturer_code || p.category" class="ad__suggest-cat">
-                {{ [p.manufacturer_code, p.category].filter(Boolean).join(' · ') }}
+                {{ [p.manufacturer_code, categoryLabel(p.category)].filter(Boolean).join(' · ') }}
               </span>
             </button>
           </div>
@@ -244,10 +244,12 @@ import {
   errorMessage,
   fetchAllRows,
 } from '@gearonimo/core'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 // Eén keer uitlezen bij het opbouwen van de pagina. Blijft een ref (hij wordt
 // door de hele pagina als id.value gelezen), maar hij verandert niet meer:
 // 'vorige/volgende artikel' levert sinds de werk-tabbladen een verse component

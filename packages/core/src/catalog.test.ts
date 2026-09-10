@@ -4,6 +4,7 @@ import {
   validateCatalog,
   CATALOG_COLUMNS,
   PRODUCT_TYPES,
+  CATEGORIES,
   type CatalogRow,
 } from "./catalog";
 
@@ -71,6 +72,28 @@ describe("validateCatalog", () => {
       row({ product_type: t, name: `Product ${i}` })
     );
     expect(validateCatalog(rows).errors).toEqual([]);
+  });
+
+  it("staat elke categorie uit de lijst toe, zonder waarschuwing", () => {
+    const rows = CATEGORIES.map((c, i) =>
+      row({ category: c, name: `Product ${i}` })
+    );
+    const report = validateCatalog(rows);
+    expect(report.errors).toEqual([]);
+    expect(report.warnings).toEqual([]);
+  });
+
+  it("waarschuwt bij een categorie die niet in de vaste lijst staat", () => {
+    // Warning, geen error: anders dan product_type breekt een onbekende
+    // categorie het keurregime niet, het is de fijne taxonomie.
+    const report = validateCatalog([row({ category: "Harnesses" })]);
+    expect(report.errors).toEqual([]);
+    expect(report.warnings).toHaveLength(1);
+    expect(report.warnings[0].column).toBe("category");
+  });
+
+  it("laat een lege categorie met rust", () => {
+    expect(validateCatalog([row({ category: "" })]).warnings).toEqual([]);
   });
 
   it("waarschuwt bij een leeg producttype", () => {

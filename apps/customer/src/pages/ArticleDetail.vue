@@ -18,7 +18,7 @@
       <dl v-if="!editMode" class="ad__list">
         <div v-if="article.name" class="ad__row"><dt>{{ $t('articleDetail.fields.article') }}</dt><dd>{{ article.name }}</dd></div>
         <div v-if="article.brand" class="ad__row"><dt>{{ $t('articleDetail.fields.brand') }}</dt><dd>{{ article.brand }}</dd></div>
-        <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ article.category }}</dd></div>
+        <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ categoryLabel(article.category) }}</dd></div>
         <div v-if="article.material" class="ad__row"><dt>{{ $t('articleDetail.fields.material') }}</dt><dd>{{ article.material }}</dd></div>
         <div v-if="article.serial_number" class="ad__row"><dt>{{ $t('articleDetail.fields.serial') }}</dt><dd>{{ article.serial_number }}</dd></div>
         <div class="ad__row"><dt>{{ $t('articleDetail.fields.user') }}</dt><dd>{{ article.assigned_user_name || $t('articleDetail.noUser') }}</dd></div>
@@ -127,9 +127,11 @@ import {
 } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 import UserPicker from "../components/UserPicker.vue";
+import { useCategoryLabel } from "../composables/useCategoryLabel";
 
 const route = useRoute();
 const router = useRouter();
+const categoryLabel = useCategoryLabel();
 
 interface ArticleDetailRow {
   id: string;
