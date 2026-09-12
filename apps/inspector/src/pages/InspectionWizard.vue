@@ -103,6 +103,10 @@
             @blur="closeSuggest"
             @keydown="onSuggestKeydown"
           />
+          <!-- Scan vult hetzelfde veld -- de bestaande SN-zoeklogica (snResults
+               hierboven) pikt dat vanzelf op: gevonden = kies uit de lijst,
+               niet gevonden = gewoon als nieuw artikel toevoegen. -->
+          <ScanButton @scan="(text: string) => { setFieldValue('serial', text); activeField = 'serial' }" />
           <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--field iw__sn-list">
             <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
               <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
@@ -601,7 +605,7 @@ import {
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
-import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'

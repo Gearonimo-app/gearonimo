@@ -300,5 +300,14 @@
     "performedByLabel": "Gecontroleerd door",
     "recordedByLabel": "Vastgelegd door",
     "historyLabel": "Controles"
+  },
+  "scanner": {
+    "button": "Scannen",
+    "title": "Scanner",
+    "subtitle": "Richt de camera op een barcode, DataMatrix of QR-code",
+    "macro": "Macro (dichtbij)",
+    "torch": "Zaklamp",
+    "close": "Sluiten",
+    "unavailable": "Camera niet beschikbaar. Controleer de machtigingen."
   }
 }

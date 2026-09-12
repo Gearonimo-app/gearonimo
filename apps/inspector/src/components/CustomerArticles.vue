@@ -146,7 +146,10 @@
       <hr class="ca__sep" />
       <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
            serienummer (staat op het artikel), dán bouwjaar/-maand. -->
-      <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
+      <div class="ca__row">
+        <input v-model="form.serial_number" :placeholder="$t('articles.fields.serial')" class="ca__input" />
+        <ScanButton @scan="(text: string) => (form.serial_number = text)" />
+      </div>
       <div class="ca__row">
         <input v-model="newYear" type="number" class="ca__input ca__input--sm" :placeholder="$t('inspections.table.year')" />
         <select v-model="newMonth" class="ca__input ca__input--sm">
@@ -219,7 +222,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
-import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { useFieldSuggest, fuzzyFilter, ScanButton } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'

@@ -70,7 +70,10 @@
       </button>
     </template>
 
-    <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
+    <div class="aa__row">
+      <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
+      <ScanButton @scan="(text: string) => (serial = text)" />
+    </div>
     <!-- Gebruiker: keuzelijst uit de medewerkers (besluit Jos 2026-08-04).
          Vrij typen gaf "Jan de Vries" naast "J. de Vries" en maakte elk
          overzicht per persoon onbetrouwbaar. Zie UserPicker voor de drie
@@ -103,6 +106,7 @@
 <script setup lang="ts">
 import { ref, computed, nextTick, watch, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { ScanButton } from "@gearonimo/ui";
 import {
   supabase,
   errorMessage,

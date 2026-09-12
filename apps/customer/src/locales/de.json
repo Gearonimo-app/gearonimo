@@ -300,5 +300,14 @@
     "performedByLabel": "Kontrolliert von",
     "recordedByLabel": "Erfasst von",
     "historyLabel": "Kontrollen"
+  },
+  "scanner": {
+    "button": "Scannen",
+    "title": "Scanner",
+    "subtitle": "Kamera auf einen Barcode, DataMatrix- oder QR-Code richten",
+    "macro": "Makro (Nahaufnahme)",
+    "torch": "Taschenlampe",
+    "close": "Schließen",
+    "unavailable": "Kamera nicht verfügbar. Berechtigungen prüfen."
   }
 }

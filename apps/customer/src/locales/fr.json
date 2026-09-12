@@ -300,5 +300,14 @@
     "performedByLabel": "Vérifié par",
     "recordedByLabel": "Enregistré par",
     "historyLabel": "Vérifications"
+  },
+  "scanner": {
+    "button": "Scanner",
+    "title": "Scanner",
+    "subtitle": "Visez un code-barres, un DataMatrix ou un QR code avec la caméra",
+    "macro": "Macro (gros plan)",
+    "torch": "Lampe torche",
+    "close": "Fermer",
+    "unavailable": "Caméra indisponible. Vérifiez les autorisations."
   }
 }
