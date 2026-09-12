@@ -965,5 +965,14 @@
       "import": "Import certificate",
       "page": "Page"
     }
+  },
+  "scanner": {
+    "button": "Scan",
+    "title": "Scanner",
+    "subtitle": "Point the camera at a barcode, DataMatrix or QR code",
+    "macro": "Macro (close-up)",
+    "torch": "Flashlight",
+    "close": "Close",
+    "unavailable": "Camera unavailable. Check your permissions."
   }
 }
