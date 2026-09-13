@@ -273,6 +273,7 @@ function sampleData(): CertData {
     customerName: t('settings.certificate.sampleCustomer'),
     inspectionDate: new Date().toISOString().slice(0, 10),
     inspectorName: t('settings.certificate.sampleInspector'),
+    assessedByNames: [t('settings.certificate.sampleInspector')],
     number: '20260625-VOORBEELD',
     verifyUrl: window.location.origin + '/verify/voorbeeld',
     // Preview in dezelfde taal als het echte certificaat (land van het bedrijf).

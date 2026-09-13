@@ -54,7 +54,10 @@
         <template v-else>
           <div class="ad__row">
             <dt>{{ $t('articleDetail.lastInspection') }}</dt>
-            <dd>{{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}</dd>
+            <dd>
+              {{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}
+              <span v-if="article.last_inspection_inspector"> — {{ article.last_inspection_inspector }}</span>
+            </dd>
           </div>
           <div v-if="article.next_due" class="ad__row"><dt>{{ $t('articleDetail.fields.nextDue') }}</dt><dd>{{ formatDate(article.next_due) }}</dd></div>
         </template>
@@ -151,6 +154,7 @@ interface ArticleDetailRow {
   self_managed: boolean | null;
   last_result: string | null;
   last_inspection_date: string | null;
+  last_inspection_inspector: string | null;
   next_due: string | null;
   self_checked_at: string | null;
   self_next_due: string | null;

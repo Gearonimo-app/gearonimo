@@ -116,6 +116,15 @@ export interface CertData {
   /** Ingebedde handtekening-PNG/JPG van de keurmeester, of null. */
   signature: Uint8Array | null
   /**
+   * Alle keurmeesters die daadwerkelijk een artikel beoordeelden (2026-09-13,
+   * meerdere keurmeesters in dezelfde keuring) — voor de "Gekeurd door"-regel
+   * onderaan. Losstaand van `inspectorName` hierboven (die blijft de starter
+   * van de hele keuring, voor het handtekeningvlak). Leeg = geen van de
+   * beoordeelde items heeft een `inspector_id` (oude keuringen van vóór deze
+   * kolom) — de rest van de opmaak valt dan terug op alleen `inspectorName`.
+   */
+  assessedByNames: string[]
+  /**
    * Taal van de vaste PDF-teksten (fase 5, 2026-07-19; fr/de erbij
    * 2026-09-08). Afgeleid van het land van het keurbedrijf: NL/BE = nl,
    * FR = fr, DE/AT/CH = de, al het andere = en — dezelfde regel als het
@@ -166,6 +175,7 @@ const CERT_LABELS = {
     customer: 'Klant',
     inspectionDate: 'Keuringsdatum',
     inspector: 'Keurmeester',
+    assessedBy: 'Gekeurd door',
     signature: 'Handtekening',
     issued: 'Uitgegeven',
     scanToVerify: 'Scan om te verifiëren',
@@ -185,6 +195,7 @@ const CERT_LABELS = {
     customer: 'Customer',
     inspectionDate: 'Inspection date',
     inspector: 'Inspector',
+    assessedBy: 'Inspected by',
     signature: 'Signature',
     issued: 'Issued',
     scanToVerify: 'Scan to verify',
@@ -204,6 +215,7 @@ const CERT_LABELS = {
     customer: 'Client',
     inspectionDate: 'Date de contrôle',
     inspector: 'Inspecteur',
+    assessedBy: 'Contrôlé par',
     signature: 'Signature',
     issued: 'Délivré',
     scanToVerify: 'Scanner pour vérifier',
@@ -223,6 +235,7 @@ const CERT_LABELS = {
     customer: 'Kunde',
     inspectionDate: 'Prüfdatum',
     inspector: 'Prüfer',
+    assessedBy: 'Geprüft von',
     signature: 'Unterschrift',
     issued: 'Ausgestellt',
     scanToVerify: 'Zum Verifizieren scannen',
@@ -294,6 +307,7 @@ function sanitizeCertData(data: CertData): CertData {
     ...data,
     customerName: sanitizeWinAnsi(data.customerName),
     inspectorName: S(data.inspectorName),
+    assessedByNames: data.assessedByNames.map((n) => sanitizeWinAnsi(n)),
     number: sanitizeWinAnsi(data.number),
     company: {
       ...data.company,
@@ -800,7 +814,13 @@ export async function renderCertificatePdf(
   // formaat.
   const verifyCaption = L.verifiedWith
   const qrSize = Math.max(82, Math.min(118, Math.round(bold.widthOfTextAtSize(verifyCaption, 6.5))))
-  const sigBlockHeight = 30 + footerLines.length * 11 + qrSize + 18
+  // "Gekeurd door": alleen tonen als er minstens één naam is (oude
+  // certificaten zonder inspector_id op de items laten dit gewoon weg en
+  // vallen terug op alleen het handtekeningvlak hierboven).
+  const assessedByLines = data.assessedByNames.length
+    ? wrapText(`${L.assessedBy}: ${data.assessedByNames.join(', ')}`, font, 8, contentWidth)
+    : []
+  const sigBlockHeight = 30 + footerLines.length * 11 + assessedByLines.length * 11 + qrSize + 18
   if (y - sigBlockHeight < margin) {
     newPage()
   }
@@ -842,6 +862,12 @@ export async function renderCertificatePdf(
   page.drawText(L.signature, { x: margin, y: fy, size: 7, font, color: grey })
 
   fy += qrSize + 14
+  if (assessedByLines.length) {
+    for (let i = assessedByLines.length - 1; i >= 0; i--) {
+      page.drawText(assessedByLines[i], { x: margin, y: fy, size: 8, font, color: rgb(0, 0, 0) })
+      fy += 11
+    }
+  }
   if (footerLines.length) {
     for (let i = footerLines.length - 1; i >= 0; i--) {
       page.drawText(footerLines[i], { x: margin, y: fy, size: 8, font, color: grey })
@@ -916,7 +942,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label)'
+      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label), item_inspector:inspectors(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -928,6 +954,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     result: string
     next_due: string | null
     comment: string | null
+    item_inspector: { name: string | null } | null
     // Bevroren artikelrij van het keurmoment (code review 2026-07-18, punt 7):
     // deze gaat vóór de live artikelrij, zodat een later gewijzigd serienummer
     // of omschrijving niet stiekem op een (opnieuw gegenereerd) certificaat
@@ -982,6 +1009,18 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     }
   })
 
+  // "Gekeurd door": elke keurmeester die minstens één beoordeeld artikel op
+  // z'n naam heeft, op volgorde van eerste voorkomen (created_at, dezelfde
+  // sortering als de tabel zelf). Ontbreekt inspector_id op alle items (oude
+  // keuring van vóór 2026-09-13), dan blijft dit leeg en valt de opmaak terug
+  // op alleen `inspectorName`.
+  const assessedByNames: string[] = []
+  for (const r of (rows ?? []) as unknown as ItemRow[]) {
+    if (r.result === 'not_assessed') continue
+    const name = r.item_inspector?.name
+    if (name && !assessedByNames.includes(name)) assessedByNames.push(name)
+  }
+
   const verifyToken = crypto.randomUUID()
   // Certificaatnummer (code review 2026-07-18, keuze Jos): base = datum +
   // klantnaam, met een server-side volgnummer als dezelfde base al bestaat
@@ -1021,6 +1060,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     customerName: inspection.customer.name,
     inspectionDate: inspection.inspection_date,
     inspectorName: inspection.inspector?.name ?? null,
+    assessedByNames,
     number,
     verifyUrl,
     items,

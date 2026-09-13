@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Artikel nicht gefunden",
+      "lastInspection": "Letzte Prüfung",
       "retire": "Ausmustern",
       "retireTitle": "Diesen Artikel ausmustern?",
       "retireBody": "Der Artikel bleibt erhalten, zählt aber nicht mehr für Prüfungen.",
@@ -325,6 +326,7 @@
       "colFirstUse": "In Gebrauch",
       "colUser": "Nutzer",
       "colPrevious": "Vorherige",
+      "previousBy": "Geprüft von {name}",
       "colResult": "Ergebnis",
       "colNextDue": "Nächste Prüfung",
       "colWarning": "",

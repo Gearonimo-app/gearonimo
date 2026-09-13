@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Artikel niet gevonden",
+      "lastInspection": "Laatste keuring",
       "retire": "Afvoeren",
       "retireTitle": "Artikel afvoeren?",
       "retireBody": "Het artikel blijft bewaard maar telt niet meer mee voor keuringen.",
@@ -325,6 +326,7 @@
       "colFirstUse": "In gebruik",
       "colUser": "Gebruiker",
       "colPrevious": "Vorige",
+      "previousBy": "Gekeurd door {name}",
       "colResult": "Resultaat",
       "colNextDue": "Volgende keuring",
       "colWarning": "",

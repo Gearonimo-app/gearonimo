@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Article introuvable",
+      "lastInspection": "Dernier contrôle",
       "retire": "Retirer",
       "retireTitle": "Retirer cet article ?",
       "retireBody": "L'article reste conservé mais ne compte plus pour les contrôles.",
@@ -325,6 +326,7 @@
       "colFirstUse": "En service",
       "colUser": "Utilisateur",
       "colPrevious": "Précédent",
+      "previousBy": "Contrôlé par {name}",
       "colResult": "Résultat",
       "colNextDue": "Prochain contrôle",
       "colWarning": "",

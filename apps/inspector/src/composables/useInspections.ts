@@ -375,7 +375,7 @@ export async function deleteDraftInspection(inspectionId: string): Promise<void>
 export async function findPreviousResult(
   articleId: string,
   excludeInspectionId: string
-): Promise<{ result: string; comment: string | null; inspection_date: string } | null> {
+): Promise<{ result: string; comment: string | null; inspection_date: string; inspector_name: string | null } | null> {
   const { isOnline } = useOnline()
   if (isOnline.value) {
     // Twee lessen uit de praktijk (Jos + code review 2026-07-18):
@@ -387,7 +387,7 @@ export async function findPreviousResult(
     //    en zou de import winnen van een recentere echte keuring.
     const { data, error } = await supabase
       .from('inspection_items')
-      .select('result, comment, created_at, inspection:inspections(inspection_date, status)')
+      .select('result, comment, created_at, inspection:inspections(inspection_date, status), item_inspector:inspectors(name)')
       .eq('article_id', articleId)
       .neq('inspection_id', excludeInspectionId)
       .neq('result', 'not_assessed')
@@ -399,6 +399,7 @@ export async function findPreviousResult(
       comment: string | null
       created_at: string
       inspection: { inspection_date: string; status: string } | null
+      item_inspector: { name: string | null } | null
     }
     const rows = (data ?? []) as unknown as PrevItemRow[]
     const completed = rows
@@ -415,6 +416,7 @@ export async function findPreviousResult(
       result: completed.result,
       comment: completed.comment,
       inspection_date: completed.inspection.inspection_date,
+      inspector_name: completed.item_inspector?.name ?? null,
     }
   }
 
@@ -427,10 +429,13 @@ export async function findPreviousResult(
   if (!item) return null
   const inspection = await getInspection<{ status: string; inspection_date: string }>(key, item.inspection_id)
   if (!inspection || inspection.status !== 'completed') return null
-  return { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date }
+  // Offline-cache heeft geen keurmeester-namen bijgehouden (aparte tabel,
+  // niet nodig voor de rest van de wizard) -- blijft hier leeg. Online is
+  // dit wél altijd beschikbaar.
+  return { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date, inspector_name: null }
 }
 
-export type PreviousResult = { result: string; comment: string | null; inspection_date: string } | null
+export type PreviousResult = { result: string; comment: string | null; inspection_date: string; inspector_name: string | null } | null
 
 // Bulk-variant van findPreviousResult voor het laden van de wizard: online
 // gewoon de bestaande per-artikel-aanroepen parallel (gedrag ongewijzigd),
@@ -464,7 +469,9 @@ export async function findPreviousResults(
       inspectionById.set(item.inspection_id, inspection)
     }
     if (inspection && inspection.status === 'completed') {
-      out[articleId] = { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date }
+      // Zelfde beperking als findPreviousResult offline: geen keurmeester-naam
+      // beschikbaar in de lokale cache.
+      out[articleId] = { result: item.result, comment: item.comment, inspection_date: inspection.inspection_date, inspector_name: null }
     }
   }
   return out

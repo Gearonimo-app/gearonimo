@@ -471,6 +471,7 @@
                     <span
                       v-if="row.previous && row.previous.result !== 'not_assessed'"
                       :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'"
+                      :title="row.previous.inspector_name ? $t('inspections.table.previousBy', { name: row.previous.inspector_name }) : undefined"
                     >
                       {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
                     </span>
@@ -606,7 +607,7 @@ import {
   type CountryCode,
 } from '@gearonimo/core'
 import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
-import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector } from '../composables/useInspections'
+import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
@@ -763,7 +764,7 @@ function cancelLinkPart() {
   linkCandidates.value = []
 }
 
-const previousResults = ref<Record<string, { result: string; comment: string | null; inspection_date: string } | null>>({})
+const previousResults = ref<Record<string, PreviousResult>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
 
 const completing = ref(false)
@@ -1623,7 +1624,7 @@ interface Row {
   brand: string
   category: string
   year: string
-  previous: { result: string; comment: string | null; inspection_date: string } | null
+  previous: PreviousResult
   warning: { icon: string; text: string } | null
   score: number
 }
@@ -2276,11 +2277,17 @@ async function saveArticle(it: Item) {
 }
 
 async function saveRow(it: Item) {
+  // Wie dít artikel daadwerkelijk beoordeelde (2026-09-13, meerdere
+  // keurmeesters in dezelfde keuring): laatste die opslaat wint, zelfde
+  // last-write-wins-aanpak als result/comment hieronder al hadden. Los van
+  // inspections.inspector_id, die blijft de starter van de hele keuring.
+  const inspector = await ensureInspector()
   const patch = {
     result: it.result,
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
     comment: it.comment,
+    inspector_id: inspector.id,
   }
   if (!isOnline.value) {
     // Offline: lokale weergave bijwerken + de wijziging in de mutatiewachtrij

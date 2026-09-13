@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Article not found",
+      "lastInspection": "Last inspection",
       "retire": "Retire",
       "retireTitle": "Retire this article?",
       "retireBody": "The article stays on record but no longer counts towards inspections.",
@@ -325,6 +326,7 @@
       "colFirstUse": "In use",
       "colUser": "User",
       "colPrevious": "Previous",
+      "previousBy": "Inspected by {name}",
       "colResult": "Result",
       "colNextDue": "Next inspection",
       "colWarning": "",
