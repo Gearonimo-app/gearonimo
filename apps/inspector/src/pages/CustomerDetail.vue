@@ -201,12 +201,20 @@ async function onStartInspection() {
   }
 }
 
-async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
+// 'none' (Jos, 2026-09-14): leeg beginnen -- geen bestaand artikel meenemen,
+// meteen door naar de wizard om daar zelf (nieuwe) artikelen toe te voegen.
+function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'new' | 'none'): string[] {
+  if (scopeChoice === 'all') return scope.allIds
+  if (scopeChoice === 'new') return scope.newIds
+  return []
+}
+
+async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
   showArticleSelect.value = false
   startingInspection.value = true
   startError.value = ''
   try {
-    const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
+    const articleIds = resolveArticleIds(articleScope.value, scopeChoice)
     const inspectionId = await startInspectionWithArticles(id, articleIds)
     router.push(`/inspections/${inspectionId}`)
   } catch (e) {
@@ -216,11 +224,16 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
   }
 }
 
-async function confirmAddExtra(scopeChoice: 'all' | 'new') {
+async function confirmAddExtra(scopeChoice: 'all' | 'new' | 'none') {
   showAddExtra.value = false
   if (!draftInspection.value) return
   const draftId = draftInspection.value.id
-  const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
+  // 'none': niets bijhalen, gewoon doorgaan naar de al openstaande keuring.
+  if (scopeChoice === 'none') {
+    router.push(`/inspections/${draftId}`)
+    return
+  }
+  const articleIds = resolveArticleIds(articleScope.value, scopeChoice)
   startingInspection.value = true
   startError.value = ''
   try {

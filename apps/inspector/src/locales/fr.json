@@ -266,6 +266,7 @@
       "hint": "Choisissez tout le matériel de ce client, ou uniquement les articles jamais encore contrôlés.",
       "allOption": "Tout",
       "newOption": "Nouveaux uniquement",
+      "emptyOption": "Commencer à vide",
       "addTitle": "Ajouter d'autres articles de ce client ?",
       "addHint": "Ces articles ne font pas encore partie du contrôle en cours. Ajoutez-les tous, ou uniquement ceux jamais encore contrôlés."
     },

@@ -266,6 +266,7 @@
       "hint": "Wählen Sie alles von diesem Kunden, oder nur die Artikel, die noch nicht geprüft wurden.",
       "allOption": "Alles",
       "newOption": "Nur neue",
+      "emptyOption": "Leer beginnen",
       "addTitle": "Weitere Artikel dieses Kunden hinzufügen?",
       "addHint": "Diese Artikel sind noch nicht in der offenen Prüfung enthalten. Fügen Sie alle hinzu, oder nur die noch nie geprüften."
     },
