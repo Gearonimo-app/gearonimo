@@ -5,6 +5,20 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## ⏳ Openstaande migratie (2026-09-14)
+
+> `supabase/migrations/20260762_customer_members_role_nullable.sql` staat
+> gepusht maar is **nog niet uitgevoerd**. Jos kon er deze sessie niet bij
+> (geen Supabase-toegang vanaf dit apparaat) en voert hem de volgende keer
+> op zijn privé-desktop uit in de Supabase SQL-editor.
+> Aanleiding: "Medewerker toevoegen" zonder ingevulde Functie gaf
+> `null value in column "role" of relation "customer_members" violates
+> not-null constraint" — `role` is in de app een optioneel vrij-tekstveld
+> (los van het `is_admin`-vinkje), maar had in de live database een
+> NOT NULL-constraint die in geen enkele migratie voorkomt (schema-drift).
+> De migratie zet die constraint uit. Zodra uitgevoerd: dit blokje
+> verwijderen.
+
 ## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
 
 > Vertrekpunt: een oude, nooit afgeronde checklist (screenshot van Jos)
