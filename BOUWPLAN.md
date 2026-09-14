@@ -14,10 +14,9 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > `join_customer_by_invite` matcht een teruggekomen gebruiker nu ook op
 > e-mail bij een al eerder gekoppelde rij (was eerst alleen bij een nog
 > nooit gekoppelde rij — zie de migratie-commentaar voor de aanleiding).
-> **Nog te checken met Jos**: of dit ook echt zijn oorspronkelijke klacht
-> oploste (geen "Instellingen"-tegel op het dashboard van De Rots, ondanks
-> een medewerker-rij "jos" met `is_admin=true`) — dat hing af van of die
-> rij sowieso wel bij De Rots hoort, wat nooit is bevestigd.
+> **Bevestigd opgelost**: Jos ziet nu de "Instellingen"-tegel op het
+> dashboard van De Rots. Daarmee is ook de weg vrij om daar de
+> "Kleding"-materiaalsoort aan te zetten (Instellingen → Materiaalsoorten).
 
 ## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
 
