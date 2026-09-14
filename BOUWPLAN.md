@@ -5,6 +5,51 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
+
+> Vertrekpunt: een oude, nooit afgeronde checklist (screenshot van Jos)
+> met 35 alfabetisch te onderzoeken merken (All Gear t/m Zenith) plus
+> Delta Plus en Maillon Rapide, waarvan er destijds pas 4 waren opgepakt
+> (Buckingham, Kong, Marlow, 3M). In deze sessie de rest afgewerkt.
+> - **Delta Plus** (48) en **Maillon Rapide/Peguet** (22, volledige
+>   EN362/EN12275-reeks) toegevoegd.
+> - Alfabetische restlijst afgewerkt via 6 parallelle onderzoeksbatches:
+>   **toegevoegd** — All Gear (4), Cresto (5), Texora (3), Tightline Arb
+>   (4, "Magpie" bleek een modelnaam, geen apart merk), Treehog (5),
+>   Donaghys (7), English Braids (8), Edelweiss (6), Ocún (5), Portwest
+>   (7, alleen hoogwerk-assortiment), Ridgegear (8), Rock Empire (7),
+>   Gleistein (10), Harkie (13), IKAR (11), JSP (2, alleen EN12492-helmen),
+>   Singing Rock (48), SAR (33), 3M/DBI-SALA-aanvulling (3), Simarghu (3).
+>   **Niet toegevoegd** (bestaansrecht/relevantie niet aangetoond, of in
+>   strijd met "geen winkels"): Arb Response, Black Diamond, Bulldog,
+>   Dragon, G-Force, Komet (bestaat niet meer zelfstandig — nu Miller/
+>   Honeywell), Hightec (mogelijk bedoeld: "heightec" — nog navragen bij
+>   Jos), Tree-Force, Wild Country, Willans, Zenith (bleek een modelnaam,
+>   o.a. bij KASK), Singing Tree (geen eigen fabrikant meer — huidige
+>   producten zijn OEM al onder ISC/Notch in de catalogus).
+> - Onderweg ontdekt en gefixt: 2 All-Gear-rijen (Tree Access ST/XT)
+>   bleken eigenlijk CAMP-producten (Jos herkende de branding op een
+>   screenshot) — merk gecorrigeerd, plus het losse schoudergedeelte
+>   "Tree Access SRT Chest" (non-PPE) als bonus toegevoegd.
+> - **Link-sync tegen live Gearonimo-export (12-09):** `vergelijk.mts`
+>   vond 51 tegenstrijdigheden tussen bronlijst en de app. Stuk voor stuk
+>   met curl geverifieerd: 50 daarvan was de bronlijst al goed, de app was
+>   stale (voornamelijk 26 verlopen Petzl SFC-servlet-ID's, plus Liros/
+>   Tango/Tendon/Yale-links en een paar categorie-restjes van vóór de
+>   categorieën-migratie) — apart geëxporteerd voor import. 1 echte fout
+>   gevonden en gefixt: Teufelberger Sirius Accessory Cord 10mm stond op
+>   `anchor_strop`, moet `accessory_cord` zijn.
+> - Ridgegear blokkeert deze sessie volledig met een JS-captcha; 6 links
+>   kon Jos zelf in de browser bevestigen (waaronder 1 herstelde 404 en
+>   1 gecorrigeerde sluitingsbeschrijving RGK1: gewoon "screwgate", geen
+>   "double action").
+> - **Nog open:** Simarghu (3 producten) en SAR Cambium Saver/Climbing
+>   Helmet (2) hebben geen bevestigde handleiding — simarghu.com was deze
+>   hele sessie onbereikbaar vanuit de sandbox, SAR's eu-doc-pagina mist
+>   voor die 2 producten kennelijk een PDF. Aan Jos gevraagd zelf te
+>   controleren. Ook: bevestiging nodig of "Hightec" "heightec" moest zijn.
+> - Bronlijst ging van 3042 naar 3305 producten in deze sessie.
+
 ## Voortgang (bijgewerkt 2026-09-10, category-opschoning)
 
 > **`products.category` van vrije tekst naar vaste, vertaalde lijst.**
