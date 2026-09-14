@@ -5,36 +5,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## ⏳ Openstaande migraties (2026-09-14)
+## Voortgang (bijgewerkt 2026-09-14, twee migraties uitgevoerd)
 
-> Twee migraties staan gepusht maar zijn **nog niet uitgevoerd**. Jos kon
-> er deze sessie niet bij (geen Supabase-toegang vanaf dit apparaat) en
-> voert ze de volgende keer op zijn privé-desktop uit in de Supabase
-> SQL-editor, in deze volgorde:
->
-> 1. **`20260762_customer_members_role_nullable.sql`** — Aanleiding:
->    "Medewerker toevoegen" zonder ingevulde Functie gaf `null value in
->    column "role" of relation "customer_members" violates not-null
->    constraint`. `role` is in de app een optioneel vrij-tekstveld (los van
->    het `is_admin`-vinkje), maar had in de live database een
->    NOT NULL-constraint die in geen enkele migratie voorkomt
->    (schema-drift). De migratie zet die constraint uit.
-> 2. **`20260763_join_customer_matches_by_email.sql`** — Aanleiding: Jos
->    zag geen "Instellingen"-tegel (dus geen beheerdersrechten) op het
->    dashboard van De Rots, ondanks een bestaande medewerker-rij "jos" met
->    `is_admin=true`. Onderzocht met Jos: `join_customer_by_invite`
->    matchte een teruggekomen gebruiker alleen exact op `user_id`, en
->    anders op e-mail maar **uitsluitend** bij een nog nooit gekoppelde rij
->    — na de eerste koppeling telde e-mail niet meer mee. Jos vond dat
->    terecht fragiel (2026-09-14: *"Is het niet raar dat het niet via
->    email adres gaat?"*). Deze migratie laat de e-mailmatch ook een
->    al-gekoppelde rij vinden en bindt die om naar het huidige account.
->    **Nog niet bevestigd of dit ook echt de "geen Instellingen-tegel
->    op De Rots"-klacht oplost** — dat hing af van of die "jos"-rij
->    sowieso wel bij De Rots hoort, wat nog niet is nagegaan. Na het
->    draaien van deze migratie opnieuw controleren met Jos.
->
-> Zodra beide zijn uitgevoerd: dit blokje verwijderen.
+> Jos heeft `20260762_customer_members_role_nullable.sql` en
+> `20260763_join_customer_matches_by_email.sql` gedraaid in de Supabase
+> SQL-editor — beide succesvol. `customer_members.role` mag nu leeg
+> ("Medewerker toevoegen" zonder Functie werkt weer), en
+> `join_customer_by_invite` matcht een teruggekomen gebruiker nu ook op
+> e-mail bij een al eerder gekoppelde rij (was eerst alleen bij een nog
+> nooit gekoppelde rij — zie de migratie-commentaar voor de aanleiding).
+> **Nog te checken met Jos**: of dit ook echt zijn oorspronkelijke klacht
+> oploste (geen "Instellingen"-tegel op het dashboard van De Rots, ondanks
+> een medewerker-rij "jos" met `is_admin=true`) — dat hing af van of die
+> rij sowieso wel bij De Rots hoort, wat nooit is bevestigd.
 
 ## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
 
