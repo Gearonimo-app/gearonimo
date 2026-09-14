@@ -5,19 +5,36 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## ⏳ Openstaande migratie (2026-09-14)
+## ⏳ Openstaande migraties (2026-09-14)
 
-> `supabase/migrations/20260762_customer_members_role_nullable.sql` staat
-> gepusht maar is **nog niet uitgevoerd**. Jos kon er deze sessie niet bij
-> (geen Supabase-toegang vanaf dit apparaat) en voert hem de volgende keer
-> op zijn privé-desktop uit in de Supabase SQL-editor.
-> Aanleiding: "Medewerker toevoegen" zonder ingevulde Functie gaf
-> `null value in column "role" of relation "customer_members" violates
-> not-null constraint" — `role` is in de app een optioneel vrij-tekstveld
-> (los van het `is_admin`-vinkje), maar had in de live database een
-> NOT NULL-constraint die in geen enkele migratie voorkomt (schema-drift).
-> De migratie zet die constraint uit. Zodra uitgevoerd: dit blokje
-> verwijderen.
+> Twee migraties staan gepusht maar zijn **nog niet uitgevoerd**. Jos kon
+> er deze sessie niet bij (geen Supabase-toegang vanaf dit apparaat) en
+> voert ze de volgende keer op zijn privé-desktop uit in de Supabase
+> SQL-editor, in deze volgorde:
+>
+> 1. **`20260762_customer_members_role_nullable.sql`** — Aanleiding:
+>    "Medewerker toevoegen" zonder ingevulde Functie gaf `null value in
+>    column "role" of relation "customer_members" violates not-null
+>    constraint`. `role` is in de app een optioneel vrij-tekstveld (los van
+>    het `is_admin`-vinkje), maar had in de live database een
+>    NOT NULL-constraint die in geen enkele migratie voorkomt
+>    (schema-drift). De migratie zet die constraint uit.
+> 2. **`20260763_join_customer_matches_by_email.sql`** — Aanleiding: Jos
+>    zag geen "Instellingen"-tegel (dus geen beheerdersrechten) op het
+>    dashboard van De Rots, ondanks een bestaande medewerker-rij "jos" met
+>    `is_admin=true`. Onderzocht met Jos: `join_customer_by_invite`
+>    matchte een teruggekomen gebruiker alleen exact op `user_id`, en
+>    anders op e-mail maar **uitsluitend** bij een nog nooit gekoppelde rij
+>    — na de eerste koppeling telde e-mail niet meer mee. Jos vond dat
+>    terecht fragiel (2026-09-14: *"Is het niet raar dat het niet via
+>    email adres gaat?"*). Deze migratie laat de e-mailmatch ook een
+>    al-gekoppelde rij vinden en bindt die om naar het huidige account.
+>    **Nog niet bevestigd of dit ook echt de "geen Instellingen-tegel
+>    op De Rots"-klacht oplost** — dat hing af van of die "jos"-rij
+>    sowieso wel bij De Rots hoort, wat nog niet is nagegaan. Na het
+>    draaien van deze migratie opnieuw controleren met Jos.
+>
+> Zodra beide zijn uitgevoerd: dit blokje verwijderen.
 
 ## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
 
