@@ -331,7 +331,7 @@ async function loadLastInspection() {
   // client-side op de echte keurdatum sorteren.
   const { data } = await supabase
     .from('inspection_items')
-    .select('result, created_at, inspections!inner(inspection_date, status), item_inspector:inspectors(name)')
+    .select('result, created_at, inspections!inner(inspection_date, status), item_inspector:inspectors!inspector_id(name)')
     .eq('article_id', id.value)
     .eq('inspections.status', 'completed')
     .in('result', ['passed', 'rejected'])

@@ -387,7 +387,7 @@ export async function findPreviousResult(
     //    en zou de import winnen van een recentere echte keuring.
     const { data, error } = await supabase
       .from('inspection_items')
-      .select('result, comment, created_at, inspection:inspections(inspection_date, status), item_inspector:inspectors(name)')
+      .select('result, comment, created_at, inspection:inspections(inspection_date, status), item_inspector:inspectors!inspector_id(name)')
       .eq('article_id', articleId)
       .neq('inspection_id', excludeInspectionId)
       .neq('result', 'not_assessed')

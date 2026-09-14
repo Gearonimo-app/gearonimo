@@ -2427,7 +2427,7 @@ async function activePeerNames(): Promise<string[]> {
   const cutoff = new Date(Date.now() - 5 * 60_000).toISOString()
   const { data } = await supabase
     .from('inspection_presence')
-    .select('last_seen, inspector:inspectors(name)')
+    .select('last_seen, inspector:inspectors!inspector_id(name)')
     .eq('inspection_id', id)
     .neq('inspector_id', me.id)
     .gt('last_seen', cutoff)

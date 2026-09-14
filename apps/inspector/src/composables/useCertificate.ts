@@ -921,7 +921,15 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors(name, signature_path)'
+      // inspector:inspectors!inspector_id -- expliciete FK-hint (op kolomnaam,
+      // niet op constraint-naam -- die laatste is een aanname over Postgres'
+      // default-naamgeving, de kolomnaam staat gewoon in de migratie) nodig
+      // sinds inspection_items ook een inspector_id kreeg (2026-09-13):
+      // PostgREST ziet anders twee paden tussen inspections en inspectors (de
+      // rechtstreekse FK hier, én via inspection_items als bridge-tabel) en
+      // weigert dan met "more than one relationship was found" -- precies de
+      // fout die "Afronden" liet mislukken (Jos, 2026-09-14).
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -942,7 +950,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label), item_inspector:inspectors(name)'
+      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
