@@ -127,6 +127,7 @@ import {
   typeIsInspected,
   selfCheckIntervalMonths,
   customerArticleStatus,
+  toIsoDate,
 } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 import UserPicker from "../components/UserPicker.vue";
@@ -194,7 +195,8 @@ const selfCheckDate = ref("");
 const selfCheckBy = ref("");
 const selfCheckSaving = ref(false);
 const selfCheckError = ref("");
-const todayIso = computed(() => new Date().toISOString().slice(0, 10));
+// Lokale datum, niet toISOString() -- zie packages/core/src/date.ts.
+const todayIso = computed(() => toIsoDate());
 
 watch(selfCheckOpen, (open) => {
   if (open) {

@@ -603,6 +603,7 @@ import {
   isInspectedType,
   inspectorVisibleArticles,
   isUnlimitedAge,
+  toIsoDate,
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
@@ -1606,16 +1607,6 @@ function rowWarning(it: Item): { icon: string; text: string } | null {
     return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
   }
   return null
-}
-
-function toIsoDate(d: Date) {
-  // Lokale datum, niet toISOString() (code review 2026-07-18): die rekent om
-  // naar UTC, waardoor een voorgestelde next_due tussen middernacht en de
-  // NL-tijdzoneverschuiving één dag te vroeg op het certificaat kon komen.
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }
 
 interface Row {
