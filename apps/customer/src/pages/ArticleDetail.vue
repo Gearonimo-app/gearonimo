@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   supabase,
@@ -340,7 +340,19 @@ async function save() {
   }
 }
 
-onMounted(load);
+// route.params.id in plaats van onMounted: Vue Router hergebruikt deze
+// component bij het navigeren tussen twee /materials/:id-routes (bv. via
+// terug/vooruit) -- zonder deze watcher bleef het vorige artikel op het
+// scherm staan terwijl de URL al naar het nieuwe wees, en kon "bewerken +
+// opslaan" het verkeerde artikel overschrijven (code review 2026-09-15).
+watch(
+  () => route.params.id,
+  () => {
+    editMode.value = false;
+    load();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>
