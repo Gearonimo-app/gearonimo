@@ -24,9 +24,60 @@
         <button type="button" class="iw__btn iw__btn--cancel" :disabled="!sortedRows.length" @click="exportInspectionCsv">
           ⧉ {{ $t('inspections.table.exportCsv') }}
         </button>
+        <!-- Corrigeren i.p.v. bewerken: een afgeronde keuring staat op slot in
+             de database, dit maakt een nieuw (gekoppeld) certificaat aan i.p.v.
+             het oude te wijzigen (code review 15/16 sept. 2026, besluit Jos). -->
+        <button v-if="!isImported && !awaitingSync" type="button" class="iw__btn iw__btn--cancel" @click="openCorrection">
+          {{ $t('inspections.correction.open') }}
+        </button>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
           {{ $t('inspections.backToCustomer') }}
         </button>
+      </div>
+
+      <div v-if="correcting" class="iwc__overlay" @click.self="closeCorrection">
+        <div class="iwc__dialog">
+          <h2>{{ $t('inspections.correction.title') }}</h2>
+          <p class="iwc__hint">{{ $t('inspections.correction.hint') }}</p>
+          <ul class="iwc__list">
+            <li v-for="row in correctionRows" :key="row.id" class="iwc__row">
+              <span class="iwc__label">{{ row.label }}</span>
+              <span class="iwc__buttons">
+                <button
+                  type="button"
+                  class="iw__result-btn iw__result-btn--pass"
+                  :class="{ 'iw__result-btn--active': correctionDraft[row.id].result === 'passed' }"
+                  @click="setCorrectionResult(row.id, 'passed')"
+                >✅</button>
+                <button
+                  type="button"
+                  class="iw__result-btn iw__result-btn--fail"
+                  :class="{ 'iw__result-btn--active': correctionDraft[row.id].result === 'rejected' }"
+                  @click="setCorrectionResult(row.id, 'rejected')"
+                >❌</button>
+              </span>
+              <select v-if="correctionDraft[row.id].result === 'rejected'" v-model="correctionDraft[row.id].rejection_code_id" class="iw__select iw__select--sm">
+                <option :value="null">{{ $t('inspections.noCode') }}</option>
+                <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
+              </select>
+              <input
+                v-model="correctionDraft[row.id].comment"
+                class="iw__input iw__input--sm iwc__comment"
+                :placeholder="$t('inspections.commentPlaceholder')"
+              />
+            </li>
+          </ul>
+          <p v-if="correctionError" class="iw__state iw__state--error">{{ correctionError }}</p>
+          <div class="iwc__actions">
+            <button type="button" class="iw__btn iw__btn--cancel" @click="closeCorrection">{{ $t('common.cancel') }}</button>
+            <button
+              type="button"
+              class="iw__btn iw__btn--save"
+              :disabled="correctionSaving || !hasCorrectionChanges"
+              @click="submitCorrection"
+            >{{ correctionSaving ? $t('common.saving') : $t('inspections.correction.confirm') }}</button>
+          </div>
+        </div>
       </div>
     </template>
 
@@ -609,7 +660,7 @@ import {
 } from '@gearonimo/core'
 import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
-import { generateCertificate } from '../composables/useCertificate'
+import { generateCertificate, correctInspection, type CorrectionItemChange } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
@@ -778,6 +829,107 @@ const awaitingSync = ref(false)
 // certificaat-PDF, dus het afrondscherm mag niet claimen dat er een certificaat
 // is aangemaakt.
 const isImported = computed(() => inspection.value?.source === 'import')
+
+// ─── Corrigeren van een afgeronde keuring (code review 15/16 sept. 2026) ────
+// De keuring zelf staat op slot; corrigeren maakt via correct_inspection()
+// een nieuwe, gekoppelde keuring + certificaat aan. correctionDraft houdt de
+// werkkopie bij (per item-id), losstaand van de echte (bevroren) `items`.
+interface CorrectionDraftEntry {
+  result: 'passed' | 'rejected'
+  rejection_code_id: string | null
+  comment: string
+}
+const correcting = ref(false)
+const correctionDraft = ref<Record<string, CorrectionDraftEntry>>({})
+const correctionSaving = ref(false)
+const correctionError = ref('')
+
+const correctionRows = computed(() =>
+  items.value
+    .filter((it) => it.result !== 'not_assessed')
+    .map((it) => ({ id: it.id, label: itemLabel(it) }))
+)
+
+function openCorrection() {
+  const draft: Record<string, CorrectionDraftEntry> = {}
+  for (const it of items.value) {
+    if (it.result === 'not_assessed') continue
+    draft[it.id] = {
+      result: it.result === 'rejected' ? 'rejected' : 'passed',
+      rejection_code_id: it.rejection_code_id,
+      comment: it.comment ?? '',
+    }
+  }
+  correctionDraft.value = draft
+  correctionError.value = ''
+  correcting.value = true
+}
+
+function closeCorrection() {
+  correcting.value = false
+}
+
+function setCorrectionResult(itemId: string, result: 'passed' | 'rejected') {
+  const entry = correctionDraft.value[itemId]
+  if (!entry) return
+  entry.result = result
+  if (result === 'passed') entry.rejection_code_id = null
+}
+
+// Alleen daadwerkelijk gewijzigde items gaan mee naar correct_inspection();
+// ongewijzigde items blijven gewoon zoals ze op de originele keuring stonden.
+const hasCorrectionChanges = computed(() =>
+  items.value.some((it) => {
+    const draft = correctionDraft.value[it.id]
+    if (!draft) return false
+    return (
+      draft.result !== it.result ||
+      draft.rejection_code_id !== it.rejection_code_id ||
+      (draft.comment || null) !== (it.comment || null)
+    )
+  })
+)
+
+async function submitCorrection() {
+  if (!inspection.value) return
+  correctionSaving.value = true
+  correctionError.value = ''
+  try {
+    const changes: CorrectionItemChange[] = items.value
+      .filter((it) => {
+        const draft = correctionDraft.value[it.id]
+        if (!draft) return false
+        return (
+          draft.result !== it.result ||
+          draft.rejection_code_id !== it.rejection_code_id ||
+          (draft.comment || null) !== (it.comment || null)
+        )
+      })
+      .map((it) => {
+        const draft = correctionDraft.value[it.id]
+        return {
+          item_id: it.id,
+          result: draft.result,
+          rejection_code_id: draft.rejection_code_id,
+          comment: draft.comment.trim() || null,
+        }
+      })
+    const { newInspectionId } = await correctInspection(inspection.value.id, changes)
+    correcting.value = false
+    // Bewust een harde navigatie, geen router.replace(): dit scherm blijft
+    // onder de tabbladen-architectuur soms als dezelfde instantie leven bij
+    // een route met alleen een ander :id (zelfde valkuil als eerder gevonden
+    // in ArticleDetail.vue), en `id` hierboven is een constante die dan niet
+    // meer zou kloppen. Een volledige herlaad is hier prima: corrigeren is
+    // een bewuste, zeldzame actie, geen hot path.
+    window.location.assign(`/inspections/${newInspectionId}`)
+  } catch (e) {
+    correctionError.value = errorMessage(e)
+  } finally {
+    correctionSaving.value = false
+  }
+}
+
 const addError = ref('')
 // Fout bij het opslaan van een keurresultaat (saveRow, online). Los van
 // addError: wordt leeggemaakt zodra een volgende save slaagt.
@@ -2760,4 +2912,26 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   /* Lege-staat-rij gewoon gecentreerd, niet als kaartcel. */
   .iw__table td.iw__empty { display: block; text-align: center; border: none; }
 }
+
+/* Correctie-dialoog (afgeronde keuring wijzigen -> nieuw certificaat). */
+.iwc__overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.5);
+  display: flex; align-items: center; justify-content: center; padding: 1.25rem; z-index: 100;
+}
+.iwc__dialog {
+  background: #fff; border-radius: 16px; padding: 1.25rem; width: 100%; max-width: 480px;
+  max-height: 85vh; overflow-y: auto; display: flex; flex-direction: column; gap: 0.75rem;
+}
+.iwc__dialog h2 { margin: 0; font-size: 1.1rem; }
+.iwc__hint { margin: 0; font-size: 0.85rem; color: #6b7280; }
+.iwc__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.iwc__row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem;
+  padding: 0.6rem 0; border-bottom: 1px solid #f3f4f6;
+}
+.iwc__label { flex: 1 1 100%; font-weight: 600; font-size: 0.92rem; }
+.iwc__buttons { display: flex; gap: 0.4rem; }
+.iwc__comment { flex: 1 1 100%; }
+.iwc__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }
+.iwc__actions .iw__btn { flex: 1; }
 </style>

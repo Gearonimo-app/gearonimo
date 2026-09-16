@@ -302,6 +302,12 @@
     "certificateImported": "Geïmporteerd uit een oud certificaat. Er is geen nieuw certificaat aangemaakt — het originele document blijft de bron.",
     "downloadCertificate": "Certificaat downloaden",
     "backToCustomer": "Terug naar klant",
+    "correction": {
+      "open": "Corrigeer keuring",
+      "title": "Keuring corrigeren",
+      "hint": "Een afgeronde keuring kan niet meer gewijzigd worden. Dit maakt een nieuw, gekoppeld certificaat aan met de gecorrigeerde uitslag — het oorspronkelijke certificaat blijft bewaard.",
+      "confirm": "Corrigeer en maak nieuw certificaat"
+    },
     "table": {
       "searchPlaceholder": "Zoek op serienummer, omschrijving, merk…",
       "noMatches": "Geen artikelen gevonden",
@@ -375,6 +381,8 @@
   "verify": {
     "authentic": "Echt certificaat",
     "notFound": "Certificaat niet gevonden of ongeldige link",
+    "supersededBy": "Dit certificaat is gecorrigeerd. De geldige versie is {number}.",
+    "supersededLink": "Bekijk geldige versie →",
     "number": "Certificaatnummer",
     "customer": "Klant",
     "date": "Keuringsdatum",

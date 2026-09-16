@@ -302,6 +302,12 @@
     "certificateImported": "Importé depuis un ancien certificat. Aucun nouveau certificat n'a été créé — le document original reste la source.",
     "downloadCertificate": "Télécharger le certificat",
     "backToCustomer": "Retour au client",
+    "correction": {
+      "open": "Corriger l'inspection",
+      "title": "Corriger l'inspection",
+      "hint": "Une inspection terminée ne peut plus être modifiée. Ceci crée un nouveau certificat lié avec le résultat corrigé — le certificat original est conservé.",
+      "confirm": "Corriger et créer un nouveau certificat"
+    },
     "table": {
       "searchPlaceholder": "Rechercher par numéro de série, description, marque…",
       "noMatches": "Aucun article trouvé",
@@ -373,6 +379,8 @@
   "verify": {
     "authentic": "Certificat authentique",
     "notFound": "Certificat introuvable ou lien invalide",
+    "supersededBy": "Ce certificat a été corrigé. La version valide est {number}.",
+    "supersededLink": "Voir la version valide →",
     "number": "Numéro de certificat",
     "customer": "Client",
     "date": "Date de contrôle",

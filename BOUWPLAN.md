@@ -5,6 +5,65 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-16, codereview + certificaat-onveranderlijkheid)
+
+> **Grondige codereview (5 deelonderzoeken: database/rechten, beide apps,
+> gedeelde packages, catalog-tooling) en de kritieke/hoge bevindingen
+> gefixt.** Volledig rapport als artifact gedeeld met Jos; kern hieronder.
+> - **RLS-lek gedicht**: `inspector_customer_ids()` filterde niet op
+>   `customer_links.status = 'active'` — een keurbedrijf dat een klant
+>   kwijtraakte hield voor altijd volledige schrijf/verwijderrechten
+>   (inclusief de klant kunnen verwijderen, met cascade-effect op diens
+>   artikelen bij het nieuwe bedrijf). Ook `self_managed=true`-artikelen
+>   (kleding/machines) waren alleen client-side afgeschermd voor
+>   keurbedrijven, niet in de database. Migratie:
+>   `20260916_rls_active_link_and_self_managed.sql` (**nog door Jos uit te
+>   voeren**).
+> - **Catalog-scripts**: `ingest.mts --overwrite` zonder bestandsnaam kon de
+>   hele inbox (90+ bestanden) met "lege cel wist wel" toepassen — nu
+>   geweigerd zonder expliciet bestand. `mergeRows` kon een bestaand
+>   product-id stil naar een andere waarde overschrijven bij een
+>   merk+naam-match — nu een gemeld conflict i.p.v. stille toepassing.
+> - **Klantportal**: `ArticleDetail.vue` ververste niet bij navigeren tussen
+>   twee artikelen (route-param zonder watcher) — kon het verkeerde artikel
+>   overschrijven. `!important` in `style.css` overrulede de kopbalk (tegen
+>   CLAUDE.md-regel 2) — kopbalk-achtergrond nu net als `AppHeader.vue` in de
+>   component zelf.
+> - **Gedeelde datumbug**: `toIsoDate()` (lokale datum, niet
+>   `toISOString()`) verplaatst naar `packages/core/src/date.ts` — was al
+>   eens apart gefixt in de inspecteurs-app, kwam los terug in de
+>   klantportal (self-check-datum rond middernacht).
+> - **Bulk-import**: klant/serienummer-zoekopdracht in `useImportCommit.ts`
+>   escaped nu `%`/`_`/`\` vóór `.ilike()` (voorkomt verkeerde matches).
+> - **`xlsx` bijgewerkt** van 0.18.5 (bekende CVE's) naar 0.20.3 via de
+>   officiële SheetJS-CDN-tarball.
+> - **Certificaat/keuring nu écht onveranderlijk na afronden** — was de
+>   laatste "hoog"-bevinding. Besluit Jos (16 sept., na kort overleg): geen
+>   simpel slot, maar corrigeren via een NIEUW gekoppeld certificaat met
+>   lettersuffix (`20260718-BOOMWERK` → `-a` → `-b`, ...); het origineel
+>   blijft ongewijzigd bestaan als audit-spoor. Elke actieve keurmeester van
+>   het bedrijf mag corrigeren; wie het oude certificaat scant ziet
+>   "vervangen door X" + link. Uitzondering: een import ongedaan maken mag
+>   nog steeds afgeronde (geïmporteerde) keuringen verwijderen (Jos: "ja,
+>   sta dit toe").
+>   - Migratie: `20260917_completed_inspection_immutable.sql` (**nog door
+>     Jos uit te voeren** — triggers die UPDATE/DELETE op een afgeronde
+>     `inspections`/`inspection_items`/`certificates`-rij blokkeren, plus
+>     `correct_inspection(p_inspection_id, p_items)` en een uitgebreide
+>     `verify_certificate()`).
+>   - Nieuwe knop "Corrigeer keuring" op het afrondscherm
+>     (`InspectionWizard.vue`): laat per item goed/afgekeurd + opmerking
+>     aanpassen, roept `correct_inspection` aan en navigeert (harde reload,
+>     bewust — zelfde valkuil als de tabbladen-architectuur bij een
+>     route-param-only wijziging) naar de nieuwe, gecorrigeerde keuring.
+>   - **Bekende beperking, nog niet opgelost**: de klant-/keuringgeschiedenis
+>     (bv. `Inspections.vue`, klantdetail) toont een correctie nu als een
+>     aparte rij náást het origineel, niet expliciet gemarkeerd als
+>     "vervangen". Prima voor het audit-spoor, maar kan verwarrend ogen in
+>     een lijst. Los oppakken als het in de praktijk hindert.
+> - Build (`vue-tsc` + `vite build`) en `npm run test --workspaces`
+>   (155 tests) groen voor beide apps na elke stap.
+
 ## Voortgang (bijgewerkt 2026-09-10, category-opschoning)
 
 > **`products.category` van vrije tekst naar vaste, vertaalde lijst.**
