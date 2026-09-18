@@ -24,6 +24,16 @@
             <dd>{{ displayValue(f, article[f.col]) }}</dd>
           </div>
         </template>
+        <!-- Laatste keuring + wie (2026-09-13): geen echte artikelkolom, dus
+             los van fieldDefs -- hier terug te vinden i.p.v. alleen als
+             tooltip in de keuringswizard. -->
+        <div v-if="lastInspection" class="ad__view-row">
+          <dt>{{ $t('articles.detail.lastInspection') }}</dt>
+          <dd>
+            {{ lastInspection.result === 'passed' ? '✅' : '❌' }} {{ lastInspection.date }}
+            <span v-if="lastInspection.inspector"> — {{ lastInspection.inspector }}</span>
+          </dd>
+        </div>
       </dl>
       <!-- Opmerkingen: bewust altijd in beeld en meteen typbaar (Jos
            2026-07-29). Het stond wel in de gegevenslijst, maar alleen als er
@@ -306,6 +316,43 @@ const form = ref<Record<string, any>>({})
 const viewFieldDefs = fieldDefs.filter((f) => f.col !== 'notes')
 
 const notesDraft = ref('')
+
+// Laatste keuring + wie: los van fieldDefs (geen echte artikelkolom, en niet
+// bewerkbaar) -- zelfde "terug kunnen vinden wie het gekeurd heeft" als de
+// tooltip bij "Vorige" in de keuringswizard, maar dan zonder hover nodig te
+// hebben (Jos, 2026-09-13). Alleen online: dit is geschiedenis opvragen, geen
+// onderdeel van een actieve offline keuring.
+const lastInspection = ref<{ date: string; result: string; inspector: string | null } | null>(null)
+async function loadLastInspection() {
+  if (!isOnline.value) { lastInspection.value = null; return }
+  // PostgREST kan de buitenste rijen niet sorteren op een kolom van een
+  // geneste relatie -- zelfde beperking als findPreviousResult
+  // (useInspections.ts), dus dezelfde oplossing: kandidaten ophalen en
+  // client-side op de echte keurdatum sorteren.
+  const { data } = await supabase
+    .from('inspection_items')
+    .select('result, created_at, inspections!inner(inspection_date, status), item_inspector:inspectors!inspector_id(name)')
+    .eq('article_id', id.value)
+    .eq('inspections.status', 'completed')
+    .in('result', ['passed', 'rejected'])
+    .order('created_at', { ascending: false })
+    .limit(50)
+  const rows = (data ?? []) as unknown as {
+    result: string
+    created_at: string
+    inspections: { inspection_date: string } | null
+    item_inspector: { name: string | null } | null
+  }[]
+  const latest = rows
+    .filter((r) => r.inspections)
+    .sort((a, b) => {
+      const byDate = b.inspections!.inspection_date.localeCompare(a.inspections!.inspection_date)
+      return byDate !== 0 ? byDate : b.created_at.localeCompare(a.created_at)
+    })[0]
+  lastInspection.value = latest
+    ? { date: latest.inspections!.inspection_date, result: latest.result, inspector: latest.item_inspector?.name ?? null }
+    : null
+}
 const savingNotes = ref(false)
 const notesError = ref('')
 const notesDirty = computed(() => notesDraft.value !== ((article.value?.notes as string | null) ?? ''))
@@ -736,7 +783,7 @@ async function back() {
   }
 }
 
-onMounted(async () => { await load(); loadSiblings(); loadProducts() })
+onMounted(async () => { await load(); loadSiblings(); loadProducts(); loadLastInspection() })
 
 // LET OP -- hier stond een watcher op route.params.id die de pagina zelf
 // herlaadde bij "volgende artikel". Die was nodig toen Vue dit component bij

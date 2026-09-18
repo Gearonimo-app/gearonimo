@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Artikel niet gevonden",
+      "lastInspection": "Laatste keuring",
       "retire": "Afvoeren",
       "retireTitle": "Artikel afvoeren?",
       "retireBody": "Het artikel blijft bewaard maar telt niet meer mee voor keuringen.",
@@ -265,6 +266,7 @@
       "hint": "Kies alles van deze klant, of alleen de artikelen die nog niet eerder gekeurd zijn.",
       "allOption": "Alles",
       "newOption": "Alleen nieuwe",
+      "emptyOption": "Leeg beginnen",
       "addTitle": "Nog meer artikelen van deze klant toevoegen?",
       "addHint": "Deze artikelen staan nog niet in de openstaande keuring. Kies alles erbij, of alleen de nog niet eerder gekeurde."
     },
@@ -319,6 +321,7 @@
       "colFirstUse": "In gebruik",
       "colUser": "Gebruiker",
       "colPrevious": "Vorige",
+      "previousBy": "Gekeurd door {name}",
       "colResult": "Resultaat",
       "colNextDue": "Volgende keuring",
       "colWarning": "",

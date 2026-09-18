@@ -157,6 +157,7 @@
     },
     "detail": {
       "notFound": "Article introuvable",
+      "lastInspection": "Dernier contrôle",
       "retire": "Retirer",
       "retireTitle": "Retirer cet article ?",
       "retireBody": "L'article reste conservé mais ne compte plus pour les contrôles.",
@@ -265,6 +266,7 @@
       "hint": "Choisissez tout le matériel de ce client, ou uniquement les articles jamais encore contrôlés.",
       "allOption": "Tout",
       "newOption": "Nouveaux uniquement",
+      "emptyOption": "Commencer à vide",
       "addTitle": "Ajouter d'autres articles de ce client ?",
       "addHint": "Ces articles ne font pas encore partie du contrôle en cours. Ajoutez-les tous, ou uniquement ceux jamais encore contrôlés."
     },
@@ -319,6 +321,7 @@
       "colFirstUse": "En service",
       "colUser": "Utilisateur",
       "colPrevious": "Précédent",
+      "previousBy": "Contrôlé par {name}",
       "colResult": "Résultat",
       "colNextDue": "Prochain contrôle",
       "colWarning": "",

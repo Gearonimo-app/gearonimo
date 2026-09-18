@@ -115,6 +115,9 @@
                        "afgevinkt op", niet "volgende keuring". Dat verschil in
                        juridische status moet zichtbaar blijven (DATAMODEL §3). -->
                   <span v-if="row.article.self_checked_at"> · {{ $t('selfCheck.lastChecked', { date: formatDate(row.article.self_checked_at) }) }}</span>
+                  <!-- Wie de laatste keuring deed (Jos, 2026-09-13) -- alleen
+                       bij een echte keuring, niet bij zelf afgevinkt. -->
+                  <span v-if="row.article.last_inspection_inspector && !row.article.self_checked_at"> · {{ row.article.last_inspection_inspector }}</span>
                 </div>
                 <!-- De reden staat nu ook als tekst in de rij (Jos, 2026-07-13:
                      "ik wil meteen zien waarom"): op de telefoon is een tooltip
@@ -258,6 +261,7 @@ interface ArticleRow {
   recall_url: string | null;
   last_result: string | null;
   last_inspection_date: string | null;
+  last_inspection_inspector: string | null;
   next_due: string | null;
   first_use_date: string | null;
   purchase_date: string | null;

@@ -763,6 +763,7 @@ voorkomen.
 | next_due | date? | "volgende keuring uiterlijk" (maandprecisie) — bewust níet "goed tot": een keuring is een momentopname, geen garantie. Soms verloopt de levensduur vóór het interval; systeem stelt automatisch de vroegste voor van (keuringsdatum + interval) en (einde levensduur uit productdata: bouwjaar + max. leeftijd, of eerste gebruik + max. gebruiksduur); keurmeester kan handmatig aanpassen |
 | rejection_code_id | FK? → rejection_codes | |
 | comment | text? | |
+| inspector_id | FK? → inspectors | **toegevoegd 2026-09-13** — wie dít specifieke artikel daadwerkelijk beoordeelde, los van `inspections.inspector_id` (die blijft de starter van de hele keuring, nooit overschreven). Nodig zodra meerdere keurmeesters dezelfde keuring meebeoordelen (zie `inspection_presence`, 2026-09-10): daarvoor stond er maar één naam op het hele certificaat. Gevuld bij elke opslag van een item (last-write-wins, zelfde aanpak als `result`/`comment`); blijft leeg zolang een item nog niet beoordeeld is. Gebruikt voor de "Gekeurd door"-regel onderaan het certificaat (alle betrokken namen), en zichtbaar per artikel in zowel de klant-app als de keurmeester-app. |
 
 > **Implementatie fase 2.4 (2026-06-24, inspector-app):** `inspections` en
 > `inspection_items` zijn nu gebouwd zoals hierboven, inclusief de
