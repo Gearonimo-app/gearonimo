@@ -280,12 +280,6 @@
     "rejected": "Rejected",
     "notAssessed": "Skipped",
     "lifeCycleWarning": "Lifespan: {months} mo left",
-    "recallFlag": "Recall: check this article",
-    "noticeFlag": "Manufacturer inspection notice",
-    "productNotesTitle": "Note from the catalogue",
-    "clearFlag": "Clear with a note (hides the flag for this article)",
-    "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):",
-    "clearedTitle": "Cleared",
     "noCode": "No code",
     "commentPlaceholder": "Comment…",
     "totalCount": "{n} articles total",
@@ -364,7 +358,13 @@
       "snLastPassed": "passed {date}",
       "snLastRejected": "rejected {date}",
       "saveRowFailed": "The result for \"{name}\" was NOT saved. Please try again.",
-      "finishBlockedUnsaved": "A result was not saved (see the message above). Save it again before finishing."
+      "finishBlockedUnsaved": "A result was not saved (see the message above). Save it again before finishing.",
+      "recallFlag": "Recall: check this article",
+      "clearFlag": "Clear with a note (hides the flag for this article)",
+      "clearedTitle": "Cleared",
+      "noticeFlag": "Manufacturer inspection notice",
+      "productNotesTitle": "Note from the catalogue",
+      "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):"
     },
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."
