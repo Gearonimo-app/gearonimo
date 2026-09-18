@@ -282,12 +282,6 @@
     "rejected": "Afgekeurd",
     "notAssessed": "Overgeslagen",
     "lifeCycleWarning": "Levensduur: nog {months} mnd",
-    "recallFlag": "Recall: controleer dit artikel",
-    "noticeFlag": "Keuringsmelding van de fabrikant",
-    "productNotesTitle": "Opmerking uit de catalogus",
-    "clearFlag": "Afvinken met opmerking (verbergt de vlag voor dit artikel)",
-    "clearFlagPrompt": "Opmerking (bv. \"voldaan\" of \"valt niet binnen de batch\"):",
-    "clearedTitle": "Afgevinkt",
     "noCode": "Geen code",
     "commentPlaceholder": "Opmerking…",
     "totalCount": "{n} artikelen totaal",
@@ -367,7 +361,13 @@
       "snLastPassed": "goedgekeurd {date}",
       "snLastRejected": "afgekeurd {date}",
       "saveRowFailed": "Resultaat van \"{name}\" is NIET opgeslagen. Probeer het opnieuw.",
-      "finishBlockedUnsaved": "Er is een resultaat niet opgeslagen (zie de melding hierboven). Sla dat eerst opnieuw op voordat je afrondt."
+      "finishBlockedUnsaved": "Er is een resultaat niet opgeslagen (zie de melding hierboven). Sla dat eerst opnieuw op voordat je afrondt.",
+      "recallFlag": "Recall: controleer dit artikel",
+      "clearFlag": "Afvinken met opmerking (verbergt de vlag voor dit artikel)",
+      "clearedTitle": "Afgevinkt",
+      "noticeFlag": "Keuringsmelding van de fabrikant",
+      "productNotesTitle": "Opmerking uit de catalogus",
+      "clearFlagPrompt": "Opmerking (bv. \"voldaan\" of \"valt niet binnen de batch\"):"
     },
     "deleteDraft": "Concept verwijderen",
     "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan."
