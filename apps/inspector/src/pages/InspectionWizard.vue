@@ -438,7 +438,14 @@
                     />
                   </td>
                   <td class="iw__year-cell" :data-label="$t('inspections.table.colYear')">
-                    <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
+                    <button
+                      v-if="row.age"
+                      type="button"
+                      class="iw__icon-btn"
+                      :class="{ 'iw__icon-btn--active': row.age.status === 'overdue' || row.age.status === 'soon' }"
+                      :title="row.age.title"
+                      @click="toggleAge(row.it)"
+                    >{{ row.age.icon }}</button>
                     <input
                       v-model.number="row.it.article.manufacture_year"
                       type="number"
@@ -541,6 +548,21 @@
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
+                  </td>
+                </tr>
+                <!-- Levensduur-detail achter het icoon in de jaartal-kolom: de
+                     twee getallen uit de catalogus, plus (op Jos' verzoek,
+                     2026-09-19) dezelfde catalogusopmerking als hierboven, zodat
+                     beide in één vakje te vinden zijn bij het leeftijd-icoon. -->
+                <tr v-if="row.age && openAgeId === row.it.id" class="iw__notes-row">
+                  <td colspan="12">
+                    <strong>{{ $t('inspections.table.ageInfoTitle') }}:</strong>
+                    {{ $t('inspections.table.ageMfrLabel') }} {{ row.age.mfrText }}
+                    ·
+                    {{ $t('inspections.table.ageUseLabel') }} {{ row.age.useText }}
+                    <template v-if="itemProductNotes(row.it)"><br />
+                      <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ itemProductNotes(row.it) }}
+                    </template>
                   </td>
                 </tr>
               </template>
@@ -962,6 +984,13 @@ const brandRowId = ref<string | null>(null)
 const openNotesId = ref<string | null>(null)
 function toggleNotes(it: Item) {
   openNotesId.value = openNotesId.value === it.id ? null : it.id
+}
+
+// Levensduur-icoon in de jaartal-kolom: zelfde klik-open-patroon als de
+// catalogusopmerking hierboven, maar los bijgehouden (onafhankelijk open/dicht).
+const openAgeId = ref<string | null>(null)
+function toggleAge(it: Item) {
+  openAgeId.value = openAgeId.value === it.id ? null : it.id
 }
 
 function startMatch(it: Item) {
@@ -1528,7 +1557,7 @@ function addMonths(date: Date, months: number): Date {
 // GB = 6 mnd voor PBM/hijsmateriaal per LOLER/PUWER; NL = 12 mnd;
 // onbekend land/type valt in getRegime terug op 12). Bewust NIET gekapt op
 // de levensduur — de keurmeester bepaalt zelf de datum; de levensduur-
-// waarschuwing (zie rowWarning) is alleen advies.
+// waarschuwing (zie ageInfo) is alleen advies.
 function defaultIntervalMonths(it: Item): number | null {
   const a = it.article
   if (a.interval_override_months != null) return a.interval_override_months
@@ -1589,23 +1618,64 @@ function endOfLife(it: Item): Date | null {
   return eol
 }
 
-// Levensduur-waarschuwing voor de keurmeester (advies, geen blokkade — de
+type AgeStatus = 'overdue' | 'soon' | 'ok' | 'unknown'
+interface AgeInfo {
+  icon: string
+  status: AgeStatus
+  title: string
+  mfrText: string
+  useText: string
+}
+
+function fmtAgeYears(years: number | null): string {
+  if (years == null) return t('inspections.table.ageNotResearched')
+  if (isUnlimitedAge(years)) return t('inspections.table.ageUnlimited')
+  return t('inspections.table.ageYears', { years })
+}
+
+// Levensduur-info voor de keurmeester (advies, geen blokkade — de
 // keurmeester bepaalt goed/afgekeurd). Verschijnt bewust niet op het
 // certificaat (useCertificate.ts gebruikt deze data niet).
-function rowWarning(it: Item): { icon: string; text: string } | null {
-  const eol = endOfLife(it)
-  if (!eol) return null
-  const now = Date.now()
-  if (eol.getTime() <= now) return { icon: '⛔', text: t('inspections.table.ageWarningOverdue') }
-  // Geen keurtermijn = geen datum om de levensduur tegen af te zetten. De
-  // "verloopt binnenkort"-waarschuwing slaat dan over; de harde ⛔ hierboven
-  // blijft wel staan, want een versleten zaagbroek mag je best melden.
-  const next = suggestedNextDue(it)
-  if (next != null && eol.getTime() <= next.getTime()) {
-    const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
-    return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
+//
+// Voorheen alleen een icoon bij ⚠/⛔, verder niets. Jos (2026-09-19): bij een
+// artikel waarvan de levensduur nog nooit is opgezocht (beide velden leeg in
+// de catalogus) stond hier dus ook niets — precies dezelfde lege cel als een
+// artikel waarvan bewust is vastgesteld dat er geen grens is. Dat las hij als
+// "dus in orde". Daarom nu altijd een icoon bij een gekoppeld, gekeurd
+// producttype: ❔ nog niet opgezocht, ℹ bekend en (nog) geen probleem, ⚠/⛔
+// zoals al zo was. Klikken toont de twee getallen; zie ook de catalogus-
+// opmerking die in dezelfde rij meekomt (Jos wilde beide in één vakje).
+function ageInfo(it: Item): AgeInfo | null {
+  const product = it.article.product
+  const type = product?.product_type
+  if (!product || (type != null && !isInspectedType(type as ProductType))) return null
+
+  const mfrYears = product.max_age_mfr_years
+  const useYears = product.max_age_use_years
+  const mfrText = fmtAgeYears(mfrYears)
+  const useText = fmtAgeYears(useYears)
+  const detail = `${t('inspections.table.ageMfrLabel')} ${mfrText} — ${t('inspections.table.ageUseLabel')} ${useText}`
+
+  if (mfrYears == null && useYears == null) {
+    return { icon: '❔', status: 'unknown', title: t('inspections.table.ageNotResearchedTitle'), mfrText, useText }
   }
-  return null
+
+  const eol = endOfLife(it)
+  if (eol) {
+    const now = Date.now()
+    if (eol.getTime() <= now) {
+      return { icon: '⛔', status: 'overdue', title: `${t('inspections.table.ageWarningOverdue')} — ${detail}`, mfrText, useText }
+    }
+    // Geen keurtermijn = geen datum om de levensduur tegen af te zetten. De
+    // "verloopt binnenkort"-waarschuwing slaat dan over; de harde ⛔ hierboven
+    // blijft wel staan, want een versleten zaagbroek mag je best melden.
+    const next = suggestedNextDue(it)
+    if (next != null && eol.getTime() <= next.getTime()) {
+      const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
+      return { icon: '⚠', status: 'soon', title: `${t('inspections.table.ageWarningSoon', { months })} — ${detail}`, mfrText, useText }
+    }
+  }
+  return { icon: 'ℹ', status: 'ok', title: detail, mfrText, useText }
 }
 
 function toIsoDate(d: Date) {
@@ -1625,7 +1695,7 @@ interface Row {
   category: string
   year: string
   previous: PreviousResult
-  warning: { icon: string; text: string } | null
+  age: AgeInfo | null
   score: number
 }
 
@@ -1674,7 +1744,7 @@ const rows = computed<Row[]>(() => {
       category: itemCategory(it),
       year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
       previous: previousResults.value[it.article_id] ?? null,
-      warning: rowWarning(it),
+      age: ageInfo(it),
       score: matchScore(it),
     })
   }
