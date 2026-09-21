@@ -5,6 +5,35 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-21, herinneringsmail aan klanten)
+
+> Nieuw: maandelijkse herinneringsmail aan klant-beheerders over artikelen
+> die binnen 30 dagen aan herkeuring toe zijn (besloten met Jos: alleen
+> `is_admin`-medewerkers, max. 1x per maand, mail i.p.v. push -- betrouwbaar-
+> heid was de belangrijkste eis). Gebouwd:
+> `supabase/migrations/20260921_customer_reminder_mail.sql` (tabel
+> `customer_reminder_log` + functie `customers_due_for_reminder`, dagelijkse
+> pg_cron-taak) en `supabase/functions/send-reinspection-reminders/`
+> (Edge Function, verstuurt via Zoho ZeptoMail). Dagelijks aanroepen i.p.v.
+> maandelijks was een bewuste keuze: de 30-dagen-cooldown zit in de query,
+> dus een storing van één nacht kost geen hele maand.
+>
+> **NOG TE DOEN (allemaal door Jos, niets hiervan kan vanuit deze sessie):**
+> 1. Zoho ZeptoMail-account aanmaken (zelfde Zoho-login als Zoho Mail),
+>    domein `gearonimo.net` verifiëren (SPF/DKIM-records bij Porkbun).
+> 2. Send Mail-token uit ZeptoMail ophalen.
+> 3. Migratie `20260921_customer_reminder_mail.sql` draaien in de SQL-editor.
+> 4. De service-role-sleutel EENMALIG los in Supabase Vault zetten (niet in
+>    een migratiebestand, dat zou een geheim in git zetten) zodat de cron-
+>    taak zich kan authenticeren bij de Edge Function.
+> 5. De Edge Function deployen (Supabase CLI of dashboard) met de secrets
+>    `ZEPTOMAIL_TOKEN`, `ZEPTOMAIL_FROM_EMAIL`.
+> 6. **Niet live getest** (geen Supabase/Zoho-toegang in deze sessie) --
+>    vooral het exacte ZeptoMail-API-adres (`.eu` vs `.com`) en de
+>    request/response-vorm verdienen een eerste handmatige testrun vanuit de
+>    Supabase dashboard "Edge Functions"-tab voordat de cron er live op los
+>    gaat.
+
 ## Voortgang (bijgewerkt 2026-09-14, twee migraties uitgevoerd)
 
 > Jos heeft `20260762_customer_members_role_nullable.sql` en
