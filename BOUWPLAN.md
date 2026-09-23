@@ -5,6 +5,25 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Idee op de plank: gestolen-lijst (Jos, 2026-09-23 — "onthoud deze optie")
+
+> Aanleiding: Drayer (FR) is opgelicht voor 25 Portable Winch 4000 lieren
+> en vraagt keurmeesters op te letten. Serienummers: 60260105, 60260106,
+> 60260108, 60260110, 60260111, 60260112, 60260113, 60260114, 60260115,
+> 60260116, 60260117, 60260118, 60260119, 60260120, 60260126, 60260206,
+> 60260208, 60260209, 60260210, 60260211, 60260212, 60260213, 60260214,
+> 60260215, 60260242.
+> Idee: een lijst gestolen serienummers (merk + model + SN); vult een
+> keurmeester zo'n SN in of scant hij het, dan een **waarschuwing, geen
+> beschuldiging** (eerlijk tweedehands gekocht kan). Nu bestaat alleen
+> "afvoeren met reden gestolen" als vrije tekst, zonder signaal.
+> Open vragen aan Jos (nog niet beantwoord): wie mag melden (alleen
+> platform-admin of ook klanten bij afvoeren), wat ziet de keurmeester bij
+> een treffer (alleen waarschuwing of ook contact van de melder), alleen
+> deze 25 of meteen een groeiende lijst. **Niet bouwen vóór die antwoorden.**
+
+---
+
 ## Voortgang (bijgewerkt 2026-09-14, twee migraties uitgevoerd)
 
 > Jos heeft `20260762_customer_members_role_nullable.sql` en
