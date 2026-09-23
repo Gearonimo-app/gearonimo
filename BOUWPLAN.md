@@ -5,6 +5,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Idee op de plank: EAN-code per product (Jos, 2026-09-23)
+
+> Doel (Jos): *"makkelijk wanneer je spullen meteen wilt registreren bij
+> verkoop. Een jaar later komt de klant terug voor de keuring."* Bij verkoop
+> scan je de EAN op de doos (producttype, niet het exemplaar). Het product
+> staat er dan meteen, je voegt het serienummer toe en het artikel is
+> geregistreerd. De `ScanButton` leest barcodes al (nu alleen voor SN).
+> Voorstel: codes **lerend** vullen, dus niet alle ~3.350 vooraf opzoeken
+> (fabrikanten publiceren ze zelden, winkels zijn verboden als bron, er is
+> vaak één code per maat/kleur). Een onbekende code koppel je één keer aan
+> een catalogusproduct en daarna kent iedereen hem. Levert een fabrikant een
+> lijst, dan importeren we die in één keer.
+> Open vragen aan Jos (nog niet beantwoord): wie scant bij verkoop
+> (keurmeester, klant of allebei) en wie mag een nieuwe code koppelen
+> (iedereen of alleen keurmeesters). **Niet bouwen vóór die antwoorden.**
+
+---
+
 ## Idee op de plank: gestolen-lijst (Jos, 2026-09-23 — "onthoud deze optie")
 
 > Aanleiding: Drayer (FR) is opgelicht voor 25 Portable Winch 4000 lieren
