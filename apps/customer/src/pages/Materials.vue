@@ -236,6 +236,7 @@ import {
   type CustomerArticleStatus,
   MATERIAL_DOMAINS,
   type MaterialDomain,
+  toIsoDate,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import AddArticleForm from "../components/AddArticleForm.vue";
@@ -566,7 +567,8 @@ const selfCheckBy = ref("");
 const selfCheckSaving = ref(false);
 const selfCheckError = ref("");
 
-const today = computed(() => new Date().toISOString().slice(0, 10));
+// Lokale datum, niet toISOString() -- zie packages/core/src/date.ts.
+const today = computed(() => toIsoDate());
 
 function canSelfCheck(a: UiArticle): boolean {
   return !!a.self_managed && selfCheckIntervalMonths(a.product_type) != null;

@@ -135,6 +135,8 @@
     "brandFilter": "Nach Marke filtern…",
     "catalogSearch": "Katalog durchsuchen (Marke, Typ, Name)…",
     "cantFind": "Nicht gefunden? Als freien Artikel eintragen",
+    "scanBarcode": "Strichcode scannen",
+    "barcodeUnknown": "Unbekannter Strichcode {code}. Bitte den Artikel selbst wählen.",
     "backToCatalog": "← Zurück zum Katalog",
     "suggestForCatalog": "Für Produktdatenbank vorschlagen",
     "showRetired": "Ausgemustertes Material anzeigen",
@@ -334,6 +336,13 @@
       "notAssessedConfirm": "{count} Artikel wurden nicht geprüft und erscheinen nicht auf dem Zertifikat (sie bleiben für das nächste Mal beim Kunden):",
       "ageWarningOverdue": "Lebensdauer überschritten",
       "ageWarningSoon": "Lebensdauer läuft bald ab ({months} Monate)",
+      "ageInfoTitle": "Lebensdauer",
+      "ageMfrLabel": "Max. Alter Hersteller:",
+      "ageUseLabel": "Max. Alter ab Erstgebrauch:",
+      "ageUnlimited": "unbegrenzt",
+      "ageNotResearched": "noch nicht recherchiert",
+      "ageNotResearchedTitle": "Lebensdauer dieses Produkts wurde im Katalog noch nicht recherchiert",
+      "ageYears": "{years} Jahre",
       "dayHelper": "Produktionstag (aus SN):",
       "dayHelperTooltip": "Die Tagesnummer des Jahres, oft dreistellig in der Seriennummer enthalten. 003 = 3. Januar, 123 = Tag 123 des Jahres (3. Mai, oder 2. Mai in einem Schaltjahr). Läuft bis maximal 365 (366 in einem Schaltjahr) — kein Datum.",
       "dayPlaceholder": "z. B. 045",
@@ -660,6 +669,7 @@
         "importConfirm": "Import bestätigen",
         "errorMissing": "Zeile {line}: Marke und Name sind erforderlich.",
         "errorUnknownId": "Zeile {line}: ID {id} existiert nicht im Katalog.",
+        "errorBarcodes": "Zeile {line}: ungültiger Strichcode {codes}",
         "readError": "Datei konnte nicht gelesen werden.",
         "duplicateSkipped": "Zeile {line}: {product} ist bereits im Katalog.",
         "duplicateExists": "Ein Produkt mit dieser Marke und diesem Namen ist bereits im Katalog. Passen Sie das bestehende Produkt an, oder geben Sie diesem einen eigenen Namen — zum Beispiel mit der Größe dahinter.",
@@ -678,6 +688,7 @@
         "material": "Material",
         "standard": "Norm",
         "manufacturerCode": "Artikel-/Modellcode des Herstellers",
+        "barcodes": "Strichcodes (EAN)",
         "maxAgeUseYears": "Max. Alter ab Inbetriebnahme (Jahre)",
         "maxAgeMfrYears": "Max. Alter Hersteller (Jahre)",
         "breakingStrength": "Bruchlast (MBS)",
@@ -741,6 +752,7 @@
         "material": "z. B. Aluminium, Stahl, Polyester",
         "standard": "z. B. EN 361, EN 1891 Typ A",
         "manufacturerCode": "z. B. M33A SL oder FS242-L/XL",
+        "barcodes": "z. B. 3342540123456; 3342540123463",
         "maxAgeUseYears": "z. B. 10 — oder 999 bei unbegrenzt",
         "maxAgeMfrYears": "z. B. 10 — oder 999 bei unbegrenzt",
         "breakingStrength": "z. B. 25 kN",
@@ -755,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "z. B. nur mit dem Original-Karabiner prüfen"
+      },
+      "hints": {
+        "barcodes": "Der Code auf der Verpackung oder dem Etikett, nicht die Seriennummer. Mehrere Codes (z. B. pro Größe) mit Semikolon trennen."
+      },
+      "errors": {
+        "invalidBarcodes": "Kein gültiger Strichcode: {codes}. Nur Ziffern, 8, 12, 13 oder 14 Stellen, mit korrekter Prüfziffer."
       }
     },
     "listing": {

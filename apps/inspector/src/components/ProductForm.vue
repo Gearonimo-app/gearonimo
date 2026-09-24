@@ -56,6 +56,11 @@
       <span>{{ $t('settings.catalog.fields.manufacturerCode') }}</span>
       <input v-model="form.manufacturer_code" :placeholder="$t('settings.catalog.placeholders.manufacturerCode')" class="pf__input" />
     </label>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.barcodes') }}</span>
+      <input v-model="form.barcodes" :placeholder="$t('settings.catalog.placeholders.barcodes')" inputmode="numeric" class="pf__input" />
+    </label>
+    <p class="pf__hint">{{ $t('settings.catalog.hints.barcodes') }}</p>
     <div class="pf__row">
       <label class="pf__field">
         <span>{{ $t('settings.catalog.fields.maxAgeUseYears') }}</span>
@@ -136,6 +141,7 @@
       <textarea v-model="form.notes" :placeholder="$t('settings.catalog.placeholders.notes')" class="pf__input" rows="2"></textarea>
     </label>
 
+    <p v-if="barcodeError" class="pf__error">{{ barcodeError }}</p>
     <p v-if="error" class="pf__error">{{ error }}</p>
     <div class="pf__actions">
       <button type="button" class="pf__btn pf__btn--cancel" @click="$emit('cancel')">{{ $t('common.cancel') }}</button>
@@ -148,8 +154,11 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import { PRODUCT_TYPES, CATEGORIES } from '@gearonimo/core'
+import { useI18n } from 'vue-i18n'
+import { PRODUCT_TYPES, CATEGORIES, parseBarcodes } from '@gearonimo/core'
 import type { ProductFormModel } from '../composables/productForm'
+
+const { t } = useI18n()
 
 const props = defineProps<{
   modelValue: ProductFormModel
@@ -167,7 +176,14 @@ const categoryKeys = CATEGORIES
 const form = ref<ProductFormModel>({ ...props.modelValue })
 watch(() => props.modelValue, (v) => { form.value = { ...v } })
 
+// Eén controle voor beide plekken die dit formulier gebruiken (catalogusbeheer
+// en de catalogus-wachtrij): een foute streepjescode kiest later stil het
+// verkeerde product, dus die gaat niet de database in.
+const barcodeError = ref('')
 function submit() {
+  const { invalid } = parseBarcodes(form.value.barcodes)
+  barcodeError.value = invalid.length ? t('settings.catalog.errors.invalidBarcodes', { codes: invalid.join(', ') }) : ''
+  if (invalid.length) return
   emit('submit', { ...form.value })
 }
 </script>

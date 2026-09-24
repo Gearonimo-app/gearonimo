@@ -135,6 +135,8 @@
     "brandFilter": "Filter by brand…",
     "catalogSearch": "Search catalogue (brand, type, name)…",
     "cantFind": "Can't find it? Add as free article",
+    "scanBarcode": "Scan barcode",
+    "barcodeUnknown": "Unknown barcode {code}. Please choose the item yourself.",
     "backToCatalog": "← Back to catalogue",
     "suggestForCatalog": "Suggest for product database",
     "showRetired": "Show retired items",
@@ -336,6 +338,13 @@
       "notAssessedConfirm": "{count} item(s) were not inspected and will not appear on the certificate (they remain with the customer for next time):",
       "ageWarningOverdue": "Lifespan exceeded",
       "ageWarningSoon": "Lifespan ending soon ({months} mo)",
+      "ageInfoTitle": "Service life",
+      "ageMfrLabel": "Max. age manufacturer:",
+      "ageUseLabel": "Max. age from first use:",
+      "ageUnlimited": "unlimited",
+      "ageNotResearched": "not researched yet",
+      "ageNotResearchedTitle": "Service life for this product has not been researched in the catalogue yet",
+      "ageYears": "{years} yr",
       "dayHelper": "Production day (from SN):",
       "dayHelperTooltip": "The day number of the year, often embedded as 3 digits in the serial number. 003 = Jan 3rd, 123 = day 123 of the year (May 3rd, or May 2nd in a leap year). Runs up to 365 max (366 in a leap year) — not the same as a calendar date.",
       "dayPlaceholder": "e.g. 045",
@@ -660,6 +669,7 @@
         "importConfirm": "Confirm import",
         "errorMissing": "Row {line}: brand and name are required.",
         "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",
+        "errorBarcodes": "Row {line}: invalid barcode {codes}",
         "readError": "Could not read the file.",
         "duplicateSkipped": "Row {line}: {product} is already in the catalogue.",
         "duplicateExists": "A product with this brand and name is already in the catalogue. Edit the existing product, or give this one its own name — for example with the size after it.",
@@ -678,6 +688,7 @@
         "material": "Material",
         "standard": "Standard",
         "manufacturerCode": "Manufacturer article/model code",
+        "barcodes": "Barcodes (EAN)",
         "maxAgeUseYears": "Max age from first use (years)",
         "maxAgeMfrYears": "Max age manufacturer (years)",
         "breakingStrength": "Breaking strength (MBS)",
@@ -741,6 +752,7 @@
         "material": "e.g. Aluminium, Steel, Polyester",
         "standard": "e.g. EN 361, EN 1891 Type A",
         "manufacturerCode": "e.g. M33A SL or FS242-L/XL",
+        "barcodes": "e.g. 3342540123456; 3342540123463",
         "maxAgeUseYears": "e.g. 10 — or 999 for unlimited",
         "maxAgeMfrYears": "e.g. 10 — or 999 for unlimited",
         "breakingStrength": "e.g. 25 kN",
@@ -755,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "e.g. inspect only with the original carabiner"
+      },
+      "hints": {
+        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon."
+      },
+      "errors": {
+        "invalidBarcodes": "Not a valid barcode: {codes}. Digits only, 8, 12, 13 or 14 long, with a correct check digit."
       }
     },
     "listing": {

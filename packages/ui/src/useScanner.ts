@@ -74,6 +74,9 @@ export function useScanner() {
         Html5QrcodeSupportedFormats.CODE_39,
         Html5QrcodeSupportedFormats.EAN_13,
         Html5QrcodeSupportedFormats.EAN_8,
+        // Amerikaanse merken (Sterling, Yale, ...) drukken UPC-A, 12 cijfers
+        // (streepjescode per product, 2026-09-24).
+        Html5QrcodeSupportedFormats.UPC_A,
       ];
       // Zeker weten dat de overlay (met het video-doelelement) al in de DOM
       // staat voordat Html5Qrcode ernaar zoekt.

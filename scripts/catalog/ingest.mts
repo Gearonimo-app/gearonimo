@@ -30,6 +30,21 @@ const dryRun = args.includes("--dry-run");
 const overwrite = args.includes("--overwrite");
 const files = args.filter((a) => !a.startsWith("--"));
 
+// --overwrite zet "lege cel wist wél de bestaande waarde" aan -- dat hoort
+// bij één bewust aangewezen bestand, nooit bij de hele inbox (die bevat ook
+// tientallen oudere, bewust onvolledige besluitbestanden). Code review
+// 2026-09-15: zonder deze check verwerkte "ingest.mts --overwrite" zonder
+// bestandsnaam in één keer alles in catalog/inbox/.
+if (overwrite && files.length === 0) {
+  console.error(
+    `\n--overwrite vereist een expliciet bestand, bijvoorbeeld:\n` +
+      `  node scripts/catalog/ingest.mts --overwrite catalog/inbox/besluit-x.csv\n` +
+      `Nooit de hele inbox met --overwrite -- dat kan bestaande waarden in\n` +
+      `andere, nog niet verwerkte bestanden stil wissen.\n`
+  );
+  process.exit(1);
+}
+
 /** Zonder bestandsnaam: alles uit de inbox, op naam gesorteerd. */
 function inboxFiles(): string[] {
   if (!existsSync(INBOX_DIR)) return [];
@@ -56,6 +71,7 @@ console.log(`\nBronlijst nu: ${startCount} producten`);
 const allAdded: string[] = [];
 const allUpdated: RowChange[] = [];
 const allKeptBlank: RowChange[] = [];
+const allIdConflicts: RowChange[] = [];
 
 for (const file of targets) {
   const raw = readAnyFile(file);
@@ -82,6 +98,7 @@ for (const file of targets) {
   allAdded.push(...result.added);
   allUpdated.push(...result.updated);
   allKeptBlank.push(...result.keptBlank);
+  allIdConflicts.push(...result.idConflicts);
 }
 
 // --- Wat er precies verandert, zodat het in de commit kan --------------------
@@ -110,8 +127,26 @@ show(
   ),
   10
 );
+show(
+  "Afwijkend id genegeerd (bestaand id behouden) — controleer dit handmatig",
+  allIdConflicts.map(
+    (u) =>
+      `${u.product} — bronlijst: ${u.fields[0].from}, aangeleverd: ${u.fields[0].to}`
+  )
+);
 
 // --- Controleren vóór wegschrijven ------------------------------------------
+
+if (allIdConflicts.length > 0) {
+  console.log(
+    `\n${allIdConflicts.length} rij(en) matchten op merk+naam maar brachten een ` +
+      `ANDER id mee dan de bronlijst al had (zie hierboven). Dat wordt nooit ` +
+      `automatisch overgenomen -- controleer of dit echt hetzelfde product is,\n` +
+      `en werk zo nodig het id handmatig bij in catalog/producten.csv.\n\n` +
+      `De bronlijst is niet aangepast.\n`
+  );
+  process.exit(1);
+}
 
 const report = validateCatalog(rows);
 console.log(

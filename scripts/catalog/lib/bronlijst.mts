@@ -141,6 +141,12 @@ export interface MergeResult {
   unchanged: number;
   /** Bestaande waarden die het aangeleverde bestand leeg liet. */
   keptBlank: RowChange[];
+  /**
+   * Rijen waar het aangeleverde bestand een ANDERE, niet-lege id meebracht
+   * dan de rij waarmee het op merk+naam matchte. De bestaande id is behouden;
+   * dit hoort nooit automatisch toegepast te worden (zie mergeRows).
+   */
+  idConflicts: RowChange[];
 }
 
 /**
@@ -174,6 +180,7 @@ export function mergeRows(
   const added: string[] = [];
   const updated: RowChange[] = [];
   const keptBlank: RowChange[] = [];
+  const idConflicts: RowChange[] = [];
   let unchanged = 0;
 
   for (const incomingRow of incoming) {
@@ -197,18 +204,29 @@ export function mergeRows(
 
     const fields: FieldChange[] = [];
     const blanked: FieldChange[] = [];
+    const conflicts: FieldChange[] = [];
 
     for (const col of CATALOG_COLUMNS) {
       const to = incomingRow[col];
       const from = existing[col];
       if (to === from) continue;
 
-      // De `id` mag nooit gewist worden, ook niet met `overwrite`. Die komt uit
-      // de database en is de enige manier om een bestaand product bij te werken
-      // in plaats van te dupliceren; kwijt is kwijt. Een aangeleverd bestand
-      // zonder id-kolom zou hem er anders bij elke overwrite uit slaan.
-      if (to === "" && (col === "id" || !overwrite)) {
-        // Alleen melden als er iets te verliezen viel.
+      // De `id` mag nooit wijzigen als de rij er al één heeft -- niet naar
+      // leeg (ook niet met `overwrite`) en ook niet naar een ANDERE waarde.
+      // Die komt uit de database en is de enige manier om een bestaand
+      // product bij te werken in plaats van te dupliceren of te koppelen aan
+      // het verkeerde record. Matcht een aangeleverd bestand deze rij op
+      // merk+naam en brengt het toevallig zelf een afwijkend id mee (bv. een
+      // verouderde export), dan wordt dat genegeerd en gemeld -- nooit stil
+      // toegepast (code review 2026-09-15).
+      if (col === "id" && from !== "") {
+        if (to !== "") conflicts.push({ column: col, from, to });
+        else blanked.push({ column: col, from, to });
+        continue;
+      }
+
+      // Lege cel wist niets, tenzij `overwrite` (zie module-comment hierboven).
+      if (to === "" && !overwrite) {
         if (from !== "") blanked.push({ column: col, from, to });
         continue;
       }
@@ -231,7 +249,8 @@ export function mergeRows(
     if (fields.length > 0) updated.push({ product: label, fields });
     else unchanged++;
     if (blanked.length > 0) keptBlank.push({ product: label, fields: blanked });
+    if (conflicts.length > 0) idConflicts.push({ product: label, fields: conflicts });
   }
 
-  return { rows, added, updated, unchanged, keptBlank };
+  return { rows, added, updated, unchanged, keptBlank, idConflicts };
 }

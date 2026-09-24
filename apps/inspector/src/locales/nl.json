@@ -135,6 +135,8 @@
     "brandFilter": "Filter op merk…",
     "catalogSearch": "Zoek in catalogus (merk, type, naam)…",
     "cantFind": "Niet gevonden? Vrij artikel invoeren",
+    "scanBarcode": "Scan streepjescode",
+    "barcodeUnknown": "Onbekende streepjescode {code}. Kies het artikel zelf.",
     "backToCatalog": "← Terug naar catalogus",
     "suggestForCatalog": "Toevoegen aan productendatabase",
     "showRetired": "Afgevoerd materiaal weergeven",
@@ -336,6 +338,13 @@
       "notAssessedConfirm": "{count} artikel(en) zijn niet gekeurd en komen niet op het certificaat (ze blijven bij de klant staan voor een volgende keer):",
       "ageWarningOverdue": "Levensduur verstreken",
       "ageWarningSoon": "Levensduur binnenkort verstreken ({months} mnd)",
+      "ageInfoTitle": "Levensduur",
+      "ageMfrLabel": "Max. leeftijd fabrikant:",
+      "ageUseLabel": "Max. leeftijd vanaf ingebruikname:",
+      "ageUnlimited": "onbeperkt",
+      "ageNotResearched": "nog niet opgezocht",
+      "ageNotResearchedTitle": "Levensduur van dit product is nog niet opgezocht in de catalogus",
+      "ageYears": "{years} jaar",
       "dayHelper": "Productiedag (uit SN):",
       "dayHelperTooltip": "Het dagnummer van het jaar, vaak 3 cijfers in het serienummer verwerkt. 003 = 3 januari, 123 = dag 123 van het jaar (3 mei, of 2 mei in een schrikkeljaar). Loopt op tot maximaal 365 (366 in een schrikkeljaar) — niet hetzelfde als een datum.",
       "dayPlaceholder": "bv. 045",
@@ -660,6 +669,7 @@
         "importConfirm": "Importeren bevestigen",
         "errorMissing": "Rij {line}: merk en naam zijn verplicht.",
         "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
+        "errorBarcodes": "Regel {line}: ongeldige streepjescode {codes}",
         "readError": "Bestand kon niet gelezen worden.",
         "duplicateSkipped": "Rij {line}: {product} staat al in de catalogus.",
         "duplicateExists": "Er staat al een product met dit merk en deze naam in de catalogus. Pas het bestaande product aan, of geef dit een eigen naam — bijvoorbeeld met de maat erachter.",
@@ -678,6 +688,7 @@
         "material": "Materiaal",
         "standard": "Norm",
         "manufacturerCode": "Artikel-/modelcode fabrikant",
+        "barcodes": "Streepjescodes (EAN)",
         "maxAgeUseYears": "Max. leeftijd vanaf ingebruikname (jaar)",
         "maxAgeMfrYears": "Max. leeftijd fabrikant (jaar)",
         "breakingStrength": "Breuksterkte (MBS)",
@@ -741,6 +752,7 @@
         "material": "bv. Aluminium, Steel, Polyester",
         "standard": "bv. EN 361, EN 1891 Type A",
         "manufacturerCode": "bv. M33A SL of FS242-L/XL",
+        "barcodes": "bv. 3342540123456; 3342540123463",
         "maxAgeUseYears": "bv. 10 — of 999 bij onbeperkt",
         "maxAgeMfrYears": "bv. 10 — of 999 bij onbeperkt",
         "breakingStrength": "bv. 25 kN",
@@ -755,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "bv. alleen keuren met de originele karabiner"
+      },
+      "hints": {
+        "barcodes": "De code op de doos of het label, niet het serienummer. Meerdere codes (bv. per maat) scheiden met een puntkomma."
+      },
+      "errors": {
+        "invalidBarcodes": "Geen geldige streepjescode: {codes}. Alleen cijfers, 8, 12, 13 of 14 lang, met kloppend controlecijfer."
       }
     },
     "listing": {
