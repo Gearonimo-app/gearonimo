@@ -20,21 +20,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Idee op de plank: EAN-code per product (Jos, 2026-09-23)
+## Besloten, nog niet bouwen: streepjescode per product (Jos, 2026-09-24)
 
-> Doel (Jos): *"makkelijk wanneer je spullen meteen wilt registreren bij
-> verkoop. Een jaar later komt de klant terug voor de keuring."* Bij verkoop
-> scan je de EAN op de doos (producttype, niet het exemplaar). Het product
-> staat er dan meteen, je voegt het serienummer toe en het artikel is
-> geregistreerd. De `ScanButton` leest barcodes al (nu alleen voor SN).
-> Voorstel: codes **lerend** vullen, dus niet alle ~3.350 vooraf opzoeken
-> (fabrikanten publiceren ze zelden, winkels zijn verboden als bron, er is
-> vaak één code per maat/kleur). Een onbekende code koppel je één keer aan
-> een catalogusproduct en daarna kent iedereen hem. Levert een fabrikant een
-> lijst, dan importeren we die in één keer.
-> Open vragen aan Jos (nog niet beantwoord): wie scant bij verkoop
-> (keurmeester, klant of allebei) en wie mag een nieuwe code koppelen
-> (iedereen of alleen keurmeesters). **Niet bouwen vóór die antwoorden.**
+> Doel: bij "Artikel toevoegen" de doos scannen, dan staat het product er
+> meteen (EAN/GTIN = producttype, niet het exemplaar). Jos: *"wacht nog even
+> met bouwen"*. Besluiten:
+> - **Alleen de Gearonimo-keurmeester-app**, op **beide plekken**: "Artikel
+>   toevoegen" bij de klant (`CustomerArticles.vue`) en tijdens de keuring
+>   (wizard).
+> - **Geen extra invulveld.** Er komt een scan-knop naast het bestaande
+>   Artikel-veld en dat veld zoekt ook op de code.
+> - **Codes komen alleen via `producten.csv`.** Jos vraagt ze op bij de
+>   fabrikant. Niemand kan ze in de app toevoegen of wijzigen, ook geen
+>   keurmeester (Jos: *"ik wil echt niet dat elke keurmeester dit kan
+>   aanpassen"*). Het eerdere idee van "lerend vullen" is daarmee vervallen.
+> - Een onbekende code geeft de melding "Onbekende code" en de keurmeester
+>   kiest het product zelf.
+> - Voorstel voor de uitvoering: een nieuwe csv-kolom (meerdere codes per
+>   product gescheiden door `;`, bv. per maat); `catalog:check` controleert
+>   het GTIN-controlecijfer; daarna export, de import-wizard, een kolom in
+>   `products` plus `search_products` en de scan-knop. Ongeveer één
+>   bouwsessie. Live kolommen van `products` vooraf laten verifiëren.
 
 ---
 
