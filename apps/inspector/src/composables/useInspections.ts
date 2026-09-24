@@ -22,6 +22,7 @@ import {
   deleteMutationsForInspection,
   touchDownloadActivity,
   inspectorVisibleArticles,
+  toIsoDate,
 } from '@gearonimo/core'
 
 export interface Inspector {
@@ -61,11 +62,7 @@ function requireOfflineKey(): CryptoKey {
 
 /** Vandaag als 'yyyy-mm-dd' op basis van de LOKALE datum (niet UTC). */
 function localToday(): string {
-  const d = new Date()
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return toIsoDate()
 }
 
 // De inspectors-tabel heeft nog geen beheerscherm; deze RPC zet automatisch

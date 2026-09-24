@@ -296,6 +296,12 @@
     "certificateImported": "Aus einem alten Zertifikat importiert. Es wurde kein neues Zertifikat erstellt — das Originaldokument bleibt die Quelle.",
     "downloadCertificate": "Zertifikat herunterladen",
     "backToCustomer": "Zurück zum Kunden",
+    "correction": {
+      "open": "Prüfung korrigieren",
+      "title": "Prüfung korrigieren",
+      "hint": "Eine abgeschlossene Prüfung kann nicht mehr geändert werden. Dies erstellt ein neues, verknüpftes Zertifikat mit dem korrigierten Ergebnis — das ursprüngliche Zertifikat bleibt erhalten.",
+      "confirm": "Korrigieren und neues Zertifikat erstellen"
+    },
     "table": {
       "searchPlaceholder": "Suche nach Seriennummer, Beschreibung, Marke…",
       "noMatches": "Keine Artikel gefunden",
@@ -382,6 +388,8 @@
   "verify": {
     "authentic": "Echtes Zertifikat",
     "notFound": "Zertifikat nicht gefunden oder ungültiger Link",
+    "supersededBy": "Dieses Zertifikat wurde korrigiert. Die gültige Version ist {number}.",
+    "supersededLink": "Gültige Version ansehen →",
     "number": "Zertifikatnummer",
     "customer": "Kunde",
     "date": "Prüfdatum",

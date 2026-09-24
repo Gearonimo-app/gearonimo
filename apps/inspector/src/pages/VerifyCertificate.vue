@@ -5,6 +5,13 @@
 
     <div v-else class="vc__card">
       <p class="vc__badge">✅ {{ $t('verify.authentic') }}</p>
+      <!-- Deze specifieke keuring is gecorrigeerd (code review 15/16 sept.
+           2026): het origineel blijft als audit-spoor bestaan en tonen, maar
+           de geldige uitslag staat op het nieuwe (gelinkte) certificaat. -->
+      <p v-if="data.superseded_by" class="vc__superseded">
+        {{ $t('verify.supersededBy', { number: data.superseded_by.number }) }}
+        <a :href="`/verify/${data.superseded_by.verify_token}`" class="vc__superseded-link">{{ $t('verify.supersededLink') }}</a>
+      </p>
       <h1>{{ data.company_name }}</h1>
       <dl class="vc__details">
         <div><dt>{{ $t('verify.number') }}</dt><dd>{{ data.number }}</dd></div>
@@ -69,6 +76,7 @@ interface VerifyResult {
   customer_name: string
   inspection_date: string
   inspector_name: string | null
+  superseded_by: { number: string; verify_token: string } | null
   qualifications: VerifyQualification[] | null
   items: { label: string; serial_number: string | null; result: string; next_due: string | null }[]
 }
@@ -97,6 +105,11 @@ onMounted(async () => {
 .vc__state--error { color: #dc2626; }
 .vc__card { background: #fff; border-radius: 14px; padding: 1.5rem; max-width: 480px; width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 .vc__badge { color: #16a34a; font-weight: 700; margin: 0 0 0.5rem; }
+.vc__superseded {
+  background: #fef9c3; color: #854d0e; border-radius: 8px;
+  padding: 0.6rem 0.8rem; font-size: 0.88rem; margin: 0 0 1rem;
+}
+.vc__superseded-link { display: block; font-weight: 700; margin-top: 0.25rem; color: #854d0e; }
 .vc__card h1 { margin: 0 0 1rem; font-size: 1.2rem; }
 .vc__card h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
 .vc__details { margin: 0; }

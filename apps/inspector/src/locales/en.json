@@ -296,6 +296,12 @@
     "certificateImported": "Imported from an old certificate. No new certificate was created — the original document remains the source.",
     "downloadCertificate": "Download certificate",
     "backToCustomer": "Back to customer",
+    "correction": {
+      "open": "Correct inspection",
+      "title": "Correct inspection",
+      "hint": "A completed inspection can no longer be changed. This creates a new, linked certificate with the corrected outcome — the original certificate is kept.",
+      "confirm": "Correct and create new certificate"
+    },
     "table": {
       "searchPlaceholder": "Search by serial number, description, brand…",
       "noMatches": "No articles found",
@@ -382,6 +388,8 @@
   "verify": {
     "authentic": "Authentic certificate",
     "notFound": "Certificate not found or invalid link",
+    "supersededBy": "This certificate has been corrected. The valid version is {number}.",
+    "supersededLink": "View valid version →",
     "number": "Certificate number",
     "customer": "Customer",
     "date": "Inspection date",
