@@ -76,8 +76,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - `producten.csv`: lege kolom `barcodes` toegevoegd (alle rijen verder
 >   ongewijzigd, nagecontroleerd). `catalog/README.md` legt de kolom en de
 >   Excel-valkuil (voorloopnullen) uit.
-> - Migratie `20260767_products_barcodes.sql` (**nog door Jos uit te
->   voeren**): alleen `alter table products add column if not exists
+> - Migratie `20260767_products_barcodes.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): alleen `alter table products add column if not exists
 >   barcodes text`. Raakt niets bestaands.
 > - Catalogusbeheer: veld "Streepjescodes (EAN)" in het productformulier
 >   (controle in `ProductForm.vue`, één plek voor beheer en wachtrij),
