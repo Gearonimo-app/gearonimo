@@ -1,4 +1,4 @@
-import { supabase, addMonths } from '@gearonimo/core'
+import { supabase, addMonths, toIsoDate } from '@gearonimo/core'
 import { ensureInspector, fetchRejectionCodes } from './useInspections'
 import { parseMonth, parseYearMonth, type FieldKey, type RawRow } from './useImportMapping'
 
@@ -29,15 +29,10 @@ export function headerSignature(headerRow: RawRow): string {
   return headerRow.map((c) => String(c ?? '').trim().toLowerCase()).join('|')
 }
 
-/** Datum → 'yyyy-mm-dd' op basis van de LOKALE datum (code review 2026-07-18).
- * Niet toISOString(): die rekent om naar UTC, en een Excel-datum staat op
- * lokale middernacht -- in Nederland (UTC+1/+2) werd dat de VORIGE dag,
- * waardoor elke geïmporteerde keurdatum één dag te vroeg kon staan. */
+/** Datum → 'yyyy-mm-dd' op basis van de LOKALE datum, niet toISOString()
+ * (code review 2026-07-18) -- zie packages/core/src/date.ts. */
 function localISODate(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+  return toIsoDate(d)
 }
 
 /** Zet een cel om naar een ISO-datum (yyyy-mm-dd) of null. Geen fuzzy gokwerk:
@@ -70,6 +65,14 @@ export function normalizeResult(value: string | number | null): 'passed' | 'reje
   if (['goed', 'ok', 'pass', 'passed', 'akkoord', 'goedgekeurd', 'x', '✓', '✔', '☑', 'v', 'ja', 'yes'].includes(s)) return 'passed'
   if (['afgekeurd', 'nok', 'fail', 'rejected', 'afkeur'].includes(s)) return 'rejected'
   return 'not_assessed'
+}
+
+/** Escaped `%`, `_` en `\` zodat een waarde uit een geïmporteerd bestand nooit
+ * als LIKE-jokerteken werkt. Zonder dit matchte `.ilike()` bijvoorbeeld een
+ * serienummer met een underscore, of een klantnaam met een `%` erin, per
+ * ongeluk met een ander record (code review 2026-09-15). */
+function escapeIlike(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`)
 }
 
 function cellsForField(mapping: Record<number, FieldKey>, field: FieldKey, row: RawRow): string {
@@ -229,7 +232,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           const { data: existing } = await supabase
             .from('customers')
             .select('id')
-            .ilike('name', customerName)
+            .ilike('name', escapeIlike(customerName))
             .maybeSingle()
           if (existing) {
             customerId = String(existing.id)
@@ -260,7 +263,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
           .from('articles')
           .select('id')
           .eq('customer_id', customerId)
-          .ilike('serial_number', serial)
+          .ilike('serial_number', escapeIlike(serial))
           .maybeSingle()
         if (existingArticle) {
           if (opts.skipDuplicateSerials) {

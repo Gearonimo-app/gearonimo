@@ -74,6 +74,21 @@ Elke regel hieronder staat er omdat het een keer echt misging.
 | Merk of omschrijving leeg | Dan is er geen product en geen sleutel om op te herkennen. |
 | Onbekende kolommen | Worden gemeld in plaats van geruisloos genegeerd (zoals `inspection_interval_years`, dat bewust niet meer wordt overgenomen). |
 
+### Streepjescodes (kolom `barcodes`)
+
+De EAN/GTIN-code van de doos of het label, niet het serienummer. Meerdere
+codes per product (bv. één per maat of kleur) scheiden met een puntkomma:
+`3342540123456;3342540123463`. De keurmeester-app gebruikt ze bij "Artikel
+toevoegen": scannen kiest het product (besluit Jos 2026-09-24). Codes komen
+alleen hier of via een curator in het catalogusbeheer, nooit van een
+keurmeester.
+
+`catalog:check` keurt een code af als hij geen 8, 12, 13 of 14 cijfers heeft
+of als het controlecijfer niet klopt, en ook als dezelfde code bij twee
+producten staat. **Let op in Excel:** zet de kolom op *Tekst*, anders haalt
+Excel voorloopnullen weg (`0012345678905` wordt `12345678905`) of maakt er
+`1,23457E+12` van. De controle vangt dat, maar dan moet je opnieuw aanleveren.
+
 Ruim gelaten waar het hoort: `max_user_weight_kg` mag tekst zijn
 (`130-150`, `100 (bij EN 12841/B, 10.5-13mm touw)` — besluit 2026-07-27), en
 `999` in een levensduurveld betekent bewust onbeperkt (besluit 2026-07-28).
