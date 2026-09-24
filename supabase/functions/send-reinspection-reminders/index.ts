@@ -15,9 +15,12 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ZEPTOMAIL_TOKEN = Deno.env.get("ZEPTOMAIL_TOKEN")!;
 const ZEPTOMAIL_FROM_EMAIL = Deno.env.get("ZEPTOMAIL_FROM_EMAIL") ?? "meldingen@gearonimo.net";
-// .eu voor een EU-datacenter-account, .com voor de rest -- zie de
-// instructies bij deze functie om te checken welke bij Jos' account hoort.
-const ZEPTOMAIL_API_URL = Deno.env.get("ZEPTOMAIL_API_URL") ?? "https://api.zeptomail.eu/v1.1/email";
+// Jos' account loopt via "Zoho CPaaS" (een gebundelde Zoho-omgeving met
+// ZeptoMail erin, niet de losse ZeptoMail-losse-app) -- vandaar cpaas.zoho.eu
+// i.p.v. het "kale" api.zeptomail.eu. Live geverifieerd met een testmail
+// vanuit de Zoho-dashboard (2026-09-24): kwam meteen in de inbox, niet bij
+// spam.
+const ZEPTOMAIL_API_URL = Deno.env.get("ZEPTOMAIL_API_URL") ?? "https://cpaas.zoho.eu/v1.1/email";
 const PORTAL_URL = "https://gearonimo.net/portal/";
 const DAYS_AHEAD = 30;
 
