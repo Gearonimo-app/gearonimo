@@ -79,8 +79,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > de rest en krijgt per artikel "gecorrigeerd, zie …-a". Zelfde principe als
 > de quarantaine straks: certificaten worden nooit aangepast, er komen alleen
 > nieuwe bij.
-> - Migratie `20260765_partial_correction.sql` (**nog door Jos uit te
->   voeren**): unieke index "één keten" eruit (meerdere correcties per
+> - Migratie `20260765_partial_correction.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): unieke index "één keten" eruit (meerdere correcties per
 >   keuring), `correct_inspection()` neemt alleen de meegegeven items over,
 >   controleert dat ze bij de keuring horen en weigert een artikel dat vanaf
 >   dit certificaat al gecorrigeerd is. `verify_certificate()` geeft
