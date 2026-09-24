@@ -5,6 +5,36 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Besloten, nog te bouwen: quarantaine "afgekeurd tot reparatie" (Jos, 2026-09-24)
+
+> Aanleiding: kleine reparaties (brug van een gordel, versleten
+> remblokjes, kabeltje van de RP201) of terug naar de fabrikant (de
+> Blackbird). Nu bestaat alleen `passed` / `rejected` / `not_assessed`, en
+> `rejected` betekent in de praktijk "weg ermee".
+> Besluiten van Jos:
+> - 4e uitslag in de keuring: **quarantaine**. Het artikel mag niet gebruikt
+>   worden maar is niet afgevoerd. Reden: keuze uit "wacht op onderdeel" of
+>   "naar fabrikant", plus een vrije opmerking.
+> - Kleur: **paars met een slotje** (oranje betekent al "keuring loopt bijna
+>   af").
+> - Alleen een **keurmeester** geeft vrij, via een korte keuring van alleen
+>   dat artikel (`examination_type='after_event'`) die een **eigen, nieuw
+>   certificaat** oplevert met een verwijzing naar het vorige nummer.
+>   Certificaten blijven onveranderlijk, er wordt dus nooit een oud
+>   certificaat aangepast. Op het eerste certificaat staat "In quarantaine:
+>   [reden]".
+> - Na vrijgeven **blijft de oude `next_due` staan**, er begint geen nieuwe
+>   termijn.
+> - Bij vrijgeven: opmerking "wat is er gedaan" (bv. "brug vervangen").
+> - **Eén lijst "In quarantaine"** voor de keurmeester, om alles terug te
+>   vinden.
+> - **Niet** doen: melding na 30 dagen, foto's (data, kosten en snelheid),
+>   de hele set paars kleuren (werkt eerder tegen dan mee).
+> Eerste bouwstap: live kolommen van `inspection_items` en `inspections`
+> laten verifiëren door Jos vóór de migratie (CLAUDE.md-regel 5).
+
+---
+
 ## Idee op de plank: EAN-code per product (Jos, 2026-09-23)
 
 > Doel (Jos): *"makkelijk wanneer je spullen meteen wilt registreren bij
