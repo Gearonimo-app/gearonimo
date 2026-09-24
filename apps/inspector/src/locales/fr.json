@@ -135,6 +135,8 @@
     "brandFilter": "Filtrer par marque…",
     "catalogSearch": "Rechercher dans le catalogue (marque, type, nom)…",
     "cantFind": "Introuvable ? Saisir un article libre",
+    "scanBarcode": "Scanner le code-barres",
+    "barcodeUnknown": "Code-barres inconnu {code}. Choisissez l'article vous-même.",
     "backToCatalog": "← Retour au catalogue",
     "suggestForCatalog": "Proposer pour la base de produits",
     "showRetired": "Afficher le matériel retiré",
@@ -667,6 +669,7 @@
         "importConfirm": "Confirmer l'import",
         "errorMissing": "Ligne {line} : la marque et le nom sont obligatoires.",
         "errorUnknownId": "Ligne {line} : l'id {id} n'existe pas dans le catalogue.",
+        "errorBarcodes": "Ligne {line} : code-barres non valide {codes}",
         "readError": "Le fichier n'a pas pu être lu.",
         "duplicateSkipped": "Ligne {line} : {product} est déjà dans le catalogue.",
         "duplicateExists": "Un produit avec cette marque et ce nom existe déjà dans le catalogue. Modifiez le produit existant, ou donnez-lui un nom propre — par exemple avec la taille à la suite.",
@@ -685,6 +688,7 @@
         "material": "Matériau",
         "standard": "Norme",
         "manufacturerCode": "Code article/modèle fabricant",
+        "barcodes": "Codes-barres (EAN)",
         "maxAgeUseYears": "Âge max. depuis la mise en service (années)",
         "maxAgeMfrYears": "Âge max. fabricant (années)",
         "breakingStrength": "Charge de rupture (MBS)",
@@ -748,6 +752,7 @@
         "material": "ex. Aluminium, Acier, Polyester",
         "standard": "ex. EN 361, EN 1891 Type A",
         "manufacturerCode": "ex. M33A SL ou FS242-L/XL",
+        "barcodes": "p. ex. 3342540123456; 3342540123463",
         "maxAgeUseYears": "ex. 10 — ou 999 si illimité",
         "maxAgeMfrYears": "ex. 10 — ou 999 si illimité",
         "breakingStrength": "ex. 25 kN",
@@ -762,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "ex. contrôler uniquement avec le mousqueton d'origine"
+      },
+      "hints": {
+        "barcodes": "Le code sur la boîte ou l'étiquette, pas le numéro de série. Séparez plusieurs codes (p. ex. par taille) par un point-virgule."
+      },
+      "errors": {
+        "invalidBarcodes": "Code-barres non valide : {codes}. Chiffres uniquement, 8, 12, 13 ou 14 caractères, avec une clé de contrôle correcte."
       }
     },
     "listing": {

@@ -50,14 +50,21 @@
         </div>
 
         <div class="iw__add">
-          <input
-            v-model="newDescription"
-            class="iw__input"
-            :placeholder="$t('inspections.table.article')"
-            @focus="activeField = 'article'"
-            @blur="closeSuggest"
-            @keydown="onSuggestKeydown"
-          />
+          <!-- Streepjescode van de doos kiest het product uit de catalogus
+               (2026-09-24). Typ je de code in het Artikel-veld, dan werkt dat
+               ook. Veld + knop samen, zodat de knop op de telefoon niet op een
+               eigen regel belandt. -->
+          <div class="iw__scan-field">
+            <input
+              v-model="newDescription"
+              class="iw__input"
+              :placeholder="$t('inspections.table.article')"
+              @focus="activeField = 'article'"
+              @blur="closeSuggest"
+              @keydown="onSuggestKeydown"
+            />
+            <ScanButton :title="$t('articles.scanBarcode')" @scan="onBarcodeScan" />
+          </div>
           <!-- Telefoon/tablet: suggesties direct onder het actieve veld (anders
                vallen ze onderaan, achter het toetsenbord). Op desktop verborgen;
                daar staat de gedeelde lijst onder de hele rij (iw__suggest--main). -->
@@ -94,19 +101,21 @@
               :class="{ 'iw__suggest-item--active': i === suggestIndex }"
               @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
           </div>
-          <input
-            v-model="newSerial"
-            ref="serialRef"
-            class="iw__input iw__input--sm"
-            :placeholder="$t('inspections.table.serial')"
-            @focus="activeField = 'serial'"
-            @blur="closeSuggest"
-            @keydown="onSuggestKeydown"
-          />
           <!-- Scan vult hetzelfde veld -- de bestaande SN-zoeklogica (snResults
                hierboven) pikt dat vanzelf op: gevonden = kies uit de lijst,
                niet gevonden = gewoon als nieuw artikel toevoegen. -->
-          <ScanButton @scan="(text: string) => { setFieldValue('serial', text); activeField = 'serial' }" />
+          <div class="iw__scan-field iw__scan-field--sm">
+            <input
+              v-model="newSerial"
+              ref="serialRef"
+              class="iw__input iw__input--sm"
+              :placeholder="$t('inspections.table.serial')"
+              @focus="activeField = 'serial'"
+              @blur="closeSuggest"
+              @keydown="onSuggestKeydown"
+            />
+            <ScanButton @scan="(text: string) => { setFieldValue('serial', text); activeField = 'serial' }" />
+          </div>
           <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--field iw__sn-list">
             <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
               <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
@@ -169,6 +178,7 @@
         <!-- Subtiele melding tijdens het invullen (geen rood blok, gewoon een
              klein regeltje): het getypte artikel heeft een bekende recall of
              inspection notice, zodat je dat al ziet vóór je op Toevoegen klikt. -->
+        <p v-if="barcodeNotice" class="iw__barcode-notice">{{ barcodeNotice }}</p>
         <p v-if="addRowRecallInfo" class="iw__add-recall-hint">
           🚩
           <a :href="addRowRecallInfo.url" target="_blank" :title="addRowRecallInfo.title">
@@ -626,6 +636,8 @@ import {
   inspectorVisibleArticles,
   isUnlimitedAge,
   toIsoDate,
+  findProductByBarcode,
+  isValidGtin,
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
@@ -668,6 +680,7 @@ interface Product {
   // een linkveld, dus daar werd lopende tekst een kapotte link van.
   notes: string | null
   manufacturer_code: string | null
+  barcodes?: string | null
 }
 interface Article {
   id: string
@@ -1376,13 +1389,40 @@ async function reinstateAndAdd(r: SnResult) {
   await addCustomerArticle(r.id)
 }
 
+// Streepjescode (2026-09-24): gescand of getypt kiest hij het product uit de
+// catalogus. De codes komen alleen uit de bronlijst (curators), dus een
+// onbekende code koppelt nooit iets: dan kiest de keurmeester zelf. Offline
+// zijn alleen de gedownloade producten van deze klant bekend.
+const barcodeNotice = ref('')
+function applyBarcodeProduct(p: Product) {
+  newDescription.value = p.name ?? ''
+  newBrand.value = p.brand ?? ''
+  newCategory.value = categoryLabel(p.category)
+  barcodeNotice.value = ''
+}
+function onBarcodeScan(text: string) {
+  const code = text.trim()
+  const p = findProductByBarcode(products.value, code)
+  if (p) applyBarcodeProduct(p)
+  else barcodeNotice.value = t('articles.barcodeUnknown', { code })
+}
+
 // Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
 // product), meteen merk en categorie invullen. Vrije tekst laat de velden met
-// rust.
+// rust. Staat het merk al goed (bv. na een scan), dan wint het product van
+// dát merk.
 watch(newDescription, (name) => {
-  const n = name.trim().toLowerCase()
+  barcodeNotice.value = ''
+  const typed = name.trim()
+  if (isValidGtin(typed)) {
+    const byCode = findProductByBarcode(products.value, typed)
+    if (byCode) { applyBarcodeProduct(byCode); return }
+  }
+  const n = typed.toLowerCase()
   if (!n) return
-  const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
+  const b = newBrand.value.trim().toLowerCase()
+  const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
+  const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
   if (p) {
     if (p.brand) newBrand.value = p.brand
     if (p.category) newCategory.value = categoryLabel(p.category)
@@ -1845,7 +1885,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2052,6 +2092,7 @@ function matchProduct(): Product | null {
 
 // Maakt de toevoeg-/zoekvelden leeg (na toevoegen of na een SN-keuze).
 function resetAddRow() {
+  barcodeNotice.value = ''
   newBrand.value = ''
   newCategory.value = ''
   newDescription.value = ''
@@ -2542,6 +2583,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__body { padding: 1.25rem; }
 
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+/* Invoerveld met scanknop ernaast: blijft één geheel in de flex-wrap-rij. */
+.iw__scan-field { display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 10.5rem; }
+.iw__scan-field--sm { min-width: 9.5rem; }
+.iw__scan-field .iw__input { min-width: 0; }
+.iw__barcode-notice { margin: -0.4rem 0 0.6rem; font-size: 0.85rem; color: #b45309; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
@@ -2777,6 +2823,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   .iw__add .iw__input--sm,
   .iw__add .iw__select--xs { flex: 1 1 100%; min-width: 0; }
   .iw__add .iw__input--xs { flex: 1 1 45%; }
+  .iw__add .iw__scan-field { flex: 1 1 100%; }
 
   /* Suggesties direct onder het actieve veld (i.p.v. de gedeelde lijst die
      onderaan, achter het toetsenbord, zou vallen). */

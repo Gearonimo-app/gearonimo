@@ -9,6 +9,9 @@ export interface ProductFormModel {
   material: string
   standard: string
   manufacturer_code: string
+  // Streepjescodes (EAN/GTIN), gescheiden door ";" -- zie parseBarcodes in
+  // packages/core/src/catalog.ts. Alleen curators bewerken de catalogus.
+  barcodes: string
   max_age_use_years: number | null
   max_age_mfr_years: number | null
   breaking_strength: string
@@ -36,7 +39,7 @@ export interface ProductFormModel {
 export function emptyProductForm(): ProductFormModel {
   return {
     brand: '', name: '', product_type: '', category: '', material: '', standard: '',
-    manufacturer_code: '',
+    manufacturer_code: '', barcodes: '',
     max_age_use_years: null, max_age_mfr_years: null,
     breaking_strength: '', working_load_limit: '', max_user_weight_kg: '',
     rope_diameter_min_mm: null, rope_diameter_max_mm: null,
@@ -48,7 +51,7 @@ export function emptyProductForm(): ProductFormModel {
 }
 
 const STRING_FIELDS = [
-  'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code',
+  'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code', 'barcodes',
   'breaking_strength', 'working_load_limit', 'max_user_weight_kg', 'serial_number_location',
   'manual_url', 'product_page_url', 'recall_url', 'recall_date',
   'inspection_notice_url', 'inspection_notice_date', 'notes',

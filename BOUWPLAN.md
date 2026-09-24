@@ -20,30 +20,6 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Besloten, nog niet bouwen: streepjescode per product (Jos, 2026-09-24)
-
-> Doel: bij "Artikel toevoegen" de doos scannen, dan staat het product er
-> meteen (EAN/GTIN = producttype, niet het exemplaar). Jos: *"wacht nog even
-> met bouwen"*. Besluiten:
-> - **Alleen de Gearonimo-keurmeester-app**, op **beide plekken**: "Artikel
->   toevoegen" bij de klant (`CustomerArticles.vue`) en tijdens de keuring
->   (wizard).
-> - **Geen extra invulveld.** Er komt een scan-knop naast het bestaande
->   Artikel-veld en dat veld zoekt ook op de code.
-> - **Codes komen alleen via `producten.csv`.** Jos vraagt ze op bij de
->   fabrikant. Niemand kan ze in de app toevoegen of wijzigen, ook geen
->   keurmeester (Jos: *"ik wil echt niet dat elke keurmeester dit kan
->   aanpassen"*). Het eerdere idee van "lerend vullen" is daarmee vervallen.
-> - Een onbekende code geeft de melding "Onbekende code" en de keurmeester
->   kiest het product zelf.
-> - Voorstel voor de uitvoering: een nieuwe csv-kolom (meerdere codes per
->   product gescheiden door `;`, bv. per maat); `catalog:check` controleert
->   het GTIN-controlecijfer; daarna export, de import-wizard, een kolom in
->   `products` plus `search_products` en de scan-knop. Ongeveer één
->   bouwsessie. Live kolommen van `products` vooraf laten verifiëren.
-
----
-
 ## Gestolen-lijst: niet bouwen, zoeken met een query (Jos, 2026-09-24)
 
 > Aanleiding: Drayer (FR) is opgelicht voor 25 Portable Winch 4000 lieren
@@ -75,6 +51,47 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > en is zijn afweging, niet die van de app.
 
 ---
+
+## Voortgang (bijgewerkt 2026-09-24, streepjescode per product)
+
+> Doel (Jos): bij "Artikel toevoegen" de doos scannen, dan staat het product
+> er meteen. Een jaar later bij de keuring staat het artikel al klaar.
+> Besluiten van Jos (2026-09-24):
+> - Alleen de Gearonimo-keurmeester-app, op beide plekken: klantpagina
+>   (`CustomerArticles.vue`) en tijdens de keuring (wizard).
+> - Geen extra invulveld: een scanknop naast het Artikel-veld, en dat veld
+>   herkent ook een getypte code.
+> - Codes komen alleen via `producten.csv` (Jos vraagt ze op bij de
+>   fabrikant) of via een **curator**, net als de rest van de catalogus
+>   (Jos: *"curator's mogen net als de rest van de csv dit bijwerken"*). Een
+>   gewone keurmeester kan niets koppelen; een onbekende code geeft alleen
+>   een melding.
+>
+> Gebouwd:
+> - `packages/core/src/catalog.ts`: kolom `barcodes` in `CATALOG_COLUMNS`,
+>   `isValidGtin` / `parseBarcodes` / `formatBarcodes` /
+>   `findProductByBarcode`. De controle keurt een fout controlecijfer, een
+>   verkeerde lengte en dezelfde code bij twee producten af. Een UPC-A (12)
+>   en dezelfde code als EAN-13 tellen als één GTIN. 6 nieuwe tests.
+> - `producten.csv`: lege kolom `barcodes` toegevoegd (alle rijen verder
+>   ongewijzigd, nagecontroleerd). `catalog/README.md` legt de kolom en de
+>   Excel-valkuil (voorloopnullen) uit.
+> - Migratie `20260767_products_barcodes.sql` (**nog door Jos uit te
+>   voeren**): alleen `alter table products add column if not exists
+>   barcodes text`. Raakt niets bestaands.
+> - Catalogusbeheer: veld "Streepjescodes (EAN)" in het productformulier
+>   (controle in `ProductForm.vue`, één plek voor beheer en wachtrij),
+>   Excel-import/export, en zoeken op code in de catalogus.
+> - Scanknop naast Artikel op beide plekken; de scanner leest nu ook UPC-A.
+>   In de wizard staan veld en scanknop (ook bij serienummer) als één geheel,
+>   zodat de knop op de telefoon niet op een eigen regel valt.
+> - Bijvangst: bij een exacte naam-match kiest de app nu het product van het
+>   al ingevulde merk. Voorheen koos hij het eerste product met die naam,
+>   ook als het merk anders was.
+> - Offline kent de wizard alleen de gedownloade producten van die klant,
+>   dus een scan vindt dan alleen die.
+> - Zelf gerenderd en bekeken: wizard (telefoon + desktop), klantpagina en
+>   productformulier met een foute code. Builds + tests groen.
 
 ## Voortgang (bijgewerkt 2026-09-24, correctie-route weer verwijderd)
 

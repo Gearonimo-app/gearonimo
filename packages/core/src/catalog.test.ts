@@ -5,6 +5,10 @@ import {
   CATALOG_COLUMNS,
   PRODUCT_TYPES,
   CATEGORIES,
+  isValidGtin,
+  parseBarcodes,
+  formatBarcodes,
+  findProductByBarcode,
   type CatalogRow,
 } from "./catalog";
 
@@ -221,5 +225,62 @@ describe("no_ppe met een PBM-norm", () => {
   it("bemoeit zich niet met ppe of rigging", () => {
     expect(validateCatalog([row({ product_type: "ppe", standard: "EN 361" })]).errors).toEqual([]);
     expect(validateCatalog([row({ product_type: "rigging", standard: "EN 795" })]).errors).toEqual([]);
+  });
+});
+
+describe("streepjescodes", () => {
+  it("herkent geldige EAN-13, UPC-A, EAN-8 en GTIN-14", () => {
+    for (const code of ["4006381333931", "036000291452", "96385074", "10012345678902"]) {
+      expect(isValidGtin(code)).toBe(true);
+    }
+  });
+
+  it("weigert een fout controlecijfer, letters en een verkeerde lengte", () => {
+    expect(isValidGtin("4006381333932")).toBe(false);
+    expect(isValidGtin("40063813339A1")).toBe(false);
+    // Wat Excel van "0012345678905" maakt als de cel geen tekst is.
+    expect(isValidGtin("12345678905")).toBe(false);
+  });
+
+  it("splitst op puntkomma, ontdubbelt en meldt ongeldige delen", () => {
+    expect(parseBarcodes(" 4006381333931 ; 96385074;;4006381333931 ; 123 ")).toEqual({
+      codes: ["4006381333931", "96385074"],
+      invalid: ["123"],
+    });
+    expect(formatBarcodes(" 96385074 ; 4006381333931 ")).toBe("96385074;4006381333931");
+    expect(formatBarcodes("")).toBeNull();
+  });
+
+  it("vindt alleen een exacte match", () => {
+    const products = [
+      { id: "a", barcodes: "4006381333931;96385074" },
+      { id: "b", barcodes: null },
+    ];
+    expect(findProductByBarcode(products, "96385074")?.id).toBe("a");
+    expect(findProductByBarcode(products, "9638507")).toBeNull();
+    expect(findProductByBarcode(products, "036000291452")).toBeNull();
+  });
+
+  it("ziet een UPC-A (12) en dezelfde code als EAN-13 als één GTIN", () => {
+    const products = [{ id: "sterling", barcodes: "0036000291452" }];
+    expect(findProductByBarcode(products, "036000291452")?.id).toBe("sterling");
+    const report = validateCatalog([
+      row({ barcodes: "036000291452" }),
+      row({ name: "Croll L", barcodes: "0036000291452" }),
+    ]);
+    expect(report.errors.map((e) => e.column)).toEqual(["barcodes"]);
+  });
+
+  it("controle: ongeldige code en dezelfde code bij twee producten", () => {
+    const report = validateCatalog([
+      row({ barcodes: "4006381333932" }),
+      row({ name: "Croll L", barcodes: "96385074" }),
+      row({ name: "Croll S", barcodes: "96385074" }),
+    ]);
+    expect(report.errors.map((e) => [e.line, e.column])).toEqual([
+      [2, "barcodes"],
+      [4, "barcodes"],
+    ]);
+    expect(report.errors[1].message).toContain("regel 3");
   });
 });
