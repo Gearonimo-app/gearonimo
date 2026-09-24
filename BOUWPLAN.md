@@ -95,6 +95,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   afgekeurd = leeg, goed blijft goed = zelfde datum, afgekeurd → goed =
 >   termijn vanaf de oorspronkelijke keurdatum. Afrondscherm van een correctie
 >   toont "Correctie op certificaat X".
+> - Jos (2026-09-24), na verwarring over "corrigeren": **beide routes
+>   blijven**. Een nieuwe keuring (datum vandaag, nieuw nummer, geen link) is
+>   voor reparatie of opnieuw keuren. "Corrigeer keuring" (zelfde keurdatum,
+>   -a, gelinkt) is voor een **vergissing**, zodat een QR-scan van het oude
+>   certificaat niet stil de foute uitslag blijft tonen.
 > - PDF: extra kopregel "Correctie op certificaat X" (nl/en/fr/de).
 >   Verificatiepagina: banner op de correctie en per artikel een link op het
 >   oude certificaat. Alle drie zelf gerenderd en bekeken.
