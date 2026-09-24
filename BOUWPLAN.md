@@ -38,22 +38,35 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Idee op de plank: gestolen-lijst (Jos, 2026-09-23 — "onthoud deze optie")
+## Gestolen-lijst: niet bouwen, zoeken met een query (Jos, 2026-09-24)
 
 > Aanleiding: Drayer (FR) is opgelicht voor 25 Portable Winch 4000 lieren
-> en vraagt keurmeesters op te letten. Serienummers: 60260105, 60260106,
-> 60260108, 60260110, 60260111, 60260112, 60260113, 60260114, 60260115,
-> 60260116, 60260117, 60260118, 60260119, 60260120, 60260126, 60260206,
-> 60260208, 60260209, 60260210, 60260211, 60260212, 60260213, 60260214,
-> 60260215, 60260242.
-> Idee: een lijst gestolen serienummers (merk + model + SN); vult een
-> keurmeester zo'n SN in of scant hij het, dan een **waarschuwing, geen
-> beschuldiging** (eerlijk tweedehands gekocht kan). Nu bestaat alleen
-> "afvoeren met reden gestolen" als vrije tekst, zonder signaal.
-> Open vragen aan Jos (nog niet beantwoord): wie mag melden (alleen
-> platform-admin of ook klanten bij afvoeren), wat ziet de keurmeester bij
-> een treffer (alleen waarschuwing of ook contact van de melder), alleen
-> deze 25 of meteen een groeiende lijst. **Niet bouwen vóór die antwoorden.**
+> (staat niet in de catalogus). Na afweging besloten: **nu niet bouwen.**
+> Jos: *"Ik zie tot nu toe meer problemen dan oplossingen."* De redenen:
+> - Serienummers worden in de praktijk niet betrouwbaar ingevuld. Sommige
+>   keurmeesters zetten alleen de laatste 4 cijfers erin, en korte oude
+>   nummers (bv. "0612" bij Petzl en CAMP) komen vaak voor. Matchen op
+>   serienummer geeft dan vals alarm of het mist een treffer.
+> - Een melding als gestolen moet echt goed ingevuld zijn en mag niet van
+>   eindgebruikers komen.
+> - Alleen gekoppelde producten matchen is precies, maar mist vrije
+>   artikelen, en het gestolen product moet dan eerst in de catalogus staan.
+>
+> **Wat wél kan:** bij een melding draait Jos als platform-admin (mag alle
+> artikelen lezen, zie 20260745) een query in de Supabase SQL-editor en
+> beoordeelt de treffers zelf. Voorbeeld met de Drayer-nummers:
+>
+> ```sql
+> select serial_number, free_brand, free_description, customer_id
+> from articles
+> where serial_number in ('60260105','60260106','60260108','60260110','60260111',
+>  '60260112','60260113','60260114','60260115','60260116','60260117','60260118',
+>  '60260119','60260120','60260126','60260206','60260208','60260209','60260210',
+>  '60260211','60260212','60260213','60260214','60260215','60260242');
+> ```
+>
+> Wat Jos met een treffer doet (politie, fabrikant), valt onder privacy/AVG
+> en is zijn afweging, niet die van de app.
 
 ---
 
@@ -189,11 +202,12 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   kon Jos zelf in de browser bevestigen (waaronder 1 herstelde 404 en
 >   1 gecorrigeerde sluitingsbeschrijving RGK1: gewoon "screwgate", geen
 >   "double action").
-> - **Nog open:** Simarghu (3 producten) en SAR Cambium Saver/Climbing
->   Helmet (2) hebben geen bevestigde handleiding — simarghu.com was deze
+> - **Afgesloten (Jos, 2026-09-24: "laten we voor wat het is"):** Simarghu
+>   (3 producten) en SAR Cambium Saver/Climbing Helmet (2) hebben geen
+>   bevestigde handleiding — simarghu.com was deze
 >   hele sessie onbereikbaar vanuit de sandbox, SAR's eu-doc-pagina mist
 >   voor die 2 producten kennelijk een PDF. Aan Jos gevraagd zelf te
->   controleren. Ook: bevestiging nodig of "Hightec" "heightec" moest zijn.
+>   controleren. "Hightec" = heightec (Jos, 2026-09-24), staat al in de catalogus.
 > - Bronlijst ging van 3042 naar 3305 producten in deze sessie.
 
 ## Voortgang (bijgewerkt 2026-09-16, codereview + certificaat-onveranderlijkheid)
