@@ -31,11 +31,13 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { onReactivated } from '../composables/onReactivated'
-import { supabase, errorMessage, useOnline } from '@gearonimo/core'
+import { supabase, errorMessage, useOnline, formatDate as sharedFormatDate } from '@gearonimo/core'
 
 const props = defineProps<{ customerId: string }>()
 const { isOnline } = useOnline()
+const { locale } = useI18n()
 
 interface CertRow {
   number: string
@@ -50,7 +52,7 @@ const error = ref('')
 const open = ref(false)
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return sharedFormatDate(d, locale.value)
 }
 
 function openPdf(c: CertRow) {

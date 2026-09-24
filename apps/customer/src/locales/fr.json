@@ -6,7 +6,9 @@
     "save": "Enregistrer",
     "signOut": "Se déconnecter",
     "cancel": "Annuler",
-    "back": "Retour"
+    "back": "Retour",
+    "close": "Fermer",
+    "clearSelection": "Effacer la sélection"
   },
   "sets": {
     "addPart": {

@@ -121,6 +121,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   supabase,
   errorMessage,
@@ -128,6 +129,7 @@ import {
   selfCheckIntervalMonths,
   customerArticleStatus,
   toIsoDate,
+  formatDate as sharedFormatDate,
 } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 import UserPicker from "../components/UserPicker.vue";
@@ -136,6 +138,7 @@ import { useCategoryLabel } from "../composables/useCategoryLabel";
 const route = useRoute();
 const router = useRouter();
 const categoryLabel = useCategoryLabel();
+const { locale } = useI18n();
 
 interface ArticleDetailRow {
   id: string;
@@ -258,7 +261,7 @@ const isSelfChecked = computed(
 );
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  return sharedFormatDate(d, locale.value);
 }
 
 async function load() {

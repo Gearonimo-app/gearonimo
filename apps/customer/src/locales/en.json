@@ -6,7 +6,9 @@
     "save": "Save",
     "signOut": "Sign out",
     "cancel": "Cancel",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close",
+    "clearSelection": "Clear selection"
   },
   "sets": {
     "addPart": {

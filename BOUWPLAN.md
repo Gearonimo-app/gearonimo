@@ -5,6 +5,59 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-25, resterende "midden"-bevindingen codereview)
+
+> De 13 overgebleven "midden"-bevindingen uit de codereview van 15/16 sept.
+> stuk voor stuk gecontroleerd tegen de huidige stand (er was intussen veel
+> op `main` gebeurd door andere sessies) en waar nog nodig gefixt. Eén
+> bewust overgeslagen, één bonusvondst onderweg:
+> - **Overgeslagen**: ruwe Engelse Postgres-foutmeldingen soms zichtbaar
+>   i.p.v. vertaald (`packages/core/src/errors.ts`). Zeldzaam pad, en een
+>   nette fix vereist `t()` doorgeven op elke aanroepplek — niet in
+>   verhouding tot het probleem, dus bewust laten staan.
+> - **Bonusvondst**: `scripts/catalog/sluitingen.mts` bleek 3 losse NUL-bytes
+>   (`\0`) te bevatten i.p.v. spaties in sleutel-opbouw (git zag het bestand
+>   daardoor als "binary"). Waarschijnlijk een oud schrijf-ongelukje van een
+>   eerdere sessie. Werkte toevallig nog (beide kanten van elke vergelijking
+>   gebruikten dezelfde kapotte sleutel), maar is nu hersteld naar gewone
+>   spaties.
+> - **Inspecteur-app**: `retireArticle` faalt niet meer stil bij een
+>   mislukte Supabase-call (3 plekken, foutmelding nu zichtbaar).
+> - **Klantportal**: `add_my_article` + `get_or_create_article_set` zijn
+>   samengevoegd tot één atomaire RPC `add_and_link_my_article` (nieuwe
+>   migratie) — een mislukte koppelstap laat geen wees-artikel meer achter.
+>   Toegankelijkheid: icoon-knoppen (kopbalk terug, onderdeel toevoegen,
+>   afvoeren, sluiten, selectie wissen) en alle placeholder-only
+>   formuliervelden (Members.vue, AddArticleForm.vue, AddPartForm.vue,
+>   CustomerFormModal.vue in de Pro-app) hebben nu ook `aria-label`.
+> - **Datumweergave**: bleek breder kapot dan de oorspronkelijke bevinding
+>   (alleen de klantportal) liet zien — 8 plekken in de inspecteurs-app
+>   hadden dezelfde hardcoded `nl-NL`. Nieuwe gedeelde `formatDate(datum,
+>   taal)` in `packages/core/src/date.ts`, op alle 12 plekken in beide apps
+>   toegepast (incl. de publieke verificatiepagina).
+> - **Catalog-scripts**: `linkcheck.mts` blokkeert nu interne/lokale adressen
+>   (SSRF) vóór élke aanvraag, óók na een doorverwijzing, en verwerkt 6 links
+>   tegelijk i.p.v. volledig serieel (met een gestreamde in plaats van volledige
+>   download voor de content-type-check). `sluitingen.mts`/`handleidingen.mts`
+>   controleren nu met `validateCatalog` vóór het wegschrijven, net als
+>   `ingest.mts` al deed. `csv.mts` waarschuwt nu als een rij meer cellen heeft
+>   dan de koptekst. Aangeleverde bestanden die geen geldige UTF-8-tekst zijn
+>   (Excel's gewone "CSV"-export i.p.v. "CSV UTF-8") geven nu een duidelijke
+>   waarschuwing i.p.v. stil corrupte tekens.
+> - **`packages/core`**: `calcStatus` behandelt een onleesbare datum nu als
+>   "nog niet gekeurd" i.p.v. stil als "in orde" (groen) — met regressietest.
+>   `calcNextDue` blijkt nog steeds nergens aangeroepen (de wizard heeft een
+>   eigen versie vanwege bedrijfsspecifieke standaardtermijnen die
+>   `calcNextDue` niet kent) — een refactor daarvan was hier te risicovol voor
+>   de opbrengst, dus een duidelijke verwijzing in de code neergezet i.p.v. de
+>   functie te verwijderen of blind te hergebruiken. `useAuth.ts` start zijn
+>   Supabase-auth-listener nu pas bij de eerste `useAuth()`-aanroep, niet meer
+>   zodra iets uit de `@gearonimo/core`-barrel geïmporteerd wordt.
+> - Build (`vue-tsc` + `vite build`) en `npm run test --workspaces`
+>   (142+21 tests) groen na elke stap.
+>
+> **Nog uit te voeren door Jos**: `supabase/migrations/20260925_add_and_link_my_article_atomic.sql`.
+
 ## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
 
 > De hieronder beschreven "NOG TE DOEN"-lijst is afgerond: Zoho CPaaS

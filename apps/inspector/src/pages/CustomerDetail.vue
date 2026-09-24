@@ -97,7 +97,7 @@ import { GIcon } from '@gearonimo/ui'
 import { ref, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { errorMessage, useOfflineSession } from '@gearonimo/core'
+import { errorMessage, useOfflineSession, formatDate as sharedFormatDate } from '@gearonimo/core'
 import CustomerMembers from '../components/CustomerMembers.vue'
 import CustomerArticles from '../components/CustomerArticles.vue'
 import CustomerCertificates from '../components/CustomerCertificates.vue'
@@ -115,7 +115,7 @@ import {
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const id = route.params.id as string
 
 const fieldDefs: { col: string; label: string; textarea?: boolean }[] = [
@@ -156,7 +156,7 @@ const showAddExtra = ref(false)
 const articleScope = ref<ArticleScope>({ allIds: [], newIds: [] })
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
+  return sharedFormatDate(d, locale.value, { day: 'numeric', month: 'long' })
 }
 
 // Bestaat er al een concept-keuring, dan bieden we eerst aan om er nog andere

@@ -6,7 +6,9 @@
     "save": "Speichern",
     "signOut": "Abmelden",
     "cancel": "Abbrechen",
-    "back": "Zurück"
+    "back": "Zurück",
+    "close": "Schließen",
+    "clearSelection": "Auswahl löschen"
   },
   "sets": {
     "addPart": {

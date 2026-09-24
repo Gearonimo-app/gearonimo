@@ -28,6 +28,18 @@ describe("calcStatus", () => {
     const end_of_life = new Date("2025-01-01");
     expect(calcStatus({ today, next_due, end_of_life })).toBe("end_of_life");
   });
+
+  it("treats an unparseable next_due as never_inspected, not ok (code review)", () => {
+    const next_due = new Date("dit-is-geen-datum");
+    expect(Number.isNaN(next_due.getTime())).toBe(true);
+    expect(calcStatus({ today, next_due })).toBe("never_inspected");
+  });
+
+  it("ignores an unparseable end_of_life instead of crashing", () => {
+    const next_due = new Date("2027-01-01");
+    const end_of_life = new Date("dit-is-geen-datum");
+    expect(calcStatus({ today, next_due, end_of_life })).toBe("ok");
+  });
 });
 
 describe("isFirstInspectionOverdue", () => {

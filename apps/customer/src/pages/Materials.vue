@@ -152,6 +152,7 @@
                 v-if="!row.article.self_managed"
                 class="mt__partbtn"
                 :title="$t('sets.addPart.title')"
+                :aria-label="$t('sets.addPart.title')"
                 @click="partFor = row.article"
               >🔗+</button>
               <!-- Afvoeren: alleen de beheerder (Jos, 2026-07-13 -- draait het
@@ -163,6 +164,7 @@
                 v-if="isAdmin"
                 class="mt__trash"
                 :title="row.article.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
+                :aria-label="row.article.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
                 :disabled="retiringId === row.article.id"
                 @click="retireArticle(row.article)"
               >🗑</button>
@@ -237,6 +239,7 @@ import {
   MATERIAL_DOMAINS,
   type MaterialDomain,
   toIsoDate,
+  formatDate as sharedFormatDate,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import AddArticleForm from "../components/AddArticleForm.vue";
@@ -247,7 +250,7 @@ import { useCategoryLabel } from "../composables/useCategoryLabel";
 const route = useRoute();
 const router = useRouter();
 const categoryLabel = useCategoryLabel();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 interface ArticleRow {
   id: string;
@@ -476,7 +479,7 @@ function statusIcon(s: UiStatus): string {
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  return sharedFormatDate(d, locale.value);
 }
 
 async function load() {

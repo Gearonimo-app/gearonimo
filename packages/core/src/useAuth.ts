@@ -3,22 +3,33 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 
 // Module-niveau state: één gedeelde sessie voor de hele app. De listener en de
-// initiële sessie-load draaien éénmalig bij import, daarna leest elke
-// useAuth()-aanroep dezelfde refs.
+// initiële sessie-load draaien éénmalig, bij de EERSTE useAuth()-aanroep
+// (niet meer bij het importeren zelf -- code review: dit bestand hangt aan
+// dezelfde barrel-export als pure functies zoals errorMessage/toIsoDate, dus
+// zomaar iets uit "@gearonimo/core" importeren zette al een live
+// Supabase-verbinding + auth-listener op, ook in een los Node-scriptje of een
+// toekomstige test die alleen een rekenfunctie nodig heeft).
 const user = ref<User | null>(null);
 const loading = ref(true);
+let authListenerStarted = false;
 
-supabase.auth.onAuthStateChange((_event, session) => {
-  user.value = session?.user ?? null;
-  loading.value = false;
-});
+function ensureAuthListener() {
+  if (authListenerStarted) return;
+  authListenerStarted = true;
 
-supabase.auth.getSession().then(({ data }) => {
-  user.value = data.session?.user ?? null;
-  loading.value = false;
-});
+  supabase.auth.onAuthStateChange((_event, session) => {
+    user.value = session?.user ?? null;
+    loading.value = false;
+  });
+
+  supabase.auth.getSession().then(({ data }) => {
+    user.value = data.session?.user ?? null;
+    loading.value = false;
+  });
+}
 
 export function useAuth() {
+  ensureAuthListener();
   const isLoggedIn = computed(() => user.value !== null);
 
   async function signInWithEmail(email: string, password: string) {

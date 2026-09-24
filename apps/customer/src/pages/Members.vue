@@ -41,22 +41,22 @@
         </dl>
 
         <form v-else class="mb__form" @submit.prevent="saveCompany">
-          <input v-model="companyForm.email" type="email" :placeholder="$t('settings.company.fields.email')" class="mb__input" />
-          <input v-model="companyForm.phone" type="tel" :placeholder="$t('settings.company.fields.phone')" class="mb__input" />
-          <input v-model="companyForm.contact_person" :placeholder="$t('settings.company.fields.contactPerson')" class="mb__input" />
-          <input v-model="companyForm.kvk_number" :placeholder="$t('settings.company.fields.kvkNumber')" class="mb__input" />
-          <input v-model="companyForm.vat_number" :placeholder="$t('settings.company.fields.vatNumber')" class="mb__input" />
+          <input v-model="companyForm.email" type="email" :placeholder="$t('settings.company.fields.email')" :aria-label="$t('settings.company.fields.email')" class="mb__input" />
+          <input v-model="companyForm.phone" type="tel" :placeholder="$t('settings.company.fields.phone')" :aria-label="$t('settings.company.fields.phone')" class="mb__input" />
+          <input v-model="companyForm.contact_person" :placeholder="$t('settings.company.fields.contactPerson')" :aria-label="$t('settings.company.fields.contactPerson')" class="mb__input" />
+          <input v-model="companyForm.kvk_number" :placeholder="$t('settings.company.fields.kvkNumber')" :aria-label="$t('settings.company.fields.kvkNumber')" class="mb__input" />
+          <input v-model="companyForm.vat_number" :placeholder="$t('settings.company.fields.vatNumber')" :aria-label="$t('settings.company.fields.vatNumber')" class="mb__input" />
           <div class="mb__co-row-inputs">
-            <input v-model="companyForm.street" :placeholder="$t('settings.company.fields.street')" class="mb__input mb__co-street" />
-            <input v-model="companyForm.house_number" :placeholder="$t('settings.company.fields.houseNumber')" class="mb__input mb__co-short" />
-            <input v-model="companyForm.house_number_addition" :placeholder="$t('settings.company.fields.addition')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.street" :placeholder="$t('settings.company.fields.street')" :aria-label="$t('settings.company.fields.street')" class="mb__input mb__co-street" />
+            <input v-model="companyForm.house_number" :placeholder="$t('settings.company.fields.houseNumber')" :aria-label="$t('settings.company.fields.houseNumber')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.house_number_addition" :placeholder="$t('settings.company.fields.addition')" :aria-label="$t('settings.company.fields.addition')" class="mb__input mb__co-short" />
           </div>
           <div class="mb__co-row-inputs">
-            <input v-model="companyForm.postal_code" :placeholder="$t('settings.company.fields.postalCode')" class="mb__input mb__co-short" />
-            <input v-model="companyForm.city" :placeholder="$t('settings.company.fields.city')" class="mb__input" />
+            <input v-model="companyForm.postal_code" :placeholder="$t('settings.company.fields.postalCode')" :aria-label="$t('settings.company.fields.postalCode')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.city" :placeholder="$t('settings.company.fields.city')" :aria-label="$t('settings.company.fields.city')" class="mb__input" />
           </div>
-          <input v-model="companyForm.province" :placeholder="$t('settings.company.fields.province')" class="mb__input" />
-          <input v-model="companyForm.country" :placeholder="$t('settings.company.fields.country')" class="mb__input" />
+          <input v-model="companyForm.province" :placeholder="$t('settings.company.fields.province')" :aria-label="$t('settings.company.fields.province')" class="mb__input" />
+          <input v-model="companyForm.country" :placeholder="$t('settings.company.fields.country')" :aria-label="$t('settings.company.fields.country')" class="mb__input" />
           <p v-if="companyFormError" class="mb__state mb__state--error">{{ companyFormError }}</p>
           <div class="mb__form-actions">
             <button type="submit" class="mb__save" :disabled="companySaving">{{ $t('members.save') }}</button>
@@ -134,10 +134,10 @@
         </div>
 
         <form v-if="formOpen" class="mb__form" @submit.prevent="save">
-          <input v-model="form.name" :placeholder="$t('members.fields.name')" class="mb__input" required />
-          <input v-model="form.role" :placeholder="$t('members.fields.role')" class="mb__input" />
-          <input v-model="form.phone" type="tel" :placeholder="$t('members.fields.phone')" class="mb__input" />
-          <input v-model="form.email" type="email" :placeholder="$t('members.fields.email')" class="mb__input" />
+          <input v-model="form.name" :placeholder="$t('members.fields.name')" :aria-label="$t('members.fields.name')" class="mb__input" required />
+          <input v-model="form.role" :placeholder="$t('members.fields.role')" :aria-label="$t('members.fields.role')" class="mb__input" />
+          <input v-model="form.phone" type="tel" :placeholder="$t('members.fields.phone')" :aria-label="$t('members.fields.phone')" class="mb__input" />
+          <input v-model="form.email" type="email" :placeholder="$t('members.fields.email')" :aria-label="$t('members.fields.email')" class="mb__input" />
           <!-- Vergrendel-vangnet (spiegel van save_my_member): jezelf inactief
                of niet-beheerder maken zou de laatste beheerder buitensluiten. -->
           <label class="mb__check">
@@ -194,6 +194,7 @@ import {
   normalizeDomains,
   domainForType,
   type MaterialDomain,
+  formatDate as sharedFormatDate,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
@@ -205,7 +206,7 @@ interface PasskeyRow {
 }
 
 const { registerPasskey, listPasskeys, deletePasskey } = useAuth();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const router = useRouter();
 
@@ -256,7 +257,7 @@ const passkeyBusy = ref(false);
 const passkeyError = ref("");
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString();
+  return sharedFormatDate(iso, locale.value);
 }
 
 async function loadPasskeys() {

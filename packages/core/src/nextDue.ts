@@ -13,6 +13,16 @@
  * Geeft `null` terug als er geen keurtermijn is (kleding, geen-PBM, overig —
  * zie `NO_INSPECTION_TYPES` in `regimes.ts`). Zo'n artikel heeft geen volgende
  * keuring en krijgt dus ook geen stoplichtstatus.
+ *
+ * LET OP (code review): de inspecteurs-app roept deze functie zelf niet aan.
+ * `InspectionWizard.vue` (`defaultIntervalMonths`/`suggestedNextDue`) heeft
+ * een eigen versie van stap 1-3, omdat die ook rekening houdt met een
+ * per-keurbedrijf standaardtermijn (`inspection_companies.default_interval_*`)
+ * die dit type hier niet kent. `addMonths`/`getRegime`/`isUnlimitedAge`
+ * hieronder zijn wél de gedeelde bron en worden daar gebruikt. Deze functie
+ * zelf blijft staan (compleet, getest) als klaar-voor-gebruik bouwsteen voor
+ * een plek zonder bedrijfsspecifieke overrides (bv. de klant-app) -- wijzig je
+ * de resolutie-volgorde hier, doe hetzelfde in de wizard.
  */
 
 import { getRegime, ProductType, CountryCode } from "./regimes";

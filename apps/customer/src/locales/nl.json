@@ -6,7 +6,9 @@
     "save": "Opslaan",
     "signOut": "Uitloggen",
     "cancel": "Annuleren",
-    "back": "Terug"
+    "back": "Terug",
+    "close": "Sluiten",
+    "clearSelection": "Selectie wissen"
   },
   "sets": {
     "addPart": {

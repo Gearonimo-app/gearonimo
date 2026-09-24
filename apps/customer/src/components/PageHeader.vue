@@ -16,7 +16,7 @@
   <!-- plain = effen groene kop zonder hero-strook. Op het dashboard (dat al de
        volledige hero-achtergrond heeft) voorkomt dat een dubbel fotobeeld. -->
   <header class="ph" :class="{ 'ph--plain': plain }">
-    <button v-if="back" class="ph__back" :title="$t('common.back')" @click="router.push('/')"><GIcon name="back" class="ph__glyph" /></button>
+    <button v-if="back" class="ph__back" :title="$t('common.back')" :aria-label="$t('common.back')" @click="router.push('/')"><GIcon name="back" class="ph__glyph" /></button>
     <span v-else></span>
     <router-link to="/" class="ph__brand">{{ $t('home.title') }}</router-link>
     <span class="ph__side"><slot>{{ title }}</slot><LangToggle /></span>
