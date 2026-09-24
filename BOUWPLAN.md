@@ -86,8 +86,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > - **Fout gevonden en gefixt:** `correct_inspection()` schrijft
 >   `source = 'correction'`, maar live staat `inspections_source_check`
 >   alleen `('app', 'import')` toe, dus elke correctie zou falen. Nieuwe
->   migratie `20260764_inspections_source_correction.sql` (**nog door Jos uit
->   te voeren**).
+>   migratie `20260764_inspections_source_correction.sql` (door Jos
+>   uitgevoerd op 2026-09-24, succesvol).
 > - `20260916_rls_active_link_and_self_managed.sql` is live **al gedraaid**
 >   (Jos heeft het op 2026-09-24 gecontroleerd: `inspector_customer_ids` filtert
 >   op `status = 'active'`).
