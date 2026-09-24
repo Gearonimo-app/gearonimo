@@ -83,8 +83,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   "gecorrigeerd"-teksten op de verificatiepagina zijn weg. De app-bestanden
 >   zijn terug naar de stand van vóór de samenvoeging; alleen de verhuizing
 >   van `toIsoDate` naar `packages/core` blijft.
-> - Migratie `20260766_remove_correction.sql` (**nog door Jos uit te
->   voeren**): verwijdert `correct_inspection()`, zet `verify_certificate()`
+> - Migratie `20260766_remove_correction.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): verwijdert `correct_inspection()`, zet `verify_certificate()`
 >   terug naar de versie van 20260746 en verwijdert
 >   `inspections.corrects_inspection_id` en `source = 'correction'`. Die
 >   laatste twee alleen als er live geen correctie bestaat, anders een NOTICE.
