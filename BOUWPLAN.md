@@ -88,8 +88,9 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   alleen `('app', 'import')` toe, dus elke correctie zou falen. Nieuwe
 >   migratie `20260764_inspections_source_correction.sql` (**nog door Jos uit
 >   te voeren**).
-> - **Nog na te gaan:** of `20260916_rls_active_link_and_self_managed.sql`
->   ooit gedraaid is (idempotent, dus kan veilig opnieuw).
+> - `20260916_rls_active_link_and_self_managed.sql` is live **al gedraaid**
+>   (Jos heeft het op 2026-09-24 gecontroleerd: `inspector_customer_ids` filtert
+>   op `status = 'active'`).
 > - Losse vondst: live bestaat ook `inspection_items.immediate_danger`. Die
 >   komt van de oude branch `loler-inspection-rules-app-kiqefv` (heeft geen
 >   gedeelde historie met `main`). Niet in gebruik en laten staan.
