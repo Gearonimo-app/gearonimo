@@ -5,6 +5,24 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
+
+> De hieronder beschreven "NOG TE DOEN"-lijst is afgerond: Zoho CPaaS
+> (Jos' account bundelt ZeptoMail-achtige verzending onder een ander
+> API-adres, `cpaas.zoho.eu` i.p.v. `api.zeptomail.eu` -- code daarop
+> aangepast), domein `gearonimo.net` geverifieerd (DKIM TXT + CNAME bij
+> Porkbun), Zoho-klantvalidatie ingediend, Edge Function gedeployed via het
+> dashboard, `ZEPTOMAIL_TOKEN` secret gezet, afzender `no-reply@gearonimo.net`
+> (bewust internationaal i.p.v. "meldingen@", besluit Jos 2026-09-24).
+> Onderweg een reparatie nodig geweest:
+> `20260924_reminder_grant_service_role.sql` -- de oorspronkelijke migratie
+> deed `revoke all ... from public` op `customers_due_for_reminder`, wat ook
+> de impliciete toegang van `service_role` wegnam ("permission denied" bij
+> de eerste testrun). **Live handmatig getest**: status 200,
+> `{"processed": 0, "results": []}` (geen fout, gewoon niemand die op dit
+> moment binnen 30 dagen aan herkeuring toe is). Draait nu dagelijks om
+> 06:00 UTC via pg_cron.
+
 ## Voortgang (bijgewerkt 2026-09-21, herinneringsmail aan klanten)
 
 > Nieuw: maandelijkse herinneringsmail aan klant-beheerders over artikelen
