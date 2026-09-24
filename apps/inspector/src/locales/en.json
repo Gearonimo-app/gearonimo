@@ -296,14 +296,6 @@
     "certificateImported": "Imported from an old certificate. No new certificate was created — the original document remains the source.",
     "downloadCertificate": "Download certificate",
     "backToCustomer": "Back to customer",
-    "correction": {
-      "open": "Correct inspection",
-      "title": "Correct inspection",
-      "hint": "A completed inspection can no longer be changed. Only the items you change here go on a new, small certificate. The original certificate stays valid for everything else.",
-      "confirm": "Correct and create new certificate",
-      "alreadyCorrected": "Already corrected on {number}. Make further corrections from that certificate.",
-      "correctsBanner": "Correction to certificate {number}. Only the corrected items are on it; everything else stays valid on {number}."
-    },
     "table": {
       "searchPlaceholder": "Search by serial number, description, brand…",
       "noMatches": "No articles found",
@@ -390,9 +382,6 @@
   "verify": {
     "authentic": "Authentic certificate",
     "notFound": "Certificate not found or invalid link",
-    "corrects": "This is a correction to certificate {number}. Only the corrected items are on it; everything else stays valid on the original certificate.",
-    "correctsLink": "View original certificate →",
-    "itemCorrected": "Corrected, see {number} →",
     "number": "Certificate number",
     "customer": "Customer",
     "date": "Inspection date",

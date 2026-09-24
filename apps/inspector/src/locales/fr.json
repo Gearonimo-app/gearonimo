@@ -296,14 +296,6 @@
     "certificateImported": "Importé depuis un ancien certificat. Aucun nouveau certificat n'a été créé — le document original reste la source.",
     "downloadCertificate": "Télécharger le certificat",
     "backToCustomer": "Retour au client",
-    "correction": {
-      "open": "Corriger l'inspection",
-      "title": "Corriger l'inspection",
-      "hint": "Un contrôle terminé ne peut plus être modifié. Seuls les articles que vous modifiez ici figurent sur un nouveau petit certificat. Le certificat d'origine reste valable pour le reste.",
-      "confirm": "Corriger et créer un nouveau certificat",
-      "alreadyCorrected": "Déjà corrigé sur {number}. Poursuivez la correction à partir de ce certificat.",
-      "correctsBanner": "Correction du certificat {number}. Seuls les articles corrigés y figurent ; le reste reste valable sur {number}."
-    },
     "table": {
       "searchPlaceholder": "Rechercher par numéro de série, description, marque…",
       "noMatches": "Aucun article trouvé",
@@ -390,9 +382,6 @@
   "verify": {
     "authentic": "Certificat authentique",
     "notFound": "Certificat introuvable ou lien invalide",
-    "corrects": "Ceci est une correction du certificat {number}. Seuls les articles corrigés y figurent ; le reste reste valable sur le certificat d'origine.",
-    "correctsLink": "Voir le certificat d'origine →",
-    "itemCorrected": "Corrigé, voir {number} →",
     "number": "Numéro de certificat",
     "customer": "Client",
     "date": "Date de contrôle",

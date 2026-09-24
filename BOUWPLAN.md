@@ -17,15 +17,15 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   "naar fabrikant", plus een vrije opmerking.
 > - Kleur: **paars met een slotje** (oranje betekent al "keuring loopt bijna
 >   af").
-> - Alleen een **keurmeester** geeft vrij, via een korte keuring van alleen
->   dat artikel (`examination_type='after_event'`) die een **eigen, nieuw
->   certificaat** oplevert met een verwijzing naar het vorige nummer.
->   Certificaten blijven onveranderlijk, er wordt dus nooit een oud
->   certificaat aangepast. Op het eerste certificaat staat "In quarantaine:
->   [reden]".
-> - Na vrijgeven **blijft de oude `next_due` staan**, er begint geen nieuwe
->   termijn.
-> - Bij vrijgeven: opmerking "wat is er gedaan" (bv. "brug vervangen").
+> - **Uit quarantaine = gewoon een nieuwe keuring** (vereenvoudigd door Jos,
+>   2026-09-24: *"ik ben bang dat we het nu allemaal te moeilijk aan het
+>   maken zijn"*). Geen aparte vrijgeefknop. De keurmeester keurt het artikel
+>   opnieuw, er komt een tweede certificaat en de app toont de nieuwste
+>   status. Op het eerste certificaat staat "In quarantaine: [reden]".
+> - Bij die nieuwe keuring stelt de app voor een artikel dat uit quarantaine
+>   komt **de oude `next_due` voor** in plaats van vandaag + termijn (blijft
+>   aanpasbaar).
+> - Wat er gedaan is (bv. "brug vervangen") gaat in de gewone opmerking.
 > - **Eén lijst "In quarantaine"** voor de keurmeester, om alles terug te
 >   vinden.
 > - **Niet** doen: melding na 30 dagen, foto's (data, kosten en snelheid),
@@ -71,6 +71,28 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > deze 25 of meteen een groeiende lijst. **Niet bouwen vóór die antwoorden.**
 
 ---
+
+## Voortgang (bijgewerkt 2026-09-24, correctie-route weer verwijderd)
+
+> Besluit Jos (2026-09-24): *"waarom kan dit niet bij een vergissing dan? een
+> keurmeester die een vergissing opslaat is zowiezo niet de bedoeling"* en
+> *"ik vind het ook fijn als er geen onnodige code in staat"*. Er is nu **één
+> route voor alles** (vergissing, reparatie, uit quarantaine): een nieuwe
+> keuring, dus een tweede certificaat. De app toont de nieuwste status.
+> - Knop "Corrigeer keuring", het correctievenster, de PDF-regel en de
+>   "gecorrigeerd"-teksten op de verificatiepagina zijn weg. De app-bestanden
+>   zijn terug naar de stand van vóór de samenvoeging; alleen de verhuizing
+>   van `toIsoDate` naar `packages/core` blijft.
+> - Migratie `20260766_remove_correction.sql` (**nog door Jos uit te
+>   voeren**): verwijdert `correct_inspection()`, zet `verify_certificate()`
+>   terug naar de versie van 20260746 en verwijdert
+>   `inspections.corrects_inspection_id` en `source = 'correction'`. Die
+>   laatste twee alleen als er live geen correctie bestaat, anders een NOTICE.
+>   Lokaal getest in beide gevallen.
+> - **Blijft wel:** afgeronde keuringen, items en certificaten zijn
+>   onveranderlijk (triggers uit 20260917). De foutmelding zegt nu "Maak een
+>   nieuwe keuring aan."
+> - De twee secties hieronder over correcties zijn daarmee geschiedenis.
 
 ## Voortgang (bijgewerkt 2026-09-24, correctie = klein certificaat)
 

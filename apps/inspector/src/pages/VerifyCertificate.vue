@@ -5,14 +5,6 @@
 
     <div v-else class="vc__card">
       <p class="vc__badge">✅ {{ $t('verify.authentic') }}</p>
-      <!-- Correctie = klein certificaat met alleen de gecorrigeerde artikelen
-           (besluit Jos 2026-09-24); het certificaat dat het aanvult blijft
-           geldig voor de rest. Per artikel staat hieronder of er een nieuwere
-           versie is. -->
-      <p v-if="data.corrects" class="vc__superseded">
-        {{ $t('verify.corrects', { number: data.corrects.number }) }}
-        <a :href="`/verify/${data.corrects.verify_token}`" class="vc__superseded-link">{{ $t('verify.correctsLink') }}</a>
-      </p>
       <h1>{{ data.company_name }}</h1>
       <dl class="vc__details">
         <div><dt>{{ $t('verify.number') }}</dt><dd>{{ data.number }}</dd></div>
@@ -45,9 +37,6 @@
         <li v-for="(it, i) in data.items" :key="i" :class="it.result === 'rejected' ? 'vc__item--fail' : 'vc__item--pass'">
           {{ it.result === 'rejected' ? '❌' : '✅' }} {{ it.label }}
           <span v-if="it.serial_number" class="vc__sn">SN {{ it.serial_number }}</span>
-          <a v-if="it.corrected_by" :href="`/verify/${it.corrected_by.verify_token}`" class="vc__corrected">
-            {{ $t('verify.itemCorrected', { number: it.corrected_by.number }) }}
-          </a>
         </li>
       </ul>
 
@@ -80,17 +69,8 @@ interface VerifyResult {
   customer_name: string
   inspection_date: string
   inspector_name: string | null
-  /** Het certificaat dat deze correctie aanvult; null bij een gewoon certificaat. */
-  corrects: { number: string; verify_token: string } | null
   qualifications: VerifyQualification[] | null
-  items: {
-    label: string
-    serial_number: string | null
-    result: string
-    next_due: string | null
-    /** Nieuwer (correctie-)certificaat voor dít artikel, of null. */
-    corrected_by?: { number: string; verify_token: string } | null
-  }[]
+  items: { label: string; serial_number: string | null; result: string; next_due: string | null }[]
 }
 
 const data = ref<VerifyResult | null>(null)
@@ -117,12 +97,6 @@ onMounted(async () => {
 .vc__state--error { color: #dc2626; }
 .vc__card { background: #fff; border-radius: 14px; padding: 1.5rem; max-width: 480px; width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 .vc__badge { color: #16a34a; font-weight: 700; margin: 0 0 0.5rem; }
-.vc__superseded {
-  background: #fef9c3; color: #854d0e; border-radius: 8px;
-  padding: 0.6rem 0.8rem; font-size: 0.88rem; margin: 0 0 1rem;
-}
-.vc__superseded-link { display: block; font-weight: 700; margin-top: 0.25rem; color: #854d0e; }
-.vc__corrected { display: block; font-size: 0.82rem; font-weight: 600; color: #854d0e; margin-top: 0.15rem; }
 .vc__card h1 { margin: 0 0 1rem; font-size: 1.2rem; }
 .vc__card h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
 .vc__details { margin: 0; }

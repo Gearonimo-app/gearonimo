@@ -751,7 +751,6 @@ voorkomen.
 | status | text | `draft` / `completed` — na completed onveranderlijk |
 | completed_at | timestamptz? | |
 | notes | text? | |
-| corrects_inspection_id | FK? → inspections | **correctie** (2026-09-16, herzien 2026-09-24): deze keuring is een klein correctie-certificaat op de gekoppelde keuring. Bevat **alleen de gecorrigeerde artikelen** (besluit Jos 2026-09-24); het oorspronkelijke certificaat blijft geldig voor de rest. Meerdere correcties per keuring mogelijk; een al gecorrigeerd artikel corrigeer je verder vanaf het nieuwere certificaat. Nummer = basis van het oorspronkelijke certificaat + `-a`, `-b`, … (volgorde binnen de hele familie). `source = 'correction'`. Aangemaakt via `correct_inspection()`; certificaten worden nooit aangepast, er komen alleen nieuwe bij |
 
 ### `inspection_items`
 | kolom | type | uitleg |

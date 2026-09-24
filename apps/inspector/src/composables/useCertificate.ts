@@ -132,12 +132,6 @@ export interface CertData {
    * aanroepen (preview) zonder wijziging Nederlands blijven.
    */
   language?: CertLanguage
-  /**
-   * Nummer van het certificaat dat deze correctie aanvult (besluit Jos
-   * 2026-09-24: klein correctie-certificaat met alleen de gecorrigeerde
-   * artikelen). Null/leeg = gewoon certificaat.
-   */
-  correctsNumber?: string | null
 }
 
 export type CertLanguage = 'nl' | 'en' | 'fr' | 'de'
@@ -178,7 +172,6 @@ const CERT_LABELS = {
     dateLocale: 'nl-NL',
     title: 'Keuringscertificaat',
     number: 'Certificaatnummer',
-    corrects: 'Correctie op certificaat',
     customer: 'Klant',
     inspectionDate: 'Keuringsdatum',
     inspector: 'Keurmeester',
@@ -199,7 +192,6 @@ const CERT_LABELS = {
     dateLocale: 'en-GB',
     title: 'Inspection certificate',
     number: 'Certificate number',
-    corrects: 'Correction to certificate',
     customer: 'Customer',
     inspectionDate: 'Inspection date',
     inspector: 'Inspector',
@@ -220,7 +212,6 @@ const CERT_LABELS = {
     dateLocale: 'fr-FR',
     title: 'Certificat de contrôle',
     number: 'Numéro de certificat',
-    corrects: 'Correction du certificat',
     customer: 'Client',
     inspectionDate: 'Date de contrôle',
     inspector: 'Inspecteur',
@@ -241,7 +232,6 @@ const CERT_LABELS = {
     dateLocale: 'de-DE',
     title: 'Prüfzertifikat',
     number: 'Zertifikatnummer',
-    corrects: 'Korrektur zu Zertifikat',
     customer: 'Kunde',
     inspectionDate: 'Prüfdatum',
     inspector: 'Prüfer',
@@ -319,7 +309,6 @@ function sanitizeCertData(data: CertData): CertData {
     inspectorName: S(data.inspectorName),
     assessedByNames: data.assessedByNames.map((n) => sanitizeWinAnsi(n)),
     number: sanitizeWinAnsi(data.number),
-    correctsNumber: S(data.correctsNumber ?? null),
     company: {
       ...data.company,
       name: sanitizeWinAnsi(data.company.name),
@@ -746,7 +735,6 @@ export async function renderCertificatePdf(
       `${L.customer}: ${data.customerName}`,
       `${L.inspectionDate}: ${formatDate(data.inspectionDate, L.dateLocale)}`,
       `${L.inspector}: ${data.inspectorName || '—'}`,
-      ...(data.correctsNumber ? [`${L.corrects}: ${data.correctsNumber}`] : []),
     ]
     for (const m of meta) {
       const w = font.widthOfTextAtSize(m, 10)
@@ -941,7 +929,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       // rechtstreekse FK hier, én via inspection_items als bridge-tabel) en
       // weigert dan met "more than one relationship was found" -- precies de
       // fout die "Afronden" liet mislukken (Jos, 2026-09-14).
-      'id, customer_id, company_id, inspector_id, inspection_date, corrects_inspection_id, certificate_number, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -951,8 +939,6 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     customer_id: string
     company_id: string
     inspection_date: string
-    corrects_inspection_id: string | null
-    certificate_number: string | null
     customer: { name: string }
     company: CompanyRow
     inspector: { name: string | null; signature_path: string | null }
@@ -1062,14 +1048,6 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   let number: string
   if (existingCert?.number) {
     number = existingCert.number
-  } else if (inspection.corrects_inspection_id) {
-    // Correctie van een afgeronde keuring: correct_inspection() vult
-    // certificate_number al bij het aanmaken in (base-a, base-b, ...) -- niet
-    // hier opnieuw alloceren, en zeker niet achteraf updaten: de rij staat al
-    // op 'completed' en is dus al onveranderlijk (code review 15/16 sept.
-    // 2026, besluit Jos).
-    if (!inspection.certificate_number) throw new Error('Correctie mist een certificaatnummer.')
-    number = inspection.certificate_number
   } else {
     const { data: allocated, error: allocErr } = await supabase.rpc('allocate_certificate_number', {
       p_company_id: inspection.company_id,
@@ -1079,17 +1057,6 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     number = allocated as string
   }
   const verifyUrl = `${window.location.origin}/verify/${verifyToken}`
-
-  let correctsNumber: string | null = null
-  if (inspection.corrects_inspection_id) {
-    const { data: parent, error: parentErr } = await supabase
-      .from('inspections')
-      .select('certificate_number')
-      .eq('id', inspection.corrects_inspection_id)
-      .maybeSingle()
-    if (parentErr) throw parentErr
-    correctsNumber = parent?.certificate_number ?? null
-  }
 
   const company = inspection.company
   const layout = resolveLayout(company.cert_layout)
@@ -1107,7 +1074,6 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     items,
     signature: signatureBytes,
     language: certLanguage,
-    correctsNumber,
   }
 
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)
@@ -1139,40 +1105,8 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   })
   if (certErr) throw certErr
 
-  // Bij een correctie staat certificate_number er al (zie hierboven) en is de
-  // rij al 'completed' -- een update hier zou door de onveranderlijkheids-
-  // trigger geblokkeerd worden. Bij een normale afronding gebeurt dit vóórdat
-  // de keuring op 'completed' gezet wordt, dus die update mag gewoon door.
-  if (!inspection.corrects_inspection_id) {
-    const { error: updErr } = await supabase.from('inspections').update({ certificate_number: number }).eq('id', inspection.id)
-    if (updErr) throw updErr
-  }
+  const { error: updErr } = await supabase.from('inspections').update({ certificate_number: number }).eq('id', inspection.id)
+  if (updErr) throw updErr
 
   return { verifyToken, storagePath }
-}
-
-export interface CorrectionItemChange {
-  item_id: string
-  result?: 'passed' | 'rejected' | 'not_assessed'
-  rejection_code_id?: string | null
-  comment?: string | null
-  next_due?: string | null
-}
-
-/** Corrigeert een afgeronde keuring: kloont 'm naar een nieuwe, zelf ook
- * meteen afgeronde keuring met de gewijzigde items (correct_inspection()),
- * en genereert daar meteen het bijbehorende certificaat voor (-a/-b/...). De
- * oorspronkelijke keuring/items/certificaat blijven onaangeroerd -- dat is
- * het hele punt (code review 15/16 sept. 2026, besluit Jos). */
-export async function correctInspection(
-  inspectionId: string,
-  itemChanges: CorrectionItemChange[]
-): Promise<{ newInspectionId: string; verifyToken: string; storagePath: string }> {
-  const { data: newId, error } = await supabase.rpc('correct_inspection', {
-    p_inspection_id: inspectionId,
-    p_items: itemChanges,
-  })
-  if (error) throw error
-  const { verifyToken, storagePath } = await generateCertificate(newId as string)
-  return { newInspectionId: newId as string, verifyToken, storagePath }
 }
