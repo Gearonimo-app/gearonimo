@@ -5,33 +5,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Besloten, nog te bouwen: quarantaine "afgekeurd tot reparatie" (Jos, 2026-09-24)
+## Quarantaine: niet bouwen, via een afkeurcode (Jos, 2026-09-24)
 
-> Aanleiding: kleine reparaties (brug van een gordel, versleten
-> remblokjes, kabeltje van de RP201) of terug naar de fabrikant (de
-> Blackbird). Nu bestaat alleen `passed` / `rejected` / `not_assessed`, en
-> `rejected` betekent in de praktijk "weg ermee".
-> Besluiten van Jos:
-> - 4e uitslag in de keuring: **quarantaine**. Het artikel mag niet gebruikt
->   worden maar is niet afgevoerd. Reden: keuze uit "wacht op onderdeel" of
->   "naar fabrikant", plus een vrije opmerking.
-> - Kleur: **paars met een slotje** (oranje betekent al "keuring loopt bijna
->   af").
-> - **Uit quarantaine = gewoon een nieuwe keuring** (vereenvoudigd door Jos,
->   2026-09-24: *"ik ben bang dat we het nu allemaal te moeilijk aan het
->   maken zijn"*). Geen aparte vrijgeefknop. De keurmeester keurt het artikel
->   opnieuw, er komt een tweede certificaat en de app toont de nieuwste
->   status. Op het eerste certificaat staat "In quarantaine: [reden]".
-> - Bij die nieuwe keuring stelt de app voor een artikel dat uit quarantaine
->   komt **de oude `next_due` voor** in plaats van vandaag + termijn (blijft
->   aanpasbaar).
-> - Wat er gedaan is (bv. "brug vervangen") gaat in de gewone opmerking.
-> - **Eén lijst "In quarantaine"** voor de keurmeester, om alles terug te
->   vinden.
-> - **Niet** doen: melding na 30 dagen, foto's (data, kosten en snelheid),
->   de hele set paars kleuren (werkt eerder tegen dan mee).
-> Eerste bouwstap: live kolommen van `inspection_items` en `inspections`
-> laten verifiëren door Jos vóór de migratie (CLAUDE.md-regel 5).
+> Het plan voor een aparte quarantaine-uitslag (paars, lijst, vrijgeven) is
+> **vervallen**. Jos: *"misschien moet quarantaine een optie zijn in de afkeur
+> codes? [...] kan ieder voor zich bedenken en als het klaar is opnieuw goed
+> keuren en klaar"*, en daarna *"deze opties vergeten we"*.
+> Dat werkt al zonder code: een afgekeurd artikel blijft actief, staat bij de
+> volgende keuring weer in de lijst en kan dan goedgekeurd worden. Elk
+> keurbedrijf voegt zelf een code toe onder Instellingen → Afkeurcodes (bv.
+> "8 — Eerst repareren"). Geen paarse kleur en geen aparte lijst. Bij
+> goedkeuren is de voorgestelde datum vandaag + termijn (handmatig aan te
+> passen).
 
 ---
 
