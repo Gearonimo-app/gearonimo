@@ -299,8 +299,10 @@
     "correction": {
       "open": "Corriger l'inspection",
       "title": "Corriger l'inspection",
-      "hint": "Une inspection terminée ne peut plus être modifiée. Ceci crée un nouveau certificat lié avec le résultat corrigé — le certificat original est conservé.",
-      "confirm": "Corriger et créer un nouveau certificat"
+      "hint": "Un contrôle terminé ne peut plus être modifié. Seuls les articles que vous modifiez ici figurent sur un nouveau petit certificat. Le certificat d'origine reste valable pour le reste.",
+      "confirm": "Corriger et créer un nouveau certificat",
+      "alreadyCorrected": "Déjà corrigé sur {number}. Poursuivez la correction à partir de ce certificat.",
+      "correctsBanner": "Correction du certificat {number}. Seuls les articles corrigés y figurent ; le reste reste valable sur {number}."
     },
     "table": {
       "searchPlaceholder": "Rechercher par numéro de série, description, marque…",
@@ -388,8 +390,9 @@
   "verify": {
     "authentic": "Certificat authentique",
     "notFound": "Certificat introuvable ou lien invalide",
-    "supersededBy": "Ce certificat a été corrigé. La version valide est {number}.",
-    "supersededLink": "Voir la version valide →",
+    "corrects": "Ceci est une correction du certificat {number}. Seuls les articles corrigés y figurent ; le reste reste valable sur le certificat d'origine.",
+    "correctsLink": "Voir le certificat d'origine →",
+    "itemCorrected": "Corrigé, voir {number} →",
     "number": "Numéro de certificat",
     "customer": "Client",
     "date": "Date de contrôle",

@@ -299,8 +299,10 @@
     "correction": {
       "open": "Prüfung korrigieren",
       "title": "Prüfung korrigieren",
-      "hint": "Eine abgeschlossene Prüfung kann nicht mehr geändert werden. Dies erstellt ein neues, verknüpftes Zertifikat mit dem korrigierten Ergebnis — das ursprüngliche Zertifikat bleibt erhalten.",
-      "confirm": "Korrigieren und neues Zertifikat erstellen"
+      "hint": "Eine abgeschlossene Prüfung kann nicht mehr geändert werden. Nur die Artikel, die Sie hier ändern, kommen auf ein neues, kleines Zertifikat. Das ursprüngliche Zertifikat bleibt für alles andere gültig.",
+      "confirm": "Korrigieren und neues Zertifikat erstellen",
+      "alreadyCorrected": "Bereits korrigiert auf {number}. Weitere Korrekturen von diesem Zertifikat aus.",
+      "correctsBanner": "Korrektur zu Zertifikat {number}. Nur die korrigierten Artikel stehen darauf; alles andere bleibt auf {number} gültig."
     },
     "table": {
       "searchPlaceholder": "Suche nach Seriennummer, Beschreibung, Marke…",
@@ -388,8 +390,9 @@
   "verify": {
     "authentic": "Echtes Zertifikat",
     "notFound": "Zertifikat nicht gefunden oder ungültiger Link",
-    "supersededBy": "Dieses Zertifikat wurde korrigiert. Die gültige Version ist {number}.",
-    "supersededLink": "Gültige Version ansehen →",
+    "corrects": "Dies ist eine Korrektur zu Zertifikat {number}. Nur die korrigierten Artikel stehen darauf; alles andere bleibt auf dem ursprünglichen Zertifikat gültig.",
+    "correctsLink": "Ursprüngliches Zertifikat ansehen →",
+    "itemCorrected": "Korrigiert, siehe {number} →",
     "number": "Zertifikatnummer",
     "customer": "Kunde",
     "date": "Prüfdatum",

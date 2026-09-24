@@ -132,6 +132,12 @@ export interface CertData {
    * aanroepen (preview) zonder wijziging Nederlands blijven.
    */
   language?: CertLanguage
+  /**
+   * Nummer van het certificaat dat deze correctie aanvult (besluit Jos
+   * 2026-09-24: klein correctie-certificaat met alleen de gecorrigeerde
+   * artikelen). Null/leeg = gewoon certificaat.
+   */
+  correctsNumber?: string | null
 }
 
 export type CertLanguage = 'nl' | 'en' | 'fr' | 'de'
@@ -172,6 +178,7 @@ const CERT_LABELS = {
     dateLocale: 'nl-NL',
     title: 'Keuringscertificaat',
     number: 'Certificaatnummer',
+    corrects: 'Correctie op certificaat',
     customer: 'Klant',
     inspectionDate: 'Keuringsdatum',
     inspector: 'Keurmeester',
@@ -192,6 +199,7 @@ const CERT_LABELS = {
     dateLocale: 'en-GB',
     title: 'Inspection certificate',
     number: 'Certificate number',
+    corrects: 'Correction to certificate',
     customer: 'Customer',
     inspectionDate: 'Inspection date',
     inspector: 'Inspector',
@@ -212,6 +220,7 @@ const CERT_LABELS = {
     dateLocale: 'fr-FR',
     title: 'Certificat de contrôle',
     number: 'Numéro de certificat',
+    corrects: 'Correction du certificat',
     customer: 'Client',
     inspectionDate: 'Date de contrôle',
     inspector: 'Inspecteur',
@@ -232,6 +241,7 @@ const CERT_LABELS = {
     dateLocale: 'de-DE',
     title: 'Prüfzertifikat',
     number: 'Zertifikatnummer',
+    corrects: 'Korrektur zu Zertifikat',
     customer: 'Kunde',
     inspectionDate: 'Prüfdatum',
     inspector: 'Prüfer',
@@ -309,6 +319,7 @@ function sanitizeCertData(data: CertData): CertData {
     inspectorName: S(data.inspectorName),
     assessedByNames: data.assessedByNames.map((n) => sanitizeWinAnsi(n)),
     number: sanitizeWinAnsi(data.number),
+    correctsNumber: S(data.correctsNumber ?? null),
     company: {
       ...data.company,
       name: sanitizeWinAnsi(data.company.name),
@@ -735,6 +746,7 @@ export async function renderCertificatePdf(
       `${L.customer}: ${data.customerName}`,
       `${L.inspectionDate}: ${formatDate(data.inspectionDate, L.dateLocale)}`,
       `${L.inspector}: ${data.inspectorName || '—'}`,
+      ...(data.correctsNumber ? [`${L.corrects}: ${data.correctsNumber}`] : []),
     ]
     for (const m of meta) {
       const w = font.widthOfTextAtSize(m, 10)
@@ -1068,6 +1080,17 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   }
   const verifyUrl = `${window.location.origin}/verify/${verifyToken}`
 
+  let correctsNumber: string | null = null
+  if (inspection.corrects_inspection_id) {
+    const { data: parent, error: parentErr } = await supabase
+      .from('inspections')
+      .select('certificate_number')
+      .eq('id', inspection.corrects_inspection_id)
+      .maybeSingle()
+    if (parentErr) throw parentErr
+    correctsNumber = parent?.certificate_number ?? null
+  }
+
   const company = inspection.company
   const layout = resolveLayout(company.cert_layout)
   const logoBytes = await fetchLogoBytes(company.logo_path)
@@ -1084,6 +1107,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     items,
     signature: signatureBytes,
     language: certLanguage,
+    correctsNumber,
   }
 
   const pdfBytes = await renderCertificatePdf(data, layout, logoBytes)

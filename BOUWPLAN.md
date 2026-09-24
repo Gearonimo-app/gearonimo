@@ -72,6 +72,33 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-24, correctie = klein certificaat)
+
+> Besluit Jos (2026-09-24): een correctie maakt een **klein certificaat met
+> alleen de aangepaste artikelen**. Het oude certificaat blijft geldig voor
+> de rest en krijgt per artikel "gecorrigeerd, zie …-a". Zelfde principe als
+> de quarantaine straks: certificaten worden nooit aangepast, er komen alleen
+> nieuwe bij.
+> - Migratie `20260765_partial_correction.sql` (**nog door Jos uit te
+>   voeren**): unieke index "één keten" eruit (meerdere correcties per
+>   keuring), `correct_inspection()` neemt alleen de meegegeven items over,
+>   controleert dat ze bij de keuring horen en weigert een artikel dat vanaf
+>   dit certificaat al gecorrigeerd is. `verify_certificate()` geeft
+>   `corrects` (bovenaan) en per item `corrected_by`; `superseded_by` blijft
+>   bestaan maar is altijd null.
+> - Lokaal getest op een Postgres 16 met een nagebouwd minimaal schema:
+>   -a/-b/-c-nummering, weigeren van dubbele/lege/vreemde items,
+>   verificatie-uitvoer, "nieuwste per artikel" (sortering van het
+>   dashboard) en de onveranderlijkheidstrigger.
+> - Wizard: correctievenster toont een al gecorrigeerd artikel als "Al
+>   gecorrigeerd op X"; alleen online. Volgende keuring bij correctie:
+>   afgekeurd = leeg, goed blijft goed = zelfde datum, afgekeurd → goed =
+>   termijn vanaf de oorspronkelijke keurdatum. Afrondscherm van een correctie
+>   toont "Correctie op certificaat X".
+> - PDF: extra kopregel "Correctie op certificaat X" (nl/en/fr/de).
+>   Verificatiepagina: banner op de correctie en per artikel een link op het
+>   oude certificaat. Alle drie zelf gerenderd en bekeken.
+
 ## Voortgang (bijgewerkt 2026-09-24, vergeten branch van 16 sept. samengevoegd)
 
 > Bij het voorbereiden van de quarantaine bleek dat de live database

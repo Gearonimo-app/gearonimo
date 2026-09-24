@@ -299,8 +299,10 @@
     "correction": {
       "open": "Corrigeer keuring",
       "title": "Keuring corrigeren",
-      "hint": "Een afgeronde keuring kan niet meer gewijzigd worden. Dit maakt een nieuw, gekoppeld certificaat aan met de gecorrigeerde uitslag — het oorspronkelijke certificaat blijft bewaard.",
-      "confirm": "Corrigeer en maak nieuw certificaat"
+      "hint": "Een afgeronde keuring kan niet meer gewijzigd worden. Alleen de artikelen die je hier aanpast komen op een nieuw, klein certificaat. Het oorspronkelijke certificaat blijft geldig voor de rest.",
+      "confirm": "Corrigeer en maak nieuw certificaat",
+      "alreadyCorrected": "Al gecorrigeerd op {number}. Corrigeer verder vanaf dat certificaat.",
+      "correctsBanner": "Correctie op certificaat {number}. Alleen de gecorrigeerde artikelen staan hierop; de rest blijft geldig op {number}."
     },
     "table": {
       "searchPlaceholder": "Zoek op serienummer, omschrijving, merk…",
@@ -388,8 +390,9 @@
   "verify": {
     "authentic": "Echt certificaat",
     "notFound": "Certificaat niet gevonden of ongeldige link",
-    "supersededBy": "Dit certificaat is gecorrigeerd. De geldige versie is {number}.",
-    "supersededLink": "Bekijk geldige versie →",
+    "corrects": "Dit is een correctie op certificaat {number}. Alleen de gecorrigeerde artikelen staan hierop; de rest blijft geldig op het oorspronkelijke certificaat.",
+    "correctsLink": "Bekijk oorspronkelijk certificaat →",
+    "itemCorrected": "Gecorrigeerd, zie {number} →",
     "number": "Certificaatnummer",
     "customer": "Klant",
     "date": "Keuringsdatum",

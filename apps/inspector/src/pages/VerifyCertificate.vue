@@ -5,12 +5,13 @@
 
     <div v-else class="vc__card">
       <p class="vc__badge">✅ {{ $t('verify.authentic') }}</p>
-      <!-- Deze specifieke keuring is gecorrigeerd (code review 15/16 sept.
-           2026): het origineel blijft als audit-spoor bestaan en tonen, maar
-           de geldige uitslag staat op het nieuwe (gelinkte) certificaat. -->
-      <p v-if="data.superseded_by" class="vc__superseded">
-        {{ $t('verify.supersededBy', { number: data.superseded_by.number }) }}
-        <a :href="`/verify/${data.superseded_by.verify_token}`" class="vc__superseded-link">{{ $t('verify.supersededLink') }}</a>
+      <!-- Correctie = klein certificaat met alleen de gecorrigeerde artikelen
+           (besluit Jos 2026-09-24); het certificaat dat het aanvult blijft
+           geldig voor de rest. Per artikel staat hieronder of er een nieuwere
+           versie is. -->
+      <p v-if="data.corrects" class="vc__superseded">
+        {{ $t('verify.corrects', { number: data.corrects.number }) }}
+        <a :href="`/verify/${data.corrects.verify_token}`" class="vc__superseded-link">{{ $t('verify.correctsLink') }}</a>
       </p>
       <h1>{{ data.company_name }}</h1>
       <dl class="vc__details">
@@ -44,6 +45,9 @@
         <li v-for="(it, i) in data.items" :key="i" :class="it.result === 'rejected' ? 'vc__item--fail' : 'vc__item--pass'">
           {{ it.result === 'rejected' ? '❌' : '✅' }} {{ it.label }}
           <span v-if="it.serial_number" class="vc__sn">SN {{ it.serial_number }}</span>
+          <a v-if="it.corrected_by" :href="`/verify/${it.corrected_by.verify_token}`" class="vc__corrected">
+            {{ $t('verify.itemCorrected', { number: it.corrected_by.number }) }}
+          </a>
         </li>
       </ul>
 
@@ -76,9 +80,17 @@ interface VerifyResult {
   customer_name: string
   inspection_date: string
   inspector_name: string | null
-  superseded_by: { number: string; verify_token: string } | null
+  /** Het certificaat dat deze correctie aanvult; null bij een gewoon certificaat. */
+  corrects: { number: string; verify_token: string } | null
   qualifications: VerifyQualification[] | null
-  items: { label: string; serial_number: string | null; result: string; next_due: string | null }[]
+  items: {
+    label: string
+    serial_number: string | null
+    result: string
+    next_due: string | null
+    /** Nieuwer (correctie-)certificaat voor dít artikel, of null. */
+    corrected_by?: { number: string; verify_token: string } | null
+  }[]
 }
 
 const data = ref<VerifyResult | null>(null)
@@ -110,6 +122,7 @@ onMounted(async () => {
   padding: 0.6rem 0.8rem; font-size: 0.88rem; margin: 0 0 1rem;
 }
 .vc__superseded-link { display: block; font-weight: 700; margin-top: 0.25rem; color: #854d0e; }
+.vc__corrected { display: block; font-size: 0.82rem; font-weight: 600; color: #854d0e; margin-top: 0.15rem; }
 .vc__card h1 { margin: 0 0 1rem; font-size: 1.2rem; }
 .vc__card h2 { font-size: 1rem; margin: 1.25rem 0 0.5rem; }
 .vc__details { margin: 0; }

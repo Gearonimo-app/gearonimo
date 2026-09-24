@@ -16,6 +16,10 @@
              gearchiveerd" terwijl er geen certificaat bestaat. -->
         <p v-else-if="isImported" class="iw__cert-imported">📄 {{ $t('inspections.certificateImported') }}</p>
         <p v-else class="iw__cert-ok">✅ {{ $t('inspections.certificateReady') }}</p>
+        <!-- Klein correctie-certificaat (Jos, 2026-09-24): alleen de
+             gecorrigeerde artikelen, het oorspronkelijke blijft geldig voor
+             de rest. -->
+        <p v-if="correctsNumber" class="iw__cert-correction">{{ $t('inspections.correction.correctsBanner', { number: correctsNumber }) }}</p>
         <a v-if="certificateUrl" :href="certificateUrl" target="_blank" class="iw__btn iw__btn--save iw__cert-link">
           {{ $t('inspections.downloadCertificate') }}
         </a>
@@ -27,7 +31,7 @@
         <!-- Corrigeren i.p.v. bewerken: een afgeronde keuring staat op slot in
              de database, dit maakt een nieuw (gekoppeld) certificaat aan i.p.v.
              het oude te wijzigen (code review 15/16 sept. 2026, besluit Jos). -->
-        <button v-if="!isImported && !awaitingSync" type="button" class="iw__btn iw__btn--cancel" @click="openCorrection">
+        <button v-if="!isImported && !awaitingSync && isOnline" type="button" class="iw__btn iw__btn--cancel" @click="openCorrection">
           {{ $t('inspections.correction.open') }}
         </button>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
@@ -42,6 +46,11 @@
           <ul class="iwc__list">
             <li v-for="row in correctionRows" :key="row.id" class="iwc__row">
               <span class="iwc__label">{{ row.label }}</span>
+              <!-- Al gecorrigeerd vanaf dít certificaat: verder corrigeren
+                   gaat vanaf het nieuwere certificaat (de database weigert
+                   het hier ook, zie 20260765_partial_correction.sql). -->
+              <span v-if="row.correctedIn" class="iwc__done">{{ $t('inspections.correction.alreadyCorrected', { number: row.correctedIn }) }}</span>
+              <template v-else>
               <span class="iwc__buttons">
                 <button
                   type="button"
@@ -65,6 +74,7 @@
                 class="iw__input iw__input--sm iwc__comment"
                 :placeholder="$t('inspections.commentPlaceholder')"
               />
+              </template>
             </li>
           </ul>
           <p v-if="correctionError" class="iw__state iw__state--error">{{ correctionError }}</p>
@@ -759,6 +769,10 @@ interface InspectionRecord {
   company_id: string
   // 'import' = uit een oud certificaat geïmporteerd (geen eigen certificaat-PDF).
   source: string | null
+  // Alleen online geladen (select '*'); offline ontbreken ze -- corrigeren is
+  // sowieso online-only.
+  inspection_date?: string
+  corrects_inspection_id?: string | null
   customer: { name: string } | null
   company: {
     country_code: string | null
@@ -865,14 +879,51 @@ const correcting = ref(false)
 const correctionDraft = ref<Record<string, CorrectionDraftEntry>>({})
 const correctionSaving = ref(false)
 const correctionError = ref('')
+// Certificaatnummer van de keuring die déze keuring corrigeert (banner op het
+// afrondscherm), en per artikel het nummer van een eerdere correctie vanaf
+// dít certificaat -- zo'n artikel corrigeer je verder vanaf dat nieuwere
+// certificaat (besluit Jos 2026-09-24: klein certificaat met alleen de
+// gecorrigeerde artikelen, meerdere correcties per keuring mogelijk).
+const correctsNumber = ref<string | null>(null)
+const alreadyCorrected = ref<Record<string, string>>({})
 
 const correctionRows = computed(() =>
   items.value
     .filter((it) => it.result !== 'not_assessed')
-    .map((it) => ({ id: it.id, label: itemLabel(it) }))
+    .map((it) => ({ id: it.id, label: itemLabel(it), correctedIn: alreadyCorrected.value[it.article_id] ?? null }))
 )
 
-function openCorrection() {
+async function loadCorrectionContext() {
+  correctsNumber.value = null
+  alreadyCorrected.value = {}
+  if (!isOnline.value || !inspection.value) return
+  if (inspection.value.corrects_inspection_id) {
+    const { data } = await supabase
+      .from('inspections')
+      .select('certificate_number')
+      .eq('id', inspection.value.corrects_inspection_id)
+      .maybeSingle()
+    correctsNumber.value = data?.certificate_number ?? null
+  }
+  const { data: corrections, error: corrErr } = await supabase
+    .from('inspections')
+    .select('certificate_number, inspection_items(article_id)')
+    .eq('corrects_inspection_id', inspection.value.id)
+  if (corrErr) throw corrErr
+  const map: Record<string, string> = {}
+  for (const c of (corrections ?? []) as { certificate_number: string | null; inspection_items: { article_id: string }[] }[]) {
+    for (const ci of c.inspection_items ?? []) map[ci.article_id] = c.certificate_number ?? '?'
+  }
+  alreadyCorrected.value = map
+}
+
+async function openCorrection() {
+  correctionError.value = ''
+  try {
+    await loadCorrectionContext()
+  } catch (e) {
+    correctionError.value = errorMessage(e)
+  }
   const draft: Record<string, CorrectionDraftEntry> = {}
   for (const it of items.value) {
     if (it.result === 'not_assessed') continue
@@ -883,7 +934,6 @@ function openCorrection() {
     }
   }
   correctionDraft.value = draft
-  correctionError.value = ''
   correcting.value = true
 }
 
@@ -898,19 +948,30 @@ function setCorrectionResult(itemId: string, result: 'passed' | 'rejected') {
   if (result === 'passed') entry.rejection_code_id = null
 }
 
-// Alleen daadwerkelijk gewijzigde items gaan mee naar correct_inspection();
-// ongewijzigde items blijven gewoon zoals ze op de originele keuring stonden.
-const hasCorrectionChanges = computed(() =>
-  items.value.some((it) => {
-    const draft = correctionDraft.value[it.id]
-    if (!draft) return false
-    return (
-      draft.result !== it.result ||
-      draft.rejection_code_id !== it.rejection_code_id ||
-      (draft.comment || null) !== (it.comment || null)
-    )
-  })
-)
+// Alleen daadwerkelijk gewijzigde items gaan mee naar correct_inspection()
+// en komen dus op het kleine correctie-certificaat; de rest blijft gewoon
+// geldig op het oorspronkelijke certificaat.
+function isCorrectionChanged(it: Item): boolean {
+  const draft = correctionDraft.value[it.id]
+  if (!draft || alreadyCorrected.value[it.article_id]) return false
+  return (
+    draft.result !== it.result ||
+    draft.rejection_code_id !== it.rejection_code_id ||
+    (draft.comment.trim() || null) !== (it.comment || null)
+  )
+}
+const hasCorrectionChanges = computed(() => items.value.some(isCorrectionChanged))
+
+// Volgende keuring bij een gewijzigde uitslag: afgekeurd = geen; goedgekeurd
+// en al goedgekeurd = datum blijft; van afgekeurd naar goedgekeurd = termijn
+// vanaf de oorspronkelijke keurdatum (niet vanaf vandaag -- de correctie
+// herstelt die keuring, het is geen nieuwe).
+function correctedNextDue(it: Item, result: 'passed' | 'rejected'): string | null {
+  if (result === 'rejected') return null
+  if (it.result === 'passed') return it.next_due
+  const base = inspection.value?.inspection_date ? new Date(inspection.value.inspection_date) : new Date()
+  return suggestedNextDueIso(it, base)
+}
 
 async function submitCorrection() {
   if (!inspection.value) return
@@ -918,22 +979,15 @@ async function submitCorrection() {
   correctionError.value = ''
   try {
     const changes: CorrectionItemChange[] = items.value
-      .filter((it) => {
-        const draft = correctionDraft.value[it.id]
-        if (!draft) return false
-        return (
-          draft.result !== it.result ||
-          draft.rejection_code_id !== it.rejection_code_id ||
-          (draft.comment || null) !== (it.comment || null)
-        )
-      })
+      .filter(isCorrectionChanged)
       .map((it) => {
         const draft = correctionDraft.value[it.id]
         return {
           item_id: it.id,
           result: draft.result,
-          rejection_code_id: draft.rejection_code_id,
+          rejection_code_id: draft.result === 'rejected' ? draft.rejection_code_id : null,
           comment: draft.comment.trim() || null,
+          next_due: correctedNextDue(it, draft.result),
         }
       })
     const { newInspectionId } = await correctInspection(inspection.value.id, changes)
@@ -1740,9 +1794,9 @@ function defaultIntervalMonths(it: Item): number | null {
 }
 
 /** `null` = dit artikel wordt niet gekeurd, dus er is geen volgende keuring. */
-function suggestedNextDue(it: Item): Date | null {
+function suggestedNextDue(it: Item, from: Date = new Date()): Date | null {
   const months = defaultIntervalMonths(it)
-  return months == null ? null : addMonths(new Date(), months)
+  return months == null ? null : addMonths(from, months)
 }
 
 /**
@@ -1750,8 +1804,8 @@ function suggestedNextDue(it: Item): Date | null {
  * `null` bij een type zonder keurtermijn. Eén helper in plaats van op drie
  * plekken dezelfde null-check rond `toIsoDate`.
  */
-function suggestedNextDueIso(it: Item): string | null {
-  const d = suggestedNextDue(it)
+function suggestedNextDueIso(it: Item, from?: Date): string | null {
+  const d = suggestedNextDue(it, from)
   return d == null ? null : toIsoDate(d)
 }
 
@@ -1988,6 +2042,7 @@ async function load() {
   freeFields.value = await fetchFreeInputFields()
 
   previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
+  if (insp.status === 'completed') await loadCorrectionContext().catch(() => {})
 
   // Hele catalogus laden in pagina's van 1000: PostgREST kapt een query
   // standaard op 1000 rijen, en de catalogus is groter. Zonder paginering zou
@@ -3002,6 +3057,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iwc__label { flex: 1 1 100%; font-weight: 600; font-size: 0.92rem; }
 .iwc__buttons { display: flex; gap: 0.4rem; }
 .iwc__comment { flex: 1 1 100%; }
+.iwc__done { font-size: 0.85rem; color: #6b7280; }
+.iw__cert-correction { margin: 0; font-size: 0.9rem; color: #6b21a8; }
 .iwc__actions { display: flex; gap: 0.75rem; margin-top: 0.25rem; }
 .iwc__actions .iw__btn { flex: 1; }
 </style>
