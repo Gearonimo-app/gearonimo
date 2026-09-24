@@ -14,7 +14,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const ZEPTOMAIL_TOKEN = Deno.env.get("ZEPTOMAIL_TOKEN")!;
-const ZEPTOMAIL_FROM_EMAIL = Deno.env.get("ZEPTOMAIL_FROM_EMAIL") ?? "meldingen@gearonimo.net";
+// "no-reply" i.p.v. het eerder gebruikte "meldingen": internationaal
+// begrijpelijke conventie (dit is een Nederlands woord, klanten zijn niet
+// allemaal Nederlandstalig) en zegt meteen dat er niemand op dit postvak
+// leest (besluit Jos 2026-09-24).
+const ZEPTOMAIL_FROM_EMAIL = Deno.env.get("ZEPTOMAIL_FROM_EMAIL") ?? "no-reply@gearonimo.net";
 // Jos' account loopt via "Zoho CPaaS" (een gebundelde Zoho-omgeving met
 // ZeptoMail erin, niet de losse ZeptoMail-losse-app) -- vandaar cpaas.zoho.eu
 // i.p.v. het "kale" api.zeptomail.eu. Live geverifieerd met een testmail
