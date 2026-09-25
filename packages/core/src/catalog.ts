@@ -30,6 +30,7 @@ export const CATALOG_COLUMNS = [
   "material",
   "standard",
   "manufacturer_code",
+  "barcodes",
   "max_age_use_years",
   "max_age_mfr_years",
   "breaking_strength",
@@ -91,6 +92,68 @@ export const PRODUCT_TYPES = [
  * en is deze lijst niet in beeld.
  */
 export const ARTICLE_TYPES = [...PRODUCT_TYPES, "other"] as const;
+
+/**
+ * De toegestane waarden van `category` in de **catalogus**: de fijne
+ * artikeltaxonomie die `product_type` juist niet mag bevatten (zie hierboven).
+ * Net als `PRODUCT_TYPES` een kleine, beheerde lijst — vertaald (NL/EN/FR/DE)
+ * via de sleutel `settings.catalog.categories.<code>` in de taalbestanden,
+ * in plaats van vrije tekst.
+ *
+ * Vastgesteld met Jos (2026-09-10) uit de opschoning van 138 losse, deels
+ * dubbele waardes over 2890 producten (Harness/Harnesses/harness, Prusik/
+ * Hitch Cords/prusik cord, enz.) tot deze 27 canonieke termen — "zoals de
+ * keurmeester het herkent", niet zoals de CE-norm het indeelt (EN 566 dekt
+ * bijvoorbeeld zowel `slings` als `anchor_strop`, maar dat zijn voor een
+ * keurmeester twee andere dingen).
+ *
+ * Enkele niet-vanzelfsprekende scheidingen, zodat ze niet per ongeluk weer
+ * samengevoegd worden:
+ * - `harnesses` vs `climbing_harness`: EN 361 (valbeveiliging, ook in
+ *   combinatie met EN 813/EN 358) is `harnesses`; EN 813/EN 358/EN 12277
+ *   zónder EN 361 is `climbing_harness` (klimgordel/positioneringsgordel).
+ * - `anchor_strop` vs `accessory_cord`: een lus/lijn die voldoet aan EN 566
+ *   of EN 795B is `anchor_strop`; draagt hij uitsluitend EN 564 (hulplijn),
+ *   dan is dat geen lastdragende PBM-norm en blijft het apart als
+ *   `accessory_cord` — dat verbloemt geen fabrieksfout in de certificering.
+ * - `mechanical_prusik` (grijpt de lijn zelf, bv. ZigZag) vs `line_brake`
+ *   (rem/geleider, de hitch cord eronder doet het grijpwerk, bv. rope
+ *   wrench, Chicane, Freexion).
+ * - `srl` (oprolautomaat, EN 360) vs `mobile_fall_arrester` (meelopend
+ *   valstopapparaat, EN 353 / EN 12841-A, bv. Petzl ASAP).
+ */
+export const CATEGORIES = [
+  "connectors",
+  "harnesses",
+  "climbing_harness",
+  "harness_accessories",
+  "climbing_ropes",
+  "positioning_lanyards",
+  "slings",
+  "anchor_strop",
+  "accessory_cord",
+  "anchor_hardware",
+  "pulleys",
+  "rope_clamps",
+  "mechanical_prusik",
+  "descenders",
+  "line_brake",
+  "bollard",
+  "throw_hook",
+  "rigging_line",
+  "cambium_saver",
+  "srl",
+  "mobile_fall_arrester",
+  "energy_absorber",
+  "swivel",
+  "tree_spurs",
+  "helmet",
+  "tool_lanyard",
+  "lifting_sling",
+  "other_non_ppe",
+] as const;
+
+export type Category = (typeof CATEGORIES)[number];
 
 /** Velden die een heel getal moeten zijn (of leeg). */
 const INT_FIELDS = [
@@ -177,6 +240,79 @@ const PPE_NORMEN: readonly (readonly [RegExp, string])[] = [
   [/\bEN\s?12275\b/i, "EN 12275 (karabiner)"],
 ];
 
+/**
+ * Streepjescodes (EAN/GTIN) van een product: de code op de doos of het
+ * label, niet het serienummer. Eén product kan er meerdere hebben (bv. één
+ * per maat of kleur), gescheiden door een puntkomma: `3342540123456;3342540123463`.
+ *
+ * Besluit Jos (2026-09-24): de codes komen alleen via de bronlijst (hij vraagt
+ * ze op bij de fabrikant) of via een curator in het catalogusbeheer, net als
+ * de rest van de catalogus. Een keurmeester kan ze niet toevoegen. Een scan
+ * van een onbekende code koppelt dus nooit automatisch.
+ *
+ * Streng, omdat een fout hier stil een verkeerd product kiest: alleen cijfers,
+ * een geldige lengte (GTIN-8/12/13/14) en een kloppend controlecijfer. Excel
+ * haalt voorloopnullen weg als de cel geen tekst is. Een 13-cijferige code
+ * "0012345678905" wordt dan 11 cijfers, en dat vangt de lengtecontrole.
+ */
+const GTIN_LENGTHS = [8, 12, 13, 14];
+
+/** Kloppen lengte en controlecijfer van deze GTIN/EAN/UPC? */
+export function isValidGtin(code: string): boolean {
+  if (!/^\d+$/.test(code) || !GTIN_LENGTHS.includes(code.length)) return false;
+  const digits = code.split("").map(Number);
+  const check = digits.pop()!;
+  // Van rechts naar links: gewicht 3, 1, 3, 1, ... (vóór het controlecijfer).
+  const sum = digits
+    .reverse()
+    .reduce((acc, d, i) => acc + d * (i % 2 === 0 ? 3 : 1), 0);
+  return (10 - (sum % 10)) % 10 === check;
+}
+
+/** Splits een barcodes-veld in geldige en ongeldige codes (lege delen vallen weg). */
+export function parseBarcodes(raw: string | null | undefined): { codes: string[]; invalid: string[] } {
+  const codes: string[] = [];
+  const invalid: string[] = [];
+  for (const part of (raw ?? "").split(";")) {
+    const code = part.trim();
+    if (!code) continue;
+    if (!isValidGtin(code)) invalid.push(code);
+    else if (!codes.includes(code)) codes.push(code);
+  }
+  return { codes, invalid };
+}
+
+/** Nette schrijfwijze voor de database en de bronlijst, of `null` als er niets is. */
+export function formatBarcodes(raw: string | null | undefined): string | null {
+  const { codes } = parseBarcodes(raw);
+  return codes.length ? codes.join(";") : null;
+}
+
+/**
+ * Dezelfde GTIN kan in verschillende lengtes geschreven worden: een scanner
+ * leest een Amerikaanse UPC-A als 12 cijfers ("036000291452"), een lijst van
+ * de fabrikant noemt hem als EAN-13 ("0036000291452"). Aangevuld tot 14
+ * cijfers zijn ze gelijk. Zo schrijft de GS1-standaard het ook voor.
+ */
+function gtinKey(code: string): string {
+  return code.padStart(14, "0");
+}
+
+/**
+ * Het product waar deze gescande of getypte code bij hoort, of `null`.
+ * Alleen een exacte match (op de GTIN, ongeacht de lengte): een streepjescode
+ * is geen zoekterm.
+ */
+export function findProductByBarcode<T extends { barcodes?: string | null }>(
+  products: readonly T[],
+  code: string
+): T | null {
+  const c = code.trim();
+  if (!isValidGtin(c)) return null;
+  const key = gtinKey(c);
+  return products.find((p) => parseBarcodes(p.barcodes).codes.some((b) => gtinKey(b) === key)) ?? null;
+}
+
 /** Welke PBM-normen noemt dit product? Leeg = geen. */
 export function ppeNormenIn(standard: string): string[] {
   return PPE_NORMEN.filter(([re]) => re.test(standard)).map(([, naam]) => naam);
@@ -244,6 +380,7 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
   const warnings: CatalogIssue[] = [];
   const seen = new Map<string, number>();
   const seenIds = new Map<string, number>();
+  const seenBarcodes = new Map<string, number>();
   let withId = 0;
 
   rows.forEach((row, i) => {
@@ -301,6 +438,16 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
         errors,
         `"${type}" is geen producttype maar een categorie — toegestaan: ${PRODUCT_TYPES.join(", ")}. Zet de omschrijving in de kolom category`,
         "product_type"
+      );
+    }
+
+    // --- category is de fijne taxonomie, een vaste lijst sinds 2026-09-10 --
+    const category = (row.category ?? "").trim();
+    if (category && !(CATEGORIES as readonly string[]).includes(category)) {
+      add(
+        warnings,
+        `"${category}" staat niet in de vaste categorielijst — controleer of dit een van de bestaande codes moet zijn (${CATEGORIES.join(", ")}) of dat er een nieuwe bij moet in packages/core/src/catalog.ts`,
+        "category"
       );
     }
 
@@ -383,6 +530,24 @@ export function validateCatalog(rows: Partial<CatalogRow>[]): CatalogReport {
       if (!raw) continue;
       if (!/^\d{4}-\d{2}-\d{2}$/.test(raw) || Number.isNaN(Date.parse(raw))) {
         add(errors, `"${raw}" is geen geldige datum (verwacht: JJJJ-MM-DD)`, field);
+      }
+    }
+
+    // --- Streepjescodes: een fout kiest stil het verkeerde product ---------
+    const barcodes = parseBarcodes(row.barcodes);
+    for (const bad of barcodes.invalid) {
+      add(
+        errors,
+        `"${bad}" is geen geldige streepjescode (alleen cijfers, 8, 12, 13 of 14 lang, met kloppend controlecijfer). Excel haalt voorloopnullen weg als de cel geen tekst is`,
+        "barcodes"
+      );
+    }
+    for (const code of barcodes.codes) {
+      const first = seenBarcodes.get(gtinKey(code));
+      if (first !== undefined) {
+        add(errors, `streepjescode ${code} staat ook bij het product op regel ${first}`, "barcodes");
+      } else {
+        seenBarcodes.set(gtinKey(code), line);
       }
     }
 

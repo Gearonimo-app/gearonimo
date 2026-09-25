@@ -97,6 +97,12 @@ const ICONS: Record<string, string> = {
   // gereserveerd voor een echte recall).
   alert:
     '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  // Scan: vier hoek-haken + scanlijn (lucide `scan-line`-vorm) -- voor de
+  // camera-scanner (SN/QR/DataMatrix/barcode, besloten met Jos 2026-09-12).
+  // Bewust geen camera-icoon: dat oogt als "foto maken", een scan-kader
+  // communiceert "lees een code" beter op kleine knopgrootte.
+  scan:
+    '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
 };
 
 export const GIcon = defineComponent({

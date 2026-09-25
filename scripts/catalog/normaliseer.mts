@@ -23,6 +23,7 @@ import { writeFileSync } from "node:fs";
 import { objectsToCsv } from "./lib/csv.mts";
 import {
   CATALOG_COLUMNS,
+  CATEGORIES,
   PRODUCT_TYPES,
   productKey,
   type CatalogRow,
@@ -61,6 +62,7 @@ const rows: CatalogRow[] = readAnyFile(source).map(toCatalogRow);
 let unlFixed = 0;
 let typeFixed = 0;
 const unmapped = new Map<string, number>();
+const unmappedCategory = new Map<string, number>();
 
 for (const row of rows) {
   // 1. UNL → 999
@@ -81,6 +83,17 @@ for (const row of rows) {
     } else {
       unmapped.set(original, (unmapped.get(original) ?? 0) + 1);
     }
+  }
+
+  // 3. category: net als product_type niet geraden, alleen gemeld — zelfde
+  // reden. De vaste lijst in CATEGORIES komt uit de opschoning met Jos van
+  // 2026-09-10 (138 losse waardes → 27 canonieke termen, "zoals de
+  // keurmeester het herkent"); een nieuwe aangeleverde waarde kan daar prima
+  // ook zo eentje uit blijken, maar dat oordeel hoort bij Jos, niet bij dit
+  // script.
+  const categoryValue = row.category.trim();
+  if (categoryValue && !(CATEGORIES as readonly string[]).includes(categoryValue)) {
+    unmappedCategory.set(categoryValue, (unmappedCategory.get(categoryValue) ?? 0) + 1);
   }
 }
 
@@ -106,6 +119,15 @@ if (unmapped.size > 0) {
   for (const [value, count] of [...unmapped].sort((a, b) => b[1] - a[1])) {
     console.log(`    ${count}×  ${JSON.stringify(value)}`);
   }
+}
+
+if (unmappedCategory.size > 0) {
+  const total = [...unmappedCategory.values()].reduce((a, b) => a + b, 0);
+  console.log(`\n  ${total} rijen met een category die niet in de vaste lijst staat:`);
+  for (const [value, count] of [...unmappedCategory].sort((a, b) => b[1] - a[1])) {
+    console.log(`    ${count}×  ${JSON.stringify(value)}`);
+  }
+  console.log(`    toegestaan: ${CATEGORIES.join(", ")}`);
 }
 
 if (duplicates.length > 0) {

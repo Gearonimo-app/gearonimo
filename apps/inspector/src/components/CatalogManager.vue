@@ -100,7 +100,7 @@
       <li v-for="p in filtered" :key="p.id" class="cm__item" @click="openEdit(p)">
         <div class="cm__item-body">
           <div class="cm__name">{{ p.brand }} {{ p.name }}</div>
-          <div class="cm__meta">{{ [p.category, p.product_type].filter(Boolean).join(' · ') }}</div>
+          <div class="cm__meta">{{ [categoryLabel(p.category), p.product_type].filter(Boolean).join(' · ') }}</div>
         </div>
         <button
           type="button"
@@ -118,9 +118,10 @@ import { ref, computed, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
-import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey, parseBarcodes, formatBarcodes } from '@gearonimo/core'
 import { fuzzySearch } from '@gearonimo/ui'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import ProductForm from './ProductForm.vue'
 
 interface Product extends ProductFormModel {
@@ -128,6 +129,7 @@ interface Product extends ProductFormModel {
 }
 
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 
 const products = ref<Product[]>([])
 const loading = ref(true)
@@ -167,7 +169,9 @@ async function load() {
 // staat in merk, "seq" in de naam). Zelfde fuzzy zoeker als de "bedoelt
 // u"-koppeling, inclusief de artikelcode van de fabrikant.
 function productSearchText(p: Product): string {
-  return [p.brand, p.name, p.category, p.manufacturer_code].filter(Boolean).join(' ')
+  // category ook vertaald meezoeken: sinds de opschoning naar codes (2026-09-10)
+  // staat er "harnesses" in de kolom, maar Jos zoekt op "harnas".
+  return [p.brand, p.name, p.category, categoryLabel(p.category), p.manufacturer_code, p.barcodes].filter(Boolean).join(' ')
 }
 
 const filtered = computed(() => {
@@ -248,6 +252,7 @@ function toRow(f: ProductFormModel) {
     material: f.material.trim() || null,
     standard: f.standard.trim() || null,
     manufacturer_code: f.manufacturer_code.trim() || null,
+    barcodes: formatBarcodes(f.barcodes),
     max_age_use_years: f.max_age_use_years,
     max_age_mfr_years: f.max_age_mfr_years,
     breaking_strength: f.breaking_strength.trim() || null,
@@ -376,6 +381,7 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
       material: String(raw.material ?? '').trim(),
       standard: String(raw.standard ?? '').trim(),
       manufacturer_code: String(raw.manufacturer_code ?? '').trim(),
+      barcodes: String(raw.barcodes ?? '').trim(),
       max_age_use_years: numOrNull(raw.max_age_use_years),
       max_age_mfr_years: numOrNull(raw.max_age_mfr_years),
       breaking_strength: String(raw.breaking_strength ?? '').trim(),
@@ -395,6 +401,11 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
     }
     if (!f.brand || !f.name) {
       errors.push(t('settings.catalog.manager.errorMissing', { line }))
+      return
+    }
+    const badBarcodes = parseBarcodes(f.barcodes).invalid
+    if (badBarcodes.length) {
+      errors.push(t('settings.catalog.manager.errorBarcodes', { line, codes: badBarcodes.join(', ') }))
       return
     }
     if (id) {

@@ -135,6 +135,8 @@
     "brandFilter": "Filtrer par marque…",
     "catalogSearch": "Rechercher dans le catalogue (marque, type, nom)…",
     "cantFind": "Introuvable ? Saisir un article libre",
+    "scanBarcode": "Scanner le code-barres",
+    "barcodeUnknown": "Code-barres inconnu {code}. Choisissez l'article vous-même.",
     "backToCatalog": "← Retour au catalogue",
     "suggestForCatalog": "Proposer pour la base de produits",
     "showRetired": "Afficher le matériel retiré",
@@ -157,6 +159,7 @@
     },
     "detail": {
       "notFound": "Article introuvable",
+      "lastInspection": "Dernier contrôle",
       "retire": "Retirer",
       "retireTitle": "Retirer cet article ?",
       "retireBody": "L'article reste conservé mais ne compte plus pour les contrôles.",
@@ -265,6 +268,7 @@
       "hint": "Choisissez tout le matériel de ce client, ou uniquement les articles jamais encore contrôlés.",
       "allOption": "Tout",
       "newOption": "Nouveaux uniquement",
+      "emptyOption": "Commencer à vide",
       "addTitle": "Ajouter d'autres articles de ce client ?",
       "addHint": "Ces articles ne font pas encore partie du contrôle en cours. Ajoutez-les tous, ou uniquement ceux jamais encore contrôlés."
     },
@@ -280,12 +284,6 @@
     "rejected": "Refusé",
     "notAssessed": "Ignoré",
     "lifeCycleWarning": "Durée de vie : encore {months} mois",
-    "recallFlag": "Rappel : vérifier cet article",
-    "noticeFlag": "Avis de contrôle du fabricant",
-    "productNotesTitle": "Remarque du catalogue",
-    "clearFlag": "Lever avec une remarque (masque le signalement pour cet article)",
-    "clearFlagPrompt": "Remarque (ex. « résolu » ou « ne fait pas partie du lot concerné ») :",
-    "clearedTitle": "Levé",
     "noCode": "Pas de code",
     "commentPlaceholder": "Remarque…",
     "totalCount": "{n} articles au total",
@@ -325,6 +323,7 @@
       "colFirstUse": "En service",
       "colUser": "Utilisateur",
       "colPrevious": "Précédent",
+      "previousBy": "Contrôlé par {name}",
       "colResult": "Résultat",
       "colNextDue": "Prochain contrôle",
       "colWarning": "",
@@ -337,6 +336,13 @@
       "notAssessedConfirm": "{count} article(s) n'ont pas été contrôlés et n'apparaîtront pas sur le certificat (ils restent chez le client pour la prochaine fois) :",
       "ageWarningOverdue": "Durée de vie dépassée",
       "ageWarningSoon": "Durée de vie bientôt dépassée ({months} mois)",
+      "ageInfoTitle": "Durée de vie",
+      "ageMfrLabel": "Âge max. fabricant :",
+      "ageUseLabel": "Âge max. depuis la première utilisation :",
+      "ageUnlimited": "illimitée",
+      "ageNotResearched": "pas encore recherché",
+      "ageNotResearchedTitle": "La durée de vie de ce produit n'a pas encore été recherchée dans le catalogue",
+      "ageYears": "{years} ans",
       "dayHelper": "Jour de production (d'après le SN) :",
       "dayHelperTooltip": "Le numéro du jour dans l'année, souvent intégré sur 3 chiffres dans le numéro de série. 003 = 3 janvier, 123 = jour 123 de l'année (3 mai, ou 2 mai les années bissextiles). Va jusqu'à 365 maximum (366 les années bissextiles) — ce n'est pas une date.",
       "dayPlaceholder": "ex. 045",
@@ -362,7 +368,15 @@
       "snLastPassed": "conforme le {date}",
       "snLastRejected": "refusé le {date}",
       "saveRowFailed": "Le résultat de « {name} » n'a PAS été enregistré. Veuillez réessayer.",
-      "finishBlockedUnsaved": "Un résultat n'a pas été enregistré (voir le message ci-dessus). Enregistrez-le à nouveau avant de terminer."
+      "finishBlockedUnsaved": "Un résultat n'a pas été enregistré (voir le message ci-dessus). Enregistrez-le à nouveau avant de terminer.",
+      "recallFlag": "Rappel : vérifier cet article",
+      "clearFlag": "Lever avec une remarque (masque le signalement pour cet article)",
+      "clearedTitle": "Levé",
+      "noticeFlag": "Avis de contrôle du fabricant",
+      "productNotesTitle": "Remarque du catalogue",
+      "clearFlagPrompt": "Remarque (ex. « résolu » ou « ne fait pas partie du lot concerné ») :",
+      "refresh": "Actualiser",
+      "othersActiveConfirm": "{names} travaille(nt) aussi encore sur ce contrôle. Voulez-vous vraiment terminer ?"
     },
     "deleteDraft": "Supprimer le brouillon",
     "deleteDraftConfirm": "Supprimer définitivement le brouillon de {name} ({date}), y compris les résultats saisis ? Les articles du client restent conservés."
@@ -655,6 +669,7 @@
         "importConfirm": "Confirmer l'import",
         "errorMissing": "Ligne {line} : la marque et le nom sont obligatoires.",
         "errorUnknownId": "Ligne {line} : l'id {id} n'existe pas dans le catalogue.",
+        "errorBarcodes": "Ligne {line} : code-barres non valide {codes}",
         "readError": "Le fichier n'a pas pu être lu.",
         "duplicateSkipped": "Ligne {line} : {product} est déjà dans le catalogue.",
         "duplicateExists": "Un produit avec cette marque et ce nom existe déjà dans le catalogue. Modifiez le produit existant, ou donnez-lui un nom propre — par exemple avec la taille à la suite.",
@@ -673,6 +688,7 @@
         "material": "Matériau",
         "standard": "Norme",
         "manufacturerCode": "Code article/modèle fabricant",
+        "barcodes": "Codes-barres (EAN)",
         "maxAgeUseYears": "Âge max. depuis la mise en service (années)",
         "maxAgeMfrYears": "Âge max. fabricant (années)",
         "breakingStrength": "Charge de rupture (MBS)",
@@ -699,6 +715,36 @@
         "clothing": "Vêtements",
         "other": "Autre"
       },
+      "categories": {
+        "connectors": "Connecteur/mousqueton",
+        "harnesses": "Baudrier",
+        "climbing_harness": "Baudrier de positionnement",
+        "harness_accessories": "Accessoire de baudrier",
+        "climbing_ropes": "Corde de grimpe",
+        "positioning_lanyards": "Longe de maintien",
+        "slings": "Anneau (sling)",
+        "anchor_strop": "Sangle d'ancrage",
+        "accessory_cord": "Cordelette (accessoire)",
+        "anchor_hardware": "Plaque et matériel d'ancrage",
+        "pulleys": "Poulie",
+        "rope_clamps": "Bloqueur",
+        "mechanical_prusik": "Bloqueur mécanique (prusik)",
+        "descenders": "Descendeur",
+        "line_brake": "Frein de corde",
+        "bollard": "Bollard de rigging",
+        "throw_hook": "Grappin de lancer",
+        "rigging_line": "Corde de rigging (non EPI)",
+        "cambium_saver": "Protège-cambium",
+        "srl": "Antichute à rappel automatique",
+        "mobile_fall_arrester": "Antichute mobile",
+        "energy_absorber": "Absorbeur d'énergie",
+        "swivel": "Émerillon",
+        "tree_spurs": "Griffe d'ascension",
+        "helmet": "Casque",
+        "tool_lanyard": "Longe d'outil (non EPI)",
+        "lifting_sling": "Élingue de levage",
+        "other_non_ppe": "Autre (non EPI)"
+      },
       "placeholders": {
         "brand": "ex. Petzl",
         "name": "ex. OK TRIACT-LOCK",
@@ -706,6 +752,7 @@
         "material": "ex. Aluminium, Acier, Polyester",
         "standard": "ex. EN 361, EN 1891 Type A",
         "manufacturerCode": "ex. M33A SL ou FS242-L/XL",
+        "barcodes": "p. ex. 3342540123456; 3342540123463",
         "maxAgeUseYears": "ex. 10 — ou 999 si illimité",
         "maxAgeMfrYears": "ex. 10 — ou 999 si illimité",
         "breakingStrength": "ex. 25 kN",
@@ -720,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "ex. contrôler uniquement avec le mousqueton d'origine"
+      },
+      "hints": {
+        "barcodes": "Le code sur la boîte ou l'étiquette, pas le numéro de série. Séparez plusieurs codes (p. ex. par taille) par un point-virgule."
+      },
+      "errors": {
+        "invalidBarcodes": "Code-barres non valide : {codes}. Chiffres uniquement, 8, 12, 13 ou 14 caractères, avec une clé de contrôle correcte."
       }
     },
     "listing": {
@@ -933,5 +986,14 @@
       "import": "Importer un certificat",
       "page": "Page"
     }
+  },
+  "scanner": {
+    "button": "Scanner",
+    "title": "Scanner",
+    "subtitle": "Visez un code-barres, un DataMatrix ou un QR code avec la caméra",
+    "macro": "Macro (gros plan)",
+    "torch": "Lampe torche",
+    "close": "Fermer",
+    "unavailable": "Caméra indisponible. Vérifiez les autorisations."
   }
 }

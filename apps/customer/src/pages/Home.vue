@@ -19,6 +19,11 @@
            niet met de "Keuring aanvragen"-tegel en blijft daarom gewoon
            hier staan (geen banner, geen kader). -->
       <p v-if="companyName" class="dh__linked">{{ $t('request.linkedTo', { company: companyName }) }}</p>
+      <!-- Wie ben ik hier (Jos, 2026-09-25): "handig om te weten wie er
+           ingelogd is". Bewust hier en niet in de kopbalk -- die is op een
+           telefoon te krap om de naam en de uitlogknop allebei netjes te
+           tonen. -->
+      <p v-if="memberName" class="dh__member">{{ $t('home.loggedInAs', { name: memberName }) }}</p>
 
       <PasskeyPrompt />
 
@@ -133,6 +138,7 @@ interface ArticleRow {
 type UiStatus = CustomerArticleStatus;
 
 const customerName = ref("");
+const memberName = ref("");
 const companyName = ref("");
 const pendingRequest = ref<{ status: string; company_name: string } | null>(null);
 const isAdmin = ref(false);
@@ -199,6 +205,7 @@ async function load() {
       return;
     }
     customerName.value = row.customer_name;
+    memberName.value = row.member_name ?? "";
     isAdmin.value = !!row.is_admin;
 
     const [arts, link, reqs] = await Promise.all([
@@ -261,6 +268,7 @@ onMounted(() => {
 
 .dh__customer { text-align: center; color: #fff; font-weight: 700; margin: 0 0 1rem; font-size: 1.1rem; }
 .dh__linked { font-size: 0.85rem; color: #cfe3d6; margin: 0 0 0.85rem; text-align: center; }
+.dh__member { font-size: 0.8rem; color: #a7c4b0; margin: -0.6rem 0 0.85rem; text-align: center; }
 
 /* Ingetogen stoplichtkaart: witte kaart met gekleurde accentrand, geen
    vol alarmvlak ("dat rode geschreeuw niet" -- Jos, 2026-07-13). */

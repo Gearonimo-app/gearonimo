@@ -12,6 +12,14 @@
           <span class="asd__option-label">{{ $t('inspections.selectArticles.newOption') }}</span>
           <span class="asd__option-count">{{ newCount }}</span>
         </button>
+        <!-- Leeg beginnen (Jos, 2026-09-14): "ik wil nieuwe producten keuren en
+             meteen invoeren" -- zonder dit moest je eerst alles van de klant
+             overnemen (of, als alles al eerder gekeurd is, kon "Alleen nieuwe"
+             niks bieden: 0, uitgegrijsd) voordat je zelf artikelen kon
+             toevoegen via + in de keuringswizard. -->
+        <button type="button" class="asd__option asd__option--empty" @click="$emit('choose', 'none')">
+          <span class="asd__option-label">{{ $t('inspections.selectArticles.emptyOption') }}</span>
+        </button>
       </div>
       <button class="asd__btn asd__btn--cancel" @click="$emit('cancel')">{{ $t('common.cancel') }}</button>
     </div>
@@ -25,7 +33,7 @@ defineProps<{
   allCount: number
   newCount: number
 }>()
-defineEmits<{ choose: ['all' | 'new']; cancel: [] }>()
+defineEmits<{ choose: ['all' | 'new' | 'none']; cancel: [] }>()
 </script>
 
 <style scoped>
@@ -45,6 +53,10 @@ defineEmits<{ choose: ['all' | 'new']; cancel: [] }>()
 .asd__option:not(:disabled):active { background: #f0fdf4; border-color: #16a34a; }
 .asd__option:disabled { opacity: 0.45; cursor: not-allowed; }
 .asd__option-label { font-weight: 600; }
+/* Bypass-optie, geen telling: iets minder nadruk dan de twee echte keuzes
+   erboven, maar nog steeds duidelijk klikbaar (geen dode tekstlink). */
+.asd__option--empty { justify-content: center; color: #4b5563; border-style: dashed; }
+.asd__option--empty:active { background: #f9fafb; border-color: #9ca3af; }
 .asd__option-count {
   background: #f3f4f6; border-radius: 999px; padding: 0.15rem 0.6rem;
   font-size: 0.85rem; color: #374151; font-weight: 600;

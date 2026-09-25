@@ -50,14 +50,21 @@
         </div>
 
         <div class="iw__add">
-          <input
-            v-model="newDescription"
-            class="iw__input"
-            :placeholder="$t('inspections.table.article')"
-            @focus="activeField = 'article'"
-            @blur="closeSuggest"
-            @keydown="onSuggestKeydown"
-          />
+          <!-- Streepjescode van de doos kiest het product uit de catalogus
+               (2026-09-24). Typ je de code in het Artikel-veld, dan werkt dat
+               ook. Veld + knop samen, zodat de knop op de telefoon niet op een
+               eigen regel belandt. -->
+          <div class="iw__scan-field">
+            <input
+              v-model="newDescription"
+              class="iw__input"
+              :placeholder="$t('inspections.table.article')"
+              @focus="activeField = 'article'"
+              @blur="closeSuggest"
+              @keydown="onSuggestKeydown"
+            />
+            <ScanButton :title="$t('articles.scanBarcode')" @scan="onBarcodeScan" />
+          </div>
           <!-- Telefoon/tablet: suggesties direct onder het actieve veld (anders
                vallen ze onderaan, achter het toetsenbord). Op desktop verborgen;
                daar staat de gedeelde lijst onder de hele rij (iw__suggest--main). -->
@@ -94,15 +101,21 @@
               :class="{ 'iw__suggest-item--active': i === suggestIndex }"
               @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
           </div>
-          <input
-            v-model="newSerial"
-            ref="serialRef"
-            class="iw__input iw__input--sm"
-            :placeholder="$t('inspections.table.serial')"
-            @focus="activeField = 'serial'"
-            @blur="closeSuggest"
-            @keydown="onSuggestKeydown"
-          />
+          <!-- Scan vult hetzelfde veld -- de bestaande SN-zoeklogica (snResults
+               hierboven) pikt dat vanzelf op: gevonden = kies uit de lijst,
+               niet gevonden = gewoon als nieuw artikel toevoegen. -->
+          <div class="iw__scan-field iw__scan-field--sm">
+            <input
+              v-model="newSerial"
+              ref="serialRef"
+              class="iw__input iw__input--sm"
+              :placeholder="$t('inspections.table.serial')"
+              @focus="activeField = 'serial'"
+              @blur="closeSuggest"
+              @keydown="onSuggestKeydown"
+            />
+            <ScanButton @scan="(text: string) => { setFieldValue('serial', text); activeField = 'serial' }" />
+          </div>
           <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--field iw__sn-list">
             <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
               <span class="iw__sn-serial">{{ r.serial || '—' }}</span>
@@ -165,6 +178,7 @@
         <!-- Subtiele melding tijdens het invullen (geen rood blok, gewoon een
              klein regeltje): het getypte artikel heeft een bekende recall of
              inspection notice, zodat je dat al ziet vóór je op Toevoegen klikt. -->
+        <p v-if="barcodeNotice" class="iw__barcode-notice">{{ barcodeNotice }}</p>
         <p v-if="addRowRecallInfo" class="iw__add-recall-hint">
           🚩
           <a :href="addRowRecallInfo.url" target="_blank" :title="addRowRecallInfo.title">
@@ -434,7 +448,14 @@
                     />
                   </td>
                   <td class="iw__year-cell" :data-label="$t('inspections.table.colYear')">
-                    <span v-if="row.warning" :title="row.warning.text" class="iw__warn-icon">{{ row.warning.icon }}</span>
+                    <button
+                      v-if="row.age"
+                      type="button"
+                      class="iw__icon-btn"
+                      :class="{ 'iw__icon-btn--active': row.age.status === 'overdue' || row.age.status === 'soon' }"
+                      :title="row.age.title"
+                      @click="toggleAge(row.it)"
+                    >{{ row.age.icon }}</button>
                     <input
                       v-model.number="row.it.article.manufacture_year"
                       type="number"
@@ -467,6 +488,7 @@
                     <span
                       v-if="row.previous && row.previous.result !== 'not_assessed'"
                       :class="row.previous.result === 'passed' ? 'iw__prev--pass' : 'iw__prev--fail'"
+                      :title="row.previous.inspector_name ? $t('inspections.table.previousBy', { name: row.previous.inspector_name }) : undefined"
                     >
                       {{ row.previous.result === 'passed' ? '✅' : '❌' }} {{ formatDate(row.previous.inspection_date) }}
                     </span>
@@ -538,6 +560,21 @@
                     {{ itemProductNotes(row.it) }}
                   </td>
                 </tr>
+                <!-- Levensduur-detail achter het icoon in de jaartal-kolom: de
+                     twee getallen uit de catalogus, plus (op Jos' verzoek,
+                     2026-09-19) dezelfde catalogusopmerking als hierboven, zodat
+                     beide in één vakje te vinden zijn bij het leeftijd-icoon. -->
+                <tr v-if="row.age && openAgeId === row.it.id" class="iw__notes-row">
+                  <td colspan="12">
+                    <strong>{{ $t('inspections.table.ageInfoTitle') }}:</strong>
+                    {{ $t('inspections.table.ageMfrLabel') }} {{ row.age.mfrText }}
+                    ·
+                    {{ $t('inspections.table.ageUseLabel') }} {{ row.age.useText }}
+                    <template v-if="itemProductNotes(row.it)"><br />
+                      <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ itemProductNotes(row.it) }}
+                    </template>
+                  </td>
+                </tr>
               </template>
               <tr v-if="!sortedRows.length">
                 <!-- Met actieve zoekvelden is "geen match" iets anders dan "geen
@@ -598,17 +635,22 @@ import {
   isInspectedType,
   inspectorVisibleArticles,
   isUnlimitedAge,
+  toIsoDate,
+  findProductByBarcode,
+  isValidGtin,
   type ProductType,
   type CountryCode,
 } from '@gearonimo/core'
-import { GIcon, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
-import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector } from '../composables/useInspections'
+import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 
 const route = useRoute()
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 const id = route.params.id as string
 const { isOnline } = useOnline()
 
@@ -638,6 +680,7 @@ interface Product {
   // een linkveld, dus daar werd lopende tekst een kapotte link van.
   notes: string | null
   manufacturer_code: string | null
+  barcodes?: string | null
 }
 interface Article {
   id: string
@@ -757,7 +800,7 @@ function cancelLinkPart() {
   linkCandidates.value = []
 }
 
-const previousResults = ref<Record<string, { result: string; comment: string | null; inspection_date: string } | null>>({})
+const previousResults = ref<Record<string, PreviousResult>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
 
 const completing = ref(false)
@@ -810,7 +853,9 @@ const allArticleNames = computed(() => unique(products.value.map(p => p.name)))
 interface CatalogEntry { brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
 const customerEntries = ref<CatalogEntry[]>([])
 const catalogEntries = computed<CatalogEntry[]>(() => [
-  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: p.category, manufacturer_code: p.manufacturer_code })),
+  // category vertaald: sinds de opschoning naar vaste codes (2026-09-10)
+  // staat er in products.category bv. "harnesses", niet "Harnas".
+  ...products.value.map(p => ({ brand: p.brand, name: p.name, category: categoryLabel(p.category) || null, manufacturer_code: p.manufacturer_code })),
   ...customerEntries.value,
 ])
 
@@ -953,6 +998,13 @@ const brandRowId = ref<string | null>(null)
 const openNotesId = ref<string | null>(null)
 function toggleNotes(it: Item) {
   openNotesId.value = openNotesId.value === it.id ? null : it.id
+}
+
+// Levensduur-icoon in de jaartal-kolom: zelfde klik-open-patroon als de
+// catalogusopmerking hierboven, maar los bijgehouden (onafhankelijk open/dicht).
+const openAgeId = ref<string | null>(null)
+function toggleAge(it: Item) {
+  openAgeId.value = openAgeId.value === it.id ? null : it.id
 }
 
 function startMatch(it: Item) {
@@ -1337,22 +1389,49 @@ async function reinstateAndAdd(r: SnResult) {
   await addCustomerArticle(r.id)
 }
 
+// Streepjescode (2026-09-24): gescand of getypt kiest hij het product uit de
+// catalogus. De codes komen alleen uit de bronlijst (curators), dus een
+// onbekende code koppelt nooit iets: dan kiest de keurmeester zelf. Offline
+// zijn alleen de gedownloade producten van deze klant bekend.
+const barcodeNotice = ref('')
+function applyBarcodeProduct(p: Product) {
+  newDescription.value = p.name ?? ''
+  newBrand.value = p.brand ?? ''
+  newCategory.value = categoryLabel(p.category)
+  barcodeNotice.value = ''
+}
+function onBarcodeScan(text: string) {
+  const code = text.trim()
+  const p = findProductByBarcode(products.value, code)
+  if (p) applyBarcodeProduct(p)
+  else barcodeNotice.value = t('articles.barcodeUnknown', { code })
+}
+
 // Zodra een artikel uit de catalogus gekozen wordt (naam matcht exact een
 // product), meteen merk en categorie invullen. Vrije tekst laat de velden met
-// rust.
+// rust. Staat het merk al goed (bv. na een scan), dan wint het product van
+// dát merk.
 watch(newDescription, (name) => {
-  const n = name.trim().toLowerCase()
+  barcodeNotice.value = ''
+  const typed = name.trim()
+  if (isValidGtin(typed)) {
+    const byCode = findProductByBarcode(products.value, typed)
+    if (byCode) { applyBarcodeProduct(byCode); return }
+  }
+  const n = typed.toLowerCase()
   if (!n) return
-  const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
+  const b = newBrand.value.trim().toLowerCase()
+  const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
+  const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
   if (p) {
     if (p.brand) newBrand.value = p.brand
-    if (p.category) newCategory.value = p.category
+    if (p.category) newCategory.value = categoryLabel(p.category)
   }
 })
 
 function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
 function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
-function itemCategory(it: Item) { return it.article.product?.category ?? it.article.free_category ?? '' }
+function itemCategory(it: Item) { return categoryLabel(it.article.product?.category) || it.article.free_category || '' }
 function itemLabel(it: Item) { return itemName(it) || t('articles.untitled') }
 function itemManualUrl(it: Item) { return it.article.product?.manual_url ?? it.article.free_manual_url ?? null }
 // Catalogus-artikel: uit products.recall_url. Vrij artikel: alleen als de
@@ -1519,7 +1598,7 @@ function addMonths(date: Date, months: number): Date {
 // GB = 6 mnd voor PBM/hijsmateriaal per LOLER/PUWER; NL = 12 mnd;
 // onbekend land/type valt in getRegime terug op 12). Bewust NIET gekapt op
 // de levensduur — de keurmeester bepaalt zelf de datum; de levensduur-
-// waarschuwing (zie rowWarning) is alleen advies.
+// waarschuwing (zie ageInfo) is alleen advies.
 function defaultIntervalMonths(it: Item): number | null {
   const a = it.article
   if (a.interval_override_months != null) return a.interval_override_months
@@ -1580,33 +1659,64 @@ function endOfLife(it: Item): Date | null {
   return eol
 }
 
-// Levensduur-waarschuwing voor de keurmeester (advies, geen blokkade — de
-// keurmeester bepaalt goed/afgekeurd). Verschijnt bewust niet op het
-// certificaat (useCertificate.ts gebruikt deze data niet).
-function rowWarning(it: Item): { icon: string; text: string } | null {
-  const eol = endOfLife(it)
-  if (!eol) return null
-  const now = Date.now()
-  if (eol.getTime() <= now) return { icon: '⛔', text: t('inspections.table.ageWarningOverdue') }
-  // Geen keurtermijn = geen datum om de levensduur tegen af te zetten. De
-  // "verloopt binnenkort"-waarschuwing slaat dan over; de harde ⛔ hierboven
-  // blijft wel staan, want een versleten zaagbroek mag je best melden.
-  const next = suggestedNextDue(it)
-  if (next != null && eol.getTime() <= next.getTime()) {
-    const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
-    return { icon: '⚠', text: t('inspections.table.ageWarningSoon', { months }) }
-  }
-  return null
+type AgeStatus = 'overdue' | 'soon' | 'ok' | 'unknown'
+interface AgeInfo {
+  icon: string
+  status: AgeStatus
+  title: string
+  mfrText: string
+  useText: string
 }
 
-function toIsoDate(d: Date) {
-  // Lokale datum, niet toISOString() (code review 2026-07-18): die rekent om
-  // naar UTC, waardoor een voorgestelde next_due tussen middernacht en de
-  // NL-tijdzoneverschuiving één dag te vroeg op het certificaat kon komen.
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+function fmtAgeYears(years: number | null): string {
+  if (years == null) return t('inspections.table.ageNotResearched')
+  if (isUnlimitedAge(years)) return t('inspections.table.ageUnlimited')
+  return t('inspections.table.ageYears', { years })
+}
+
+// Levensduur-info voor de keurmeester (advies, geen blokkade — de
+// keurmeester bepaalt goed/afgekeurd). Verschijnt bewust niet op het
+// certificaat (useCertificate.ts gebruikt deze data niet).
+//
+// Voorheen alleen een icoon bij ⚠/⛔, verder niets. Jos (2026-09-19): bij een
+// artikel waarvan de levensduur nog nooit is opgezocht (beide velden leeg in
+// de catalogus) stond hier dus ook niets — precies dezelfde lege cel als een
+// artikel waarvan bewust is vastgesteld dat er geen grens is. Dat las hij als
+// "dus in orde". Daarom nu altijd een icoon bij een gekoppeld, gekeurd
+// producttype: ❔ nog niet opgezocht, ℹ bekend en (nog) geen probleem, ⚠/⛔
+// zoals al zo was. Klikken toont de twee getallen; zie ook de catalogus-
+// opmerking die in dezelfde rij meekomt (Jos wilde beide in één vakje).
+function ageInfo(it: Item): AgeInfo | null {
+  const product = it.article.product
+  const type = product?.product_type
+  if (!product || (type != null && !isInspectedType(type as ProductType))) return null
+
+  const mfrYears = product.max_age_mfr_years
+  const useYears = product.max_age_use_years
+  const mfrText = fmtAgeYears(mfrYears)
+  const useText = fmtAgeYears(useYears)
+  const detail = `${t('inspections.table.ageMfrLabel')} ${mfrText} — ${t('inspections.table.ageUseLabel')} ${useText}`
+
+  if (mfrYears == null && useYears == null) {
+    return { icon: '❔', status: 'unknown', title: t('inspections.table.ageNotResearchedTitle'), mfrText, useText }
+  }
+
+  const eol = endOfLife(it)
+  if (eol) {
+    const now = Date.now()
+    if (eol.getTime() <= now) {
+      return { icon: '⛔', status: 'overdue', title: `${t('inspections.table.ageWarningOverdue')} — ${detail}`, mfrText, useText }
+    }
+    // Geen keurtermijn = geen datum om de levensduur tegen af te zetten. De
+    // "verloopt binnenkort"-waarschuwing slaat dan over; de harde ⛔ hierboven
+    // blijft wel staan, want een versleten zaagbroek mag je best melden.
+    const next = suggestedNextDue(it)
+    if (next != null && eol.getTime() <= next.getTime()) {
+      const months = Math.max(1, Math.round((eol.getTime() - now) / (1000 * 60 * 60 * 24 * 30)))
+      return { icon: '⚠', status: 'soon', title: `${t('inspections.table.ageWarningSoon', { months })} — ${detail}`, mfrText, useText }
+    }
+  }
+  return { icon: 'ℹ', status: 'ok', title: detail, mfrText, useText }
 }
 
 interface Row {
@@ -1615,8 +1725,8 @@ interface Row {
   brand: string
   category: string
   year: string
-  previous: { result: string; comment: string | null; inspection_date: string } | null
-  warning: { icon: string; text: string } | null
+  previous: PreviousResult
+  age: AgeInfo | null
   score: number
 }
 
@@ -1665,7 +1775,7 @@ const rows = computed<Row[]>(() => {
       category: itemCategory(it),
       year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
       previous: previousResults.value[it.article_id] ?? null,
-      warning: rowWarning(it),
+      age: ageInfo(it),
       score: matchScore(it),
     })
   }
@@ -1775,7 +1885,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -1798,7 +1908,7 @@ async function load() {
     serial: a.serial_number ?? '',
     brand: (a.product?.brand ?? a.free_brand) ?? '',
     name: (a.product?.name ?? a.free_description) ?? '',
-    category: (a.product?.category ?? a.free_category) ?? '',
+    category: (categoryLabel(a.product?.category) || a.free_category) ?? '',
     user: a.assigned_user_name ?? '',
     retired: !!a.retired,
     retiredReason: a.retired_reason ?? null,
@@ -1943,7 +2053,7 @@ async function loadOffline() {
       serial: a.serial_number ?? '',
       brand: (productById.get(a.product_id ?? '')?.brand ?? a.free_brand) ?? '',
       name: (productById.get(a.product_id ?? '')?.name ?? a.free_description) ?? '',
-      category: (productById.get(a.product_id ?? '')?.category ?? a.free_category) ?? '',
+      category: (categoryLabel(productById.get(a.product_id ?? '')?.category) || a.free_category) ?? '',
       user: a.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
@@ -1982,6 +2092,7 @@ function matchProduct(): Product | null {
 
 // Maakt de toevoeg-/zoekvelden leeg (na toevoegen of na een SN-keuze).
 function resetAddRow() {
+  barcodeNotice.value = ''
   newBrand.value = ''
   newCategory.value = ''
   newDescription.value = ''
@@ -2052,7 +2163,7 @@ async function addRow() {
       serial: article.serial_number ?? '',
       brand: (article.product?.brand ?? article.free_brand) ?? '',
       name: (article.product?.name ?? article.free_description) ?? '',
-      category: (article.product?.category ?? article.free_category) ?? '',
+      category: (categoryLabel(article.product?.category) || article.free_category) ?? '',
       user: article.assigned_user_name ?? '',
       retired: false,
       retiredReason: null,
@@ -2150,7 +2261,7 @@ async function addRowOffline() {
     serial: articleRow.serial_number ?? '',
     brand: (product?.brand ?? articleRow.free_brand) ?? '',
     name: (product?.name ?? articleRow.free_description) ?? '',
-    category: (product?.category ?? articleRow.free_category) ?? '',
+    category: (categoryLabel(product?.category) || articleRow.free_category) ?? '',
     user: articleRow.assigned_user_name ?? '',
     retired: false,
     retiredReason: null,
@@ -2268,11 +2379,17 @@ async function saveArticle(it: Item) {
 }
 
 async function saveRow(it: Item) {
+  // Wie dít artikel daadwerkelijk beoordeelde (2026-09-13, meerdere
+  // keurmeesters in dezelfde keuring): laatste die opslaat wint, zelfde
+  // last-write-wins-aanpak als result/comment hieronder al hadden. Los van
+  // inspections.inspector_id, die blijft de starter van de hele keuring.
+  const inspector = await ensureInspector()
   const patch = {
     result: it.result,
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
     comment: it.comment,
+    inspector_id: inspector.id,
   }
   if (!isOnline.value) {
     // Offline: lokale weergave bijwerken + de wijziging in de mutatiewachtrij
@@ -2412,7 +2529,7 @@ async function activePeerNames(): Promise<string[]> {
   const cutoff = new Date(Date.now() - 5 * 60_000).toISOString()
   const { data } = await supabase
     .from('inspection_presence')
-    .select('last_seen, inspector:inspectors(name)')
+    .select('last_seen, inspector:inspectors!inspector_id(name)')
     .eq('inspection_id', id)
     .neq('inspector_id', me.id)
     .gt('last_seen', cutoff)
@@ -2466,6 +2583,11 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__body { padding: 1.25rem; }
 
 .iw__add { background: #fff; border-radius: 12px; padding: 0.85rem; margin-bottom: 0.85rem; display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; }
+/* Invoerveld met scanknop ernaast: blijft één geheel in de flex-wrap-rij. */
+.iw__scan-field { display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 10.5rem; }
+.iw__scan-field--sm { min-width: 9.5rem; }
+.iw__scan-field .iw__input { min-width: 0; }
+.iw__barcode-notice { margin: -0.4rem 0 0.6rem; font-size: 0.85rem; color: #b45309; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
@@ -2701,6 +2823,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   .iw__add .iw__input--sm,
   .iw__add .iw__select--xs { flex: 1 1 100%; min-width: 0; }
   .iw__add .iw__input--xs { flex: 1 1 45%; }
+  .iw__add .iw__scan-field { flex: 1 1 100%; }
 
   /* Suggesties direct onder het actieve veld (i.p.v. de gedeelde lijst die
      onderaan, achter het toetsenbord, zou vallen). */

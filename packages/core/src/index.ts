@@ -1,3 +1,4 @@
+export * from "./date";
 export * from "./regimes";
 export * from "./domains";
 export * from "./catalog";

@@ -300,7 +300,7 @@ keurbedrijf B.
 | brand | text | merk |
 | name | text | omschrijving |
 | product_type | text | `ppe` / `no_ppe` / `rigging` / `machine` (kettingzaag, accuboor, versnipperaar) / `clothing` — bepaalt standaardregime. `other` kan hier **niet**: dat bestaat alleen bij een vrij artikel (besluit 2026-08-04, zie hieronder) |
-| category | text? | huidige `categorie` |
+| category | text? | vaste, beheerde lijst sinds 2026-09-10 (zie "Meertaligheid catalogus" hieronder) — een code uit `CATEGORIES` in `packages/core/src/catalog.ts`, vertaald via `settings.catalog.categories.<code>` in de taalbestanden. `articles.free_category` (vrij artikel) blijft wél vrije tekst |
 | material | text? | |
 | standard | text? | EN-norm (huidige `norm`) |
 | max_age_use_years | int? | vanaf ingebruikname (`max_leeftijd_use`) |
@@ -312,6 +312,7 @@ keurbedrijf B.
 | rope_diameter_max_mm | numeric? | maximale touwdiameter in mm |
 | serial_number_location | text? | waar het serienummer te vinden is op het product, bijv. "label aan binnenkant gordel" |
 | manufacturer_code | text? | artikel-/modelcode van de fabrikant (bv. Petzl-bestelnummer) — besloten 2026-06-14, los van het eigen `id` en van `serial_number` op `articles` (exemplaar van de klant). Formaat verschilt per fabrikant; structuur evt. verfijnen zodra fabrikant-datafeeds binnenkomen (zie `manufacturer-outreach-email.md`) |
+| barcodes | text? | **streepjescodes (EAN/GTIN)** van het producttype, gescheiden door `;` (bv. één per maat) — besloten 2026-09-24. De code op de doos/het label, niet het serienummer. Bron: kolom `barcodes` in `catalog/producten.csv`; alleen curators/platform-admin bewerken hem (net als de rest van de catalogus), een keurmeester scant alleen. Gecontroleerd op lengte (8/12/13/14) + controlecijfer (`parseBarcodes`/`isValidGtin` in `packages/core/src/catalog.ts`); een UPC-A (12) en dezelfde code als EAN-13 tellen als één GTIN. Gebruikt door de scanknop bij "Artikel toevoegen" (klantpagina + keuring) |
 | manual_url | text? | link naar PDF-handleiding |
 | product_page_url | text? | link naar productpagina van de fabrikant |
 | recall_url | text? | link naar recall-bericht. Bewust géén automatische waarschuwing aan eigenaren (besloten 2026-06-12): recalls gelden vrijwel altijd voor déélreeksen (serienummers van–tot, productiejaar, vóór/na datum) die een systeem niet betrouwbaar kan interpreteren — vals alarm of schijnveiligheid. In plaats daarvan: de app toont de recall als vlag aan de **keurmeester tijdens de keuring** van een gekoppeld artikel ("controleer of dit serienummer eronder valt"); beoordeling blijft mensenwerk. De recall-zoekfunctie uit KlimKeur Pro blijft als feature |
@@ -413,16 +414,42 @@ ingebruikname). `max_age_years` had dus geen enkel effect en was pure dode
 data — kolom en veld verwijderd i.p.v. verstopt, om te voorkomen dat de
 catalogus net als in KlimKeur Pro langzaam volloopt met ongebruikte velden.
 
-**Meertaligheid catalogus (besloten 2026-06-14):** `brand` en `name` zijn
-internationaal (merk/modelnaam, bv. "Petzl Avao Bod") en blijven ongemoeid.
-`product_type` en `category` zijn een kleine, beheerde lijst en worden — net
-als `rejection_codes.label_key` — als **i18n-sleutel** vertaald (NL/EN/DE) in
-de taalbestanden, inclusief een sleutel `other`/`overig` voor artikelen die
-nergens in passen (bv. iemands eigen computer). Dit is alléén relevant voor de
-**globale catalogus** (`status='approved'`); een **vrij artikel**
-(`free_description`/`free_brand`/`free_material` op `articles`, zie §3)
-blijft altijd vrije tekst in de eigen taal van de klant, ongeacht categorie —
-invoer mag nooit blokkeren op classificatie.
+**Meertaligheid catalogus (besloten 2026-06-14, `category` uitgevoerd
+2026-09-10):** `brand` en `name` zijn internationaal (merk/modelnaam, bv.
+"Petzl Avao Bod") en blijven ongemoeid. `product_type` en `category` zijn een
+kleine, beheerde lijst en worden — net als `rejection_codes.label_key` — als
+**i18n-sleutel** vertaald (NL/EN/FR/DE) in de taalbestanden, inclusief een
+sleutel `other`/`overig` (product_type) voor artikelen die nergens in passen
+(bv. iemands eigen computer). Dit is alléén relevant voor de **globale
+catalogus** (`status='approved'`); een **vrij artikel**
+(`free_description`/`free_brand`/`free_material`/`free_category` op
+`articles`, zie §3) blijft altijd vrije tekst in de eigen taal van de klant,
+ongeacht categorie — invoer mag nooit blokkeren op classificatie.
+
+`category` was tot 2026-09-10 vrije tekst en stond daardoor met 138 losse,
+deels dubbele waardes in de bronlijst (Harness/Harnesses/harness, Prusik/
+Hitch Cords/prusik cord, enz., zie `catalog/producten.csv`-historie). Met Jos
+opgeschoond tot 27 canonieke codes in `CATEGORIES`
+(`packages/core/src/catalog.ts`) — "zoals de keurmeester het herkent", niet
+zoals de CE-norm het indeelt (EN 566 dekt bijvoorbeeld zowel `slings` als
+`anchor_strop`, maar dat zijn voor een keurmeester twee andere dingen; zie de
+uitleg bij `CATEGORIES` voor de niet-vanzelfsprekende scheidingen). Vertaald
+via `settings.catalog.categories.<code>` in de taalbestanden van beide apps.
+Weergave in de schermen loopt via de composable `useCategoryLabel()`
+(`apps/inspector/src/composables/`, `apps/customer/src/composables/`): die
+vertaalt een bekende code en laat al het andere (vrije tekst, `free_category`,
+of een catalogusrij van vóór de migratie) met rust — vertalen zou dan een
+verzinsel tonen. Het certificaat-PDF (`useCertificate.ts`) doet hetzelfde,
+maar zonder vue-i18n: die importeert de taalbestanden rechtstreeks, zodat de
+27×4 vertalingen niet nog een keer overgetypt hoefden te worden.
+
+`material` (345 losse waardes) is bewust **niet** meegenomen in deze
+opschoning (besluit Jos 2026-09-10): dat zijn vrijwel allemaal echt
+verschillende samengestelde constructie-beschrijvingen per product (kern +
+mantel, schaal + voering, band + hardware), geen dezelfde term anders
+geschreven — en het veld is ondergeschikt (329 van 2890 producten hadden het
+leeg). Blijft Engels, geen i18n: "Engelse vaktermen zijn wereldwijd
+verstaanbaar" (Jos).
 
 ### `product_versions` (versiegeschiedenis — juridisch anker)
 Bij elke wijziging van een `approved` product wordt een versie weggeschreven.
@@ -737,6 +764,7 @@ voorkomen.
 | next_due | date? | "volgende keuring uiterlijk" (maandprecisie) — bewust níet "goed tot": een keuring is een momentopname, geen garantie. Soms verloopt de levensduur vóór het interval; systeem stelt automatisch de vroegste voor van (keuringsdatum + interval) en (einde levensduur uit productdata: bouwjaar + max. leeftijd, of eerste gebruik + max. gebruiksduur); keurmeester kan handmatig aanpassen |
 | rejection_code_id | FK? → rejection_codes | |
 | comment | text? | |
+| inspector_id | FK? → inspectors | **toegevoegd 2026-09-13** — wie dít specifieke artikel daadwerkelijk beoordeelde, los van `inspections.inspector_id` (die blijft de starter van de hele keuring, nooit overschreven). Nodig zodra meerdere keurmeesters dezelfde keuring meebeoordelen (zie `inspection_presence`, 2026-09-10): daarvoor stond er maar één naam op het hele certificaat. Gevuld bij elke opslag van een item (last-write-wins, zelfde aanpak als `result`/`comment`); blijft leeg zolang een item nog niet beoordeeld is. Gebruikt voor de "Gekeurd door"-regel onderaan het certificaat (alle betrokken namen), en zichtbaar per artikel in zowel de klant-app als de keurmeester-app. |
 
 > **Implementatie fase 2.4 (2026-06-24, inspector-app):** `inspections` en
 > `inspection_items` zijn nu gebouwd zoals hierboven, inclusief de

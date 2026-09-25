@@ -115,6 +115,9 @@
                        "afgevinkt op", niet "volgende keuring". Dat verschil in
                        juridische status moet zichtbaar blijven (DATAMODEL §3). -->
                   <span v-if="row.article.self_checked_at"> · {{ $t('selfCheck.lastChecked', { date: formatDate(row.article.self_checked_at) }) }}</span>
+                  <!-- Wie de laatste keuring deed (Jos, 2026-09-13) -- alleen
+                       bij een echte keuring, niet bij zelf afgevinkt. -->
+                  <span v-if="row.article.last_inspection_inspector && !row.article.self_checked_at"> · {{ row.article.last_inspection_inspector }}</span>
                 </div>
                 <!-- De reden staat nu ook als tekst in de rij (Jos, 2026-07-13:
                      "ik wil meteen zien waarom"): op de telefoon is een tooltip
@@ -233,14 +236,17 @@ import {
   type CustomerArticleStatus,
   MATERIAL_DOMAINS,
   type MaterialDomain,
+  toIsoDate,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import AddArticleForm from "../components/AddArticleForm.vue";
 import AddPartForm from "../components/AddPartForm.vue";
 import PageHeader from "../components/PageHeader.vue";
+import { useCategoryLabel } from "../composables/useCategoryLabel";
 
 const route = useRoute();
 const router = useRouter();
+const categoryLabel = useCategoryLabel();
 const { t } = useI18n();
 
 interface ArticleRow {
@@ -256,6 +262,7 @@ interface ArticleRow {
   recall_url: string | null;
   last_result: string | null;
   last_inspection_date: string | null;
+  last_inspection_inspector: string | null;
   next_due: string | null;
   first_use_date: string | null;
   purchase_date: string | null;
@@ -398,7 +405,7 @@ const filteredArticles = computed(() => {
     if (attentionOnly.value && !ATTENTION.includes(a.uiStatus)) return false;
     if (memberFilter.value && a.assigned_user_name !== memberFilter.value) return false;
     if (q) {
-      const haystack = [a.brand, a.name, a.serial_number, a.category, a.assigned_user_name]
+      const haystack = [a.brand, a.name, a.serial_number, a.category, categoryLabel(a.category), a.assigned_user_name]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
@@ -560,7 +567,8 @@ const selfCheckBy = ref("");
 const selfCheckSaving = ref(false);
 const selfCheckError = ref("");
 
-const today = computed(() => new Date().toISOString().slice(0, 10));
+// Lokale datum, niet toISOString() -- zie packages/core/src/date.ts.
+const today = computed(() => toIsoDate());
 
 function canSelfCheck(a: UiArticle): boolean {
   return !!a.self_managed && selfCheckIntervalMonths(a.product_type) != null;

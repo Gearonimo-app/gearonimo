@@ -5,6 +5,389 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
+
+> De hieronder beschreven "NOG TE DOEN"-lijst is afgerond: Zoho CPaaS
+> (Jos' account bundelt ZeptoMail-achtige verzending onder een ander
+> API-adres, `cpaas.zoho.eu` i.p.v. `api.zeptomail.eu` -- code daarop
+> aangepast), domein `gearonimo.net` geverifieerd (DKIM TXT + CNAME bij
+> Porkbun), Zoho-klantvalidatie ingediend, Edge Function gedeployed via het
+> dashboard, `ZEPTOMAIL_TOKEN` secret gezet, afzender `no-reply@gearonimo.net`
+> (bewust internationaal i.p.v. "meldingen@", besluit Jos 2026-09-24).
+> Onderweg een reparatie nodig geweest:
+> `20260924_reminder_grant_service_role.sql` -- de oorspronkelijke migratie
+> deed `revoke all ... from public` op `customers_due_for_reminder`, wat ook
+> de impliciete toegang van `service_role` wegnam ("permission denied" bij
+> de eerste testrun). **Live handmatig getest**: status 200,
+> `{"processed": 0, "results": []}` (geen fout, gewoon niemand die op dit
+> moment binnen 30 dagen aan herkeuring toe is). Draait nu dagelijks om
+> 06:00 UTC via pg_cron.
+
+## Voortgang (bijgewerkt 2026-09-21, herinneringsmail aan klanten)
+
+> Nieuw: maandelijkse herinneringsmail aan klant-beheerders over artikelen
+> die binnen 30 dagen aan herkeuring toe zijn (besloten met Jos: alleen
+> `is_admin`-medewerkers, max. 1x per maand, mail i.p.v. push -- betrouwbaar-
+> heid was de belangrijkste eis). Gebouwd:
+> `supabase/migrations/20260921_customer_reminder_mail.sql` (tabel
+> `customer_reminder_log` + functie `customers_due_for_reminder`, dagelijkse
+> pg_cron-taak) en `supabase/functions/send-reinspection-reminders/`
+> (Edge Function, verstuurt via Zoho ZeptoMail). Dagelijks aanroepen i.p.v.
+> maandelijks was een bewuste keuze: de 30-dagen-cooldown zit in de query,
+> dus een storing van één nacht kost geen hele maand.
+>
+> **NOG TE DOEN (allemaal door Jos, niets hiervan kan vanuit deze sessie):**
+> 1. Zoho ZeptoMail-account aanmaken (zelfde Zoho-login als Zoho Mail),
+>    domein `gearonimo.net` verifiëren (SPF/DKIM-records bij Porkbun).
+> 2. Send Mail-token uit ZeptoMail ophalen.
+> 3. Migratie `20260921_customer_reminder_mail.sql` draaien in de SQL-editor.
+> 4. De service-role-sleutel EENMALIG los in Supabase Vault zetten (niet in
+>    een migratiebestand, dat zou een geheim in git zetten) zodat de cron-
+>    taak zich kan authenticeren bij de Edge Function.
+> 5. De Edge Function deployen (Supabase CLI of dashboard) met de secrets
+>    `ZEPTOMAIL_TOKEN`, `ZEPTOMAIL_FROM_EMAIL`.
+> 6. **Niet live getest** (geen Supabase/Zoho-toegang in deze sessie) --
+>    vooral het exacte ZeptoMail-API-adres (`.eu` vs `.com`) en de
+>    request/response-vorm verdienen een eerste handmatige testrun vanuit de
+>    Supabase dashboard "Edge Functions"-tab voordat de cron er live op los
+>    gaat.
+
+## Quarantaine: niet bouwen, via een afkeurcode (Jos, 2026-09-24)
+
+> Het plan voor een aparte quarantaine-uitslag (paars, lijst, vrijgeven) is
+> **vervallen**. Jos: *"misschien moet quarantaine een optie zijn in de afkeur
+> codes? [...] kan ieder voor zich bedenken en als het klaar is opnieuw goed
+> keuren en klaar"*, en daarna *"deze opties vergeten we"*.
+> Dat werkt al zonder code: een afgekeurd artikel blijft actief, staat bij de
+> volgende keuring weer in de lijst en kan dan goedgekeurd worden. Elk
+> keurbedrijf voegt zelf een code toe onder Instellingen → Afkeurcodes (bv.
+> "8 — Eerst repareren"). Geen paarse kleur en geen aparte lijst. Bij
+> goedkeuren is de voorgestelde datum vandaag + termijn (handmatig aan te
+> passen).
+
+---
+
+## Gestolen-lijst: niet bouwen, zoeken met een query (Jos, 2026-09-24)
+
+> Aanleiding: Drayer (FR) is opgelicht voor 25 Portable Winch 4000 lieren
+> (staat niet in de catalogus). Na afweging besloten: **nu niet bouwen.**
+> Jos: *"Ik zie tot nu toe meer problemen dan oplossingen."* De redenen:
+> - Serienummers worden in de praktijk niet betrouwbaar ingevuld. Sommige
+>   keurmeesters zetten alleen de laatste 4 cijfers erin, en korte oude
+>   nummers (bv. "0612" bij Petzl en CAMP) komen vaak voor. Matchen op
+>   serienummer geeft dan vals alarm of het mist een treffer.
+> - Een melding als gestolen moet echt goed ingevuld zijn en mag niet van
+>   eindgebruikers komen.
+> - Alleen gekoppelde producten matchen is precies, maar mist vrije
+>   artikelen, en het gestolen product moet dan eerst in de catalogus staan.
+>
+> **Wat wél kan:** bij een melding draait Jos als platform-admin (mag alle
+> artikelen lezen, zie 20260745) een query in de Supabase SQL-editor en
+> beoordeelt de treffers zelf. Voorbeeld met de Drayer-nummers:
+>
+> ```sql
+> select serial_number, free_brand, free_description, customer_id
+> from articles
+> where serial_number in ('60260105','60260106','60260108','60260110','60260111',
+>  '60260112','60260113','60260114','60260115','60260116','60260117','60260118',
+>  '60260119','60260120','60260126','60260206','60260208','60260209','60260210',
+>  '60260211','60260212','60260213','60260214','60260215','60260242');
+> ```
+>
+> Wat Jos met een treffer doet (politie, fabrikant), valt onder privacy/AVG
+> en is zijn afweging, niet die van de app.
+
+---
+
+## Voortgang (bijgewerkt 2026-09-24, streepjescode per product)
+
+> Doel (Jos): bij "Artikel toevoegen" de doos scannen, dan staat het product
+> er meteen. Een jaar later bij de keuring staat het artikel al klaar.
+> Besluiten van Jos (2026-09-24):
+> - Alleen de Gearonimo-keurmeester-app, op beide plekken: klantpagina
+>   (`CustomerArticles.vue`) en tijdens de keuring (wizard).
+> - Geen extra invulveld: een scanknop naast het Artikel-veld, en dat veld
+>   herkent ook een getypte code.
+> - Codes komen alleen via `producten.csv` (Jos vraagt ze op bij de
+>   fabrikant) of via een **curator**, net als de rest van de catalogus
+>   (Jos: *"curator's mogen net als de rest van de csv dit bijwerken"*). Een
+>   gewone keurmeester kan niets koppelen; een onbekende code geeft alleen
+>   een melding.
+>
+> Gebouwd:
+> - `packages/core/src/catalog.ts`: kolom `barcodes` in `CATALOG_COLUMNS`,
+>   `isValidGtin` / `parseBarcodes` / `formatBarcodes` /
+>   `findProductByBarcode`. De controle keurt een fout controlecijfer, een
+>   verkeerde lengte en dezelfde code bij twee producten af. Een UPC-A (12)
+>   en dezelfde code als EAN-13 tellen als één GTIN. 6 nieuwe tests.
+> - `producten.csv`: lege kolom `barcodes` toegevoegd (alle rijen verder
+>   ongewijzigd, nagecontroleerd). `catalog/README.md` legt de kolom en de
+>   Excel-valkuil (voorloopnullen) uit.
+> - Migratie `20260767_products_barcodes.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): alleen `alter table products add column if not exists
+>   barcodes text`. Raakt niets bestaands.
+> - Catalogusbeheer: veld "Streepjescodes (EAN)" in het productformulier
+>   (controle in `ProductForm.vue`, één plek voor beheer en wachtrij),
+>   Excel-import/export, en zoeken op code in de catalogus.
+> - Scanknop naast Artikel op beide plekken; de scanner leest nu ook UPC-A.
+>   In de wizard staan veld en scanknop (ook bij serienummer) als één geheel,
+>   zodat de knop op de telefoon niet op een eigen regel valt.
+> - Bijvangst: bij een exacte naam-match kiest de app nu het product van het
+>   al ingevulde merk. Voorheen koos hij het eerste product met die naam,
+>   ook als het merk anders was.
+> - Offline kent de wizard alleen de gedownloade producten van die klant,
+>   dus een scan vindt dan alleen die.
+> - Zelf gerenderd en bekeken: wizard (telefoon + desktop), klantpagina en
+>   productformulier met een foute code. Builds + tests groen.
+
+## Voortgang (bijgewerkt 2026-09-24, correctie-route weer verwijderd)
+
+> Besluit Jos (2026-09-24): *"waarom kan dit niet bij een vergissing dan? een
+> keurmeester die een vergissing opslaat is zowiezo niet de bedoeling"* en
+> *"ik vind het ook fijn als er geen onnodige code in staat"*. Er is nu **één
+> route voor alles** (vergissing, reparatie, uit quarantaine): een nieuwe
+> keuring, dus een tweede certificaat. De app toont de nieuwste status.
+> - Knop "Corrigeer keuring", het correctievenster, de PDF-regel en de
+>   "gecorrigeerd"-teksten op de verificatiepagina zijn weg. De app-bestanden
+>   zijn terug naar de stand van vóór de samenvoeging; alleen de verhuizing
+>   van `toIsoDate` naar `packages/core` blijft.
+> - Migratie `20260766_remove_correction.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): verwijdert `correct_inspection()`, zet `verify_certificate()`
+>   terug naar de versie van 20260746 en verwijdert
+>   `inspections.corrects_inspection_id` en `source = 'correction'`. Die
+>   laatste twee alleen als er live geen correctie bestaat, anders een NOTICE.
+>   Lokaal getest in beide gevallen.
+> - **Blijft wel:** afgeronde keuringen, items en certificaten zijn
+>   onveranderlijk (triggers uit 20260917). De foutmelding zegt nu "Maak een
+>   nieuwe keuring aan."
+> - De twee secties hieronder over correcties zijn daarmee geschiedenis.
+
+## Voortgang (bijgewerkt 2026-09-24, correctie = klein certificaat)
+
+> Besluit Jos (2026-09-24): een correctie maakt een **klein certificaat met
+> alleen de aangepaste artikelen**. Het oude certificaat blijft geldig voor
+> de rest en krijgt per artikel "gecorrigeerd, zie …-a". Zelfde principe als
+> de quarantaine straks: certificaten worden nooit aangepast, er komen alleen
+> nieuwe bij.
+> - Migratie `20260765_partial_correction.sql` (door Jos uitgevoerd op
+>   2026-09-24, succesvol): unieke index "één keten" eruit (meerdere correcties per
+>   keuring), `correct_inspection()` neemt alleen de meegegeven items over,
+>   controleert dat ze bij de keuring horen en weigert een artikel dat vanaf
+>   dit certificaat al gecorrigeerd is. `verify_certificate()` geeft
+>   `corrects` (bovenaan) en per item `corrected_by`; `superseded_by` blijft
+>   bestaan maar is altijd null.
+> - Lokaal getest op een Postgres 16 met een nagebouwd minimaal schema:
+>   -a/-b/-c-nummering, weigeren van dubbele/lege/vreemde items,
+>   verificatie-uitvoer, "nieuwste per artikel" (sortering van het
+>   dashboard) en de onveranderlijkheidstrigger.
+> - Wizard: correctievenster toont een al gecorrigeerd artikel als "Al
+>   gecorrigeerd op X"; alleen online. Volgende keuring bij correctie:
+>   afgekeurd = leeg, goed blijft goed = zelfde datum, afgekeurd → goed =
+>   termijn vanaf de oorspronkelijke keurdatum. Afrondscherm van een correctie
+>   toont "Correctie op certificaat X".
+> - Jos (2026-09-24), na verwarring over "corrigeren": **beide routes
+>   blijven**. Een nieuwe keuring (datum vandaag, nieuw nummer, geen link) is
+>   voor reparatie of opnieuw keuren. "Corrigeer keuring" (zelfde keurdatum,
+>   -a, gelinkt) is voor een **vergissing**, zodat een QR-scan van het oude
+>   certificaat niet stil de foute uitslag blijft tonen.
+> - PDF: extra kopregel "Correctie op certificaat X" (nl/en/fr/de).
+>   Verificatiepagina: banner op de correctie en per artikel een link op het
+>   oude certificaat. Alle drie zelf gerenderd en bekeken.
+
+## Voortgang (bijgewerkt 2026-09-24, vergeten branch van 16 sept. samengevoegd)
+
+> Bij het voorbereiden van de quarantaine bleek dat de live database
+> `inspections.corrects_inspection_id` al heeft (Jos had
+> `20260917_completed_inspection_immutable.sql` dus al gedraaid), terwijl de
+> code daarvoor (branch `claude/gallant-keller-h0wye1`: codereview-fixes +
+> "Corrigeer keuring") nooit naar `main` was gegaan. Jos: *"vergeten denk
+> ik"*. Nu samengevoegd, zie de sectie van 2026-09-16 hieronder.
+> - Het enige conflict zat in BOUWPLAN.md (beide secties behouden). De
+>   functies uit 20260916/20260917 overschrijven geen nieuwer werk van `main`
+>   (verify_certificate is een superset van 20260746).
+> - **Fout gevonden en gefixt:** `correct_inspection()` schrijft
+>   `source = 'correction'`, maar live staat `inspections_source_check`
+>   alleen `('app', 'import')` toe, dus elke correctie zou falen. Nieuwe
+>   migratie `20260764_inspections_source_correction.sql` (door Jos
+>   uitgevoerd op 2026-09-24, succesvol).
+> - `20260916_rls_active_link_and_self_managed.sql` is live **al gedraaid**
+>   (Jos heeft het op 2026-09-24 gecontroleerd: `inspector_customer_ids` filtert
+>   op `status = 'active'`).
+> - Losse vondst: live bestaat ook `inspection_items.immediate_danger`. Die
+>   komt van de oude branch `loler-inspection-rules-app-kiqefv` (heeft geen
+>   gedeelde historie met `main`). Niet in gebruik en laten staan.
+> - Afspraak Jos (2026-09-24): **certificaten worden nooit aangepast, er komen
+>   alleen nieuwe bij** (correctie = nieuw nummer met -a/-b, quarantaine
+>   vrijgeven = nieuw klein certificaat).
+> - Beide builds en alle tests (134 + 21) zijn groen.
+
+## Voortgang (bijgewerkt 2026-09-14, twee migraties uitgevoerd)
+
+> Jos heeft `20260762_customer_members_role_nullable.sql` en
+> `20260763_join_customer_matches_by_email.sql` gedraaid in de Supabase
+> SQL-editor — beide succesvol. `customer_members.role` mag nu leeg
+> ("Medewerker toevoegen" zonder Functie werkt weer), en
+> `join_customer_by_invite` matcht een teruggekomen gebruiker nu ook op
+> e-mail bij een al eerder gekoppelde rij (was eerst alleen bij een nog
+> nooit gekoppelde rij — zie de migratie-commentaar voor de aanleiding).
+> **Bevestigd opgelost**: Jos ziet nu de "Instellingen"-tegel op het
+> dashboard van De Rots. Daarmee is ook de weg vrij om daar de
+> "Kleding"-materiaalsoort aan te zetten (Instellingen → Materiaalsoorten).
+
+## Voortgang (bijgewerkt 2026-09-14, merken-inhaalslag + link-sync)
+
+> Vertrekpunt: een oude, nooit afgeronde checklist (screenshot van Jos)
+> met 35 alfabetisch te onderzoeken merken (All Gear t/m Zenith) plus
+> Delta Plus en Maillon Rapide, waarvan er destijds pas 4 waren opgepakt
+> (Buckingham, Kong, Marlow, 3M). In deze sessie de rest afgewerkt.
+> - **Delta Plus** (48) en **Maillon Rapide/Peguet** (22, volledige
+>   EN362/EN12275-reeks) toegevoegd.
+> - Alfabetische restlijst afgewerkt via 6 parallelle onderzoeksbatches:
+>   **toegevoegd** — All Gear (4), Cresto (5), Texora (3), Tightline Arb
+>   (4, "Magpie" bleek een modelnaam, geen apart merk), Treehog (5),
+>   Donaghys (7), English Braids (8), Edelweiss (6), Ocún (5), Portwest
+>   (7, alleen hoogwerk-assortiment), Ridgegear (8), Rock Empire (7),
+>   Gleistein (10), Harkie (13), IKAR (11), JSP (2, alleen EN12492-helmen),
+>   Singing Rock (48), SAR (33), 3M/DBI-SALA-aanvulling (3), Simarghu (3).
+>   **Niet toegevoegd** (bestaansrecht/relevantie niet aangetoond, of in
+>   strijd met "geen winkels"): Arb Response, Black Diamond, Bulldog,
+>   Dragon, G-Force, Komet (bestaat niet meer zelfstandig — nu Miller/
+>   Honeywell), Hightec (mogelijk bedoeld: "heightec" — nog navragen bij
+>   Jos), Tree-Force, Wild Country, Willans, Zenith (bleek een modelnaam,
+>   o.a. bij KASK), Singing Tree (geen eigen fabrikant meer — huidige
+>   producten zijn OEM al onder ISC/Notch in de catalogus).
+> - Onderweg ontdekt en gefixt: 2 All-Gear-rijen (Tree Access ST/XT)
+>   bleken eigenlijk CAMP-producten (Jos herkende de branding op een
+>   screenshot) — merk gecorrigeerd, plus het losse schoudergedeelte
+>   "Tree Access SRT Chest" (non-PPE) als bonus toegevoegd.
+> - **Link-sync tegen live Gearonimo-export (12-09):** `vergelijk.mts`
+>   vond 51 tegenstrijdigheden tussen bronlijst en de app. Stuk voor stuk
+>   met curl geverifieerd: 50 daarvan was de bronlijst al goed, de app was
+>   stale (voornamelijk 26 verlopen Petzl SFC-servlet-ID's, plus Liros/
+>   Tango/Tendon/Yale-links en een paar categorie-restjes van vóór de
+>   categorieën-migratie) — apart geëxporteerd voor import. 1 echte fout
+>   gevonden en gefixt: Teufelberger Sirius Accessory Cord 10mm stond op
+>   `anchor_strop`, moet `accessory_cord` zijn.
+> - Ridgegear blokkeert deze sessie volledig met een JS-captcha; 6 links
+>   kon Jos zelf in de browser bevestigen (waaronder 1 herstelde 404 en
+>   1 gecorrigeerde sluitingsbeschrijving RGK1: gewoon "screwgate", geen
+>   "double action").
+> - **Afgesloten (Jos, 2026-09-24: "laten we voor wat het is"):** Simarghu
+>   (3 producten) en SAR Cambium Saver/Climbing Helmet (2) hebben geen
+>   bevestigde handleiding — simarghu.com was deze
+>   hele sessie onbereikbaar vanuit de sandbox, SAR's eu-doc-pagina mist
+>   voor die 2 producten kennelijk een PDF. Aan Jos gevraagd zelf te
+>   controleren. "Hightec" = heightec (Jos, 2026-09-24), staat al in de catalogus.
+> - Bronlijst ging van 3042 naar 3305 producten in deze sessie.
+
+## Voortgang (bijgewerkt 2026-09-16, codereview + certificaat-onveranderlijkheid)
+
+> **Grondige codereview (5 deelonderzoeken: database/rechten, beide apps,
+> gedeelde packages, catalog-tooling) en de kritieke/hoge bevindingen
+> gefixt.** Volledig rapport als artifact gedeeld met Jos; kern hieronder.
+> - **RLS-lek gedicht**: `inspector_customer_ids()` filterde niet op
+>   `customer_links.status = 'active'` — een keurbedrijf dat een klant
+>   kwijtraakte hield voor altijd volledige schrijf/verwijderrechten
+>   (inclusief de klant kunnen verwijderen, met cascade-effect op diens
+>   artikelen bij het nieuwe bedrijf). Ook `self_managed=true`-artikelen
+>   (kleding/machines) waren alleen client-side afgeschermd voor
+>   keurbedrijven, niet in de database. Migratie:
+>   `20260916_rls_active_link_and_self_managed.sql` (**nog door Jos uit te
+>   voeren**).
+> - **Catalog-scripts**: `ingest.mts --overwrite` zonder bestandsnaam kon de
+>   hele inbox (90+ bestanden) met "lege cel wist wel" toepassen — nu
+>   geweigerd zonder expliciet bestand. `mergeRows` kon een bestaand
+>   product-id stil naar een andere waarde overschrijven bij een
+>   merk+naam-match — nu een gemeld conflict i.p.v. stille toepassing.
+> - **Klantportal**: `ArticleDetail.vue` ververste niet bij navigeren tussen
+>   twee artikelen (route-param zonder watcher) — kon het verkeerde artikel
+>   overschrijven. `!important` in `style.css` overrulede de kopbalk (tegen
+>   CLAUDE.md-regel 2) — kopbalk-achtergrond nu net als `AppHeader.vue` in de
+>   component zelf.
+> - **Gedeelde datumbug**: `toIsoDate()` (lokale datum, niet
+>   `toISOString()`) verplaatst naar `packages/core/src/date.ts` — was al
+>   eens apart gefixt in de inspecteurs-app, kwam los terug in de
+>   klantportal (self-check-datum rond middernacht).
+> - **Bulk-import**: klant/serienummer-zoekopdracht in `useImportCommit.ts`
+>   escaped nu `%`/`_`/`\` vóór `.ilike()` (voorkomt verkeerde matches).
+> - **`xlsx` bijgewerkt** van 0.18.5 (bekende CVE's) naar 0.20.3 via de
+>   officiële SheetJS-CDN-tarball.
+> - **Certificaat/keuring nu écht onveranderlijk na afronden** — was de
+>   laatste "hoog"-bevinding. Besluit Jos (16 sept., na kort overleg): geen
+>   simpel slot, maar corrigeren via een NIEUW gekoppeld certificaat met
+>   lettersuffix (`20260718-BOOMWERK` → `-a` → `-b`, ...); het origineel
+>   blijft ongewijzigd bestaan als audit-spoor. Elke actieve keurmeester van
+>   het bedrijf mag corrigeren; wie het oude certificaat scant ziet
+>   "vervangen door X" + link. Uitzondering: een import ongedaan maken mag
+>   nog steeds afgeronde (geïmporteerde) keuringen verwijderen (Jos: "ja,
+>   sta dit toe").
+>   - Migratie: `20260917_completed_inspection_immutable.sql` (**nog door
+>     Jos uit te voeren** — triggers die UPDATE/DELETE op een afgeronde
+>     `inspections`/`inspection_items`/`certificates`-rij blokkeren, plus
+>     `correct_inspection(p_inspection_id, p_items)` en een uitgebreide
+>     `verify_certificate()`).
+>   - Nieuwe knop "Corrigeer keuring" op het afrondscherm
+>     (`InspectionWizard.vue`): laat per item goed/afgekeurd + opmerking
+>     aanpassen, roept `correct_inspection` aan en navigeert (harde reload,
+>     bewust — zelfde valkuil als de tabbladen-architectuur bij een
+>     route-param-only wijziging) naar de nieuwe, gecorrigeerde keuring.
+>   - **Bekende beperking, nog niet opgelost**: de klant-/keuringgeschiedenis
+>     (bv. `Inspections.vue`, klantdetail) toont een correctie nu als een
+>     aparte rij náást het origineel, niet expliciet gemarkeerd als
+>     "vervangen". Prima voor het audit-spoor, maar kan verwarrend ogen in
+>     een lijst. Los oppakken als het in de praktijk hindert.
+> - Build (`vue-tsc` + `vite build`) en `npm run test --workspaces`
+>   (155 tests) groen voor beide apps na elke stap.
+
+## Voortgang (bijgewerkt 2026-09-10, category-opschoning)
+
+> **`products.category` van vrije tekst naar vaste, vertaalde lijst.**
+> Aanleiding: 138 losse, deels dubbele waardes (Harness/Harnesses/harness
+> door elkaar) over 2890 producten, zichtbaar in ~20 schermen én op het
+> certificaat-PDF. In twee fases met Jos doorgenomen (fase 1: opschonen +
+> voorstel, fase 2: bouwen na akkoord).
+> - **Opgeschoond tot 27 canonieke codes** in `CATEGORIES`
+>   (`packages/core/src/catalog.ts`), ingedeeld "zoals de keurmeester het
+>   herkent" — niet zoals de CE-norm het indeelt. Volledige mapping
+>   (oude waarde → nieuwe code, incl. de ~190 producten die individueel
+>   herbeoordeeld zijn omdat hun oude categorie een verzamelbak was) staat in
+>   de gespreksgeschiedenis met Jos, niet apart gedocumenteerd bestand.
+> - `catalog/producten.csv` eenmalig gemigreerd (2890/2890 producten,
+>   0 openstaand) — de bronlijst staat er dus al vertaalbaar in.
+> - Vertaling (NL/EN/FR/DE) toegevoegd als `settings.catalog.categories.*` /
+>   `categories.*` in de 8 taalbestanden, zelfde patroon als `productTypes`.
+> - Nieuwe composable `useCategoryLabel()` (inspector + customer) vertaalt een
+>   bekende code en laat vrije tekst (`free_category`, of een rij van vóór de
+>   migratie) met rust. Certificaat-PDF (`useCertificate.ts`) doet hetzelfde
+>   zonder vue-i18n, door de taalbestanden rechtstreeks te importeren.
+> - `ProductForm.vue`: category is nu een keuzelijst, geen vrij tekstveld
+>   meer (zelfde reden als `product_type` destijds: voorkomt dat er weer 138
+>   losse schrijfwijzen ontstaan).
+> - `scripts/catalog/normaliseer.mts` en `validateCatalog()` melden voortaan
+>   een `category`-waarde die niet in de vaste lijst staat (waarschuwing,
+>   geen blokkerende fout — net zo min geraden als bij `product_type`, dat
+>   oordeel is vakwerk).
+> - **`material` (345 losse waardes) bewust buiten deze opschoning gehouden**
+>   (besluit Jos): vrijwel allemaal echt verschillende
+>   constructie-beschrijvingen, geen dezelfde term anders geschreven, en een
+>   ondergeschikt veld. Blijft Engels, geen i18n.
+> - Build (`vue-tsc` + `vite build`) en tests groen voor beide apps; nieuwe
+>   tests in `packages/core/src/catalog.test.ts` voor de `CATEGORIES`-check.
+>
+> **Nog door Jos te doen: de live database staat nog op de oude vrije tekst.**
+> Deze ronde heeft alleen de bronlijst (`catalog/producten.csv`) en de code
+> bijgewerkt — dat is niet hetzelfde als de Supabase `products`-tabel. Om de
+> 2890 producten ook live om te zetten: `npm run catalog:export`, de Excel
+> importeren via Instellingen → Catalogus → Importeren (zie
+> `catalog/README.md`). Tot die import gedraaid is, tonen de schermen voor
+> bestaande producten dus nog de oude vrije tekst (die blijft gewoon zichtbaar
+> — `useCategoryLabel()` laat een onbekende waarde met rust in plaats van hem
+> te verbergen).
+> **Open vraag voor Jos:** `product_type` heeft in de database een
+> check-constraint op de vaste codes (zie `ProductForm.vue`); of `category`
+> zoiets ook heeft of moet krijgen, is niet aangenomen — daar is eerst een
+> live-schema-check voor nodig (projectregel: nooit het schema raden).
+
 ## Voortgang (bijgewerkt 2026-09-10, meerdere keurmeesters in één keuring)
 
 > **Afronden terwijl een collega nog bezig is.** Bij een grote klant werken

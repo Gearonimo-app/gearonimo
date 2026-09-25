@@ -89,7 +89,9 @@
            -- die twee filteren de artikel-suggesties dan verder in. Geen match
            = vrij artikel. `ref="itemRefs"` + scrollToActive laten de
            gemarkeerde suggestie meescrollen bij ↑/↓. -->
-      <div class="ca__field">
+      <!-- Scan-knop: streepjescode van de doos kiest het product uit de
+           catalogus (2026-09-24). Typ je de code, dan werkt dat ook. -->
+      <div class="ca__field ca__field--scan">
         <input
           v-model="newDescription"
           class="ca__input"
@@ -98,12 +100,14 @@
           @blur="closeSuggest"
           @keydown="onSuggestKeydown"
         />
+        <ScanButton :title="$t('articles.scanBarcode')" @scan="onBarcodeScan" />
         <div v-if="activeField === 'article' && fieldSuggestions.length" class="ca__suggest">
           <button v-for="(s, i) in fieldSuggestions" :key="s" type="button" ref="itemRefs"
                   class="ca__suggest-item" :class="{ 'ca__suggest-item--active': i === suggestIndex }"
                   @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
         </div>
       </div>
+      <p v-if="barcodeNotice" class="ca__barcode-notice">{{ barcodeNotice }}</p>
       <div class="ca__field">
         <input
           v-model="newBrand"
@@ -146,7 +150,10 @@
       <hr class="ca__sep" />
       <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
            serienummer (staat op het artikel), dán bouwjaar/-maand. -->
-      <input v-model="form.serial_number"      :placeholder="$t('articles.fields.serial')" class="ca__input" />
+      <div class="ca__row">
+        <input v-model="form.serial_number" :placeholder="$t('articles.fields.serial')" class="ca__input" />
+        <ScanButton @scan="(text: string) => (form.serial_number = text)" />
+      </div>
       <div class="ca__row">
         <input v-model="newYear" type="number" class="ca__input ca__input--sm" :placeholder="$t('inspections.table.year')" />
         <select v-model="newMonth" class="ca__input ca__input--sm">
@@ -218,9 +225,10 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
-import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
-import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles, findProductByBarcode, isValidGtin } from '@gearonimo/core'
+import { useFieldSuggest, fuzzyFilter, ScanButton } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
 import AddPartDialog from './AddPartDialog.vue'
 
@@ -228,8 +236,9 @@ const { isOnline } = useOnline()
 
 const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
+const categoryLabel = useCategoryLabel()
 
-interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null }
+interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null; barcodes?: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
 interface Article {
   id: string
@@ -283,13 +292,18 @@ const formError = ref('')
 // terugkoppelen aan een catalogusproduct.
 const products = ref<Product[]>([])
 const allBrands = computed(() => unique(products.value.map(p => p.brand)))
-const allCategories = computed(() => unique(products.value.map(p => p.category)))
-// Producten die binnen de gekozen trechter (merk + categorie) vallen.
+// Vertaald label, niet de ruwe code (sinds de opschoning van category naar
+// vaste codes, 2026-09-10) -- anders ziet de inspecteur "harnesses" in de
+// suggestielijst in plaats van "Harnas".
+const allCategories = computed(() => unique(products.value.map(p => categoryLabel(p.category) || null)))
+// Producten die binnen de gekozen trechter (merk + categorie) vallen. De
+// categorie wordt op het vertaalde label vergeleken, zodat de trechter
+// overeenkomt met wat de suggestielijst toont.
 const matchingProducts = computed(() =>
   products.value.filter(p =>
     p.name &&
     (!newBrand.value.trim()    || (p.brand ?? '').toLowerCase() === newBrand.value.trim().toLowerCase()) &&
-    (!newCategory.value.trim() || (p.category ?? '').toLowerCase() === newCategory.value.trim().toLowerCase())
+    (!newCategory.value.trim() || categoryLabel(p.category).toLowerCase() === newCategory.value.trim().toLowerCase())
   )
 )
 
@@ -312,7 +326,7 @@ const matchingArticleLabels = computed(() => unique(matchingProducts.value.map(p
 const matchingCategories = computed(() => {
   const b = newBrand.value.trim().toLowerCase()
   if (!b) return allCategories.value
-  const forBrand = unique(products.value.filter(p => (p.brand ?? '').toLowerCase() === b).map(p => p.category))
+  const forBrand = unique(products.value.filter(p => (p.brand ?? '').toLowerCase() === b).map(p => categoryLabel(p.category) || null))
   return forBrand.length ? forBrand : allCategories.value
 })
 
@@ -370,15 +384,41 @@ const {
   select: setFieldValue,
 })
 
+// Streepjescode (2026-09-24): gescand of getypt kiest hij het product uit de
+// catalogus. De codes komen alleen uit de bronlijst (curators), dus een
+// onbekende code koppelt nooit iets: dan kiest de keurmeester zelf.
+const barcodeNotice = ref('')
+function applyBarcodeProduct(p: Product) {
+  newDescription.value = p.name ?? ''
+  newBrand.value = p.brand ?? ''
+  newCategory.value = categoryLabel(p.category)
+  barcodeNotice.value = ''
+}
+function onBarcodeScan(text: string) {
+  const code = text.trim()
+  const p = findProductByBarcode(products.value, code)
+  if (p) applyBarcodeProduct(p)
+  else barcodeNotice.value = t('articles.barcodeUnknown', { code })
+}
+
 // Zodra het getypte artikel exact een catalogusproduct matcht, merk en
-// categorie meteen invullen. Vrije tekst laat de velden met rust.
+// categorie meteen invullen. Vrije tekst laat de velden met rust. Staat het
+// merk al goed (bv. na een scan), dan wint het product van dát merk.
 watch(newDescription, (name) => {
-  const n = name.trim().toLowerCase()
+  barcodeNotice.value = ''
+  const typed = name.trim()
+  if (isValidGtin(typed)) {
+    const byCode = findProductByBarcode(products.value, typed)
+    if (byCode) { applyBarcodeProduct(byCode); return }
+  }
+  const n = typed.toLowerCase()
   if (!n) return
-  const p = products.value.find(p => (p.name ?? '').toLowerCase() === n)
+  const b = newBrand.value.trim().toLowerCase()
+  const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
+  const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
   if (p) {
     if (p.brand) newBrand.value = p.brand
-    if (p.category) newCategory.value = p.category
+    if (p.category) newCategory.value = categoryLabel(p.category)
   }
 })
 
@@ -534,7 +574,7 @@ async function load() {
 function openAdd() { showAdd.value = true }
 function closeAdd() {
   showAdd.value = false
-  newDescription.value = ''; newBrand.value = ''; newCategory.value = ''
+  newDescription.value = ''; newBrand.value = ''; newCategory.value = ''; barcodeNotice.value = ''
   newYear.value = null; newMonth.value = null
   activeField.value = null; suggestIndex.value = -1
   formError.value = ''
@@ -589,7 +629,7 @@ onMounted(async () => {
       products.value = await fetchAllRows<Product>((from, to) =>
         supabase
           .from('products')
-          .select('id, brand, name, category, manufacturer_code')
+          .select('id, brand, name, category, manufacturer_code, barcodes')
           .order('brand')
           .order('name')
           .range(from, to),
@@ -676,6 +716,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .ca__form h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .ca__field { position: relative; }
+.ca__field--scan { display: flex; gap: 0.6rem; align-items: center; }
+.ca__barcode-notice { margin: -0.25rem 0 0; font-size: 0.85rem; color: #b45309; }
 .ca__input {
   padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #ddd;
   font-size: 1rem; width: 100%; box-sizing: border-box; font-family: inherit;

@@ -145,13 +145,20 @@ async function pick(customerId: string) {
   }
 }
 
-async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
+// 'none' (Jos, 2026-09-14): leeg beginnen, zelf artikelen toevoegen in de wizard.
+function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'new' | 'none'): string[] {
+  if (scopeChoice === 'all') return scope.allIds
+  if (scopeChoice === 'new') return scope.newIds
+  return []
+}
+
+async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
   showArticleSelect.value = false
   if (!pendingCustomerId.value) return
   picking.value = true
   pickError.value = ''
   try {
-    const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
+    const articleIds = resolveArticleIds(articleScope.value, scopeChoice)
     const inspectionId = await startInspectionWithArticles(pendingCustomerId.value, articleIds)
     router.push(`/inspections/${inspectionId}`)
   } catch (e) {
@@ -161,11 +168,15 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new') {
   }
 }
 
-async function confirmAddExtra(scopeChoice: 'all' | 'new') {
+async function confirmAddExtra(scopeChoice: 'all' | 'new' | 'none') {
   showAddExtra.value = false
   if (!pendingDraftId.value) return
   const draftId = pendingDraftId.value
-  const articleIds = scopeChoice === 'all' ? articleScope.value.allIds : articleScope.value.newIds
+  if (scopeChoice === 'none') {
+    router.push(`/inspections/${draftId}`)
+    return
+  }
+  const articleIds = resolveArticleIds(articleScope.value, scopeChoice)
   picking.value = true
   pickError.value = ''
   try {

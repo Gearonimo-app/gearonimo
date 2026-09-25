@@ -58,6 +58,7 @@
   "home": {
     "title": "Gearonimo",
     "subtitle": "Ihre Ausrüstung, immer in Ordnung",
+    "loggedInAs": "Angemeldet als {name}",
     "verdict": {
       "good": "Alles in Ordnung",
       "warn": "Prüfung bald fällig",
@@ -257,6 +258,36 @@
     "clothing": "Kleidung",
     "other": "Sonstiges"
   },
+  "categories": {
+    "connectors": "Verbindungselement/Karabiner",
+    "harnesses": "Auffanggurt",
+    "climbing_harness": "Kletter-/Sitzgurt",
+    "harness_accessories": "Gurtzubehör",
+    "climbing_ropes": "Klettertau",
+    "positioning_lanyards": "Halteseil",
+    "slings": "Schlinge",
+    "anchor_strop": "Ankerschlinge",
+    "accessory_cord": "Reepschnur (Hilfsleine)",
+    "anchor_hardware": "Ankerplatte & Hardware",
+    "pulleys": "Seilrolle",
+    "rope_clamps": "Seilklemme",
+    "mechanical_prusik": "Mechanischer Prusik",
+    "descenders": "Abseilgerät",
+    "line_brake": "Seilbremse",
+    "bollard": "Riggingpoller",
+    "throw_hook": "Wurfhaken",
+    "rigging_line": "Rigging-Seil (kein PSA)",
+    "cambium_saver": "Cambium-Schoner",
+    "srl": "Höhensicherungsgerät",
+    "mobile_fall_arrester": "Mitlaufendes Auffanggerät",
+    "energy_absorber": "Falldämpfer",
+    "swivel": "Wirbel",
+    "tree_spurs": "Baumsteigeisen",
+    "helmet": "Helm",
+    "tool_lanyard": "Werkzeug-Sicherungsleine (kein PSA)",
+    "lifting_sling": "Hebeband",
+    "other_non_ppe": "Sonstiges (kein PSA)"
+  },
   "selfCheck": {
     "action": "Abhaken",
     "save": "Abhaken",
@@ -270,5 +301,14 @@
     "performedByLabel": "Kontrolliert von",
     "recordedByLabel": "Erfasst von",
     "historyLabel": "Kontrollen"
+  },
+  "scanner": {
+    "button": "Scannen",
+    "title": "Scanner",
+    "subtitle": "Kamera auf einen Barcode, DataMatrix- oder QR-Code richten",
+    "macro": "Makro (Nahaufnahme)",
+    "torch": "Taschenlampe",
+    "close": "Schließen",
+    "unavailable": "Kamera nicht verfügbar. Berechtigungen prüfen."
   }
 }

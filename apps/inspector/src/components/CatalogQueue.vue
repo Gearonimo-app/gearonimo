@@ -42,7 +42,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, formatBarcodes } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import ProductForm from './ProductForm.vue'
@@ -130,6 +130,7 @@ async function createProduct(form: ProductFormModel) {
         material: form.material.trim() || null,
         standard: form.standard.trim() || null,
         manufacturer_code: form.manufacturer_code.trim() || null,
+        barcodes: formatBarcodes(form.barcodes),
         max_age_use_years: form.max_age_use_years,
         max_age_mfr_years: form.max_age_mfr_years,
         breaking_strength: form.breaking_strength.trim() || null,

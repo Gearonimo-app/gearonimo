@@ -135,6 +135,8 @@
     "brandFilter": "Filter by brand…",
     "catalogSearch": "Search catalogue (brand, type, name)…",
     "cantFind": "Can't find it? Add as free article",
+    "scanBarcode": "Scan barcode",
+    "barcodeUnknown": "Unknown barcode {code}. Please choose the item yourself.",
     "backToCatalog": "← Back to catalogue",
     "suggestForCatalog": "Suggest for product database",
     "showRetired": "Show retired items",
@@ -157,6 +159,7 @@
     },
     "detail": {
       "notFound": "Article not found",
+      "lastInspection": "Last inspection",
       "retire": "Retire",
       "retireTitle": "Retire this article?",
       "retireBody": "The article stays on record but no longer counts towards inspections.",
@@ -265,6 +268,7 @@
       "hint": "Choose everything from this customer, or only the articles that haven't been inspected before.",
       "allOption": "Everything",
       "newOption": "New only",
+      "emptyOption": "Start empty",
       "addTitle": "Add more articles from this customer?",
       "addHint": "These articles aren't in the open inspection yet. Choose all of them, or only the ones never inspected before."
     },
@@ -280,12 +284,6 @@
     "rejected": "Rejected",
     "notAssessed": "Skipped",
     "lifeCycleWarning": "Lifespan: {months} mo left",
-    "recallFlag": "Recall: check this article",
-    "noticeFlag": "Manufacturer inspection notice",
-    "productNotesTitle": "Note from the catalogue",
-    "clearFlag": "Clear with a note (hides the flag for this article)",
-    "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):",
-    "clearedTitle": "Cleared",
     "noCode": "No code",
     "commentPlaceholder": "Comment…",
     "totalCount": "{n} articles total",
@@ -325,6 +323,7 @@
       "colFirstUse": "In use",
       "colUser": "User",
       "colPrevious": "Previous",
+      "previousBy": "Inspected by {name}",
       "colResult": "Result",
       "colNextDue": "Next inspection",
       "colWarning": "",
@@ -339,6 +338,13 @@
       "notAssessedConfirm": "{count} item(s) were not inspected and will not appear on the certificate (they remain with the customer for next time):",
       "ageWarningOverdue": "Lifespan exceeded",
       "ageWarningSoon": "Lifespan ending soon ({months} mo)",
+      "ageInfoTitle": "Service life",
+      "ageMfrLabel": "Max. age manufacturer:",
+      "ageUseLabel": "Max. age from first use:",
+      "ageUnlimited": "unlimited",
+      "ageNotResearched": "not researched yet",
+      "ageNotResearchedTitle": "Service life for this product has not been researched in the catalogue yet",
+      "ageYears": "{years} yr",
       "dayHelper": "Production day (from SN):",
       "dayHelperTooltip": "The day number of the year, often embedded as 3 digits in the serial number. 003 = Jan 3rd, 123 = day 123 of the year (May 3rd, or May 2nd in a leap year). Runs up to 365 max (366 in a leap year) — not the same as a calendar date.",
       "dayPlaceholder": "e.g. 045",
@@ -364,7 +370,13 @@
       "snLastPassed": "passed {date}",
       "snLastRejected": "rejected {date}",
       "saveRowFailed": "The result for \"{name}\" was NOT saved. Please try again.",
-      "finishBlockedUnsaved": "A result was not saved (see the message above). Save it again before finishing."
+      "finishBlockedUnsaved": "A result was not saved (see the message above). Save it again before finishing.",
+      "recallFlag": "Recall: check this article",
+      "clearFlag": "Clear with a note (hides the flag for this article)",
+      "clearedTitle": "Cleared",
+      "noticeFlag": "Manufacturer inspection notice",
+      "productNotesTitle": "Note from the catalogue",
+      "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):"
     },
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."
@@ -657,6 +669,7 @@
         "importConfirm": "Confirm import",
         "errorMissing": "Row {line}: brand and name are required.",
         "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",
+        "errorBarcodes": "Row {line}: invalid barcode {codes}",
         "readError": "Could not read the file.",
         "duplicateSkipped": "Row {line}: {product} is already in the catalogue.",
         "duplicateExists": "A product with this brand and name is already in the catalogue. Edit the existing product, or give this one its own name — for example with the size after it.",
@@ -675,6 +688,7 @@
         "material": "Material",
         "standard": "Standard",
         "manufacturerCode": "Manufacturer article/model code",
+        "barcodes": "Barcodes (EAN)",
         "maxAgeUseYears": "Max age from first use (years)",
         "maxAgeMfrYears": "Max age manufacturer (years)",
         "breakingStrength": "Breaking strength (MBS)",
@@ -701,6 +715,36 @@
         "clothing": "Clothing",
         "other": "Other"
       },
+      "categories": {
+        "connectors": "Connector/hook",
+        "harnesses": "Harness",
+        "climbing_harness": "Climbing/positioning harness",
+        "harness_accessories": "Harness accessory",
+        "climbing_ropes": "Climbing rope",
+        "positioning_lanyards": "Positioning lanyard",
+        "slings": "Sling",
+        "anchor_strop": "Anchor strop",
+        "accessory_cord": "Accessory cord",
+        "anchor_hardware": "Anchor plate & hardware",
+        "pulleys": "Pulley",
+        "rope_clamps": "Rope clamp",
+        "mechanical_prusik": "Mechanical prusik",
+        "descenders": "Descender",
+        "line_brake": "Line brake",
+        "bollard": "Rigging bollard",
+        "throw_hook": "Throw hook",
+        "rigging_line": "Rigging line (non-PPE)",
+        "cambium_saver": "Cambium saver",
+        "srl": "Self-retracting lifeline",
+        "mobile_fall_arrester": "Mobile fall arrester",
+        "energy_absorber": "Energy absorber",
+        "swivel": "Swivel",
+        "tree_spurs": "Tree climbing spur",
+        "helmet": "Helmet",
+        "tool_lanyard": "Tool lanyard (non-PPE)",
+        "lifting_sling": "Lifting sling",
+        "other_non_ppe": "Other (non-PPE)"
+      },
       "placeholders": {
         "brand": "e.g. Petzl",
         "name": "e.g. OK TRIACT-LOCK",
@@ -708,6 +752,7 @@
         "material": "e.g. Aluminium, Steel, Polyester",
         "standard": "e.g. EN 361, EN 1891 Type A",
         "manufacturerCode": "e.g. M33A SL or FS242-L/XL",
+        "barcodes": "e.g. 3342540123456; 3342540123463",
         "maxAgeUseYears": "e.g. 10 — or 999 for unlimited",
         "maxAgeMfrYears": "e.g. 10 — or 999 for unlimited",
         "breakingStrength": "e.g. 25 kN",
@@ -722,6 +767,12 @@
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
         "notes": "e.g. inspect only with the original carabiner"
+      },
+      "hints": {
+        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon."
+      },
+      "errors": {
+        "invalidBarcodes": "Not a valid barcode: {codes}. Digits only, 8, 12, 13 or 14 long, with a correct check digit."
       }
     },
     "listing": {
@@ -935,5 +986,14 @@
       "import": "Import certificate",
       "page": "Page"
     }
+  },
+  "scanner": {
+    "button": "Scan",
+    "title": "Scanner",
+    "subtitle": "Point the camera at a barcode, DataMatrix or QR code",
+    "macro": "Macro (close-up)",
+    "torch": "Flashlight",
+    "close": "Close",
+    "unavailable": "Camera unavailable. Check your permissions."
   }
 }

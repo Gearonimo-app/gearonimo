@@ -18,7 +18,7 @@
       <dl v-if="!editMode" class="ad__list">
         <div v-if="article.name" class="ad__row"><dt>{{ $t('articleDetail.fields.article') }}</dt><dd>{{ article.name }}</dd></div>
         <div v-if="article.brand" class="ad__row"><dt>{{ $t('articleDetail.fields.brand') }}</dt><dd>{{ article.brand }}</dd></div>
-        <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ article.category }}</dd></div>
+        <div v-if="article.category" class="ad__row"><dt>{{ $t('articleDetail.fields.category') }}</dt><dd>{{ categoryLabel(article.category) }}</dd></div>
         <div v-if="article.material" class="ad__row"><dt>{{ $t('articleDetail.fields.material') }}</dt><dd>{{ article.material }}</dd></div>
         <div v-if="article.serial_number" class="ad__row"><dt>{{ $t('articleDetail.fields.serial') }}</dt><dd>{{ article.serial_number }}</dd></div>
         <div class="ad__row"><dt>{{ $t('articleDetail.fields.user') }}</dt><dd>{{ article.assigned_user_name || $t('articleDetail.noUser') }}</dd></div>
@@ -54,7 +54,10 @@
         <template v-else>
           <div class="ad__row">
             <dt>{{ $t('articleDetail.lastInspection') }}</dt>
-            <dd>{{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}</dd>
+            <dd>
+              {{ article.last_inspection_date ? formatDate(article.last_inspection_date) : $t('articleDetail.noLastInspection') }}
+              <span v-if="article.last_inspection_inspector"> — {{ article.last_inspection_inspector }}</span>
+            </dd>
           </div>
           <div v-if="article.next_due" class="ad__row"><dt>{{ $t('articleDetail.fields.nextDue') }}</dt><dd>{{ formatDate(article.next_due) }}</dd></div>
         </template>
@@ -116,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import {
   supabase,
@@ -124,12 +127,15 @@ import {
   typeIsInspected,
   selfCheckIntervalMonths,
   customerArticleStatus,
+  toIsoDate,
 } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 import UserPicker from "../components/UserPicker.vue";
+import { useCategoryLabel } from "../composables/useCategoryLabel";
 
 const route = useRoute();
 const router = useRouter();
+const categoryLabel = useCategoryLabel();
 
 interface ArticleDetailRow {
   id: string;
@@ -149,6 +155,7 @@ interface ArticleDetailRow {
   self_managed: boolean | null;
   last_result: string | null;
   last_inspection_date: string | null;
+  last_inspection_inspector: string | null;
   next_due: string | null;
   self_checked_at: string | null;
   self_next_due: string | null;
@@ -188,7 +195,8 @@ const selfCheckDate = ref("");
 const selfCheckBy = ref("");
 const selfCheckSaving = ref(false);
 const selfCheckError = ref("");
-const todayIso = computed(() => new Date().toISOString().slice(0, 10));
+// Lokale datum, niet toISOString() -- zie packages/core/src/date.ts.
+const todayIso = computed(() => toIsoDate());
 
 watch(selfCheckOpen, (open) => {
   if (open) {
@@ -334,7 +342,19 @@ async function save() {
   }
 }
 
-onMounted(load);
+// route.params.id in plaats van onMounted: Vue Router hergebruikt deze
+// component bij het navigeren tussen twee /materials/:id-routes (bv. via
+// terug/vooruit) -- zonder deze watcher bleef het vorige artikel op het
+// scherm staan terwijl de URL al naar het nieuwe wees, en kon "bewerken +
+// opslaan" het verkeerde artikel overschrijven (code review 2026-09-15).
+watch(
+  () => route.params.id,
+  () => {
+    editMode.value = false;
+    load();
+  },
+  { immediate: true }
+);
 </script>
 
 <style scoped>

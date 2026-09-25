@@ -215,6 +215,7 @@ import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
+import { useCategoryLabel } from '../composables/useCategoryLabel'
 
 interface Product {
   brand: string | null
@@ -246,6 +247,7 @@ interface Row {
 
 const route = useRoute()
 const { t, locale } = useI18n()
+const categoryLabel = useCategoryLabel()
 
 const mode = ref<'serial' | 'recall'>('serial')
 
@@ -269,7 +271,7 @@ function name(r: Row) {
 }
 function label(r: Row) {
   const s = [brand(r), name(r)].filter(Boolean).join(' ')
-  return s || r.product?.category || r.free_category || t('articles.untitled')
+  return s || categoryLabel(r.product?.category) || r.free_category || t('articles.untitled')
 }
 function monthName(m: number) {
   return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(new Date(2000, m - 1, 1))
@@ -393,7 +395,7 @@ const recallRan = ref(false)
 // Doorzoekt productnaam + categorie (zowel catalogus als vrij artikel), zodat
 // "astro" óók Astro Int, Astro Bod Fast, Astro mt 2 enz. vindt (bevat-match).
 function prodHaystack(r: Row) {
-  return [name(r), r.product?.category, r.free_category].filter(Boolean).join(' ').toLowerCase()
+  return [name(r), r.product?.category, categoryLabel(r.product?.category), r.free_category].filter(Boolean).join(' ').toLowerCase()
 }
 
 // Volledige catalogus, alleen voor de Merk-typeahead en het live voorbeeld
@@ -433,7 +435,7 @@ const recallPreview = computed(() => {
   const matches = catalog.value.filter((p) => {
     if (bMerk && !(p.brand ?? '').toLowerCase().includes(bMerk)) return false
     if (bProd) {
-      const haystack = [p.name, p.category].filter(Boolean).join(' ').toLowerCase()
+      const haystack = [p.name, p.category, categoryLabel(p.category)].filter(Boolean).join(' ').toLowerCase()
       if (!haystack.includes(bProd)) return false
     }
     return true
