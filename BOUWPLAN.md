@@ -24,10 +24,10 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >   `customer_members.locale` (`set_my_locale`); anders taal van het laatste
 >   certificaat, anders nl.
 >
-> **Nog te doen door Jos:** migratie `20260925_reminder_per_article.sql`
-> uitvoeren én de Edge Function `send-reinspection-reminders` opnieuw
-> deployen (nieuwe code plakken in het dashboard). Eerst de migratie; de
-> oude functie blijft werken tot de nieuwe gedeployed is.
+> **Live (2026-09-25):** migratie `20260925_reminder_per_article.sql`
+> uitgevoerd, Edge Function opnieuw gedeployed via het dashboard, handmatige
+> test: status 200, `{"processed": 0, "results": []}`. Opruimen kan later:
+> de oude functie `customers_due_for_reminder` wordt niet meer gebruikt.
 
 ## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
 
