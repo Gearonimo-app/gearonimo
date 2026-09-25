@@ -80,7 +80,7 @@ async function load() {
     const { data, error: err } = await supabase
       .from('articles')
       .select(
-        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, catalog_suggestion, serial_number, customer:customers(name)'
+        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, catalog_suggestion, serial_number, customer:customers!articles_customer_id_fkey(name)'
       )
       .eq('suggest_for_catalog', true)
       .is('product_id', null)
