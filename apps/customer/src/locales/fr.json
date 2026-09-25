@@ -58,6 +58,7 @@
   "home": {
     "title": "Gearonimo",
     "subtitle": "Votre matériel, toujours en ordre",
+    "loggedInAs": "Connecté en tant que {name}",
     "verdict": {
       "good": "Tout est en ordre",
       "warn": "Contrôle à prévoir bientôt",

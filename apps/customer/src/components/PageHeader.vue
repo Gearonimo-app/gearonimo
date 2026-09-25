@@ -34,7 +34,10 @@ defineProps<{ title?: string; back?: boolean; plain?: boolean }>();
 <style scoped>
 .ph {
   color: #fff;
-  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 0.5rem;
+  /* minmax(0, ...) i.p.v. kaal 1fr: anders kan een lange titel de kolom
+     breder duwen dan het scherm (bekend CSS Grid-probleem), gevonden bij het
+     testen van een idee dat uiteindelijk niet in de kop kwam (2026-09-25). */
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 0.5rem;
   padding: 0.85rem 1.25rem; position: sticky; top: 0; z-index: 10;
   /* Donkergroene basis; de hero-strook (indien ingesteld) komt erbovenop met
      de instelbare donkering. Zonder --hero-strip is deze background-image
@@ -65,5 +68,6 @@ defineProps<{ title?: string; back?: boolean; plain?: boolean }>();
 .ph__side {
   justify-self: end; font-size: 0.85rem; color: #a7c4b0;
   display: flex; align-items: center; gap: 0.6rem; text-align: right;
+  min-width: 0; overflow: hidden;
 }
 </style>

@@ -58,6 +58,7 @@
   "home": {
     "title": "Gearonimo",
     "subtitle": "Ihre Ausrüstung, immer in Ordnung",
+    "loggedInAs": "Angemeldet als {name}",
     "verdict": {
       "good": "Alles in Ordnung",
       "warn": "Prüfung bald fällig",

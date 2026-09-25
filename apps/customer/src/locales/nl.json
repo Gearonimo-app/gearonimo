@@ -58,6 +58,7 @@
   "home": {
     "title": "Gearonimo",
     "subtitle": "Jouw materiaal, altijd in orde",
+    "loggedInAs": "Ingelogd als {name}",
     "verdict": {
       "good": "Alles in orde",
       "warn": "Binnenkort keuring nodig",

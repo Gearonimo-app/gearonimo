@@ -58,6 +58,7 @@
   "home": {
     "title": "Gearonimo",
     "subtitle": "Your gear, always in order",
+    "loggedInAs": "Logged in as {name}",
     "verdict": {
       "good": "All in order",
       "warn": "Inspection due soon",
