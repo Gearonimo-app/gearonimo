@@ -5,6 +5,47 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
+
+> Besluit Jos 2026-09-25: ook in de mail (a) artikelen die nooit gekeurd
+> zijn maar wel een ingebruiknamedatum hebben -- eerste keuring nodig op
+> ingebruikname + 12 maanden, zelfde regel als de app -- en (b) de eigen
+> afvinklijst (brandblusser, kettingzaag): laatste afvinking + vervolgdatum,
+> nooit afgevinkt -> ingebruikname/aankoop + 12 maanden. Nieuwe functie
+> `reminder_due_items` (migratie `20260926_reminder_first_and_self_checks.sql`)
+> met kolom `kind`; de oude `reminder_due_articles` blijft staan zodat de
+> huidige Edge Function blijft werken tot de nieuwe gedeployed is.
+>
+> **Live (2026-09-25):** migratie uitgevoerd, Edge Function gedeployed,
+> handmatige test: 2 mails verstuurd, echte mail ontvangen (eerste keuring
+> OK TRIACT-LOCK, testklant De Rots). Oude functies
+> `reminder_due_articles` en `customers_due_for_reminder` opgeruimd
+> (`20260927_reminder_cleanup_old_functions.sql`, uitgevoerd).
+
+## Voortgang (2026-09-25, herinneringsmail v2)
+
+> Besluiten Jos 2026-09-25: de regel "max 1 mail per 30 dagen per klant"
+> liet een tweede keuring kort erna bijna vallen (A verloopt 25 nov, B 30
+> nov: mail over A op 26 okt, B pas genoemd op 25 nov). Nieuw:
+> - Mail zodra een nog niet genoemd artikel binnen **30 dagen** verloopt;
+>   in die mail alles wat binnen **60 dagen** verloopt en nog niet genoemd
+>   is. Elk artikel (per verloopdatum) komt **één keer** langs
+>   (`customer_reminder_items`). Vangnet: max. 1 mail per 7 dagen per klant.
+> - Alleen bijna-verlopen keuringen, niet wat al over datum is.
+> - Mail gegroepeerd per keuring + verloopdatum; groep van hooguit 5
+>   artikelen toont namen, groter alleen aantal. Knop naar het
+>   materiaaloverzicht (`/portal/#/materials`), geen aparte keuringspagina.
+> - Vriendelijke toon + gele melding "je krijgt deze herinnering maar één
+>   keer per artikel".
+> - Taal nl/en/fr/de: klant-app slaat de taalkeuze op in
+>   `customer_members.locale` (`set_my_locale`); anders taal van het laatste
+>   certificaat, anders nl.
+>
+> **Live (2026-09-25):** migratie `20260925_reminder_per_article.sql`
+> uitgevoerd, Edge Function opnieuw gedeployed via het dashboard, handmatige
+> test: status 200, `{"processed": 0, "results": []}`. Opruimen kan later:
+> de oude functie `customers_due_for_reminder` wordt niet meer gebruikt.
+
 ## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
 
 > De hieronder beschreven "NOG TE DOEN"-lijst is afgerond: Zoho CPaaS
