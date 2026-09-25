@@ -16,9 +16,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > met kolom `kind`; de oude `reminder_due_articles` blijft staan zodat de
 > huidige Edge Function blijft werken tot de nieuwe gedeployed is.
 >
-> **Nog te doen door Jos:** migratie `20260926_reminder_first_and_self_checks.sql`
-> uitvoeren, daarna Edge Function `send-reinspection-reminders` opnieuw
-> deployen.
+> **Live (2026-09-25):** migratie uitgevoerd, Edge Function gedeployed,
+> handmatige test: 2 mails verstuurd, echte mail ontvangen (eerste keuring
+> OK TRIACT-LOCK, testklant De Rots). Opruimen kan later:
+> `reminder_due_articles` en `customers_due_for_reminder` worden niet meer
+> gebruikt.
 
 ## Voortgang (2026-09-25, herinneringsmail v2)
 
