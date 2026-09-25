@@ -18,9 +18,9 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >
 > **Live (2026-09-25):** migratie uitgevoerd, Edge Function gedeployed,
 > handmatige test: 2 mails verstuurd, echte mail ontvangen (eerste keuring
-> OK TRIACT-LOCK, testklant De Rots). Opruimen kan later:
-> `reminder_due_articles` en `customers_due_for_reminder` worden niet meer
-> gebruikt.
+> OK TRIACT-LOCK, testklant De Rots). Oude functies
+> `reminder_due_articles` en `customers_due_for_reminder` opgeruimd
+> (`20260927_reminder_cleanup_old_functions.sql`, uitgevoerd).
 
 ## Voortgang (2026-09-25, herinneringsmail v2)
 
