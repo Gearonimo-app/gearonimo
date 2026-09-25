@@ -5,7 +5,22 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v2)
+## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
+
+> Besluit Jos 2026-09-25: ook in de mail (a) artikelen die nooit gekeurd
+> zijn maar wel een ingebruiknamedatum hebben -- eerste keuring nodig op
+> ingebruikname + 12 maanden, zelfde regel als de app -- en (b) de eigen
+> afvinklijst (brandblusser, kettingzaag): laatste afvinking + vervolgdatum,
+> nooit afgevinkt -> ingebruikname/aankoop + 12 maanden. Nieuwe functie
+> `reminder_due_items` (migratie `20260926_reminder_first_and_self_checks.sql`)
+> met kolom `kind`; de oude `reminder_due_articles` blijft staan zodat de
+> huidige Edge Function blijft werken tot de nieuwe gedeployed is.
+>
+> **Nog te doen door Jos:** migratie `20260926_reminder_first_and_self_checks.sql`
+> uitvoeren, daarna Edge Function `send-reinspection-reminders` opnieuw
+> deployen.
+
+## Voortgang (2026-09-25, herinneringsmail v2)
 
 > Besluiten Jos 2026-09-25: de regel "max 1 mail per 30 dagen per klant"
 > liet een tweede keuring kort erna bijna vallen (A verloopt 25 nov, B 30

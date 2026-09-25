@@ -1,6 +1,9 @@
 // Herinneringsmail aan klant-beheerders: "deze keuringen verlopen binnenkort".
-// Regels (wanneer, welke artikelen, elk artikel maar één keer) staan in de
-// migratie 20260925_reminder_per_article.sql; de mailtekst staat hieronder.
+// Drie soorten: herkeuring, eerste keuring (nooit gekeurd, wel in gebruik) en
+// eigen afvinklijst (brandblusser e.d.). Regels (wanneer, welke artikelen,
+// elk artikel maar één keer) staan in de migraties
+// 20260925_reminder_per_article.sql en 20260926_reminder_first_and_self_checks.sql;
+// de mailtekst staat hieronder.
 //
 // Wordt elke nacht aangeroepen door een pg_cron-taak (zie
 // 20260921_customer_reminder_mail.sql) -- niet bedoeld om los aangeroepen te worden, maar kan wel
@@ -41,13 +44,15 @@ const ZEPTOMAIL_API_URL = Deno.env.get("ZEPTOMAIL_API_URL") ?? "https://cpaas.zo
 // "vous" in de/fr zoals de klant-app.
 
 type MailLocale = "nl" | "en" | "fr" | "de";
+type DueKind = "inspection" | "first_inspection" | "self_check";
 
 interface DueArticle {
   article_id: string;
   article_name: string | null;
   serial_number: string | null;
-  inspection_id: string;
-  inspection_date: string; // YYYY-MM-DD
+  kind: DueKind;
+  inspection_id: string | null; // alleen bij "inspection"
+  inspection_date: string | null; // YYYY-MM-DD, alleen bij "inspection"
   next_due: string; // YYYY-MM-DD
 }
 
@@ -68,6 +73,10 @@ interface Texts {
   heading: string;
   group: (inspected: string, count: number) => string;
   expires: (date: string) => string;
+  firstDue: (date: string) => string;
+  firstGroup: (count: number) => string;
+  selfDue: (date: string) => string;
+  selfGroup: (count: number) => string;
   unnamed: string;
   serial: string;
   button: string;
@@ -78,14 +87,18 @@ interface Texts {
 
 const TEXTS: Record<MailLocale, Texts> = {
   nl: {
-    subject: (c) => `Herinnering: herkeuring binnenkort nodig – ${c}`,
+    subject: (c) => `Herinnering: keuring binnenkort nodig – ${c}`,
     greeting: (n) => `Beste ${n},`,
     intro: (c) =>
-      `Een vriendelijke herinnering: de keuring van een deel van de uitrusting van ${c} verloopt binnenkort. ` +
-      `Plan de herkeuring op tijd in, dan blijft alles veilig en goedgekeurd in gebruik.`,
-    heading: "Binnenkort verlopen",
+      `Een vriendelijke herinnering: een deel van de uitrusting van ${c} moet binnenkort (opnieuw) gekeurd of nagelopen worden. ` +
+      `Plan dit op tijd in, dan blijft alles veilig en goedgekeurd in gebruik.`,
+    heading: "Binnenkort aan de beurt",
     group: (d, n) => `Gekeurd op ${d} – ${n} ${n === 1 ? "artikel" : "artikelen"}`,
-    expires: (d) => `verloopt op ${d}`,
+    expires: (d) => `Keuring verloopt op ${d}`,
+    firstDue: (d) => `Eerste keuring nodig vóór ${d}`,
+    firstGroup: (n) => `Nog niet eerder gekeurd (12 maanden na ingebruikname) – ${n} ${n === 1 ? "artikel" : "artikelen"}`,
+    selfDue: (d) => `Zelf nalopen vóór ${d}`,
+    selfGroup: (n) => `Eigen controle – ${n} ${n === 1 ? "artikel" : "artikelen"}`,
     unnamed: "Artikel zonder naam",
     serial: "serienr.",
     button: "Bekijk het materiaaloverzicht",
@@ -96,14 +109,18 @@ const TEXTS: Record<MailLocale, Texts> = {
     noReply: "Dit is een automatisch bericht; op deze e-mail kan niet worden gereageerd.",
   },
   en: {
-    subject: (c) => `Reminder: re-inspection due soon – ${c}`,
+    subject: (c) => `Reminder: inspection due soon – ${c}`,
     greeting: (n) => `Dear ${n},`,
     intro: (c) =>
-      `A friendly reminder: the inspection of some of ${c}'s equipment expires soon. ` +
-      `Please schedule the re-inspection in good time, so everything stays safe and approved for use.`,
-    heading: "Expiring soon",
+      `A friendly reminder: some of ${c}'s equipment is due for inspection or a check soon. ` +
+      `Please schedule this in good time, so everything stays safe and approved for use.`,
+    heading: "Due soon",
     group: (d, n) => `Inspected on ${d} – ${n} ${n === 1 ? "item" : "items"}`,
-    expires: (d) => `expires on ${d}`,
+    expires: (d) => `Inspection expires on ${d}`,
+    firstDue: (d) => `First inspection due before ${d}`,
+    firstGroup: (n) => `Not inspected before (12 months after first use) – ${n} ${n === 1 ? "item" : "items"}`,
+    selfDue: (d) => `Check yourself before ${d}`,
+    selfGroup: (n) => `Own check – ${n} ${n === 1 ? "item" : "items"}`,
     unnamed: "Unnamed item",
     serial: "serial no.",
     button: "View the equipment overview",
@@ -114,14 +131,18 @@ const TEXTS: Record<MailLocale, Texts> = {
     noReply: "This is an automated message; replies to this email are not read.",
   },
   fr: {
-    subject: (c) => `Rappel : contrôle périodique bientôt nécessaire – ${c}`,
+    subject: (c) => `Rappel : contrôle bientôt nécessaire – ${c}`,
     greeting: (n) => `Bonjour ${n},`,
     intro: (c) =>
-      `Petit rappel : le contrôle d'une partie de l'équipement de ${c} arrive bientôt à échéance. ` +
-      `Pensez à planifier le prochain contrôle à temps, afin que tout reste sûr et conforme.`,
+      `Petit rappel : une partie de l'équipement de ${c} doit bientôt être contrôlée ou vérifiée. ` +
+      `Pensez à le planifier à temps, afin que tout reste sûr et conforme.`,
     heading: "Échéances proches",
     group: (d, n) => `Contrôlé le ${d} – ${n} ${n === 1 ? "article" : "articles"}`,
-    expires: (d) => `expire le ${d}`,
+    expires: (d) => `Le contrôle expire le ${d}`,
+    firstDue: (d) => `Premier contrôle à faire avant le ${d}`,
+    firstGroup: (n) => `Jamais contrôlé (12 mois après la mise en service) – ${n} ${n === 1 ? "article" : "articles"}`,
+    selfDue: (d) => `À vérifier vous-même avant le ${d}`,
+    selfGroup: (n) => `Vérification interne – ${n} ${n === 1 ? "article" : "articles"}`,
     unnamed: "Article sans nom",
     serial: "n° de série",
     button: "Voir l'aperçu du matériel",
@@ -132,14 +153,18 @@ const TEXTS: Record<MailLocale, Texts> = {
     noReply: "Ceci est un message automatique ; il n'est pas possible d'y répondre.",
   },
   de: {
-    subject: (c) => `Erinnerung: Wiederholungsprüfung bald fällig – ${c}`,
+    subject: (c) => `Erinnerung: Prüfung bald fällig – ${c}`,
     greeting: (n) => `Hallo ${n},`,
     intro: (c) =>
-      `Eine freundliche Erinnerung: Die Prüfung eines Teils der Ausrüstung von ${c} läuft bald ab. ` +
-      `Bitte planen Sie die Wiederholungsprüfung rechtzeitig ein, damit alles sicher und geprüft im Einsatz bleibt.`,
-    heading: "Läuft bald ab",
+      `Eine freundliche Erinnerung: Ein Teil der Ausrüstung von ${c} muss bald (erneut) geprüft oder kontrolliert werden. ` +
+      `Bitte planen Sie dies rechtzeitig ein, damit alles sicher und geprüft im Einsatz bleibt.`,
+    heading: "Bald fällig",
     group: (d, n) => `Geprüft am ${d} – ${n} Artikel`,
-    expires: (d) => `läuft ab am ${d}`,
+    expires: (d) => `Prüfung läuft ab am ${d}`,
+    firstDue: (d) => `Erstprüfung fällig vor dem ${d}`,
+    firstGroup: (n) => `Noch nie geprüft (12 Monate nach Inbetriebnahme) – ${n} Artikel`,
+    selfDue: (d) => `Selbst kontrollieren vor dem ${d}`,
+    selfGroup: (n) => `Eigene Kontrolle – ${n} Artikel`,
     unnamed: "Artikel ohne Namen",
     serial: "Seriennr.",
     button: "Materialübersicht ansehen",
@@ -168,27 +193,45 @@ function escapeHtml(s: string): string {
 }
 
 interface Group {
-  inspection_date: string;
+  kind: DueKind;
+  inspection_date: string | null;
   next_due: string;
   articles: DueArticle[];
 }
 
-// Eén groep per (keuring, verloopdatum): artikelen uit dezelfde keuring met
+// Eén groep per (soort, keuring, datum): artikelen uit dezelfde keuring met
 // een afwijkend interval komen zo als aparte, kleine groep met namen in beeld.
+// Eerste keuringen en eigen controles hebben geen keuring: per datum.
 function groupArticles(articles: DueArticle[]): Group[] {
   const map = new Map<string, Group>();
   for (const a of articles) {
-    const key = `${a.inspection_id}|${a.next_due}`;
+    const key = `${a.kind}|${a.inspection_id ?? ""}|${a.next_due}`;
     let g = map.get(key);
     if (!g) {
-      g = { inspection_date: a.inspection_date, next_due: a.next_due, articles: [] };
+      g = { kind: a.kind, inspection_date: a.inspection_date, next_due: a.next_due, articles: [] };
       map.set(key, g);
     }
     g.articles.push(a);
   }
   return [...map.values()].sort(
-    (a, b) => a.next_due.localeCompare(b.next_due) || a.inspection_date.localeCompare(b.inspection_date),
+    (a, b) =>
+      a.next_due.localeCompare(b.next_due) ||
+      a.kind.localeCompare(b.kind) ||
+      (a.inspection_date ?? "").localeCompare(b.inspection_date ?? ""),
   );
+}
+
+function groupTitle(g: Group, t: Texts, locale: MailLocale): { head: string; sub: string } {
+  const due = formatDate(g.next_due, locale);
+  const n = g.articles.length;
+  switch (g.kind) {
+    case "first_inspection":
+      return { head: t.firstDue(due), sub: t.firstGroup(n) };
+    case "self_check":
+      return { head: t.selfDue(due), sub: t.selfGroup(n) };
+    default:
+      return { head: t.expires(due), sub: t.group(formatDate(g.inspection_date ?? g.next_due, locale), n) };
+  }
 }
 
 function buildMail(input: MailInput): { subject: string; html: string } {
@@ -198,9 +241,10 @@ function buildMail(input: MailInput): { subject: string; html: string } {
 
   const groupHtml = groups
     .map((g) => {
+      const { head, sub } = groupTitle(g, t, input.locale);
       const title =
-        `<strong>${escapeHtml(t.expires(formatDate(g.next_due, input.locale)))}</strong><br>` +
-        `<span style="color:#4b5563">${escapeHtml(t.group(formatDate(g.inspection_date, input.locale), g.articles.length))}</span>`;
+        `<strong>${escapeHtml(head)}</strong><br>` +
+        `<span style="color:#4b5563">${escapeHtml(sub)}</span>`;
       const names =
         g.articles.length <= SMALL_GROUP
           ? `<ul style="margin:0.35em 0 0;padding-left:1.2em">` +
@@ -298,7 +342,7 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-  const { data: rows, error } = await supabase.rpc("reminder_due_articles", {
+  const { data: rows, error } = await supabase.rpc("reminder_due_items", {
     p_trigger_days: TRIGGER_DAYS,
     p_bundle_days: BUNDLE_DAYS,
     p_cooldown_days: COOLDOWN_DAYS,
