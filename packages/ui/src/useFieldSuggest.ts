@@ -31,6 +31,16 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
 
   watch(suggestions, () => {
     suggestIndex.value = -1;
+    // Bij elke nieuwe letter verandert de gefilterde lijst, maar de lijstbox
+    // zelf blijft hetzelfde DOM-element (v-for update, geen nieuwe v-if) --
+    // een eerdere scrollpositie (bv. van vóór het verder typen) bleef daardoor
+    // staan. De bovenste rijen leken dan "verborgen" onder de knop erboven,
+    // terwijl ze gewoon buiten beeld gescrold stonden (Jos, 2026-09-25). Een
+    // nieuwe filtering hoort altijd weer bovenaan te beginnen.
+    nextTick(() => {
+      const container = itemRefs.value[0]?.parentElement;
+      if (container) container.scrollTop = 0;
+    });
   });
 
   /** Alleen aanroepen ná toetsenbordnavigatie (zie onKeydown) -- NIET via een
