@@ -218,5 +218,6 @@ revoke all on function public.reminder_recipients(uuid[]) from public;
 revoke all on function public.reminder_recipients(uuid[]) from authenticated;
 grant execute on function public.reminder_recipients(uuid[]) to service_role;
 
--- De oude functie wordt niet meer gebruikt door de Edge Function.
-drop function if exists public.customers_due_for_reminder(integer);
+-- De oude functie customers_due_for_reminder blijft bewust staan: zo blijft
+-- de oude Edge Function werken tot Jos de nieuwe code heeft gedeployed
+-- (volgorde migratie/deploy maakt dan niet uit). Opruimen kan later.

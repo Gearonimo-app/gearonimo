@@ -26,8 +26,8 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 >
 > **Nog te doen door Jos:** migratie `20260925_reminder_per_article.sql`
 > uitvoeren én de Edge Function `send-reinspection-reminders` opnieuw
-> deployen (nieuwe code plakken in het dashboard). Volgorde: eerst migratie,
-> dan functie.
+> deployen (nieuwe code plakken in het dashboard). Eerst de migratie; de
+> oude functie blijft werken tot de nieuwe gedeployed is.
 
 ## Voortgang (bijgewerkt 2026-09-24, herinneringsmail live)
 
