@@ -214,6 +214,11 @@
             @mouseenter="suggestIndex = i"
           >{{ s }}</button>
         </div>
+        <!-- TIJDELIJK diagnose-regeltje voor de "dropdown verspringt"-melding
+             (Jos, 2026-09-25) -- weer weghalen zodra opgelost. -->
+        <p v-if="activeField && !ROW_FIELDS.includes(activeField)" style="font:11px monospace; color:#9ca3af; margin:-0.6rem 0 0.85rem;">
+          debug: veld={{ activeField }} index={{ suggestIndex }} aantal={{ fieldSuggestions.length }} refs={{ suggestItemRefs.length }} eerste3=[{{ fieldSuggestions.slice(0,3).join(' | ') }}]
+        </p>
         <!-- SN-zoekresultaten (desktop): bestaande artikelen van de klant. -->
         <div v-if="activeField === 'serial' && snResults.length" class="iw__suggest iw__suggest--main iw__sn-list">
           <button v-for="r in snResults" :key="r.id" type="button" class="iw__sn-item" @mousedown.prevent="pickSnResult(r)">
