@@ -5,6 +5,18 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Open idee (2026-09-25, nog NIET besloten -- Jos slaapt erover)
+
+> Herinneringsmail ook naar de gebruiker van een artikel, alleen over de
+> eigen set (beheerder blijft alles krijgen = keuze A). Pushberichten later,
+> apart project. Geen schakelaar per bedrijf ("er zijn geen geheimen").
+> Probleem: artikel hangt aan gebruiker via vrije tekst
+> (`assigned_user_name`), niet via `customer_members`. Besproken opties:
+> echte koppeling `assigned_member_id` (vrije naam blijft mogelijk, dan geen
+> mail), bestaande namen automatisch koppelen bij precies één match, en een
+> "koppelen aan Piet?"-vraag bij medewerkerbeheer. Zorg van Jos: niet te
+> ingewikkeld maken -- kleinste variant eerst.
+
 ## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
 
 > Besluit Jos 2026-09-25: ook in de mail (a) artikelen die nooit gekeurd
