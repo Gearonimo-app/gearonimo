@@ -59,9 +59,10 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-26, stap 4: herinneringsmail naar eigenaar)
 
-> **Nog te doen door Jos:** migratie `20261001_reminder_owners.sql`
-> uitvoeren, daarna de Edge Function `send-reinspection-reminders` opnieuw
-> deployen via het dashboard (het hele bestand plakken).
+> **Live (2026-09-26):** migratie `20261001_reminder_owners.sql` uitgevoerd
+> en de Edge Function `send-reinspection-reminders` opnieuw gedeployed via
+> het dashboard (471 regels, "Successfully updated edge function").
+> Daarmee zijn alle vier stappen van het besluit klaar.
 >
 > - Beheerders krijgen ongewijzigd alles. Nieuw: een gebruiker **met
 >   account** krijgt een eigen mail met alleen zijn eigen spullen, met de
