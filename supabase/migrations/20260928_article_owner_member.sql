@@ -99,8 +99,11 @@ begin
   limit 1;
 
   if v_id is null then
-    insert into public.customer_members (customer_id, name, active)
-    values (p_customer_id, regexp_replace(btrim(p_name), '\s+', ' ', 'g'), true)
+    -- role expliciet leeg: live heeft de kolom default 'end_user' (schema-
+    -- controle 2026-09-26), en role is in de app de vrije "Functie" -- dan
+    -- zou er bij "Voorraad" als functie "end_user" staan.
+    insert into public.customer_members (customer_id, name, active, role)
+    values (p_customer_id, regexp_replace(btrim(p_name), '\s+', ' ', 'g'), true, null)
     returning id into v_id;
   end if;
 
