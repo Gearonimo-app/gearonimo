@@ -195,8 +195,6 @@
     }
   },
   "members": {
-    "title": "Utilisateurs",
-    "back": "Retour",
     "add": "+ Utilisateur",
     "edit": "Modifier",
     "empty": "Aucun utilisateur pour l'instant.",

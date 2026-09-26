@@ -195,8 +195,6 @@
     }
   },
   "members": {
-    "title": "Gebruikers",
-    "back": "Terug",
     "add": "+ Gebruiker",
     "edit": "Bewerken",
     "empty": "Nog geen gebruikers.",

@@ -57,6 +57,23 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (bijgewerkt 2026-09-26, opruimen na stap 1-4)
+
+> **Migratie nog uitvoeren:** `20261002_cleanup_codes_and_end_user.sql`.
+>
+> - `end_user` als functie weggehaald bij bestaande gebruikers (was de live
+>   standaardwaarde van de oude code-koppeling) + standaardwaarde eraf.
+> - Dode code weg: kolom `customers.invite_code` + index,
+>   `join_customer_by_invite`, `invite_code` uit `my_customer()`, en de
+>   ongebruikte teksten `members.title`/`members.back` in de klant-app.
+>   Keurmeester-uitnodiging (andere stroom) blijft.
+>
+> **Open punt (Jos 2026-09-26: "geen prioriteit"):** de tegel Instellingen
+> in de klant-app is alleen zichtbaar voor beheerders. Een gewone gebruiker
+> kan daardoor vingerafdruk/Face ID niet meer aanzetten als hij de vraag op
+> het beginscherm met "Niet nu" wegklikte. Oplossing: tegel voor iedereen
+> tonen (de pagina is voor niet-beheerders al alleen-lezen).
+
 ## Voortgang (bijgewerkt 2026-09-26, stap 4: herinneringsmail naar eigenaar)
 
 > **Live (2026-09-26):** migratie `20261001_reminder_owners.sql` uitgevoerd

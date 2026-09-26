@@ -283,6 +283,10 @@ de eigenaar, zonder apart rolniveau.
 > account gebeurt op geverifieerd e-mailadres bij het inloggen; de
 > uitnodigingscode vervalt. Rechtentabel en bouwvolgorde: `BOUWPLAN.md`,
 > sectie "Besluit: klantrollen, eigenaar per artikel, inloggen".
+> **Gebouwd 2026-09-26** (migraties 20260928 t/m 20261002):
+> `customers.invite_code` en `join_customer_by_invite` zijn verwijderd;
+> koppelen gaat via `claim_my_memberships()`. `customer_members.role` heeft
+> geen standaardwaarde meer (was live `'end_user'`).
 
 ### `customer_links` (koppeling klant ↔ keurbedrijf)
 De wisselbare relatie; historie blijft bewaard bij overstap. **Meerdere
