@@ -59,10 +59,10 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-26, stap 2: inloggen zonder codes)
 
-> **Migratie nog uitvoeren:** `20260929_login_by_email.sql`. Vooraf checken:
-> Supabase -> Authentication -> Email -> "Confirm email" moet AAN staan
-> (anders kan iemand zich met andermans e-mailadres registreren).
-> Pas daarna de app naar `main`: het startscherm heeft geen code-optie meer.
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260929_login_by_email.sql`.
+> Vooraf gecontroleerd: "Confirm email" staat AAN in Supabase (moet zo
+> blijven, anders kan iemand zich met andermans e-mailadres registreren en
+> diens plek op een lijst Gebruikers claimen). Daarna live gezet.
 >
 > - `claim_my_memberships()`: na inloggen koppelt de app je aan elke rij op
 >   een lijst Gebruikers met jouw **bevestigde** e-mailadres. Alleen actieve
