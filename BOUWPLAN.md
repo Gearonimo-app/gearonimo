@@ -5,17 +5,54 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
-## Open idee (2026-09-25, nog NIET besloten -- Jos slaapt erover)
+## Besluit: klantrollen, eigenaar per artikel, inloggen (Jos, 2026-09-26)
 
-> Herinneringsmail ook naar de gebruiker van een artikel, alleen over de
-> eigen set (beheerder blijft alles krijgen = keuze A). Pushberichten later,
-> apart project. Geen schakelaar per bedrijf ("er zijn geen geheimen").
-> Probleem: artikel hangt aan gebruiker via vrije tekst
-> (`assigned_user_name`), niet via `customer_members`. Besproken opties:
-> echte koppeling `assigned_member_id` (vrije naam blijft mogelijk, dan geen
-> mail), bestaande namen automatisch koppelen bij precies één match, en een
-> "koppelen aan Piet?"-vraag bij medewerkerbeheer. Zorg van Jos: niet te
-> ingewikkeld maken -- kleinste variant eerst.
+> Vervangt het "open idee" van 2026-09-25 (dat is hiermee besloten).
+> Overzicht van alle rollen: Claude-doc "Gebruikersrollen & rechten".
+> **Nog niets van gebouwd.** Bouwvolgorde hieronder.
+
+**Rollen in de klant-app blijven twee, met één vinkje "Beheerder"** (optie A).
+Meer beheerders per bedrijf mag (bv. eigenaar + magazijnmedewerker).
+
+| Actie | Gebruiker | Beheerder |
+|---|---|---|
+| Alles van het bedrijf bekijken, artikel toevoegen, zelfcontrole, set maken | ja | ja |
+| "In gebruik sinds" invullen (eenmalig) | ja, met melding* | ja |
+| Afvoeren (kapot / kwijt / gestolen) | alleen **eigen** spullen | alles |
+| Afvoeren terugdraaien | wat hij zelf afvoerde | alles |
+| Artikel aanpassen | nee | ja |
+| Keuring aanvragen, bedrijfsgegevens, materiaalsoorten, medewerkers | nee | ja |
+| Herinneringsmail | alleen eigen spullen (als hij een account heeft) | **alles** |
+
+\* Melding: "Alleen invullen bij eerste gebruik, nieuw uit de verpakking --
+niet bij overdracht aan een collega." (Een set van Piet naar Jan is géén
+nieuwe ingebruikname.)
+
+**Eigenaar van een artikel = een medewerker, niet een naam.** Kiezen uit de
+medewerkerslijst; een nieuwe naam typen zet die persoon automatisch op de
+lijst (zonder account). Krijgt die persoon later een account, dan zijn al
+zijn spullen meteen van hem. Zelfde keuzelijst in keurmeester-app en
+klant-app (één gedeeld component).
+
+**Inloggen: twee regels, geen codes meer.**
+1. Staat je e-mailadres op de medewerkerslijst van een bedrijf, dan ben je
+   na inloggen automatisch gekoppeld. De beheerder (of de keurmeester, voor
+   de eerste contactpersoon als beheerder) zet je erop.
+2. Sta je nergens op, dan kies je "Zelf beginnen" (eigen bedrijf) of vraag
+   je je beheerder je toe te voegen.
+De bedrijfs-uitnodigingscode (`customers.invite_code`) en de regel "wie
+het eerst koppelt wordt beheerder" vervallen.
+
+**Bouwvolgorde (elk los op te leveren):**
+1. Artikel-eigenaar koppelen (`assigned_member_id` in gebruik nemen;
+   bestaande namen automatisch koppelen/aanmaken; gedeelde keuzelijst).
+2. Inloggen via e-mail op de lijst; codes weg; startscherm-tekst.
+3. Gebruikersrechten: ingebruikname-datum met melding, eigen spullen
+   afvoeren, terugdraaien (bestaat nog niet).
+4. Herinneringsmail ook naar de eigenaar met account.
+
+Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
+inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
 

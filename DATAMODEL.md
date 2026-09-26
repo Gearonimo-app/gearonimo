@@ -275,6 +275,15 @@ de eigenaar, zonder apart rolniveau.
 > nog niet naar deze tabel (blijven losse uuid-kolommen tot de koppeling
 > gebouwd wordt).
 
+> **Besluit Jos 2026-09-26 (klantrollen + inloggen, nog te bouwen):**
+> geen `manager`/`end_user` meer -- het recht zit in `is_admin` (één vinkje
+> "Beheerder", meerdere per bedrijf toegestaan); `role` is vrije tekst
+> (functie). `articles.assigned_member_id` wordt de echte eigenaar-koppeling
+> (`assigned_user_name` alleen nog weergave/overgang). Koppelen van een
+> account gebeurt op geverifieerd e-mailadres bij het inloggen; de
+> uitnodigingscode vervalt. Rechtentabel en bouwvolgorde: `BOUWPLAN.md`,
+> sectie "Besluit: klantrollen, eigenaar per artikel, inloggen".
+
 ### `customer_links` (koppeling klant ↔ keurbedrijf)
 De wisselbare relatie; historie blijft bewaard bij overstap. **Meerdere
 actieve links tegelijk zijn toegestaan** (besloten 2026-06-12): bijv. PPE
