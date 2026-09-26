@@ -1,4 +1,8 @@
 // Herinneringsmail aan klant-beheerders: "deze keuringen verlopen binnenkort".
+// Sinds 2026-09-26 (besluit Jos) ook aan de eigenaar van de spullen, mits die
+// een account heeft: hij krijgt alleen zijn eigen artikelen, de beheerder
+// blijft alles krijgen (reminder_owner_recipients, migratie
+// 20261001_reminder_owners.sql).
 // Drie soorten: herkeuring, eerste keuring (nooit gekeurd, wel in gebruik) en
 // eigen afvinklijst (brandblusser e.d.). Regels (wanneer, welke artikelen,
 // elk artikel maar één keer) staan in de migraties
@@ -62,6 +66,8 @@ interface MailInput {
   customerName: string;
   articles: DueArticle[];
   portalUrl: string;
+  /** Eigenaar-mail: alleen zijn eigen spullen, andere inleiding. */
+  ownerOnly?: boolean;
 }
 
 const SMALL_GROUP = 5;
@@ -70,6 +76,7 @@ interface Texts {
   subject: (company: string) => string;
   greeting: (name: string) => string;
   intro: (company: string) => string;
+  ownerIntro: (company: string) => string;
   heading: string;
   group: (inspected: string, count: number) => string;
   expires: (date: string) => string;
@@ -92,6 +99,9 @@ const TEXTS: Record<MailLocale, Texts> = {
     intro: (c) =>
       `Een vriendelijke herinnering: een deel van de uitrusting van ${c} moet binnenkort (opnieuw) gekeurd of nagelopen worden. ` +
       `Plan dit op tijd in, dan blijft alles veilig en goedgekeurd in gebruik.`,
+    ownerIntro: (c) =>
+      `Een vriendelijke herinnering: een deel van jouw eigen uitrusting bij ${c} moet binnenkort (opnieuw) gekeurd of nagelopen worden. ` +
+      `Je beheerder krijgt dit bericht ook.`,
     heading: "Binnenkort aan de beurt",
     group: (d, n) => `Gekeurd op ${d} – ${n} ${n === 1 ? "artikel" : "artikelen"}`,
     expires: (d) => `Keuring verloopt op ${d}`,
@@ -114,6 +124,9 @@ const TEXTS: Record<MailLocale, Texts> = {
     intro: (c) =>
       `A friendly reminder: some of ${c}'s equipment is due for inspection or a check soon. ` +
       `Please schedule this in good time, so everything stays safe and approved for use.`,
+    ownerIntro: (c) =>
+      `A friendly reminder: some of your own equipment at ${c} is due for inspection or a check soon. ` +
+      `Your admin receives this message as well.`,
     heading: "Due soon",
     group: (d, n) => `Inspected on ${d} – ${n} ${n === 1 ? "item" : "items"}`,
     expires: (d) => `Inspection expires on ${d}`,
@@ -136,6 +149,9 @@ const TEXTS: Record<MailLocale, Texts> = {
     intro: (c) =>
       `Petit rappel : une partie de l'équipement de ${c} doit bientôt être contrôlée ou vérifiée. ` +
       `Pensez à le planifier à temps, afin que tout reste sûr et conforme.`,
+    ownerIntro: (c) =>
+      `Petit rappel : une partie de votre propre équipement chez ${c} doit bientôt être contrôlée ou vérifiée. ` +
+      `Votre administrateur reçoit également ce message.`,
     heading: "Échéances proches",
     group: (d, n) => `Contrôlé le ${d} – ${n} ${n === 1 ? "article" : "articles"}`,
     expires: (d) => `Le contrôle expire le ${d}`,
@@ -158,6 +174,9 @@ const TEXTS: Record<MailLocale, Texts> = {
     intro: (c) =>
       `Eine freundliche Erinnerung: Ein Teil der Ausrüstung von ${c} muss bald (erneut) geprüft oder kontrolliert werden. ` +
       `Bitte planen Sie dies rechtzeitig ein, damit alles sicher und geprüft im Einsatz bleibt.`,
+    ownerIntro: (c) =>
+      `Eine freundliche Erinnerung: Ein Teil Ihrer eigenen Ausrüstung bei ${c} muss bald (erneut) geprüft oder kontrolliert werden. ` +
+      `Ihr Administrator erhält diese Nachricht ebenfalls.`,
     heading: "Bald fällig",
     group: (d, n) => `Geprüft am ${d} – ${n} Artikel`,
     expires: (d) => `Prüfung läuft ab am ${d}`,
@@ -269,7 +288,7 @@ function buildMail(input: MailInput): { subject: string; html: string } {
 <div style="max-width:560px;margin:0 auto;padding:24px 16px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.5;color:#111827">
   <div style="background:#ffffff;border-radius:12px;padding:24px">
     <p style="margin:0 0 1em">${escapeHtml(t.greeting(naam))}</p>
-    <p style="margin:0 0 1.2em">${escapeHtml(t.intro(input.customerName))}</p>
+    <p style="margin:0 0 1.2em">${escapeHtml(input.ownerOnly ? t.ownerIntro(input.customerName) : t.intro(input.customerName))}</p>
     <h2 style="font-size:16px;margin:0 0 0.6em">${escapeHtml(t.heading)}</h2>
     <ul style="margin:0 0 1.2em;padding-left:1.2em">${groupHtml}</ul>
     <p style="margin:0 0 1.4em">
@@ -304,6 +323,11 @@ interface Recipient {
   email: string;
   name: string | null;
   locale: string | null;
+}
+
+interface OwnerRow extends Recipient {
+  article_id: string;
+  member_id: string;
 }
 
 async function sendMail(to: Recipient, subject: string, html: string) {
@@ -366,17 +390,48 @@ Deno.serve(async (req: Request) => {
   if (recError) return json({ error: recError.message }, 500);
   const recipients = (recData ?? []) as Recipient[];
 
-  const results: Array<{ customer_id: string; email: string; ok: boolean; articles: number; error?: string }> = [];
+  // Eigenaars met account: alleen hun eigen artikelen.
+  const allArticleIds = [...byCustomer.values()].flatMap((c) => c.articles.map((a) => a.article_id));
+  const { data: ownerData, error: ownerError } = await supabase.rpc("reminder_owner_recipients", {
+    p_article_ids: allArticleIds,
+  });
+  if (ownerError) return json({ error: ownerError.message }, 500);
+  const ownerRows = (ownerData ?? []) as OwnerRow[];
+
+  const results: Array<{ customer_id: string; email: string; ok: boolean; articles: number; owner?: boolean; error?: string }> = [];
 
   for (const [customerId, customer] of byCustomer) {
-    let anySent = false;
-    for (const to of recipients.filter((r) => r.customer_id === customerId)) {
+    // Eén mail per ontvanger: beheerders alles, eigenaars hun eigen deel.
+    const mails: Array<{ to: Recipient; articles: DueRow[]; ownerOnly: boolean }> = recipients
+      .filter((r) => r.customer_id === customerId)
+      .map((to) => ({ to, articles: customer.articles, ownerOnly: false }));
+    const adminEmails = new Set(mails.map((m) => m.to.email.toLowerCase()));
+    const byOwner = new Map<string, { to: Recipient; ids: Set<string> }>();
+    for (const o of ownerRows.filter((r) => r.customer_id === customerId)) {
+      if (adminEmails.has(o.email.toLowerCase())) continue; // staat al in de beheerdersmail
+      let e = byOwner.get(o.member_id);
+      if (!e) {
+        e = { to: o, ids: new Set() };
+        byOwner.set(o.member_id, e);
+      }
+      e.ids.add(o.article_id);
+    }
+    for (const { to, ids } of byOwner.values()) {
+      mails.push({ to, articles: customer.articles.filter((a) => ids.has(a.article_id)), ownerOnly: true });
+    }
+
+    // Een artikel geldt pas als "herinnerd" als minstens één mail waar het
+    // in stond is aangekomen -- anders zou een ZeptoMail-storing een artikel
+    // stil laten verdwijnen uit de herinneringen.
+    const sentArticleIds = new Set<string>();
+    for (const { to, articles, ownerOnly } of mails) {
       const { subject, html } = buildMail({
         locale: isMailLocale(to.locale) ? to.locale : "nl",
         recipientName: to.name,
         customerName: customer.name,
-        articles: customer.articles,
+        articles,
         portalUrl: PORTAL_URL,
+        ownerOnly,
       });
       let ok = false;
       let providerMessageId: string | null = null;
@@ -386,7 +441,7 @@ Deno.serve(async (req: Request) => {
       } catch (e) {
         errorText = String(e);
       }
-      anySent ||= ok;
+      if (ok) for (const a of articles) sentArticleIds.add(a.article_id);
 
       // Altijd loggen, ook bij een mislukte verzending -- zo blijft zichtbaar
       // dát er een poging was. De 7-dagen-cooldown kijkt alleen naar
@@ -394,20 +449,18 @@ Deno.serve(async (req: Request) => {
       // gewoon opnieuw geprobeerd.
       await supabase.from("customer_reminder_log").insert({
         customer_id: customerId,
-        due_count: customer.articles.length,
+        due_count: articles.length,
         recipient_email: to.email,
         status: ok ? "sent" : "failed",
         provider_message_id: providerMessageId,
       });
-      results.push({ customer_id: customerId, email: to.email, ok, articles: customer.articles.length, error: errorText });
+      results.push({ customer_id: customerId, email: to.email, ok, articles: articles.length, owner: ownerOnly, error: errorText });
     }
 
-    // Pas na minstens één geslaagde mail onthouden dat deze artikelen genoemd
-    // zijn -- anders zou een ZeptoMail-storing een artikel stil laten
-    // verdwijnen uit de herinneringen.
-    if (anySent) {
+    const remembered = customer.articles.filter((a) => sentArticleIds.has(a.article_id));
+    if (remembered.length) {
       const { error: itemsError } = await supabase.from("customer_reminder_items").upsert(
-        customer.articles.map((a) => ({ customer_id: customerId, article_id: a.article_id, next_due: a.next_due })),
+        remembered.map((a) => ({ customer_id: customerId, article_id: a.article_id, next_due: a.next_due })),
         { onConflict: "customer_id,article_id,next_due", ignoreDuplicates: true },
       );
       if (itemsError) results.push({ customer_id: customerId, email: "", ok: false, articles: 0, error: itemsError.message });

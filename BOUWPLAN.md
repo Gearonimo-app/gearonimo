@@ -57,6 +57,24 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (bijgewerkt 2026-09-26, stap 4: herinneringsmail naar eigenaar)
+
+> **Nog te doen door Jos:** migratie `20261001_reminder_owners.sql`
+> uitvoeren, daarna de Edge Function `send-reinspection-reminders` opnieuw
+> deployen via het dashboard (het hele bestand plakken).
+>
+> - Beheerders krijgen ongewijzigd alles. Nieuw: een gebruiker **met
+>   account** krijgt een eigen mail met alleen zijn eigen spullen, met de
+>   inleiding "een deel van jouw eigen uitrusting ... Je beheerder krijgt
+>   dit bericht ook." Zonder account (Voorraad, Jan zonder app): geen mail,
+>   staat al in de beheerdersmail. Eigenaar die zelf beheerder is: alleen de
+>   beheerdersmail (geen dubbele).
+> - Een artikel telt als "herinnerd" zodra minstens één mail waarin het
+>   stond is aangekomen (was: zodra er één mail naar de klant aankwam).
+> - Getest: SQL lokaal (PostgreSQL 16); de Edge Function in een simulatie
+>   met nep-ZeptoMail (beheerder 4 artikelen, Piet 1, Jan 1 in het Engels,
+>   geen dubbele voor de beheerder); Piets mail gerenderd op 390 px.
+
 ## Voortgang (bijgewerkt 2026-09-26, stap 3: rechten gebruiker)
 
 > **Migratie uitgevoerd** door Jos op 2026-09-26: `20260930_member_rights.sql`. Daarna live gezet.
