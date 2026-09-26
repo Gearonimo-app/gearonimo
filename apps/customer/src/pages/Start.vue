@@ -1,5 +1,9 @@
-<!-- Startkeuze voor een account dat nog geen klant is. Twee wegen:
-     1. Een uitnodigingscode van een keurbedrijf (bestaande flow, /join).
+<!-- Startscherm voor een account dat (nog) bij geen enkel bedrijf hoort.
+     Sinds 2026-09-26 zonder codes (besluit Jos): je komt binnen bij een
+     bedrijf doordat de beheerder of keurmeester je e-mailadres op de lijst
+     Gebruikers zet -- de router-guard koppelt dan automatisch
+     (claim_my_memberships). Hier dus twee wegen:
+     1. Hoor je bij een bedrijf: vraag je beheerder, en probeer opnieuw.
      2. Zelf beginnen: maak je eigen klant aan (zonder keurbedrijf) en vraag
         later een keuring aan. Dit is de gratis leadmotor (BLAUWDRUK §7):
         iemand voert eerst zijn materiaal in en kiest daarna zelf een
@@ -11,10 +15,15 @@
       <p class="st__sub">{{ $t('start.subtitle') }}</p>
 
       <div class="st__options">
-        <button class="st__option" @click="router.push('/join')">
-          <span class="st__option-title">{{ $t('start.haveCode.title') }}</span>
-          <span class="st__option-desc">{{ $t('start.haveCode.desc') }}</span>
-        </button>
+        <div class="st__option">
+          <span class="st__option-title">{{ $t('start.company.title') }}</span>
+          <span class="st__option-desc">{{ $t('start.company.desc') }}</span>
+          <span class="st__email">{{ email }}</span>
+          <p v-if="notFound" class="st__notfound">{{ $t('start.company.notFound') }}</p>
+          <button class="st__btn st__btn--retry" :disabled="retrying" @click="retry">
+            {{ retrying ? $t('common.busy') : $t('start.company.retry') }}
+          </button>
+        </div>
 
         <div class="st__option st__option--self" :class="{ 'st__option--open': selfOpen }">
           <button v-if="!selfOpen" class="st__option-btn" @click="selfOpen = true">
@@ -49,12 +58,31 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { supabase, useAuth, errorMessage } from "@gearonimo/core";
 
 const router = useRouter();
-const { signOut } = useAuth();
+const { signOut, user } = useAuth();
+const email = computed(() => user.value?.email ?? "");
+
+// "Opnieuw proberen": de beheerder heeft je misschien net op de lijst gezet
+// terwijl je hier al stond. Zelfde koppelstap als de router-guard.
+const retrying = ref(false);
+const notFound = ref(false);
+async function retry() {
+  retrying.value = true;
+  notFound.value = false;
+  try {
+    await supabase.rpc("claim_my_memberships");
+    const { data } = await supabase.rpc("my_customer");
+    const row = Array.isArray(data) ? data[0] : data;
+    if (row) router.push("/");
+    else notFound.value = true;
+  } finally {
+    retrying.value = false;
+  }
+}
 
 const selfOpen = ref(false);
 const name = ref("");
@@ -96,9 +124,15 @@ async function onSignOut() {
 .st__sub { margin: 0 0 1.5rem; color: #6b7280; }
 .st__options { display: flex; flex-direction: column; gap: 0.85rem; }
 .st__option {
-  display: block; width: 100%; text-align: left; cursor: pointer;
+  display: block; width: 100%; text-align: left; cursor: default; box-sizing: border-box;
   background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 1rem;
 }
+.st__email {
+  display: block; margin-top: 0.5rem; font-weight: 700; color: #1a3a2a;
+  font-size: 0.9rem; word-break: break-all;
+}
+.st__notfound { color: #b45309; font-size: 0.85rem; margin: 0.5rem 0 0; }
+.st__btn--retry { width: 100%; margin-top: 0.75rem; background: #e5e7eb; color: #374151; }
 .st__option--self { padding: 0; overflow: hidden; }
 .st__option-btn {
   display: block; width: 100%; text-align: left; cursor: pointer;

@@ -8,16 +8,14 @@
     <div v-else-if="error" class="mb__state mb__state--error">{{ error }}</div>
 
     <div v-else class="mb__body">
-      <!-- De uitnodigingscode: zo haalt de beheerder collega's binnen. Elke
-           collega logt zelf in en koppelt met deze code; de e-mail-hereniging
-           in join_customer_by_invite plakt account en medewerker-rij aan
-           elkaar als het e-mailadres overeenkomt. -->
-      <section v-if="isAdmin && inviteCode" class="mb__invite">
+      <!-- Collega's toevoegen gaat zonder code (besluit Jos 2026-09-26): zet
+           iemand hieronder op de lijst met zijn e-mailadres; logt hij daarmee
+           in, dan koppelt claim_my_memberships() hem automatisch. -->
+      <section v-if="isAdmin" class="mb__invite">
         <div class="mb__invite-text">
           <strong>{{ $t('members.inviteTitle') }}</strong>
           <p>{{ $t('members.inviteHint') }}</p>
         </div>
-        <button class="mb__invite-code" :title="$t('members.copy')" @click="copyCode">{{ inviteCode }}</button>
       </section>
 
       <!-- Bedrijfsgegevens (adres, KvK/BTW, contactpersoon, bedrijfstelefoon/
@@ -242,7 +240,6 @@ const emptyCompanyForm = (): CompanyInfo => ({
 });
 
 const customerName = ref("");
-const inviteCode = ref("");
 const isAdmin = ref(false);
 const members = ref<MemberRow[]>([]);
 const company = ref<CompanyInfo>(emptyCompanyForm());
@@ -326,11 +323,10 @@ async function load() {
     if (custErr) throw custErr;
     const row = Array.isArray(cust) ? cust[0] : cust;
     if (!row) {
-      router.replace("/join");
+      router.replace("/start");
       return;
     }
     customerName.value = row.customer_name;
-    inviteCode.value = row.invite_code ?? "";
     isAdmin.value = !!row.is_admin;
     company.value = {
       email: row.email, phone: row.phone, contact_person: row.contact_person,
@@ -506,14 +502,6 @@ async function save() {
   }
 }
 
-async function copyCode() {
-  try {
-    await navigator.clipboard.writeText(inviteCode.value);
-  } catch {
-    /* geen clipboard-permissie: de code staat toch in beeld */
-  }
-}
-
 onMounted(load);
 if (passkeySupportedDevice) onMounted(loadPasskeys);
 </script>
@@ -531,12 +519,6 @@ if (passkeySupportedDevice) onMounted(loadPasskeys);
 .mb__invite-text { flex: 1; min-width: 0; }
 .mb__invite-text p { margin: 0.25rem 0 0; font-size: 0.85rem; color: #166534; }
 .mb__invite-text strong { color: #14532d; }
-.mb__invite-code {
-  flex: 0 0 auto; font-family: ui-monospace, monospace; font-size: 1.05rem; font-weight: 800;
-  background: #fff; color: #166534; border: 1px dashed #16a34a; border-radius: 10px;
-  padding: 0.5rem 0.75rem; cursor: pointer; letter-spacing: 0.08em;
-}
-
 .mb__section h2 { font-size: 1rem; margin: 0; }
 .mb__section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .mb__add {

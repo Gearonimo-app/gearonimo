@@ -97,7 +97,7 @@
       "notFound": "Kunde nicht gefunden",
       "deleteTitle": "Kunde löschen?",
       "deleteBody": "Dies kann nicht rückgängig gemacht werden.",
-      "inviteCode": "Einladungscode Kunden-App",
+      "portalHint": "Kunden-App: Nehmen Sie die Kontaktperson unten unter Benutzer auf, mit E-Mail-Adresse und dem Häkchen Administrator. Sie meldet sich danach mit dieser Adresse auf gearonimo.net/portal an.",
       "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "Dieser Kunde kann nicht gelöscht werden: Es besteht eine Prüfhistorie. Prüfberichte sind ein gesetzlicher Nachweis und bleiben erhalten."
     }

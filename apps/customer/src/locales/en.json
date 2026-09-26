@@ -47,14 +47,6 @@
     "unnamed": "This device",
     "empty": "No device linked yet."
   },
-  "join": {
-    "title": "Link your company",
-    "subtitle": "Enter the invite code you received from your inspector.",
-    "code": "Invite code",
-    "name": "Your name",
-    "namePlaceholder": "e.g. John Smith",
-    "submit": "Link"
-  },
   "home": {
     "title": "Gearonimo",
     "subtitle": "Your gear, always in order",
@@ -210,17 +202,18 @@
     },
     "save": "Save",
     "cancel": "Cancel",
-    "inviteTitle": "Invite colleagues",
-    "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the user here, and the account and user record are merged automatically.",
-    "copy": "Copy",
+    "inviteTitle": "Add a colleague",
+    "inviteHint": "Add your colleague to the list below, with their email address. They then sign in at gearonimo.net/portal with that address and are linked straight away.",
     "readOnly": "Only an admin can edit users."
   },
   "start": {
     "title": "Welcome to Gearonimo",
     "subtitle": "How would you like to start?",
-    "haveCode": {
-      "title": "I have an invitation code",
-      "desc": "Your inspection company gave you a code."
+    "company": {
+      "title": "I belong to a company",
+      "desc": "Ask your admin or inspector to add this email address to the Users list:",
+      "notFound": "This email address is not on any company's list yet.",
+      "retry": "Try again"
     },
     "self": {
       "title": "Start on my own",

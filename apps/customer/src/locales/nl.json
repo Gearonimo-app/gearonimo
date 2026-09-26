@@ -47,14 +47,6 @@
     "unnamed": "Dit toestel",
     "empty": "Nog geen toestel gekoppeld."
   },
-  "join": {
-    "title": "Koppel je bedrijf",
-    "subtitle": "Vul de uitnodigingscode in die je van je keurmeester hebt gekregen.",
-    "code": "Uitnodigingscode",
-    "name": "Je naam",
-    "namePlaceholder": "bv. Jan Jansen",
-    "submit": "Koppelen"
-  },
   "home": {
     "title": "Gearonimo",
     "subtitle": "Jouw materiaal, altijd in orde",
@@ -210,17 +202,18 @@
     },
     "save": "Opslaan",
     "cancel": "Annuleren",
-    "inviteTitle": "Collega's uitnodigen",
-    "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de gebruiker staat, dan worden account en gebruiker automatisch samengevoegd.",
-    "copy": "Kopiëren",
+    "inviteTitle": "Collega toevoegen",
+    "inviteHint": "Zet je collega hieronder op de lijst, mét e-mailadres. Daarna logt hij zelf in op gearonimo.net/portal met dat e-mailadres en is hij meteen gekoppeld.",
     "readOnly": "Alleen een beheerder kan gebruikers bewerken."
   },
   "start": {
     "title": "Welkom bij Gearonimo",
     "subtitle": "Hoe wil je beginnen?",
-    "haveCode": {
-      "title": "Ik heb een uitnodigingscode",
-      "desc": "Je keurbedrijf heeft je een code gegeven."
+    "company": {
+      "title": "Ik hoor bij een bedrijf",
+      "desc": "Vraag je beheerder of keurmeester om dit e-mailadres op de lijst Gebruikers te zetten:",
+      "notFound": "Dit e-mailadres staat nog bij geen enkel bedrijf op de lijst.",
+      "retry": "Opnieuw proberen"
     },
     "self": {
       "title": "Zelf beginnen",

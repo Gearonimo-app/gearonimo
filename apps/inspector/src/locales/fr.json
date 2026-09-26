@@ -97,7 +97,7 @@
       "notFound": "Client introuvable",
       "deleteTitle": "Supprimer ce client ?",
       "deleteBody": "Cette action est irréversible.",
-      "inviteCode": "Code d'invitation application client",
+      "portalHint": "Application client : ajoutez la personne de contact ci-dessous dans Utilisateurs, avec son adresse e-mail et la case Administrateur. Elle se connecte ensuite sur gearonimo.net/portal avec cette adresse.",
       "inviteUrlLabel": "Lien :",
       "deleteBlockedHistory": "Ce client ne peut pas être supprimé : un historique de contrôles existe. Les rapports de contrôle constituent une preuve légale et sont conservés."
     }

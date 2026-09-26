@@ -47,14 +47,6 @@
     "unnamed": "Cet appareil",
     "empty": "Aucun appareil lié pour l'instant."
   },
-  "join": {
-    "title": "Lier votre entreprise",
-    "subtitle": "Saisissez le code d'invitation reçu de votre inspecteur.",
-    "code": "Code d'invitation",
-    "name": "Votre nom",
-    "namePlaceholder": "ex. Jean Dupont",
-    "submit": "Lier"
-  },
   "home": {
     "title": "Gearonimo",
     "subtitle": "Votre matériel, toujours en ordre",
@@ -210,17 +202,18 @@
     },
     "save": "Enregistrer",
     "cancel": "Annuler",
-    "inviteTitle": "Inviter des collègues",
-    "inviteHint": "Laissez un collègue se connecter lui-même à cette application et se lier avec ce code. Utilisez la même adresse e-mail que celle indiquée ici pour l'utilisateur : le compte et la fiche seront alors fusionnés automatiquement.",
-    "copy": "Copier",
+    "inviteTitle": "Ajouter un collègue",
+    "inviteHint": "Ajoutez votre collègue à la liste ci-dessous, avec son adresse e-mail. Il se connecte ensuite sur gearonimo.net/portal avec cette adresse et est lié immédiatement.",
     "readOnly": "Seul un administrateur peut modifier les utilisateurs."
   },
   "start": {
     "title": "Bienvenue sur Gearonimo",
     "subtitle": "Comment souhaitez-vous commencer ?",
-    "haveCode": {
-      "title": "J'ai un code d'invitation",
-      "desc": "Votre organisme de contrôle vous a donné un code."
+    "company": {
+      "title": "J'appartiens à une entreprise",
+      "desc": "Demandez à votre administrateur ou contrôleur d'ajouter cette adresse e-mail à la liste des utilisateurs :",
+      "notFound": "Cette adresse e-mail ne figure encore sur la liste d'aucune entreprise.",
+      "retry": "Réessayer"
     },
     "self": {
       "title": "Commencer seul",

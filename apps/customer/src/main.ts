@@ -31,11 +31,12 @@ const router = createRouter({
     { path: "/certificates", component: () => import("./pages/Certificates.vue") },
     { path: "/login", component: () => import("./pages/Login.vue") },
     { path: "/start", component: () => import("./pages/Start.vue") },
-    { path: "/join", component: () => import("./pages/Join.vue") },
     { path: "/request", component: () => import("./pages/Request.vue") },
     { path: "/members", component: () => import("./pages/Members.vue") },
     // Oude Nederlandstalige routes (vóór de hernoeming 2026-07-03).
-    { path: "/koppelen", redirect: "/join" },
+    // Oude links met een uitnodigingscode: codes zijn vervallen (2026-09-26).
+    { path: "/join", redirect: "/start" },
+    { path: "/koppelen", redirect: "/start" },
     { path: "/medewerkers", redirect: "/members" },
     // Vangnet: een onbekende hash (bv. restanten van een auth-redirect)
     // hoort nooit een leeg scherm op te leveren.
@@ -60,7 +61,23 @@ router.beforeEach(async (to) => {
   }
   if (!isLoggedIn.value && to.path !== "/login") return "/login";
   if (isLoggedIn.value && to.path === "/login") return "/";
+  if (isLoggedIn.value) await claimMembershipsOnce();
 });
+
+// Inloggen zonder codes (besluit Jos 2026-09-26): staat je bevestigde
+// e-mailadres op de lijst Gebruikers van een bedrijf, dan koppelt
+// claim_my_memberships() je account daaraan. Eén keer per ingelogd account
+// per sessie, hier in de guard zodat elke ingang (ook een deeplink naar
+// /materials) het meeneemt. Bewust níet in onAuthStateChange (zie CLAUDE.md:
+// supabase-aanroepen daarbinnen laten de app hangen). Een fout hier mag de
+// app niet blokkeren; Start.vue heeft een "Opnieuw proberen".
+let claimedFor: string | null = null;
+async function claimMembershipsOnce() {
+  const uid = useAuth().user.value?.id ?? null;
+  if (!uid || claimedFor === uid) return;
+  claimedFor = uid;
+  await supabase.rpc("claim_my_memberships");
+}
 
 // Zelfherstel bij een verouderde lazy-chunk na een deploy (zie de uitleg in
 // de inspector-main.ts): vangt de importfout op en herlaadt één keer, zodat

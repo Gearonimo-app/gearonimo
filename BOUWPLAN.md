@@ -57,6 +57,31 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (bijgewerkt 2026-09-26, stap 2: inloggen zonder codes)
+
+> **Migratie nog uitvoeren:** `20260929_login_by_email.sql`. Vooraf checken:
+> Supabase -> Authentication -> Email -> "Confirm email" moet AAN staan
+> (anders kan iemand zich met andermans e-mailadres registreren).
+> Pas daarna de app naar `main`: het startscherm heeft geen code-optie meer.
+>
+> - `claim_my_memberships()`: na inloggen koppelt de app je aan elke rij op
+>   een lijst Gebruikers met jouw **bevestigde** e-mailadres. Alleen actieve
+>   rijen die nog aan níemand gekoppeld zijn (een tikfout in een e-mailadres
+>   kan dus nooit een collega zijn account afpakken). Aangeroepen in de
+>   router-guard (één keer per account per sessie) en via "Opnieuw proberen".
+> - Vangnet: heeft een bedrijf nog géén beheerder, dan wordt de eerste van de
+>   lijst die inlogt beheerder (alleen iemand die al op de lijst stond).
+> - Startscherm: "Ik hoor bij een bedrijf" (toont je e-mailadres + "Opnieuw
+>   proberen") en "Zelf beginnen". Pagina Join weg; oude /join-links gaan
+>   naar het startscherm. `join_customer_by_invite` geeft nu een nette
+>   melding (voor een oude, gecachte app).
+> - Instellingen (klant) en klantdetail (keurmeester): code weg, uitleg
+>   "zet iemand op de lijst met e-mailadres" erin.
+> - Ongewijzigd: de uitnodigingscode voor **keurmeesters** (andere stroom).
+> - Lokaal getest (PostgreSQL 16): 2 bedrijven tegelijk, niet-bevestigde
+>   e-mail, inactieve gebruiker, vangnet-beheerder, oude code. Startscherm
+>   gerenderd op 390 px en 1024 px.
+
 ## Voortgang (bijgewerkt 2026-09-26, stap 1: eigenaar per artikel)
 
 > **Migratie uitgevoerd** door Jos op 2026-09-26: `20260928_article_owner_member.sql`

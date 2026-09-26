@@ -97,7 +97,7 @@
       "notFound": "Customer not found",
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
-      "inviteCode": "Customer app invite code",
+      "portalHint": "Client app: add the contact person below under Users, with their email address and the Admin checkbox. They then sign in at gearonimo.net/portal with that address.",
       "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
     }

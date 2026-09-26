@@ -47,14 +47,6 @@
     "unnamed": "Dieses Gerät",
     "empty": "Noch kein Gerät verknüpft."
   },
-  "join": {
-    "title": "Unternehmen verknüpfen",
-    "subtitle": "Geben Sie den Einladungscode ein, den Sie von Ihrem Prüfer erhalten haben.",
-    "code": "Einladungscode",
-    "name": "Ihr Name",
-    "namePlaceholder": "z. B. Jan Jansen",
-    "submit": "Verknüpfen"
-  },
   "home": {
     "title": "Gearonimo",
     "subtitle": "Ihre Ausrüstung, immer in Ordnung",
@@ -210,17 +202,18 @@
     },
     "save": "Speichern",
     "cancel": "Abbrechen",
-    "inviteTitle": "Kollegen einladen",
-    "inviteHint": "Lassen Sie einen Kollegen sich selbst in dieser App anmelden und mit diesem Code verknüpfen. Verwenden Sie dieselbe E-Mail-Adresse wie hier beim Benutzer hinterlegt, dann werden Konto und Benutzer automatisch zusammengeführt.",
-    "copy": "Kopieren",
+    "inviteTitle": "Kollegen hinzufügen",
+    "inviteHint": "Nehmen Sie Ihren Kollegen unten in die Liste auf, mit E-Mail-Adresse. Danach meldet er sich mit dieser Adresse auf gearonimo.net/portal an und ist sofort verknüpft.",
     "readOnly": "Nur ein Administrator kann Benutzer bearbeiten."
   },
   "start": {
     "title": "Willkommen bei Gearonimo",
     "subtitle": "Wie möchten Sie beginnen?",
-    "haveCode": {
-      "title": "Ich habe einen Einladungscode",
-      "desc": "Ihr Prüfunternehmen hat Ihnen einen Code gegeben."
+    "company": {
+      "title": "Ich gehöre zu einem Unternehmen",
+      "desc": "Bitten Sie Ihren Administrator oder Prüfer, diese E-Mail-Adresse in die Benutzerliste aufzunehmen:",
+      "notFound": "Diese E-Mail-Adresse steht noch bei keinem Unternehmen auf der Liste.",
+      "retry": "Erneut versuchen"
     },
     "self": {
       "title": "Selbst beginnen",
