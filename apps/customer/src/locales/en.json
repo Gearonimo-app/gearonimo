@@ -130,7 +130,17 @@
       "other": "Other"
     },
     "allDomains": "All material types",
-    "attentionCount": "{n} need attention"
+    "attentionCount": "{n} need attention",
+    "retired": {
+      "title": "Retired ({n})",
+      "restore": "Restore",
+      "by": "by {name}",
+      "reasons": {
+        "broken": "Broken",
+        "lost": "Lost",
+        "stolen": "Stolen"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Article not found.",
@@ -150,7 +160,9 @@
       "purchaseDate": "Purchase date",
       "firstUse": "In use since",
       "nextDue": "Next inspection"
-    }
+    },
+    "firstUseAction": "Put into use",
+    "firstUseHint": "Only fill in at first use, new out of the packaging. Not when handing over to a colleague. This can only be done once."
   },
   "settings": {
     "title": "Settings",

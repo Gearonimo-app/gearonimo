@@ -154,13 +154,13 @@
                 :title="$t('sets.addPart.title')"
                 @click="partFor = row.article"
               >🔗+</button>
-              <!-- Afvoeren: alleen de beheerder (Jos, 2026-07-13 -- draait het
-                   besluit van 2026-07-02 terug: dat mocht toen nog elk lid).
-                   Ook serverside afgedwongen in retire_my_article, dit is
-                   niet alleen de knop verbergen. Bewust een onopvallend
-                   prullenbakje: het is een uitzonderingsactie. -->
+              <!-- Afvoeren: beheerder alles, gebruiker alleen zijn eigen
+                   spullen (besluit Jos 2026-09-26). Ook serverside afgedwongen
+                   in retire_my_article, dit is niet alleen de knop verbergen.
+                   Bewust een onopvallend prullenbakje: het is een
+                   uitzonderingsactie. -->
               <button
-                v-if="isAdmin"
+                v-if="canRetire(row.article)"
                 class="mt__trash"
                 :title="row.article.uiStatus === 'rejected' ? $t('home.retire') : $t('home.retireOther')"
                 :disabled="retiringId === row.article.id"
@@ -168,6 +168,36 @@
               >🗑</button>
             </li>
           </template>
+        </ul>
+      </section>
+
+      <!-- Afgevoerd (laatste 12 maanden), om terug te kunnen zetten: wie het
+           afvoerde of de beheerder (besluit Jos 2026-09-26). Dicht standaard;
+           het is een uitzondering, geen dagelijkse lijst. -->
+      <section v-if="retired.length" class="mt__section mt__retired">
+        <button class="mt__retired-toggle" @click="retiredOpen = !retiredOpen">
+          {{ $t('materials.retired.title', { n: retired.length }) }}
+          <span class="mt__retired-caret">{{ retiredOpen ? '▲' : '▼' }}</span>
+        </button>
+        <p v-if="restoreError" class="mt__state mt__state--error">{{ restoreError }}</p>
+        <ul v-if="retiredOpen" class="mt__list">
+          <li v-for="r in retired" :key="r.id" class="mt__item">
+            <div class="mt__item-main mt__retired-main">
+              <div class="mt__item-name">{{ [r.brand, r.name].filter(Boolean).join(' ') || $t('home.untitled') }}</div>
+              <div v-if="r.serial_number || r.assigned_user_name" class="mt__item-meta">
+                {{ [r.serial_number, r.assigned_user_name].filter(Boolean).join(' · ') }}
+              </div>
+              <div class="mt__item-meta">
+                {{ r.retired_at ? formatDate(r.retired_at) : '' }}<template v-if="r.retired_reason"> · {{ r.retired_reason }}</template><template v-if="r.retired_by_name"> · {{ $t('materials.retired.by', { name: r.retired_by_name }) }}</template>
+              </div>
+            </div>
+            <button
+              v-if="r.can_restore"
+              class="mt__restore"
+              :disabled="restoringId === r.id"
+              @click="restoreArticle(r)"
+            >{{ restoringId === r.id ? $t('common.busy') : $t('materials.retired.restore') }}</button>
+          </li>
         </ul>
       </section>
 
@@ -206,6 +236,16 @@
         <div class="mt__dialog">
           <h2>{{ $t('home.retireOther') }}</h2>
           <p class="mt__dialog-text">{{ $t('home.retireConfirm', { name: retireLabel(retireFor) }) }}</p>
+          <div class="mt__reasons">
+            <button
+              v-for="r in retireReasons"
+              :key="r"
+              type="button"
+              class="mt__reason"
+              :class="{ 'mt__reason--on': retireReason === r }"
+              @click="retireReason = r"
+            >{{ r }}</button>
+          </div>
           <input v-model="retireReason" class="mt__dialog-input" :placeholder="$t('home.retireReasonPlaceholder')" />
           <p v-if="retireError" class="mt__state mt__state--error">{{ retireError }}</p>
           <div class="mt__dialog-actions">
@@ -493,6 +533,7 @@ async function load() {
     }
     customerId.value = row.customer_id;
     isAdmin.value = !!row.is_admin;
+    myName.value = row.member_name ?? "";
     enabledDomains.value = normalizeDomains(row.enabled_domains);
 
     const { data, error: err } = await supabase.rpc("my_articles");
@@ -503,7 +544,7 @@ async function load() {
     if (!row.is_admin && row.member_name && !memberFilter.value && memberNames.value.includes(row.member_name)) {
       memberFilter.value = row.member_name;
     }
-    await loadSets();
+    await Promise.all([loadSets(), loadRetired()]);
   } catch (e) {
     error.value = errorMessage(e);
   } finally {
@@ -526,6 +567,57 @@ function retireLabel(a: UiArticle) {
   return [a.brand, a.name].filter(Boolean).join(" ") || t("home.untitled");
 }
 
+// Gebruiker: alleen eigen spullen. De naam op het artikel is sinds
+// 20260928 altijd de naam van de gekoppelde gebruiker, dus vergelijken met
+// je eigen naam volstaat voor de knop; de server controleert op id.
+const myName = ref("");
+function canRetire(a: UiArticle) {
+  return isAdmin.value || (!!myName.value && a.assigned_user_name === myName.value);
+}
+
+const retireReasons = computed(() => [
+  t("materials.retired.reasons.broken"),
+  t("materials.retired.reasons.lost"),
+  t("materials.retired.reasons.stolen"),
+]);
+
+// ─── Afgevoerd + terugzetten ────────────────────────────────────────────────
+type RetiredRow = {
+  id: string;
+  name: string | null;
+  brand: string | null;
+  serial_number: string | null;
+  assigned_user_name: string | null;
+  retired_at: string | null;
+  retired_reason: string | null;
+  retired_by_name: string | null;
+  can_restore: boolean;
+};
+const retired = ref<RetiredRow[]>([]);
+const retiredOpen = ref(false);
+const restoringId = ref<string | null>(null);
+const restoreError = ref("");
+
+async function loadRetired() {
+  const { data, error: err } = await supabase.rpc("my_retired_articles");
+  // Zonder deze lijst werkt de rest gewoon; niet de hele pagina laten falen.
+  retired.value = err ? [] : ((data ?? []) as RetiredRow[]);
+}
+
+async function restoreArticle(r: RetiredRow) {
+  restoringId.value = r.id;
+  restoreError.value = "";
+  try {
+    const { error: err } = await supabase.rpc("restore_my_article", { p_article_id: r.id });
+    if (err) throw err;
+    await load();
+  } catch (e) {
+    restoreError.value = errorMessage(e);
+  } finally {
+    restoringId.value = null;
+  }
+}
+
 function retireArticle(a: UiArticle) {
   retireError.value = "";
   retireReason.value = a.uiStatus === "rejected" ? t("home.retireReasonReplaced") : "";
@@ -545,6 +637,7 @@ async function confirmRetire() {
     if (err) throw err;
     articles.value = articles.value.filter((x) => x.id !== a.id);
     retireFor.value = null;
+    await loadRetired();
   } catch (e) {
     retireError.value = errorMessage(e);
   } finally {
@@ -748,6 +841,24 @@ onMounted(load);
   font-size: 1rem; opacity: 0.45; padding: 0.25rem;
 }
 .mt__trash:hover { opacity: 1; }
+.mt__retired-toggle {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  background: none; border: none; padding: 0.5rem 0; cursor: pointer;
+  font-size: 0.95rem; font-weight: 700; color: #4b5563; font-family: inherit;
+}
+.mt__retired-caret { font-size: 0.75rem; color: #9ca3af; }
+.mt__retired-main { cursor: default; }
+.mt__restore {
+  flex: 0 0 auto; border: 1px solid #d1d5db; background: #fff; border-radius: 8px;
+  padding: 0.35rem 0.7rem; font-size: 0.85rem; font-weight: 700; color: #374151; cursor: pointer;
+}
+.mt__restore:disabled { opacity: 0.5; }
+.mt__reasons { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.5rem; }
+.mt__reason {
+  border: 1px solid #d1d5db; background: #fff; border-radius: 999px;
+  padding: 0.35rem 0.8rem; font-size: 0.85rem; cursor: pointer; color: #374151;
+}
+.mt__reason--on { background: #fee2e2; border-color: #fca5a5; color: #991b1b; font-weight: 700; }
 .mt__trash:disabled { opacity: 0.25; }
 .mt__item-meta { font-size: 0.85rem; color: #6b7280; margin-top: 0.15rem; }
 .mt__item-reason { font-size: 0.8rem; font-weight: 700; margin-top: 0.2rem; }

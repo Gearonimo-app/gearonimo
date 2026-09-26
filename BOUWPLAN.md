@@ -57,6 +57,27 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (bijgewerkt 2026-09-26, stap 3: rechten gebruiker)
+
+> **Migratie nog uitvoeren:** `20260930_member_rights.sql`.
+>
+> - "In gebruik nemen": knop op het artikeldetail voor élke gebruiker, bij
+>   elk artikel van het bedrijf zolang de datum leeg is (ook "Voorraad").
+>   Dialoog met de melding "alleen bij eerste gebruik, nieuw uit de
+>   verpakking, niet bij overdracht aan een collega". Eenmalig, niet in de
+>   toekomst (`set_my_first_use_date`). Zelfde melding bij toevoegen en in
+>   het bewerkformulier van de beheerder.
+> - Afvoeren: prullenbak nu ook voor de gebruiker, alleen bij zijn eigen
+>   spullen; beheerder alles. Snelkeuze Kapot / Kwijt / Gestolen (vrije
+>   tekst blijft). Nieuwe kolom `articles.retired_by_member_id`.
+> - Terugzetten: lijst "Afgevoerd (n)" onderaan Mijn materiaal (dicht
+>   standaard, laatste 12 maanden), knop "Terugzetten" voor wie het afvoerde
+>   of de beheerder (`restore_my_article`, `my_retired_articles`).
+> - Lokaal getest (PostgreSQL 16) + schermen gerenderd op 390 px.
+> - Opgevallen, niet aangeraakt: de paginatitel in de kopbalk (PageHeader)
+>   loopt op 390 px over drie regels naast "GEARONIMO" -- nakijken op een
+>   echte telefoon.
+
 ## Voortgang (bijgewerkt 2026-09-26, stap 2: inloggen zonder codes)
 
 > **Migratie uitgevoerd** door Jos op 2026-09-26: `20260929_login_by_email.sql`.

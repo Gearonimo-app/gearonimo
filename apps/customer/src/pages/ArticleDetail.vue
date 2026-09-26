@@ -3,7 +3,9 @@
      terugzien (incl. de ingebruiknamedatum); alleen de beheerder mag iets
      wijzigen, en dan alleen gebruiker, aankoopdatum en (eenmalig, DATAMODEL
      besloten 2026-06-14) de ingebruiknamedatum -- de rest blijft bewust
-     vast. -->
+     vast.
+     Sinds 2026-09-26 mag elke gebruiker "in gebruik sinds" invullen
+     (eenmalig, knop "In gebruik nemen"); de rest blijft beheerderswerk. -->
 <template>
   <div class="ad">
     <PageHeader back :title="headerTitle" />
@@ -69,6 +71,10 @@
         <!-- Afvinken mag elk actief lid (zelfde lijn als in de materiaallijst);
              bewerken blijft beheerderswerk. -->
         <button v-if="isSelfChecked" class="ad__checkbtn" @click="selfCheckOpen = true">{{ $t('selfCheck.action') }}</button>
+        <!-- "In gebruik sinds" mag elke gebruiker invullen, eenmalig (besluit
+             Jos 2026-09-26) -- ook bij Voorraad: wie iets nieuws uit de doos
+             pakt, is er nog niet de eigenaar van. -->
+        <button v-if="!article.first_use_date && !article.retired" class="ad__checkbtn" @click="firstUseOpen = true">{{ $t('articleDetail.firstUseAction') }}</button>
         <button v-if="isAdmin" class="ad__editbtn" @click="startEdit">{{ $t('articleDetail.edit') }}</button>
       </div>
 
@@ -92,6 +98,24 @@
         </div>
       </div>
 
+      <div v-if="firstUseOpen" class="ad__overlay" @click.self="firstUseOpen = false">
+        <div class="ad__dialog">
+          <h2>{{ $t('articleDetail.firstUseAction') }}</h2>
+          <p class="ad__dialog-hint">{{ $t('articleDetail.firstUseHint') }}</p>
+          <label class="ad__dialog-label">
+            {{ $t('articleDetail.fields.firstUse') }}
+            <input v-model="firstUseDate" type="date" :max="todayIso" class="ad__dialog-input" />
+          </label>
+          <p v-if="firstUseError" class="ad__state ad__state--error">{{ firstUseError }}</p>
+          <div class="ad__dialog-actions">
+            <button class="ad__cancel" @click="firstUseOpen = false">{{ $t('common.cancel') }}</button>
+            <button class="ad__savebtn" :disabled="firstUseSaving || !firstUseDate" @click="confirmFirstUse">
+              {{ firstUseSaving ? $t('common.busy') : $t('common.save') }}
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Bewerken: alleen deze drie velden mogen wijzigen (besloten met
            Jos 2026-07-13); de rest staat hierboven vast. -->
       <form v-else-if="editMode" class="ad__form" @submit.prevent="save">
@@ -105,7 +129,8 @@
         </label>
         <label class="ad__field">
           {{ $t('articleDetail.fields.firstUse') }}
-          <input v-if="!article.first_use_date" v-model="form.firstUseDate" type="date" class="ad__input" />
+          <input v-if="!article.first_use_date" v-model="form.firstUseDate" type="date" :max="todayIso" class="ad__input" />
+          <span v-if="!article.first_use_date" class="ad__locked">{{ $t('articleDetail.firstUseHint') }}</span>
           <p v-else class="ad__locked">{{ formatDate(article.first_use_date) }} — {{ $t('articleDetail.firstUseLocked') }}</p>
         </label>
         <p v-if="formError" class="ad__state ad__state--error">{{ formError }}</p>
@@ -225,6 +250,38 @@ async function confirmSelfCheck() {
     selfCheckError.value = errorMessage(e);
   } finally {
     selfCheckSaving.value = false;
+  }
+}
+
+// ─── "In gebruik nemen" (eenmalig, elke gebruiker) ──────────────────────────
+const firstUseOpen = ref(false);
+const firstUseDate = ref("");
+const firstUseSaving = ref(false);
+const firstUseError = ref("");
+
+watch(firstUseOpen, (open) => {
+  if (open) {
+    firstUseError.value = "";
+    firstUseDate.value = todayIso.value;
+  }
+});
+
+async function confirmFirstUse() {
+  if (!article.value || !firstUseDate.value) return;
+  firstUseSaving.value = true;
+  firstUseError.value = "";
+  try {
+    const { error: err } = await supabase.rpc("set_my_first_use_date", {
+      p_article_id: article.value.id,
+      p_date: firstUseDate.value,
+    });
+    if (err) throw err;
+    firstUseOpen.value = false;
+    await load();
+  } catch (e) {
+    firstUseError.value = errorMessage(e);
+  } finally {
+    firstUseSaving.value = false;
   }
 }
 
@@ -385,6 +442,10 @@ watch(
 .ad__dialog { background: #fff; border-radius: 16px; padding: 1.25rem; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 0.6rem; }
 .ad__dialog h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
 .ad__dialog-text { margin: 0; font-size: 0.9rem; color: #374151; }
+.ad__dialog-hint {
+  margin: 0; font-size: 0.85rem; color: #92400e; background: #fef3c7;
+  border-radius: 8px; padding: 0.6rem 0.75rem;
+}
 .ad__dialog-label { display: flex; flex-direction: column; gap: 0.25rem; font-size: 0.85rem; color: #374151; }
 .ad__dialog-input { border: 1px solid #d1d5db; border-radius: 8px; padding: 0.55rem 0.7rem; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
 .ad__dialog-actions { display: flex; gap: 0.5rem; margin-top: 0.25rem; }

@@ -93,6 +93,7 @@
     <label class="aa__date">
       {{ $t('home.addArticle.firstUse') }}
       <input v-model="firstUse" type="date" class="aa__input" @input="firstUseTouched = true" />
+      <span class="aa__hint">{{ $t('articleDetail.firstUseHint') }}</span>
     </label>
 
     <p v-if="formError" class="aa__error">{{ formError }}</p>
@@ -329,6 +330,7 @@ async function save() {
 .aa__brand-select { background: #fff; color: #111827; }
 .aa__row { display: flex; gap: 0.5rem; }
 .aa__field { position: relative; }
+.aa__hint { display: block; font-size: 0.8rem; color: #6b7280; margin-top: 0.2rem; }
 .aa__field .aa__suggest { position: absolute; top: calc(100% + 0.25rem); left: 0; right: 0; z-index: 10; background: #fff; }
 .aa__suggest {
   list-style: none; margin: 0; padding: 0;

@@ -130,7 +130,17 @@
       "other": "Sonstiges"
     },
     "allDomains": "Alle Materialarten",
-    "attentionCount": "{n} mit Handlungsbedarf"
+    "attentionCount": "{n} mit Handlungsbedarf",
+    "retired": {
+      "title": "Ausgesondert ({n})",
+      "restore": "Wiederherstellen",
+      "by": "von {name}",
+      "reasons": {
+        "broken": "Kaputt",
+        "lost": "Verloren",
+        "stolen": "Gestohlen"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Artikel nicht gefunden.",
@@ -150,7 +160,9 @@
       "purchaseDate": "Kaufdatum",
       "firstUse": "In Gebrauch seit",
       "nextDue": "Nächste Prüfung"
-    }
+    },
+    "firstUseAction": "In Gebrauch nehmen",
+    "firstUseHint": "Nur bei der ersten Benutzung ausfüllen, neu aus der Verpackung. Nicht bei Übergabe an einen Kollegen. Das geht nur einmal."
   },
   "settings": {
     "title": "Einstellungen",

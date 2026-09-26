@@ -130,7 +130,17 @@
       "other": "Autre"
     },
     "allDomains": "Tous les types de matériel",
-    "attentionCount": "{n} nécessitant une attention"
+    "attentionCount": "{n} nécessitant une attention",
+    "retired": {
+      "title": "Mis au rebut ({n})",
+      "restore": "Restaurer",
+      "by": "par {name}",
+      "reasons": {
+        "broken": "Cassé",
+        "lost": "Perdu",
+        "stolen": "Volé"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Article introuvable.",
@@ -150,7 +160,9 @@
       "purchaseDate": "Date d'achat",
       "firstUse": "En service depuis",
       "nextDue": "Prochain contrôle"
-    }
+    },
+    "firstUseAction": "Mettre en service",
+    "firstUseHint": "À remplir uniquement lors de la première utilisation, neuf sorti de l'emballage. Pas lors d'une remise à un collègue. Possible une seule fois."
   },
   "settings": {
     "title": "Paramètres",

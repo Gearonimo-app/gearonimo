@@ -130,7 +130,17 @@
       "other": "Overig"
     },
     "allDomains": "Alle materiaalsoorten",
-    "attentionCount": "{n} met aandacht"
+    "attentionCount": "{n} met aandacht",
+    "retired": {
+      "title": "Afgevoerd ({n})",
+      "restore": "Terugzetten",
+      "by": "door {name}",
+      "reasons": {
+        "broken": "Kapot",
+        "lost": "Kwijt",
+        "stolen": "Gestolen"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Artikel niet gevonden.",
@@ -150,7 +160,9 @@
       "purchaseDate": "Aankoopdatum",
       "firstUse": "In gebruik sinds",
       "nextDue": "Volgende keuring"
-    }
+    },
+    "firstUseAction": "In gebruik nemen",
+    "firstUseHint": "Alleen invullen bij eerste gebruik, nieuw uit de verpakking. Niet bij overdracht aan een collega. Dit kan maar één keer."
   },
   "settings": {
     "title": "Instellingen",
