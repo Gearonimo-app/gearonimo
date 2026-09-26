@@ -191,11 +191,11 @@
     }
   },
   "members": {
-    "title": "Medewerkers",
+    "title": "Gebruikers",
     "back": "Terug",
-    "add": "+ Medewerker",
+    "add": "+ Gebruiker",
     "edit": "Bewerken",
-    "empty": "Nog geen medewerkers.",
+    "empty": "Nog geen gebruikers.",
     "badgeAdmin": "Beheerder",
     "badgeInactive": "Inactief",
     "badgeNoAccount": "nog geen account",
@@ -206,14 +206,14 @@
       "phone": "Telefoon",
       "email": "E-mailadres",
       "active": "Actief",
-      "admin": "Beheerder (mag medewerkers beheren)"
+      "admin": "Beheerder (mag gebruikers beheren)"
     },
     "save": "Opslaan",
     "cancel": "Annuleren",
     "inviteTitle": "Collega's uitnodigen",
-    "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de medewerker staat, dan worden account en medewerker automatisch samengevoegd.",
+    "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de gebruiker staat, dan worden account en gebruiker automatisch samengevoegd.",
     "copy": "Kopiëren",
-    "readOnly": "Alleen een beheerder kan medewerkers bewerken."
+    "readOnly": "Alleen een beheerder kan gebruikers bewerken."
   },
   "start": {
     "title": "Welkom bij Gearonimo",
@@ -310,5 +310,11 @@
     "torch": "Zaklamp",
     "close": "Sluiten",
     "unavailable": "Camera niet beschikbaar. Controleer de machtigingen."
+  },
+  "userPicker": {
+    "unassigned": "Geen gebruiker",
+    "other": "+ Nieuwe naam…",
+    "backToList": "Terug naar de lijst",
+    "noMembersHint": "Een nieuwe naam komt vanzelf op de lijst Gebruikers. Dat mag ook \"Voorraad\" of \"Reserve set 2\" zijn."
   }
 }

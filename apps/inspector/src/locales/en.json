@@ -103,10 +103,10 @@
     }
   },
   "members": {
-    "title": "Team members",
-    "add": "Add member",
-    "edit": "Edit member",
-    "empty": "No members yet",
+    "title": "Users",
+    "add": "Add user",
+    "edit": "Edit user",
+    "empty": "No users yet",
     "inactiveBadge": "Inactive",
     "fields": {
       "name": "Name *",
@@ -115,14 +115,14 @@
       "email": "Email",
       "notes": "Notes",
       "active": "Active",
-      "admin": "Admin in the client app (can manage members there)"
+      "admin": "Admin in the client app (can manage users there)"
     },
     "errors": {
       "nameRequired": "Name is required"
     },
     "detail": {
-      "deleteTitle": "Delete member?",
-      "deleteBody": "This cannot be undone."
+      "deleteTitle": "Delete user?",
+      "deleteBody": "This cannot be undone. This user's items keep the name but are no longer linked."
     },
     "adminBadge": "Client app admin"
   },

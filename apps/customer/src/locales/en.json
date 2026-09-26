@@ -191,11 +191,11 @@
     }
   },
   "members": {
-    "title": "Team members",
+    "title": "Users",
     "back": "Back",
-    "add": "+ Member",
+    "add": "+ User",
     "edit": "Edit",
-    "empty": "No team members yet.",
+    "empty": "No users yet.",
     "badgeAdmin": "Admin",
     "badgeInactive": "Inactive",
     "badgeNoAccount": "no account yet",
@@ -206,14 +206,14 @@
       "phone": "Phone",
       "email": "Email address",
       "active": "Active",
-      "admin": "Admin (can manage team members)"
+      "admin": "Admin (can manage users)"
     },
     "save": "Save",
     "cancel": "Cancel",
     "inviteTitle": "Invite colleagues",
-    "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the member here, and the account and member record are merged automatically.",
+    "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the user here, and the account and user record are merged automatically.",
     "copy": "Copy",
-    "readOnly": "Only an admin can edit team members."
+    "readOnly": "Only an admin can edit users."
   },
   "start": {
     "title": "Welcome to Gearonimo",
@@ -310,5 +310,11 @@
     "torch": "Flashlight",
     "close": "Close",
     "unavailable": "Camera unavailable. Check your permissions."
+  },
+  "userPicker": {
+    "unassigned": "No user",
+    "other": "+ New name…",
+    "backToList": "Back to the list",
+    "noMembersHint": "A new name is added to the Users list automatically. It can also be \"Stock\" or \"Spare set 2\"."
   }
 }

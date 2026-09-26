@@ -191,11 +191,11 @@
     }
   },
   "members": {
-    "title": "Mitarbeiter",
+    "title": "Benutzer",
     "back": "Zurück",
-    "add": "+ Mitarbeiter",
+    "add": "+ Benutzer",
     "edit": "Bearbeiten",
-    "empty": "Noch keine Mitarbeiter.",
+    "empty": "Noch keine Benutzer.",
     "badgeAdmin": "Administrator",
     "badgeInactive": "Inaktiv",
     "badgeNoAccount": "noch kein Konto",
@@ -206,14 +206,14 @@
       "phone": "Telefon",
       "email": "E-Mail-Adresse",
       "active": "Aktiv",
-      "admin": "Administrator (darf Mitarbeiter verwalten)"
+      "admin": "Administrator (darf Benutzer verwalten)"
     },
     "save": "Speichern",
     "cancel": "Abbrechen",
     "inviteTitle": "Kollegen einladen",
-    "inviteHint": "Lassen Sie einen Kollegen sich selbst in dieser App anmelden und mit diesem Code verknüpfen. Verwenden Sie dieselbe E-Mail-Adresse wie hier beim Mitarbeiter hinterlegt, dann werden Konto und Mitarbeiter automatisch zusammengeführt.",
+    "inviteHint": "Lassen Sie einen Kollegen sich selbst in dieser App anmelden und mit diesem Code verknüpfen. Verwenden Sie dieselbe E-Mail-Adresse wie hier beim Benutzer hinterlegt, dann werden Konto und Benutzer automatisch zusammengeführt.",
     "copy": "Kopieren",
-    "readOnly": "Nur ein Administrator kann Mitarbeiter bearbeiten."
+    "readOnly": "Nur ein Administrator kann Benutzer bearbeiten."
   },
   "start": {
     "title": "Willkommen bei Gearonimo",
@@ -310,5 +310,11 @@
     "torch": "Taschenlampe",
     "close": "Schließen",
     "unavailable": "Kamera nicht verfügbar. Berechtigungen prüfen."
+  },
+  "userPicker": {
+    "unassigned": "Kein Benutzer",
+    "other": "+ Neuer Name…",
+    "backToList": "Zurück zur Liste",
+    "noMembersHint": "Ein neuer Name kommt automatisch auf die Benutzerliste. Das darf auch \"Lager\" oder \"Ersatzset 2\" sein."
   }
 }

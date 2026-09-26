@@ -103,10 +103,10 @@
     }
   },
   "members": {
-    "title": "Mitarbeiter",
-    "add": "Mitarbeiter hinzufügen",
-    "edit": "Mitarbeiter bearbeiten",
-    "empty": "Noch keine Mitarbeiter",
+    "title": "Benutzer",
+    "add": "Benutzer hinzufügen",
+    "edit": "Benutzer bearbeiten",
+    "empty": "Noch keine Benutzer",
     "inactiveBadge": "Inaktiv",
     "fields": {
       "name": "Name *",
@@ -114,15 +114,15 @@
       "phone": "Telefon",
       "email": "E-Mail",
       "notes": "Anmerkungen",
-      "active": "Im Dienst",
-      "admin": "Administrator in der Kunden-App (darf dort Mitarbeiter verwalten)"
+      "active": "Aktiv",
+      "admin": "Administrator in der Kunden-App (darf dort Benutzer verwalten)"
     },
     "errors": {
       "nameRequired": "Name ist erforderlich"
     },
     "detail": {
-      "deleteTitle": "Mitarbeiter löschen?",
-      "deleteBody": "Dies kann nicht rückgängig gemacht werden."
+      "deleteTitle": "Benutzer löschen?",
+      "deleteBody": "Dies kann nicht rückgängig gemacht werden. Artikel dieses Benutzers behalten den Namen, sind aber nicht mehr verknüpft."
     },
     "adminBadge": "Administrator Kunden-App"
   },

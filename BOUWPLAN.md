@@ -28,11 +28,14 @@ Meer beheerders per bedrijf mag (bv. eigenaar + magazijnmedewerker).
 niet bij overdracht aan een collega." (Een set van Piet naar Jan is géén
 nieuwe ingebruikname.)
 
-**Eigenaar van een artikel = een medewerker, niet een naam.** Kiezen uit de
-medewerkerslijst; een nieuwe naam typen zet die persoon automatisch op de
-lijst (zonder account). Krijgt die persoon later een account, dan zijn al
-zijn spullen meteen van hem. Zelfde keuzelijst in keurmeester-app en
-klant-app (één gedeeld component).
+**Eigenaar van een artikel = een gebruiker op de lijst, niet een losse
+naam.** De lijst heet "Gebruikers" (niet "Medewerkers") en alles wat je
+typt komt erop, zonder extra vraag: Piet, Jan die geen app wil, maar ook
+"Voorraad" of "Reserve set 2" (Jos 2026-09-26: *"waarom niet als medewerker
+op de lijst?"* -- geen probleem, want het abonnement wordt nooit per
+gebruiker berekend; hooguit per account of per product). Zonder account
+geen mail; die gaat naar de beheerder. Krijgt iemand later een account, dan
+zijn al zijn spullen meteen van hem.
 
 **Inloggen: twee regels, geen codes meer.**
 1. Staat je e-mailadres op de medewerkerslijst van een bedrijf, dan ben je
@@ -53,6 +56,27 @@ het eerst koppelt wordt beheerder" vervallen.
 
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
+
+## Voortgang (bijgewerkt 2026-09-26, stap 1: eigenaar per artikel)
+
+> **Migratie nog uitvoeren:** `20260928_article_owner_member.sql` -- pas
+> nadat Jos de schema-controlequery heeft gedraaid (CLAUDE.md regel 5).
+>
+> - Koppeling zit in de database (trigger `articles_sync_owner`), niet in de
+>   apps: elke schrijfroute (keurmeester-app incl. offline-sync, klant-app,
+>   import, wizard) koppelt vanzelf. Naam zoeken negeert hoofdletters en
+>   dubbele spaties; onbekende naam -> nieuwe gebruiker zonder account.
+>   Gebruiker hernoemd -> artikelen volgen. Gebruiker verwijderd -> naam blijft
+>   op het artikel, koppeling vervalt. Bestaande artikelen worden in dezelfde
+>   migratie gekoppeld.
+> - Lokaal getest op PostgreSQL 16 (8 scenario's + tweede keer draaien).
+> - "Medewerkers" heet in beide apps nu "Gebruikers" (nl/en/de/fr).
+> - Gevonden en hersteld: de keuzelijst in de klant-app had geen vertalingen
+>   (`userPicker.*` ontbrak sinds 2026-08-13; je zag ruwe codes).
+> - Bewust niet gedaan: de keurmeester-app houdt zijn typveld met
+>   suggesties i.p.v. dezelfde keuzelijst als de klant-app. Omdat de
+>   database nu koppelt, levert dat geen dubbele personen meer op. Het nette
+>   werk (één gedeeld component in `packages/ui`) kan later.
 
 ## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
 

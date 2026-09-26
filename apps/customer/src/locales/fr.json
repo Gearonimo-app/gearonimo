@@ -191,11 +191,11 @@
     }
   },
   "members": {
-    "title": "Collaborateurs",
+    "title": "Utilisateurs",
     "back": "Retour",
-    "add": "+ Collaborateur",
+    "add": "+ Utilisateur",
     "edit": "Modifier",
-    "empty": "Aucun collaborateur pour l'instant.",
+    "empty": "Aucun utilisateur pour l'instant.",
     "badgeAdmin": "Administrateur",
     "badgeInactive": "Inactif",
     "badgeNoAccount": "pas encore de compte",
@@ -206,14 +206,14 @@
       "phone": "Téléphone",
       "email": "Adresse e-mail",
       "active": "Actif",
-      "admin": "Administrateur (peut gérer les collaborateurs)"
+      "admin": "Administrateur (peut gérer les utilisateurs)"
     },
     "save": "Enregistrer",
     "cancel": "Annuler",
     "inviteTitle": "Inviter des collègues",
-    "inviteHint": "Laissez un collègue se connecter lui-même à cette application et se lier avec ce code. Utilisez la même adresse e-mail que celle indiquée ici pour le collaborateur : le compte et la fiche seront alors fusionnés automatiquement.",
+    "inviteHint": "Laissez un collègue se connecter lui-même à cette application et se lier avec ce code. Utilisez la même adresse e-mail que celle indiquée ici pour l'utilisateur : le compte et la fiche seront alors fusionnés automatiquement.",
     "copy": "Copier",
-    "readOnly": "Seul un administrateur peut modifier les collaborateurs."
+    "readOnly": "Seul un administrateur peut modifier les utilisateurs."
   },
   "start": {
     "title": "Bienvenue sur Gearonimo",
@@ -310,5 +310,11 @@
     "torch": "Lampe torche",
     "close": "Fermer",
     "unavailable": "Caméra indisponible. Vérifiez les autorisations."
+  },
+  "userPicker": {
+    "unassigned": "Aucun utilisateur",
+    "other": "+ Nouveau nom…",
+    "backToList": "Retour à la liste",
+    "noMembersHint": "Un nouveau nom est ajouté automatiquement à la liste des utilisateurs. Cela peut aussi être « Stock » ou « Set de réserve 2 »."
   }
 }

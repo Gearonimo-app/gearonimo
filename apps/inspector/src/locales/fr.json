@@ -103,10 +103,10 @@
     }
   },
   "members": {
-    "title": "Collaborateurs",
-    "add": "Ajouter un collaborateur",
-    "edit": "Modifier le collaborateur",
-    "empty": "Aucun collaborateur pour l'instant",
+    "title": "Utilisateurs",
+    "add": "Ajouter un utilisateur",
+    "edit": "Modifier l'utilisateur",
+    "empty": "Aucun utilisateur pour l'instant",
     "inactiveBadge": "Inactif",
     "fields": {
       "name": "Nom *",
@@ -114,15 +114,15 @@
       "phone": "Téléphone",
       "email": "E-mail",
       "notes": "Remarques",
-      "active": "En service",
-      "admin": "Administrateur dans l'application client (peut y gérer les collaborateurs)"
+      "active": "Actif",
+      "admin": "Administrateur dans l'application client (peut y gérer les utilisateurs)"
     },
     "errors": {
       "nameRequired": "Le nom est obligatoire"
     },
     "detail": {
-      "deleteTitle": "Supprimer ce collaborateur ?",
-      "deleteBody": "Cette action est irréversible."
+      "deleteTitle": "Supprimer cet utilisateur ?",
+      "deleteBody": "Cette action est irréversible. Les articles de cet utilisateur gardent le nom mais ne sont plus liés."
     },
     "adminBadge": "Administrateur application client"
   },
