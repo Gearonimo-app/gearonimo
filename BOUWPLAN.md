@@ -59,8 +59,10 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-26, stap 1: eigenaar per artikel)
 
-> **Migratie nog uitvoeren:** `20260928_article_owner_member.sql` -- pas
-> nadat Jos de schema-controlequery heeft gedraaid (CLAUDE.md regel 5).
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260928_article_owner_member.sql`
+> (na schema-controle; live `role` had default `'end_user'`, daarom maakt de
+> trigger nieuwe gebruikers met lege functie). Controle: 547 artikelen
+> gekoppeld, 0 met naam maar zonder koppeling.
 >
 > - Koppeling zit in de database (trigger `articles_sync_owner`), niet in de
 >   apps: elke schrijfroute (keurmeester-app incl. offline-sync, klant-app,
