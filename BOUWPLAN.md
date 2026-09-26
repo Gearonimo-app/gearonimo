@@ -59,7 +59,7 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-26, stap 3: rechten gebruiker)
 
-> **Migratie nog uitvoeren:** `20260930_member_rights.sql`.
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260930_member_rights.sql`. Daarna live gezet.
 >
 > - "In gebruik nemen": knop op het artikeldetail voor élke gebruiker, bij
 >   elk artikel van het bedrijf zolang de datum leeg is (ook "Voorraad").
