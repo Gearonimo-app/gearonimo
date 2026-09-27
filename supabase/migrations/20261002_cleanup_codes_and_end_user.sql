@@ -61,6 +61,13 @@ grant execute on function public.my_customer() to authenticated;
 -- ─── 2b. Oude koppelfunctie en de code zelf ─────────────────────────────────
 drop function if exists public.join_customer_by_invite(text, text);
 
+-- Live is de uniciteit een constraint (niet een los index zoals in
+-- 20260708): eerst de constraint, dan voor de zekerheid een eventueel los
+-- index. Het droppen van de kolom zou ze ook meenemen, maar zo is het
+-- expliciet (Jos' eerste poging faalde op "cannot drop index ...
+-- because constraint ... requires it", 2026-09-27).
+alter table public.customers
+  drop constraint if exists customers_invite_code_key;
 drop index if exists public.customers_invite_code_key;
 alter table public.customers
   drop column if exists invite_code;
