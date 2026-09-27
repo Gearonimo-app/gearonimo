@@ -70,7 +70,8 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 >   ongebruikte teksten `members.title`/`members.back` in de klant-app.
 >   Keurmeester-uitnodiging (andere stroom) blijft.
 >
-> **Open punt (Jos 2026-09-26: "geen prioriteit"):** de tegel Instellingen
+> **Opgelost 2026-09-27** (Jos: "dan instellingen tegel erin"): de tegel staat
+> nu voor iedereen. Was het open punt: de tegel Instellingen
 > in de klant-app is alleen zichtbaar voor beheerders. Een gewone gebruiker
 > kan daardoor vingerafdruk/Face ID niet meer aanzetten als hij de vraag op
 > het beginscherm met "Niet nu" wegklikte. Oplossing: tegel voor iedereen
