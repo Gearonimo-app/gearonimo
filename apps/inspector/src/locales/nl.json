@@ -427,6 +427,13 @@
       "menuDesc": "Logo, opmaak, kop- en voettekst van het certificaat",
       "intro": "Stel in hoe het keuringscertificaat eruitziet. De instellingen gelden voor jouw keurbedrijf en voor certificaten die je voortaan afdrukt; al uitgegeven certificaten blijven ongewijzigd.",
       "companyData": "Bedrijfsgegevens",
+      "intervals": {
+        "title": "Keuringstermijnen",
+        "hint": "Leeg = automatisch het wettelijke regime van jullie land (bv. Verenigd Koninkrijk: 6 maanden voor PBM). Vul je zelf iets in, dan geldt dat in plaats daarvan.",
+        "ppe": "PBM en overige materialen (alles behalve hijsmateriaal)",
+        "rigging": "Hijs-/riggingmateriaal",
+        "automatic": "Automatisch ({n} maanden)"
+      },
       "logo": "Logo",
       "noLogo": "Geen logo",
       "uploadLogo": "Logo kiezen…",

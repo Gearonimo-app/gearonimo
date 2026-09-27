@@ -35,6 +35,19 @@
               <input v-model="form.vat_number" class="cs__input" /></label>
           </div>
 
+          <h3>{{ $t('settings.certificate.intervals.title') }}</h3>
+          <p class="cs__hint">{{ $t('settings.certificate.intervals.hint') }}</p>
+          <label class="cs__field">
+            <span>{{ $t('settings.certificate.intervals.ppe') }}</span>
+            <input v-model.number="ppeIntervalInput" type="number" min="1" class="cs__input"
+                   :placeholder="$t('settings.certificate.intervals.automatic', { n: automaticPpeMonths })" />
+          </label>
+          <label class="cs__field">
+            <span>{{ $t('settings.certificate.intervals.rigging') }}</span>
+            <input v-model.number="riggingIntervalInput" type="number" min="1" class="cs__input"
+                   :placeholder="$t('settings.certificate.intervals.automatic', { n: automaticRiggingMonths })" />
+          </label>
+
           <h3>{{ $t('settings.certificate.logo') }}</h3>
           <div class="cs__logo">
             <div class="cs__logo-preview">
@@ -146,9 +159,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, getRegime, type CountryCode } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 import {
   renderCertificatePdf,
@@ -168,7 +181,16 @@ const saveError = ref('')
 const rendering = ref(false)
 
 const companyId = ref('')
-const countryCode = ref('NL')
+const countryCode = ref<CountryCode>('NL')
+// Leeg = automatisch (het wettelijke regime van het land, zie
+// packages/core/regimes.ts); alleen een bewust ingevulde waarde overschrijft
+// dat. Zie migratie 20261003_company_interval_optional.sql voor de aanleiding
+// (Jos, 2026-09-27): het Engelse 6-maanden-PBM-regime kwam nooit aan bod
+// omdat deze instelling voorheen altijd een waarde had (not null default 12).
+const ppeIntervalInput = ref<number | null>(null)
+const riggingIntervalInput = ref<number | null>(null)
+const automaticPpeMonths = computed(() => getRegime('ppe', countryCode.value) ?? 12)
+const automaticRiggingMonths = computed(() => getRegime('rigging', countryCode.value) ?? 12)
 const form = reactive({
   name: '',
   address: '',
@@ -203,10 +225,13 @@ async function load() {
     companyId.value = inspector.company_id
     const { data, error: err } = await supabase
       .from('inspection_companies')
-      .select('name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout')
+      .select('name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout, default_interval_ppe_months, default_interval_rigging_months')
       .eq('id', inspector.company_id)
       .single()
     if (err) throw err
+    countryCode.value = (data.country_code as CountryCode) ?? 'NL'
+    ppeIntervalInput.value = data.default_interval_ppe_months ?? null
+    riggingIntervalInput.value = data.default_interval_rigging_months ?? null
     form.name = data.name ?? ''
     form.address = data.address ?? ''
     form.postal_code = data.postal_code ?? ''
@@ -218,7 +243,6 @@ async function load() {
     form.vat_number = data.vat_number ?? ''
     form.cert_header = data.cert_header ?? ''
     form.cert_footer = data.cert_footer ?? ''
-    countryCode.value = data.country_code ?? 'NL'
     Object.assign(layout, resolveLayout(data.cert_layout))
     logoPath.value = data.logo_path ?? null
     if (logoPath.value) {
@@ -346,6 +370,8 @@ async function save() {
         cert_footer: form.cert_footer.trim() || null,
         cert_layout: { ...layout },
         logo_path: logoRemoved ? null : logoPath.value,
+        default_interval_ppe_months: ppeIntervalInput.value || null,
+        default_interval_rigging_months: riggingIntervalInput.value || null,
       })
       .eq('id', companyId.value)
     if (err) throw err

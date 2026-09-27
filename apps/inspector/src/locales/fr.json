@@ -427,6 +427,13 @@
       "menuDesc": "Logo, mise en page, en-tête et pied de page du certificat",
       "intro": "Définissez l'apparence du certificat de contrôle. Les réglages s'appliquent à votre organisme de contrôle et aux certificats imprimés à partir de maintenant ; les certificats déjà délivrés restent inchangés.",
       "companyData": "Coordonnées de l'entreprise",
+      "intervals": {
+        "title": "Fréquences d'inspection",
+        "hint": "Laisser vide pour appliquer automatiquement le régime légal du pays (ex. Royaume-Uni : 6 mois pour les EPI). Si vous remplissez une valeur, elle sera utilisée à la place.",
+        "ppe": "EPI et autre matériel (tout sauf le gréement)",
+        "rigging": "Matériel de gréement",
+        "automatic": "Automatique ({n} mois)"
+      },
       "logo": "Logo",
       "noLogo": "Pas de logo",
       "uploadLogo": "Choisir un logo…",

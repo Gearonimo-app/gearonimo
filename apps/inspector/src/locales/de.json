@@ -427,6 +427,13 @@
       "menuDesc": "Logo, Layout, Kopf- und Fußzeile des Zertifikats",
       "intro": "Legen Sie fest, wie das Prüfzertifikat aussieht. Die Einstellungen gelten für Ihr Prüfunternehmen und für Zertifikate, die Sie ab jetzt ausstellen; bereits ausgestellte Zertifikate bleiben unverändert.",
       "companyData": "Firmendaten",
+      "intervals": {
+        "title": "Prüfintervalle",
+        "hint": "Leer lassen = automatisch das gesetzliche Regime des Landes (z. B. Vereinigtes Königreich: 6 Monate für PSA). Füllst du selbst etwas aus, gilt das stattdessen.",
+        "ppe": "PSA und übriges Material (alles außer Hebezeug)",
+        "rigging": "Hebe-/Riggingmaterial",
+        "automatic": "Automatisch ({n} Monate)"
+      },
       "logo": "Logo",
       "noLogo": "Kein Logo",
       "uploadLogo": "Logo wählen…",

@@ -427,6 +427,13 @@
       "menuDesc": "Logo, layout, header and footer of the certificate",
       "intro": "Configure how the inspection certificate looks. The settings apply to your inspection company and to certificates you print from now on; certificates already issued stay unchanged.",
       "companyData": "Company details",
+      "intervals": {
+        "title": "Inspection intervals",
+        "hint": "Leave empty to use your country's legal regime automatically (e.g. UK: 6 months for PPE). Fill in a value to override it.",
+        "ppe": "PPE and other equipment (everything except rigging)",
+        "rigging": "Rigging equipment",
+        "automatic": "Automatic ({n} months)"
+      },
       "logo": "Logo",
       "noLogo": "No logo",
       "uploadLogo": "Choose logo…",
