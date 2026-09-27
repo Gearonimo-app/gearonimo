@@ -59,7 +59,9 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
 ## Voortgang (bijgewerkt 2026-09-26, opruimen na stap 1-4)
 
-> **Migratie nog uitvoeren:** `20261002_cleanup_codes_and_end_user.sql`.
+> **Migratie uitgevoerd** door Jos op 2026-09-27: `20261002_cleanup_codes_and_end_user.sql`
+> (tweede poging; de eerste faalde omdat de uniciteit op `invite_code` live
+> een constraint is, geen los index -- weer schema-drift). Daarna live gezet.
 >
 > - `end_user` als functie weggehaald bij bestaande gebruikers (was de live
 >   standaardwaarde van de oude code-koppeling) + standaardwaarde eraf.
