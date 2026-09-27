@@ -370,7 +370,7 @@ async function saveNotes(): Promise<boolean> {
     .from('articles')
     .update({ notes: notesDraft.value.trim() || null })
     .eq('id', id.value)
-    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   savingNotes.value = false
   if (err) { notesError.value = t('articles.detail.notesSaveError', { msg: err.message }); return false }
@@ -553,7 +553,7 @@ async function unlinkProduct() {
       free_description: p?.name ?? null,
     })
     .eq('id', id.value)
-    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   linking.value = false
   if (err) { error.value = err.message; return }
@@ -576,7 +576,7 @@ async function linkProduct(p: CatalogProduct) {
     // "spoken" naast de catalogusnaam).
     .update({ product_id: p.id, free_brand: null, free_description: null, free_category: null })
     .eq('id', id.value)
-    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   linking.value = false
   if (err) { error.value = err.message; return }
@@ -634,7 +634,7 @@ async function load() {
 
   const { data, error: err } = await supabase
     .from('articles')
-    .select('*, customer:customers(name), product:products(id, brand, name)')
+    .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .eq('id', id.value)
     .maybeSingle()
   if (err) error.value = err.message

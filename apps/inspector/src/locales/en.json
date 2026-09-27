@@ -97,16 +97,16 @@
       "notFound": "Customer not found",
       "deleteTitle": "Delete customer?",
       "deleteBody": "This cannot be undone.",
-      "inviteCode": "Customer app invite code",
+      "portalHint": "Client app: add the contact person below under Users, with their email address and the Admin checkbox. They then sign in at gearonimo.net/portal with that address.",
       "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "This customer cannot be deleted: inspection history exists. Inspection records are legal evidence and are kept."
     }
   },
   "members": {
-    "title": "Team members",
-    "add": "Add member",
-    "edit": "Edit member",
-    "empty": "No members yet",
+    "title": "Users",
+    "add": "Add user",
+    "edit": "Edit user",
+    "empty": "No users yet",
     "inactiveBadge": "Inactive",
     "fields": {
       "name": "Name *",
@@ -115,14 +115,14 @@
       "email": "Email",
       "notes": "Notes",
       "active": "Active",
-      "admin": "Admin in the client app (can manage members there)"
+      "admin": "Admin in the client app (can manage users there)"
     },
     "errors": {
       "nameRequired": "Name is required"
     },
     "detail": {
-      "deleteTitle": "Delete member?",
-      "deleteBody": "This cannot be undone."
+      "deleteTitle": "Delete user?",
+      "deleteBody": "This cannot be undone. This user's items keep the name but are no longer linked."
     },
     "adminBadge": "Client app admin"
   },

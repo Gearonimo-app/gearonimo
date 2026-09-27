@@ -3,7 +3,8 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from "vue";
+import { onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { supabase } from "@gearonimo/core";
 
 // Platform-brede hero-foto als kopstrook (UX-FLOW §7): zelfde als de
@@ -34,12 +35,32 @@ async function loadHeroTheme() {
 }
 
 onMounted(loadHeroTheme);
+
+// Taalkeuze ook op de server bewaren (customer_members.locale), zodat de
+// herinneringsmail in dezelfde taal komt (besluit Jos 2026-09-25). De keuze
+// zelf blijft in localStorage (LangToggle); dit is alleen een kopie.
+// set_my_locale doet niets zonder sessie, dus fouten mogen stil blijven.
+const { locale } = useI18n({ useScope: "global" });
+async function syncLocale() {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return;
+    await supabase.rpc("set_my_locale", { p_locale: locale.value });
+  } catch {
+    /* geen verbinding e.d.: volgende keer opnieuw */
+  }
+}
+onMounted(syncLocale);
+watch(locale, () => void syncLocale());
 // LET OP: nooit rechtstreeks supabase-aanroepen doen BINNEN de
 // onAuthStateChange-callback -- die draait terwijl supabase-js zijn interne
 // auth-vergrendeling vasthoudt, en elke query wacht op diezelfde
 // vergrendeling. Dat blokkeerde de hele app op "Laden..." (gevonden
 // 2026-07-15). setTimeout plant de query buiten de callback-tick.
 supabase.auth.onAuthStateChange(() => {
-  setTimeout(loadHeroTheme, 0);
+  setTimeout(() => {
+    loadHeroTheme();
+    syncLocale();
+  }, 0);
 });
 </script>

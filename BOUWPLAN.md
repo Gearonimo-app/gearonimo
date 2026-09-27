@@ -5,6 +5,207 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Besluit: klantrollen, eigenaar per artikel, inloggen (Jos, 2026-09-26)
+
+> Vervangt het "open idee" van 2026-09-25 (dat is hiermee besloten).
+> Overzicht van alle rollen: Claude-doc "Gebruikersrollen & rechten".
+> **Nog niets van gebouwd.** Bouwvolgorde hieronder.
+
+**Rollen in de klant-app blijven twee, met één vinkje "Beheerder"** (optie A).
+Meer beheerders per bedrijf mag (bv. eigenaar + magazijnmedewerker).
+
+| Actie | Gebruiker | Beheerder |
+|---|---|---|
+| Alles van het bedrijf bekijken, artikel toevoegen, zelfcontrole, set maken | ja | ja |
+| "In gebruik sinds" invullen (eenmalig) | ja, met melding* | ja |
+| Afvoeren (kapot / kwijt / gestolen) | alleen **eigen** spullen | alles |
+| Afvoeren terugdraaien | wat hij zelf afvoerde | alles |
+| Artikel aanpassen | nee | ja |
+| Keuring aanvragen, bedrijfsgegevens, materiaalsoorten, medewerkers | nee | ja |
+| Herinneringsmail | alleen eigen spullen (als hij een account heeft) | **alles** |
+
+\* Melding: "Alleen invullen bij eerste gebruik, nieuw uit de verpakking --
+niet bij overdracht aan een collega." (Een set van Piet naar Jan is géén
+nieuwe ingebruikname.)
+
+**Eigenaar van een artikel = een gebruiker op de lijst, niet een losse
+naam.** De lijst heet "Gebruikers" (niet "Medewerkers") en alles wat je
+typt komt erop, zonder extra vraag: Piet, Jan die geen app wil, maar ook
+"Voorraad" of "Reserve set 2" (Jos 2026-09-26: *"waarom niet als medewerker
+op de lijst?"* -- geen probleem, want het abonnement wordt nooit per
+gebruiker berekend; hooguit per account of per product). Zonder account
+geen mail; die gaat naar de beheerder. Krijgt iemand later een account, dan
+zijn al zijn spullen meteen van hem.
+
+**Inloggen: twee regels, geen codes meer.**
+1. Staat je e-mailadres op de medewerkerslijst van een bedrijf, dan ben je
+   na inloggen automatisch gekoppeld. De beheerder (of de keurmeester, voor
+   de eerste contactpersoon als beheerder) zet je erop.
+2. Sta je nergens op, dan kies je "Zelf beginnen" (eigen bedrijf) of vraag
+   je je beheerder je toe te voegen.
+De bedrijfs-uitnodigingscode (`customers.invite_code`) en de regel "wie
+het eerst koppelt wordt beheerder" vervallen.
+
+**Bouwvolgorde (elk los op te leveren):**
+1. Artikel-eigenaar koppelen (`assigned_member_id` in gebruik nemen;
+   bestaande namen automatisch koppelen/aanmaken; gedeelde keuzelijst).
+2. Inloggen via e-mail op de lijst; codes weg; startscherm-tekst.
+3. Gebruikersrechten: ingebruikname-datum met melding, eigen spullen
+   afvoeren, terugdraaien (bestaat nog niet).
+4. Herinneringsmail ook naar de eigenaar met account.
+
+Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
+inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
+
+## Voortgang (bijgewerkt 2026-09-26, opruimen na stap 1-4)
+
+> **Migratie uitgevoerd** door Jos op 2026-09-27: `20261002_cleanup_codes_and_end_user.sql`
+> (tweede poging; de eerste faalde omdat de uniciteit op `invite_code` live
+> een constraint is, geen los index -- weer schema-drift). Daarna live gezet.
+>
+> - `end_user` als functie weggehaald bij bestaande gebruikers (was de live
+>   standaardwaarde van de oude code-koppeling) + standaardwaarde eraf.
+> - Dode code weg: kolom `customers.invite_code` + index,
+>   `join_customer_by_invite`, `invite_code` uit `my_customer()`, en de
+>   ongebruikte teksten `members.title`/`members.back` in de klant-app.
+>   Keurmeester-uitnodiging (andere stroom) blijft.
+>
+> **Opgelost 2026-09-27** (Jos: "dan instellingen tegel erin"): de tegel staat
+> nu voor iedereen. Was het open punt: de tegel Instellingen
+> in de klant-app is alleen zichtbaar voor beheerders. Een gewone gebruiker
+> kan daardoor vingerafdruk/Face ID niet meer aanzetten als hij de vraag op
+> het beginscherm met "Niet nu" wegklikte. Oplossing: tegel voor iedereen
+> tonen (de pagina is voor niet-beheerders al alleen-lezen).
+
+## Voortgang (bijgewerkt 2026-09-26, stap 4: herinneringsmail naar eigenaar)
+
+> **Live (2026-09-26):** migratie `20261001_reminder_owners.sql` uitgevoerd
+> en de Edge Function `send-reinspection-reminders` opnieuw gedeployed via
+> het dashboard (471 regels, "Successfully updated edge function").
+> Daarmee zijn alle vier stappen van het besluit klaar.
+>
+> - Beheerders krijgen ongewijzigd alles. Nieuw: een gebruiker **met
+>   account** krijgt een eigen mail met alleen zijn eigen spullen, met de
+>   inleiding "een deel van jouw eigen uitrusting ... Je beheerder krijgt
+>   dit bericht ook." Zonder account (Voorraad, Jan zonder app): geen mail,
+>   staat al in de beheerdersmail. Eigenaar die zelf beheerder is: alleen de
+>   beheerdersmail (geen dubbele).
+> - Een artikel telt als "herinnerd" zodra minstens één mail waarin het
+>   stond is aangekomen (was: zodra er één mail naar de klant aankwam).
+> - Getest: SQL lokaal (PostgreSQL 16); de Edge Function in een simulatie
+>   met nep-ZeptoMail (beheerder 4 artikelen, Piet 1, Jan 1 in het Engels,
+>   geen dubbele voor de beheerder); Piets mail gerenderd op 390 px.
+
+## Voortgang (bijgewerkt 2026-09-26, stap 3: rechten gebruiker)
+
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260930_member_rights.sql`. Daarna live gezet.
+>
+> - "In gebruik nemen": knop op het artikeldetail voor élke gebruiker, bij
+>   elk artikel van het bedrijf zolang de datum leeg is (ook "Voorraad").
+>   Dialoog met de melding "alleen bij eerste gebruik, nieuw uit de
+>   verpakking, niet bij overdracht aan een collega". Eenmalig, niet in de
+>   toekomst (`set_my_first_use_date`). Zelfde melding bij toevoegen en in
+>   het bewerkformulier van de beheerder.
+> - Afvoeren: prullenbak nu ook voor de gebruiker, alleen bij zijn eigen
+>   spullen; beheerder alles. Snelkeuze Kapot / Kwijt / Gestolen (vrije
+>   tekst blijft). Nieuwe kolom `articles.retired_by_member_id`.
+> - Terugzetten: lijst "Afgevoerd (n)" onderaan Mijn materiaal (dicht
+>   standaard, laatste 12 maanden), knop "Terugzetten" voor wie het afvoerde
+>   of de beheerder (`restore_my_article`, `my_retired_articles`).
+> - Lokaal getest (PostgreSQL 16) + schermen gerenderd op 390 px.
+> - Opgevallen, niet aangeraakt: de paginatitel in de kopbalk (PageHeader)
+>   loopt op 390 px over drie regels naast "GEARONIMO" -- nakijken op een
+>   echte telefoon.
+
+## Voortgang (bijgewerkt 2026-09-26, stap 2: inloggen zonder codes)
+
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260929_login_by_email.sql`.
+> Vooraf gecontroleerd: "Confirm email" staat AAN in Supabase (moet zo
+> blijven, anders kan iemand zich met andermans e-mailadres registreren en
+> diens plek op een lijst Gebruikers claimen). Daarna live gezet.
+>
+> - `claim_my_memberships()`: na inloggen koppelt de app je aan elke rij op
+>   een lijst Gebruikers met jouw **bevestigde** e-mailadres. Alleen actieve
+>   rijen die nog aan níemand gekoppeld zijn (een tikfout in een e-mailadres
+>   kan dus nooit een collega zijn account afpakken). Aangeroepen in de
+>   router-guard (één keer per account per sessie) en via "Opnieuw proberen".
+> - Vangnet: heeft een bedrijf nog géén beheerder, dan wordt de eerste van de
+>   lijst die inlogt beheerder (alleen iemand die al op de lijst stond).
+> - Startscherm: "Ik hoor bij een bedrijf" (toont je e-mailadres + "Opnieuw
+>   proberen") en "Zelf beginnen". Pagina Join weg; oude /join-links gaan
+>   naar het startscherm. `join_customer_by_invite` geeft nu een nette
+>   melding (voor een oude, gecachte app).
+> - Instellingen (klant) en klantdetail (keurmeester): code weg, uitleg
+>   "zet iemand op de lijst met e-mailadres" erin.
+> - Ongewijzigd: de uitnodigingscode voor **keurmeesters** (andere stroom).
+> - Lokaal getest (PostgreSQL 16): 2 bedrijven tegelijk, niet-bevestigde
+>   e-mail, inactieve gebruiker, vangnet-beheerder, oude code. Startscherm
+>   gerenderd op 390 px en 1024 px.
+
+## Voortgang (bijgewerkt 2026-09-26, stap 1: eigenaar per artikel)
+
+> **Migratie uitgevoerd** door Jos op 2026-09-26: `20260928_article_owner_member.sql`
+> (na schema-controle; live `role` had default `'end_user'`, daarom maakt de
+> trigger nieuwe gebruikers met lege functie). Controle: 547 artikelen
+> gekoppeld, 0 met naam maar zonder koppeling.
+>
+> - Koppeling zit in de database (trigger `articles_sync_owner`), niet in de
+>   apps: elke schrijfroute (keurmeester-app incl. offline-sync, klant-app,
+>   import, wizard) koppelt vanzelf. Naam zoeken negeert hoofdletters en
+>   dubbele spaties; onbekende naam -> nieuwe gebruiker zonder account.
+>   Gebruiker hernoemd -> artikelen volgen. Gebruiker verwijderd -> naam blijft
+>   op het artikel, koppeling vervalt. Bestaande artikelen worden in dezelfde
+>   migratie gekoppeld.
+> - Lokaal getest op PostgreSQL 16 (8 scenario's + tweede keer draaien).
+> - "Medewerkers" heet in beide apps nu "Gebruikers" (nl/en/de/fr).
+> - Gevonden en hersteld: de keuzelijst in de klant-app had geen vertalingen
+>   (`userPicker.*` ontbrak sinds 2026-08-13; je zag ruwe codes).
+> - Bewust niet gedaan: de keurmeester-app houdt zijn typveld met
+>   suggesties i.p.v. dezelfde keuzelijst als de klant-app. Omdat de
+>   database nu koppelt, levert dat geen dubbele personen meer op. Het nette
+>   werk (één gedeeld component in `packages/ui`) kan later.
+
+## Voortgang (bijgewerkt 2026-09-25, herinneringsmail v3)
+
+> Besluit Jos 2026-09-25: ook in de mail (a) artikelen die nooit gekeurd
+> zijn maar wel een ingebruiknamedatum hebben -- eerste keuring nodig op
+> ingebruikname + 12 maanden, zelfde regel als de app -- en (b) de eigen
+> afvinklijst (brandblusser, kettingzaag): laatste afvinking + vervolgdatum,
+> nooit afgevinkt -> ingebruikname/aankoop + 12 maanden. Nieuwe functie
+> `reminder_due_items` (migratie `20260926_reminder_first_and_self_checks.sql`)
+> met kolom `kind`; de oude `reminder_due_articles` blijft staan zodat de
+> huidige Edge Function blijft werken tot de nieuwe gedeployed is.
+>
+> **Live (2026-09-25):** migratie uitgevoerd, Edge Function gedeployed,
+> handmatige test: 2 mails verstuurd, echte mail ontvangen (eerste keuring
+> OK TRIACT-LOCK, testklant De Rots). Oude functies
+> `reminder_due_articles` en `customers_due_for_reminder` opgeruimd
+> (`20260927_reminder_cleanup_old_functions.sql`, uitgevoerd).
+
+## Voortgang (2026-09-25, herinneringsmail v2)
+
+> Besluiten Jos 2026-09-25: de regel "max 1 mail per 30 dagen per klant"
+> liet een tweede keuring kort erna bijna vallen (A verloopt 25 nov, B 30
+> nov: mail over A op 26 okt, B pas genoemd op 25 nov). Nieuw:
+> - Mail zodra een nog niet genoemd artikel binnen **30 dagen** verloopt;
+>   in die mail alles wat binnen **60 dagen** verloopt en nog niet genoemd
+>   is. Elk artikel (per verloopdatum) komt **één keer** langs
+>   (`customer_reminder_items`). Vangnet: max. 1 mail per 7 dagen per klant.
+> - Alleen bijna-verlopen keuringen, niet wat al over datum is.
+> - Mail gegroepeerd per keuring + verloopdatum; groep van hooguit 5
+>   artikelen toont namen, groter alleen aantal. Knop naar het
+>   materiaaloverzicht (`/portal/#/materials`), geen aparte keuringspagina.
+> - Vriendelijke toon + gele melding "je krijgt deze herinnering maar één
+>   keer per artikel".
+> - Taal nl/en/fr/de: klant-app slaat de taalkeuze op in
+>   `customer_members.locale` (`set_my_locale`); anders taal van het laatste
+>   certificaat, anders nl.
+>
+> **Live (2026-09-25):** migratie `20260925_reminder_per_article.sql`
+> uitgevoerd, Edge Function opnieuw gedeployed via het dashboard, handmatige
+> test: status 200, `{"processed": 0, "results": []}`. Opruimen kan later:
+> de oude functie `customers_due_for_reminder` wordt niet meer gebruikt.
+
 ## Voortgang (bijgewerkt 2026-09-25, resterende "midden"-bevindingen codereview)
 
 > De 13 overgebleven "midden"-bevindingen uit de codereview van 15/16 sept.

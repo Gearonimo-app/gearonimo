@@ -22,14 +22,10 @@
           </div>
         </template>
       </dl>
-      <!-- Uitnodigingscode voor de klant-app (fase 3): hiermee koppelt een
-           medewerker van deze klant zijn account op gearonimo.net/portal/. -->
-      <div v-if="customer.invite_code" class="cd__invite">
-        <span class="cd__invite-label">{{ $t('customers.detail.inviteCode') }}</span>
-        <code class="cd__invite-code">{{ customer.invite_code }}</code>
-        <button class="cd__invite-copy" :title="$t('common.copy')" @click="copyInvite">{{ inviteCopied ? '✓' : '⧉' }}</button>
-      </div>
-      <p v-if="customer.invite_code" class="cd__invite-url">{{ $t('customers.detail.inviteUrlLabel') }} <code>gearonimo.net/portal/</code></p>
+      <!-- Klant-app zonder codes (besluit Jos 2026-09-26): de keurmeester zet
+           de contactpersoon bij Gebruikers met e-mailadres + vinkje
+           Beheerder; bij inloggen koppelt claim_my_memberships() hem. -->
+      <p class="cd__invite-url">{{ $t('customers.detail.portalHint') }}</p>
       <CustomerMembers :customer-id="id" />
       <!-- Het aparte "Sets"-blok is weg: de artikellijst groepeert al per set
            en de setkoppen daarin klikken door naar het setdetail (dubbelop,
@@ -256,13 +252,6 @@ function label(key: string) {
   return t(key).replace(' *', '')
 }
 
-const inviteCopied = ref(false)
-async function copyInvite() {
-  await navigator.clipboard.writeText(String(customer.value?.invite_code ?? ''))
-  inviteCopied.value = true
-  window.setTimeout(() => { inviteCopied.value = false }, 1500)
-}
-
 async function load() {
   loading.value = true
   error.value = ''
@@ -381,15 +370,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .cd__view-row:last-child { border-bottom: none; }
 .cd__view-row dt { color: #6b7280; font-size: 0.85rem; }
 .cd__view-row dd { margin: 0; font-weight: 600; text-align: right; word-break: break-word; }
-.cd__invite {
-  display: flex; align-items: center; gap: 0.6rem;
-  background: #fff; border-radius: 12px; padding: 0.85rem 1rem; margin-top: 0.85rem;
-}
-.cd__invite-label { color: #6b7280; font-size: 0.85rem; flex: 1; }
-.cd__invite-code { font-weight: 700; letter-spacing: 0.12em; font-size: 1rem; }
-.cd__invite-copy { border: none; background: #f3f4f6; border-radius: 8px; padding: 0.35rem 0.6rem; cursor: pointer; }
-.cd__invite-url { margin: 0.35rem 0 0; font-size: 0.8rem; color: #6b7280; }
-.cd__invite-url code { font-weight: 600; color: #374151; }
+.cd__invite-url { margin: 0.85rem 0 0; font-size: 0.8rem; color: #6b7280; }
 
 .cd__delete {
   margin-top: 1.5rem; width: 100%; padding: 0.85rem; border-radius: 10px;

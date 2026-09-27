@@ -49,17 +49,10 @@
     "unnamed": "This device",
     "empty": "No device linked yet."
   },
-  "join": {
-    "title": "Link your company",
-    "subtitle": "Enter the invite code you received from your inspector.",
-    "code": "Invite code",
-    "name": "Your name",
-    "namePlaceholder": "e.g. John Smith",
-    "submit": "Link"
-  },
   "home": {
     "title": "Gearonimo",
     "subtitle": "Your gear, always in order",
+    "loggedInAs": "Logged in as {name}",
     "verdict": {
       "good": "All in order",
       "warn": "Inspection due soon",
@@ -139,7 +132,17 @@
       "other": "Other"
     },
     "allDomains": "All material types",
-    "attentionCount": "{n} need attention"
+    "attentionCount": "{n} need attention",
+    "retired": {
+      "title": "Retired ({n})",
+      "restore": "Restore",
+      "by": "by {name}",
+      "reasons": {
+        "broken": "Broken",
+        "lost": "Lost",
+        "stolen": "Stolen"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Article not found.",
@@ -159,7 +162,9 @@
       "purchaseDate": "Purchase date",
       "firstUse": "In use since",
       "nextDue": "Next inspection"
-    }
+    },
+    "firstUseAction": "Put into use",
+    "firstUseHint": "Only fill in at first use, new out of the packaging. Not when handing over to a colleague. This can only be done once."
   },
   "settings": {
     "title": "Settings",
@@ -192,11 +197,9 @@
     }
   },
   "members": {
-    "title": "Team members",
-    "back": "Back",
-    "add": "+ Member",
+    "add": "+ User",
     "edit": "Edit",
-    "empty": "No team members yet.",
+    "empty": "No users yet.",
     "badgeAdmin": "Admin",
     "badgeInactive": "Inactive",
     "badgeNoAccount": "no account yet",
@@ -207,21 +210,22 @@
       "phone": "Phone",
       "email": "Email address",
       "active": "Active",
-      "admin": "Admin (can manage team members)"
+      "admin": "Admin (can manage users)"
     },
     "save": "Save",
     "cancel": "Cancel",
-    "inviteTitle": "Invite colleagues",
-    "inviteHint": "Have a colleague sign in to this app and link with this code. Use the same email address as entered for the member here, and the account and member record are merged automatically.",
-    "copy": "Copy",
-    "readOnly": "Only an admin can edit team members."
+    "inviteTitle": "Add a colleague",
+    "inviteHint": "Add your colleague to the list below, with their email address. They then sign in at gearonimo.net/portal with that address and are linked straight away.",
+    "readOnly": "Only an admin can edit users."
   },
   "start": {
     "title": "Welcome to Gearonimo",
     "subtitle": "How would you like to start?",
-    "haveCode": {
-      "title": "I have an invitation code",
-      "desc": "Your inspection company gave you a code."
+    "company": {
+      "title": "I belong to a company",
+      "desc": "Ask your admin or inspector to add this email address to the Users list:",
+      "notFound": "This email address is not on any company's list yet.",
+      "retry": "Try again"
     },
     "self": {
       "title": "Start on my own",
@@ -311,5 +315,11 @@
     "torch": "Flashlight",
     "close": "Close",
     "unavailable": "Camera unavailable. Check your permissions."
+  },
+  "userPicker": {
+    "unassigned": "No user",
+    "other": "+ New name…",
+    "backToList": "Back to the list",
+    "noMembersHint": "A new name is added to the Users list automatically. It can also be \"Stock\" or \"Spare set 2\"."
   }
 }

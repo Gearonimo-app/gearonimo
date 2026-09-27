@@ -255,7 +255,7 @@ const SELECT =
   'id, serial_number, free_brand, free_description, free_category, free_recall_flag, free_recall_url, free_manual_url, ' +
   'recall_cleared_url, notice_cleared_url, ' +
   'product_id, manufacture_year, manufacture_month, assigned_user_name, ' +
-  'customer:customers(id, name), ' +
+  'customer:customers!articles_customer_id_fkey(id, name), ' +
   'product:products(brand, name, category, recall_url, inspection_notice_url, manual_url)'
 
 const loading = ref(false)

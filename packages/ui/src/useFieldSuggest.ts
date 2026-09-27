@@ -31,6 +31,16 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
 
   watch(suggestions, () => {
     suggestIndex.value = -1;
+    // Bij elke nieuwe letter verandert de gefilterde lijst, maar de lijstbox
+    // zelf blijft hetzelfde DOM-element (v-for update, geen nieuwe v-if) --
+    // een eerdere scrollpositie (bv. van vóór het verder typen) bleef daardoor
+    // staan. De bovenste rijen leken dan "verborgen" onder de knop erboven,
+    // terwijl ze gewoon buiten beeld gescrold stonden (Jos, 2026-09-25). Een
+    // nieuwe filtering hoort altijd weer bovenaan te beginnen.
+    nextTick(() => {
+      const container = itemRefs.value[0]?.parentElement;
+      if (container) container.scrollTop = 0;
+    });
   });
 
   /** Alleen aanroepen ná toetsenbordnavigatie (zie onKeydown) -- NIET via een
@@ -51,14 +61,26 @@ export function useFieldSuggest<F extends string>(opts: FieldSuggestOptions<F>) 
    * te vertrouwen. Nu zelf berekenen met getBoundingClientRect (altijd
    * viewport-coördinaten, onafhankelijk van positioning/flex-eigenaardig-
    * heden) en zelf scrollTop bijstellen -- alleen als het item écht buiten
-   * beeld valt, en dan maar net genoeg. */
+   * beeld valt, en dan maar net genoeg.
+   *
+   * Bleek nóg niet genoeg (Jos, derde melding, 2026-09-25, met een
+   * debug-regeltje aangetoond): `itemRefs.value[i]` is de Vue-array-ref van
+   * de v-for-knoppen, en Vue's eigen documentatie waarschuwt daar expliciet
+   * voor -- "the ref array does not guarantee the same order as the source
+   * array". Bij elke nieuwe letter verschuift de volgorde van de resultaten
+   * (fuzzy ranking), en de array-ref vult zich in mount-volgorde, niet in
+   * v-for-volgorde. Item 0 in `itemRefs` bleek daardoor soms een heel ander
+   * item dan het eerste zichtbare -- de lijst "sprong" dus naar de positie
+   * van het verkeerde item. De DOM zelf staat wél altijd in de juiste
+   * volgorde, dus `container.children[i]` gebruiken in plaats van de
+   * array-ref (die alleen nog dient om bij de container te komen). */
   function scrollActiveIntoView() {
     if (!opts.scrollToActive) return;
     const i = suggestIndex.value;
     if (i < 0) return;
     nextTick(() => {
-      const el = itemRefs.value[i];
-      const container = el?.parentElement;
+      const container = itemRefs.value[0]?.parentElement;
+      const el = container?.children[i] as HTMLElement | undefined;
       if (!el || !container) return;
       const elRect = el.getBoundingClientRect();
       const containerRect = container.getBoundingClientRect();
