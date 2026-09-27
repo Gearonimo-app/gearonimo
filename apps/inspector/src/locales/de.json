@@ -834,6 +834,7 @@
       "setPasswordPh": "Neues Passwort (mind. 8 Zeichen)",
       "setPasswordDone": "Passwort festgelegt. Geben Sie es zusammen mit der E-Mail-Adresse an den Prüfer weiter.",
       "curator": "Katalog-Kurator",
+      "editInspector": "Bearbeiten",
       "delete": "Unternehmen löschen",
       "deleteTitle": "Unternehmen löschen?",
       "deleteBody": "{name} wird endgültig gelöscht, einschließlich Prüfer-Verknüpfungen und Einstellungen. Dies ist nur möglich, solange das Unternehmen noch keine Prüfungen durchgeführt hat; Kundenunternehmen selbst bleiben erhalten.",

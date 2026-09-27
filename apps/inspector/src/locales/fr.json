@@ -834,6 +834,7 @@
       "setPasswordPh": "Nouveau mot de passe (8 caractères min.)",
       "setPasswordDone": "Mot de passe défini. Transmettez-le avec l'adresse e-mail à l'inspecteur.",
       "curator": "Curateur du catalogue",
+      "editInspector": "Modifier",
       "delete": "Supprimer l'entreprise",
       "deleteTitle": "Supprimer cette entreprise ?",
       "deleteBody": "{name} sera définitivement supprimée, y compris les liaisons d'inspecteurs et les paramètres. Cela n'est possible que tant que l'entreprise n'a effectué aucun contrôle ; les entreprises clientes elles-mêmes restent conservées.",

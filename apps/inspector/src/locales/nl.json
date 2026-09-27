@@ -834,6 +834,7 @@
       "setPasswordPh": "Nieuw wachtwoord (min. 8 tekens)",
       "setPasswordDone": "Wachtwoord ingesteld. Geef het samen met het e-mailadres door aan de keurmeester.",
       "curator": "Catalogus-curator",
+      "editInspector": "Bewerken",
       "delete": "Bedrijf verwijderen",
       "deleteTitle": "Bedrijf verwijderen?",
       "deleteBody": "{name} wordt definitief verwijderd, inclusief keurmeester-koppelingen en instellingen. Dit kan alleen zolang het bedrijf nog geen keuringen heeft uitgevoerd; klantbedrijven zelf blijven bestaan.",

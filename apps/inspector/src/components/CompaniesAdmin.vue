@@ -93,6 +93,24 @@
             </label>
           </div>
 
+          <!-- Keurmeester bewerken namens het bedrijf (besluit Jos
+               2026-09-27): platform-admin mag hier helpen zonder zelf bij
+               dat bedrijf te horen, via platform_admin_update_inspector. -->
+          <div class="ca__edit">
+            <button v-if="editFor !== i.id" class="ca__pw-toggle" @click="openEdit(i)">{{ $t('settings.companies.editInspector') }}</button>
+            <div v-else class="ca__pw-form">
+              <label class="ca__field"><span>{{ $t('settings.inspectors.fields.name') }}</span>
+                <input v-model="editForm.name" class="ca__input" /></label>
+              <label class="ca__check"><input type="checkbox" v-model="editForm.is_admin" /> {{ $t('settings.inspectors.fields.admin') }}</label>
+              <label class="ca__check"><input type="checkbox" v-model="editForm.active" /> {{ $t('settings.inspectors.fields.active') }}</label>
+              <p v-if="editError" class="ca__error">{{ editError }}</p>
+              <div class="ca__actions">
+                <button class="ca__btn ca__btn--cancel" @click="editFor = null">{{ $t('common.cancel') }}</button>
+                <button class="ca__btn ca__btn--save" :disabled="editBusy" @click="saveEdit(i)">{{ editBusy ? $t('common.saving') : $t('common.save') }}</button>
+              </div>
+            </div>
+          </div>
+
           <!-- Wachtwoord instellen: vangnet voor als de uitnodigingsmail niet
                aankomt (besluit Jos 2026-07-21). Alleen mogelijk als er al een
                account is (i.email gevuld). -->
@@ -438,6 +456,42 @@ async function savePassword(i: CompanyInspector) {
   }
 }
 
+// Keurmeester bewerken (naam/beheerder/actief) namens het bedrijf. Zelfde
+// inline-formulier-patroon als "Wachtwoord instellen" hierboven.
+const editFor = ref<string | null>(null)
+const editBusy = ref(false)
+const editError = ref('')
+const editForm = reactive({ name: '', is_admin: false, active: true })
+
+function openEdit(i: CompanyInspector) {
+  editFor.value = i.id
+  editForm.name = i.name ?? ''
+  editForm.is_admin = i.is_admin
+  editForm.active = i.active
+  editError.value = ''
+}
+async function saveEdit(i: CompanyInspector) {
+  editError.value = ''
+  editBusy.value = true
+  try {
+    const { error: err } = await supabase.rpc('platform_admin_update_inspector', {
+      p_inspector_id: i.id,
+      p_name: editForm.name.trim(),
+      p_is_admin: editForm.is_admin,
+      p_active: editForm.active,
+    })
+    if (err) throw err
+    i.name = editForm.name.trim() || null
+    i.is_admin = editForm.is_admin
+    i.active = editForm.active
+    editFor.value = null
+  } catch (e) {
+    editError.value = errorMessage(e)
+  } finally {
+    editBusy.value = false
+  }
+}
+
 async function toggleCurator(i: CompanyInspector, e: Event) {
   const value = (e.target as HTMLInputElement).checked
   const prev = i.can_curate_catalog
@@ -482,6 +536,7 @@ onMounted(load)
 .ca__row-main { display: flex; align-items: center; gap: 0.75rem; }
 .ca__row-main .ca__body { flex: 1; }
 .ca__pw { display: flex; flex-direction: column; gap: 0.5rem; }
+.ca__edit { display: flex; flex-direction: column; gap: 0.5rem; }
 .ca__pw-toggle { align-self: flex-start; background: none; border: none; color: #2563eb; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0; }
 .ca__pw-form { display: flex; flex-direction: column; gap: 0.5rem; background: #f9fafb; border-radius: 8px; padding: 0.75rem; }
 

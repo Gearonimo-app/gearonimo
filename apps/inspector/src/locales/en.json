@@ -834,6 +834,7 @@
       "setPasswordPh": "New password (min. 8 characters)",
       "setPasswordDone": "Password set. Share it together with the email address with the inspector.",
       "curator": "Catalog curator",
+      "editInspector": "Edit",
       "delete": "Delete company",
       "deleteTitle": "Delete company?",
       "deleteBody": "{name} will be deleted permanently, including inspector links and settings. This is only possible while the company has not performed any inspections yet; customer companies themselves remain.",
