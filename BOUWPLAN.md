@@ -57,6 +57,25 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (bijgewerkt 2026-09-27, weekbackup live gegevens)
+
+> **Besluit Jos (2026-09-27):** Supabase blijft voorlopig op Free (geen
+> downloadbare backups). Nu er echte klanten komen: elke week een
+> versleutelde backup naar een externe SSD (`gearonimo`) aan zijn
+> Windows-computer. Eén schijf, thuis; geen kopie buiten de deur (brand +
+> Supabase-storing tegelijk is verwaarloosbaar). Oude WD My Cloud-NAS niet
+> gebruikt (geen updates meer).
+>
+> - `tools/backup/`: `INSTALLEREN.cmd` + `installeren.ps1` (haalt 7-Zip en
+>   `pg_dump` 17 zelf op, met SHA-256-controle; vraagt verbinding, sleutels en
+>   backup-wachtwoord; zet Taakplanner-taak + bureaublad-snelkoppeling) en
+>   `backup.ps1` (database `public` + `auth.users`/`identities`, alle
+>   Storage-buckets, 7z AES-256, laatste 8 bewaard). Zie `tools/backup/README.md`.
+> - Getest op Linux (pwsh + lokale Postgres + nagebootste Storage-API),
+>   incl. terugzetten. **Nog niet getest op Windows / echte Supabase**: de
+>   eerste backup samen met Jos draaien.
+> - Open: installatie bij Jos.
+
 ## Voortgang (bijgewerkt 2026-09-26, opruimen na stap 1-4)
 
 > **Migratie uitgevoerd** door Jos op 2026-09-27: `20261002_cleanup_codes_and_end_user.sql`
