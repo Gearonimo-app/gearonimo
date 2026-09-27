@@ -142,9 +142,20 @@ const {
   },
 })
 
+// Niet automatisch het merk invullen zolang het getypte een voorvoegsel is
+// van een langere productnaam elders in de catalogus (bv. "sir" bij een kort
+// product "SIR" terwijl er ook een langer "Sirius..." bestaat) -- anders
+// versmalt de suggestielijst stilletjes tot het verkeerde merk terwijl de
+// keurmeester nog aan het typen is. Zie CustomerArticles.vue voor de
+// aanleiding (Jos, 2026-09-27).
 watch(description, (name) => {
   const n = name.trim().toLowerCase()
   if (!n) return
+  const isPrefixOfLonger = props.products.some((p) => {
+    const pname = (p.name ?? '').toLowerCase()
+    return pname.length > n.length && pname.startsWith(n)
+  })
+  if (isPrefixOfLonger) return
   const p = props.products.find((p) => (p.name ?? '').toLowerCase() === n)
   if (p?.brand) brand.value = p.brand
 })

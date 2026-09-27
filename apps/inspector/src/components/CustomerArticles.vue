@@ -404,6 +404,21 @@ function onBarcodeScan(text: string) {
 // Zodra het getypte artikel exact een catalogusproduct matcht, merk en
 // categorie meteen invullen. Vrije tekst laat de velden met rust. Staat het
 // merk al goed (bv. na een scan), dan wint het product van dát merk.
+//
+// Bug gevonden (Jos, 2026-09-27): "sir" matchte exact een kort Rock Empire-
+// product "SIR" en vulde meteen dat merk in; daarna leverde verder typen naar
+// "sirius" niets meer op, want de suggestielijst was al versmald tot Rock
+// Empire (Teufelberger's Sirius-lijn zat daar niet bij). Fix: niet automatisch
+// invullen zolang het getypte een voorvoegsel is van een langere productnaam
+// elders in de catalogus -- dan kan de keurmeester nog steeds aan het typen
+// zijn. De suggestielijst zelf blijft gewoon alles tonen; alleen het
+// automatisch dichttimmeren van het merk wacht dan nog even.
+function isPrefixOfLongerProductName(n: string): boolean {
+  return products.value.some(p => {
+    const name = (p.name ?? '').toLowerCase()
+    return name.length > n.length && name.startsWith(n)
+  })
+}
 watch(newDescription, (name) => {
   barcodeNotice.value = ''
   const typed = name.trim()
@@ -412,7 +427,7 @@ watch(newDescription, (name) => {
     if (byCode) { applyBarcodeProduct(byCode); return }
   }
   const n = typed.toLowerCase()
-  if (!n) return
+  if (!n || isPrefixOfLongerProductName(n)) return
   const b = newBrand.value.trim().toLowerCase()
   const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
   const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
