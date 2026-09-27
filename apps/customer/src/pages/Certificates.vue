@@ -25,8 +25,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { supabase, errorMessage } from "@gearonimo/core";
+import { useI18n } from "vue-i18n";
+import { supabase, errorMessage, formatDate as sharedFormatDate } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
+
+const { locale } = useI18n();
 
 interface CertificateRow {
   inspection_id: string;
@@ -41,7 +44,7 @@ const loading = ref(true);
 const error = ref("");
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
+  return sharedFormatDate(d, locale.value);
 }
 
 function certificateUrl(c: CertificateRow) {

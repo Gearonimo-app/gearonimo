@@ -636,6 +636,7 @@ import {
   inspectorVisibleArticles,
   isUnlimitedAge,
   toIsoDate,
+  formatDate as sharedFormatDate,
   findProductByBarcode,
   isValidGtin,
   type ProductType,
@@ -649,7 +650,7 @@ import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
 
 const route = useRoute()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const categoryLabel = useCategoryLabel()
 const id = route.params.id as string
 const { isOnline } = useOnline()
@@ -1538,7 +1539,7 @@ async function editManualUrl(it: Item) {
 }
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+  return sharedFormatDate(d, locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 // Excel-export (Jos, 2026-09-08): alleen de zichtbare gegevens, geen
@@ -2314,7 +2315,10 @@ async function retireArticle(it: Item) {
     .eq('article_id', it.article.id)
     .eq('inspections.status', 'completed')
     .limit(1)
-  if (checkErr) return
+  if (checkErr) {
+    addError.value = errorMessage(checkErr)
+    return
+  }
 
   if (certified && certified.length) {
     if (!confirm(t('articles.detail.retireBody'))) return
@@ -2322,14 +2326,25 @@ async function retireArticle(it: Item) {
       .from('articles')
       .update({ retired: true, retired_at: new Date().toISOString() })
       .eq('id', it.article.id)
-    if (!err) it.article.retired = true
+    if (err) {
+      addError.value = errorMessage(err)
+      return
+    }
+    it.article.retired = true
     return
   }
 
   if (!confirm(t('articles.detail.deleteNeverInspectedBody'))) return
   const { error: itemErr } = await supabase.from('inspection_items').delete().eq('id', it.id)
-  if (itemErr) return
-  await supabase.from('articles').delete().eq('id', it.article.id)
+  if (itemErr) {
+    addError.value = errorMessage(itemErr)
+    return
+  }
+  const { error: articleErr } = await supabase.from('articles').delete().eq('id', it.article.id)
+  if (articleErr) {
+    addError.value = errorMessage(articleErr)
+    return
+  }
   items.value = items.value.filter((x) => x.id !== it.id)
 }
 

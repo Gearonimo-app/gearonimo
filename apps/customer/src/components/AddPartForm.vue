@@ -13,7 +13,7 @@
     <div class="apf__panel">
       <div class="apf__head">
         <h3 class="apf__title">{{ $t('sets.addPart.title') }}</h3>
-        <button type="button" class="apf__x" @click="$emit('close')">✕</button>
+        <button type="button" class="apf__x" :title="$t('common.close')" :aria-label="$t('common.close')" @click="$emit('close')">✕</button>
       </div>
       <p class="apf__label">{{ $t('sets.addPart.linkedTo', { name: mainLabel }) }}</p>
 
@@ -30,7 +30,7 @@
             ref="searchInput"
             v-model="q"
             class="apf__input"
-            :placeholder="$t('home.addArticle.search')"
+            :placeholder="$t('home.addArticle.search')" :aria-label="$t('home.addArticle.search')"
             autocomplete="off"
             @input="onSearch"
             @keydown="onKeydown"
@@ -57,23 +57,23 @@
 
         <div v-if="chosen" class="apf__chosen">
           <span><strong>{{ chosen.brand }}</strong> {{ chosen.name }}</span>
-          <button type="button" class="apf__chosen-clear" @click="clearChosen">✕</button>
+          <button type="button" class="apf__chosen-clear" :title="$t('common.clearSelection')" :aria-label="$t('common.clearSelection')" @click="clearChosen">✕</button>
         </div>
 
         <template v-if="freeMode">
-          <input ref="descriptionInput" v-model="freeDescription" class="apf__input" :placeholder="$t('home.addArticle.description')" />
-          <input v-model="freeBrand" class="apf__input" :placeholder="$t('home.addArticle.brand')" />
+          <input ref="descriptionInput" v-model="freeDescription" class="apf__input" :placeholder="$t('home.addArticle.description')" :aria-label="$t('home.addArticle.description')" />
+          <input v-model="freeBrand" class="apf__input" :placeholder="$t('home.addArticle.brand')" :aria-label="$t('home.addArticle.brand')" />
           <button type="button" class="apf__free-toggle" @click="backToSearch">
             {{ $t('home.addArticle.backToSearch') }}
           </button>
         </template>
 
-        <input ref="serialInput" v-model="serial" class="apf__input" :placeholder="$t('home.addArticle.serial')" />
+        <input ref="serialInput" v-model="serial" class="apf__input" :placeholder="$t('home.addArticle.serial')" :aria-label="$t('home.addArticle.serial')" />
         <div class="apf__row">
-          <input v-model.number="year" type="number" min="1990" max="2100" class="apf__input" :placeholder="$t('home.addArticle.year')" />
-          <input v-model.number="month" type="number" min="1" max="12" class="apf__input" :placeholder="$t('home.addArticle.month')" />
+          <input v-model.number="year" type="number" min="1990" max="2100" class="apf__input" :placeholder="$t('home.addArticle.year')" :aria-label="$t('home.addArticle.year')" />
+          <input v-model.number="month" type="number" min="1" max="12" class="apf__input" :placeholder="$t('home.addArticle.month')" :aria-label="$t('home.addArticle.month')" />
         </div>
-        <input v-model="role" class="apf__input" :placeholder="$t('sets.addPart.rolePlaceholder')" />
+        <input v-model="role" class="apf__input" :placeholder="$t('sets.addPart.rolePlaceholder')" :aria-label="$t('sets.addPart.rolePlaceholder')" />
 
         <label v-if="candidates.length" class="apf__replace">
           {{ $t('sets.addPart.replaces') }}
@@ -239,25 +239,23 @@ async function save() {
   }
   saving.value = true;
   try {
-    const { data: newArticleId, error: addErr } = await supabase.rpc("add_my_article", {
+    // Eén atomaire RPC i.p.v. twee losse (code review): mislukt het koppelen,
+    // dan rolt het net aangemaakte artikel vanzelf mee terug i.p.v. als
+    // wees-artikel te blijven staan.
+    const { error: err } = await supabase.rpc("add_and_link_my_article", {
       p_product_id: chosen.value?.id ?? null,
       p_free_brand: chosen.value ? null : freeBrand.value.trim() || null,
       p_free_description: chosen.value ? null : description || null,
       p_serial_number: serial.value.trim() || null,
       p_manufacture_year: year.value || null,
       p_manufacture_month: month.value || null,
-    });
-    if (addErr) throw addErr;
-
-    const { error: linkErr } = await supabase.rpc("get_or_create_article_set", {
       p_customer_id: props.customerId,
       p_primary_article_id: props.mainArticleId,
       p_primary_label: props.mainLabel,
-      p_new_article_id: newArticleId,
       p_role: role.value.trim() || null,
       p_retire_article_id: replaceArticleId.value,
     });
-    if (linkErr) throw linkErr;
+    if (err) throw err;
 
     emit("saved");
   } catch (e) {

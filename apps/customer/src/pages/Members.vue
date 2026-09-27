@@ -8,16 +8,14 @@
     <div v-else-if="error" class="mb__state mb__state--error">{{ error }}</div>
 
     <div v-else class="mb__body">
-      <!-- De uitnodigingscode: zo haalt de beheerder collega's binnen. Elke
-           collega logt zelf in en koppelt met deze code; de e-mail-hereniging
-           in join_customer_by_invite plakt account en medewerker-rij aan
-           elkaar als het e-mailadres overeenkomt. -->
-      <section v-if="isAdmin && inviteCode" class="mb__invite">
+      <!-- Collega's toevoegen gaat zonder code (besluit Jos 2026-09-26): zet
+           iemand hieronder op de lijst met zijn e-mailadres; logt hij daarmee
+           in, dan koppelt claim_my_memberships() hem automatisch. -->
+      <section v-if="isAdmin" class="mb__invite">
         <div class="mb__invite-text">
           <strong>{{ $t('members.inviteTitle') }}</strong>
           <p>{{ $t('members.inviteHint') }}</p>
         </div>
-        <button class="mb__invite-code" :title="$t('members.copy')" @click="copyCode">{{ inviteCode }}</button>
       </section>
 
       <!-- Bedrijfsgegevens (adres, KvK/BTW, contactpersoon, bedrijfstelefoon/
@@ -41,22 +39,22 @@
         </dl>
 
         <form v-else class="mb__form" @submit.prevent="saveCompany">
-          <input v-model="companyForm.email" type="email" :placeholder="$t('settings.company.fields.email')" class="mb__input" />
-          <input v-model="companyForm.phone" type="tel" :placeholder="$t('settings.company.fields.phone')" class="mb__input" />
-          <input v-model="companyForm.contact_person" :placeholder="$t('settings.company.fields.contactPerson')" class="mb__input" />
-          <input v-model="companyForm.kvk_number" :placeholder="$t('settings.company.fields.kvkNumber')" class="mb__input" />
-          <input v-model="companyForm.vat_number" :placeholder="$t('settings.company.fields.vatNumber')" class="mb__input" />
+          <input v-model="companyForm.email" type="email" :placeholder="$t('settings.company.fields.email')" :aria-label="$t('settings.company.fields.email')" class="mb__input" />
+          <input v-model="companyForm.phone" type="tel" :placeholder="$t('settings.company.fields.phone')" :aria-label="$t('settings.company.fields.phone')" class="mb__input" />
+          <input v-model="companyForm.contact_person" :placeholder="$t('settings.company.fields.contactPerson')" :aria-label="$t('settings.company.fields.contactPerson')" class="mb__input" />
+          <input v-model="companyForm.kvk_number" :placeholder="$t('settings.company.fields.kvkNumber')" :aria-label="$t('settings.company.fields.kvkNumber')" class="mb__input" />
+          <input v-model="companyForm.vat_number" :placeholder="$t('settings.company.fields.vatNumber')" :aria-label="$t('settings.company.fields.vatNumber')" class="mb__input" />
           <div class="mb__co-row-inputs">
-            <input v-model="companyForm.street" :placeholder="$t('settings.company.fields.street')" class="mb__input mb__co-street" />
-            <input v-model="companyForm.house_number" :placeholder="$t('settings.company.fields.houseNumber')" class="mb__input mb__co-short" />
-            <input v-model="companyForm.house_number_addition" :placeholder="$t('settings.company.fields.addition')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.street" :placeholder="$t('settings.company.fields.street')" :aria-label="$t('settings.company.fields.street')" class="mb__input mb__co-street" />
+            <input v-model="companyForm.house_number" :placeholder="$t('settings.company.fields.houseNumber')" :aria-label="$t('settings.company.fields.houseNumber')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.house_number_addition" :placeholder="$t('settings.company.fields.addition')" :aria-label="$t('settings.company.fields.addition')" class="mb__input mb__co-short" />
           </div>
           <div class="mb__co-row-inputs">
-            <input v-model="companyForm.postal_code" :placeholder="$t('settings.company.fields.postalCode')" class="mb__input mb__co-short" />
-            <input v-model="companyForm.city" :placeholder="$t('settings.company.fields.city')" class="mb__input" />
+            <input v-model="companyForm.postal_code" :placeholder="$t('settings.company.fields.postalCode')" :aria-label="$t('settings.company.fields.postalCode')" class="mb__input mb__co-short" />
+            <input v-model="companyForm.city" :placeholder="$t('settings.company.fields.city')" :aria-label="$t('settings.company.fields.city')" class="mb__input" />
           </div>
-          <input v-model="companyForm.province" :placeholder="$t('settings.company.fields.province')" class="mb__input" />
-          <input v-model="companyForm.country" :placeholder="$t('settings.company.fields.country')" class="mb__input" />
+          <input v-model="companyForm.province" :placeholder="$t('settings.company.fields.province')" :aria-label="$t('settings.company.fields.province')" class="mb__input" />
+          <input v-model="companyForm.country" :placeholder="$t('settings.company.fields.country')" :aria-label="$t('settings.company.fields.country')" class="mb__input" />
           <p v-if="companyFormError" class="mb__state mb__state--error">{{ companyFormError }}</p>
           <div class="mb__form-actions">
             <button type="submit" class="mb__save" :disabled="companySaving">{{ $t('members.save') }}</button>
@@ -134,10 +132,10 @@
         </div>
 
         <form v-if="formOpen" class="mb__form" @submit.prevent="save">
-          <input v-model="form.name" :placeholder="$t('members.fields.name')" class="mb__input" required />
-          <input v-model="form.role" :placeholder="$t('members.fields.role')" class="mb__input" />
-          <input v-model="form.phone" type="tel" :placeholder="$t('members.fields.phone')" class="mb__input" />
-          <input v-model="form.email" type="email" :placeholder="$t('members.fields.email')" class="mb__input" />
+          <input v-model="form.name" :placeholder="$t('members.fields.name')" :aria-label="$t('members.fields.name')" class="mb__input" required />
+          <input v-model="form.role" :placeholder="$t('members.fields.role')" :aria-label="$t('members.fields.role')" class="mb__input" />
+          <input v-model="form.phone" type="tel" :placeholder="$t('members.fields.phone')" :aria-label="$t('members.fields.phone')" class="mb__input" />
+          <input v-model="form.email" type="email" :placeholder="$t('members.fields.email')" :aria-label="$t('members.fields.email')" class="mb__input" />
           <!-- Vergrendel-vangnet (spiegel van save_my_member): jezelf inactief
                of niet-beheerder maken zou de laatste beheerder buitensluiten. -->
           <label class="mb__check">
@@ -194,6 +192,7 @@ import {
   normalizeDomains,
   domainForType,
   type MaterialDomain,
+  formatDate as sharedFormatDate,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
@@ -205,7 +204,7 @@ interface PasskeyRow {
 }
 
 const { registerPasskey, listPasskeys, deletePasskey } = useAuth();
-const { t } = useI18n();
+const { t, locale } = useI18n();
 
 const router = useRouter();
 
@@ -242,7 +241,6 @@ const emptyCompanyForm = (): CompanyInfo => ({
 });
 
 const customerName = ref("");
-const inviteCode = ref("");
 const isAdmin = ref(false);
 const members = ref<MemberRow[]>([]);
 const company = ref<CompanyInfo>(emptyCompanyForm());
@@ -256,7 +254,7 @@ const passkeyBusy = ref(false);
 const passkeyError = ref("");
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString();
+  return sharedFormatDate(iso, locale.value);
 }
 
 async function loadPasskeys() {
@@ -326,11 +324,10 @@ async function load() {
     if (custErr) throw custErr;
     const row = Array.isArray(cust) ? cust[0] : cust;
     if (!row) {
-      router.replace("/join");
+      router.replace("/start");
       return;
     }
     customerName.value = row.customer_name;
-    inviteCode.value = row.invite_code ?? "";
     isAdmin.value = !!row.is_admin;
     company.value = {
       email: row.email, phone: row.phone, contact_person: row.contact_person,
@@ -506,14 +503,6 @@ async function save() {
   }
 }
 
-async function copyCode() {
-  try {
-    await navigator.clipboard.writeText(inviteCode.value);
-  } catch {
-    /* geen clipboard-permissie: de code staat toch in beeld */
-  }
-}
-
 onMounted(load);
 if (passkeySupportedDevice) onMounted(loadPasskeys);
 </script>
@@ -531,12 +520,6 @@ if (passkeySupportedDevice) onMounted(loadPasskeys);
 .mb__invite-text { flex: 1; min-width: 0; }
 .mb__invite-text p { margin: 0.25rem 0 0; font-size: 0.85rem; color: #166534; }
 .mb__invite-text strong { color: #14532d; }
-.mb__invite-code {
-  flex: 0 0 auto; font-family: ui-monospace, monospace; font-size: 1.05rem; font-weight: 800;
-  background: #fff; color: #166534; border: 1px dashed #16a34a; border-radius: 10px;
-  padding: 0.5rem 0.75rem; cursor: pointer; letter-spacing: 0.08em;
-}
-
 .mb__section h2 { font-size: 1rem; margin: 0; }
 .mb__section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
 .mb__add {

@@ -154,10 +154,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, formatDate as sharedFormatDate } from '@gearonimo/core'
 import { ensureInspector } from '../composables/useInspections'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 interface Inspector {
   id: string
@@ -237,8 +237,7 @@ const signatureUrl = computed(() =>
 )
 
 function formatDate(d: string) {
-  const date = new Date(d)
-  return isNaN(date.getTime()) ? d : date.toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return sharedFormatDate(d, locale.value)
 }
 function qualStatus(q: Qualification): 'ok' | 'soon' | 'expired' {
   if (!q.valid_until) return 'ok'

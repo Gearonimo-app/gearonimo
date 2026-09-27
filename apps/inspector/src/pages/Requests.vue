@@ -37,9 +37,9 @@ import AppHeader from '../components/AppHeader.vue'
 import { onReactivated } from '../composables/onReactivated'
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage } from '@gearonimo/core'
+import { supabase, errorMessage, formatDate as sharedFormatDate } from '@gearonimo/core'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 interface RequestRow {
   id: string
@@ -56,7 +56,7 @@ const error = ref('')
 const busyId = ref<string | null>(null)
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return sharedFormatDate(d, locale.value)
 }
 
 async function load() {

@@ -69,7 +69,10 @@
           <span class="dh__tile-label">{{ $t('home.tiles.request') }}</span>
           <span v-if="pendingRequest" class="dh__tile-caption">{{ $t('request.pendingCaption', { company: pendingRequest.company_name }) }}</span>
         </router-link>
-        <router-link v-if="isAdmin" to="/members" class="dh__tile">
+        <!-- Instellingen voor iedereen (Jos 2026-09-27): een gewone gebruiker
+             moet daar zijn eigen vingerafdruk/Face ID kunnen aanzetten. De
+             pagina zelf is voor niet-beheerders alleen-lezen. -->
+        <router-link to="/members" class="dh__tile">
           <GIcon name="settings" class="dh__tile-icon" />
           <span class="dh__tile-label">{{ $t('home.tiles.settings') }}</span>
         </router-link>

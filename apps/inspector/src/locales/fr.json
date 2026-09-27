@@ -97,16 +97,16 @@
       "notFound": "Client introuvable",
       "deleteTitle": "Supprimer ce client ?",
       "deleteBody": "Cette action est irréversible.",
-      "inviteCode": "Code d'invitation application client",
+      "portalHint": "Application client : ajoutez la personne de contact ci-dessous dans Utilisateurs, avec son adresse e-mail et la case Administrateur. Elle se connecte ensuite sur gearonimo.net/portal avec cette adresse.",
       "inviteUrlLabel": "Lien :",
       "deleteBlockedHistory": "Ce client ne peut pas être supprimé : un historique de contrôles existe. Les rapports de contrôle constituent une preuve légale et sont conservés."
     }
   },
   "members": {
-    "title": "Collaborateurs",
-    "add": "Ajouter un collaborateur",
-    "edit": "Modifier le collaborateur",
-    "empty": "Aucun collaborateur pour l'instant",
+    "title": "Utilisateurs",
+    "add": "Ajouter un utilisateur",
+    "edit": "Modifier l'utilisateur",
+    "empty": "Aucun utilisateur pour l'instant",
     "inactiveBadge": "Inactif",
     "fields": {
       "name": "Nom *",
@@ -114,15 +114,15 @@
       "phone": "Téléphone",
       "email": "E-mail",
       "notes": "Remarques",
-      "active": "En service",
-      "admin": "Administrateur dans l'application client (peut y gérer les collaborateurs)"
+      "active": "Actif",
+      "admin": "Administrateur dans l'application client (peut y gérer les utilisateurs)"
     },
     "errors": {
       "nameRequired": "Le nom est obligatoire"
     },
     "detail": {
-      "deleteTitle": "Supprimer ce collaborateur ?",
-      "deleteBody": "Cette action est irréversible."
+      "deleteTitle": "Supprimer cet utilisateur ?",
+      "deleteBody": "Cette action est irréversible. Les articles de cet utilisateur gardent le nom mais ne sont plus liés."
     },
     "adminBadge": "Administrateur application client"
   },

@@ -6,7 +6,9 @@
     "save": "Opslaan",
     "signOut": "Uitloggen",
     "cancel": "Annuleren",
-    "back": "Terug"
+    "back": "Terug",
+    "close": "Sluiten",
+    "clearSelection": "Selectie wissen"
   },
   "sets": {
     "addPart": {
@@ -46,14 +48,6 @@
     "added": "Toegevoegd op {date}",
     "unnamed": "Dit toestel",
     "empty": "Nog geen toestel gekoppeld."
-  },
-  "join": {
-    "title": "Koppel je bedrijf",
-    "subtitle": "Vul de uitnodigingscode in die je van je keurmeester hebt gekregen.",
-    "code": "Uitnodigingscode",
-    "name": "Je naam",
-    "namePlaceholder": "bv. Jan Jansen",
-    "submit": "Koppelen"
   },
   "home": {
     "title": "Gearonimo",
@@ -138,7 +132,17 @@
       "other": "Overig"
     },
     "allDomains": "Alle materiaalsoorten",
-    "attentionCount": "{n} met aandacht"
+    "attentionCount": "{n} met aandacht",
+    "retired": {
+      "title": "Afgevoerd ({n})",
+      "restore": "Terugzetten",
+      "by": "door {name}",
+      "reasons": {
+        "broken": "Kapot",
+        "lost": "Kwijt",
+        "stolen": "Gestolen"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Artikel niet gevonden.",
@@ -158,7 +162,9 @@
       "purchaseDate": "Aankoopdatum",
       "firstUse": "In gebruik sinds",
       "nextDue": "Volgende keuring"
-    }
+    },
+    "firstUseAction": "In gebruik nemen",
+    "firstUseHint": "Alleen invullen bij eerste gebruik, nieuw uit de verpakking. Niet bij overdracht aan een collega. Dit kan maar één keer."
   },
   "settings": {
     "title": "Instellingen",
@@ -191,11 +197,9 @@
     }
   },
   "members": {
-    "title": "Medewerkers",
-    "back": "Terug",
-    "add": "+ Medewerker",
+    "add": "+ Gebruiker",
     "edit": "Bewerken",
-    "empty": "Nog geen medewerkers.",
+    "empty": "Nog geen gebruikers.",
     "badgeAdmin": "Beheerder",
     "badgeInactive": "Inactief",
     "badgeNoAccount": "nog geen account",
@@ -206,21 +210,22 @@
       "phone": "Telefoon",
       "email": "E-mailadres",
       "active": "Actief",
-      "admin": "Beheerder (mag medewerkers beheren)"
+      "admin": "Beheerder (mag gebruikers beheren)"
     },
     "save": "Opslaan",
     "cancel": "Annuleren",
-    "inviteTitle": "Collega's uitnodigen",
-    "inviteHint": "Laat een collega zelf inloggen op deze app en koppelen met deze code. Gebruik hetzelfde e-mailadres als hier bij de medewerker staat, dan worden account en medewerker automatisch samengevoegd.",
-    "copy": "Kopiëren",
-    "readOnly": "Alleen een beheerder kan medewerkers bewerken."
+    "inviteTitle": "Collega toevoegen",
+    "inviteHint": "Zet je collega hieronder op de lijst, mét e-mailadres. Daarna logt hij zelf in op gearonimo.net/portal met dat e-mailadres en is hij meteen gekoppeld.",
+    "readOnly": "Alleen een beheerder kan gebruikers bewerken."
   },
   "start": {
     "title": "Welkom bij Gearonimo",
     "subtitle": "Hoe wil je beginnen?",
-    "haveCode": {
-      "title": "Ik heb een uitnodigingscode",
-      "desc": "Je keurbedrijf heeft je een code gegeven."
+    "company": {
+      "title": "Ik hoor bij een bedrijf",
+      "desc": "Vraag je beheerder of keurmeester om dit e-mailadres op de lijst Gebruikers te zetten:",
+      "notFound": "Dit e-mailadres staat nog bij geen enkel bedrijf op de lijst.",
+      "retry": "Opnieuw proberen"
     },
     "self": {
       "title": "Zelf beginnen",
@@ -310,5 +315,11 @@
     "torch": "Zaklamp",
     "close": "Sluiten",
     "unavailable": "Camera niet beschikbaar. Controleer de machtigingen."
+  },
+  "userPicker": {
+    "unassigned": "Geen gebruiker",
+    "other": "+ Nieuwe naam…",
+    "backToList": "Terug naar de lijst",
+    "noMembersHint": "Een nieuwe naam komt vanzelf op de lijst Gebruikers. Dat mag ook \"Voorraad\" of \"Reserve set 2\" zijn."
   }
 }

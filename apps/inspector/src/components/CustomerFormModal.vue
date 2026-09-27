@@ -2,23 +2,23 @@
   <div class="cfm__overlay" @click.self="$emit('cancel')">
     <div class="cfm__form">
       <h2>{{ $t('customers.addTitle') }}</h2>
-      <input v-model="form.name"                :placeholder="$t('customers.fields.name')"                class="cfm__input" />
-      <input v-model="form.customerNumber"      :placeholder="$t('customers.fields.customerNumber')"      class="cfm__input" />
-      <input v-model="form.kvk"                 :placeholder="$t('customers.fields.kvk')"                 class="cfm__input" />
-      <input v-model="form.vat"                 :placeholder="$t('customers.fields.vat')"                 class="cfm__input" />
-      <input v-model="form.contactPerson"       :placeholder="$t('customers.fields.contactPerson')"       class="cfm__input" />
-      <input v-model="form.email"               :placeholder="$t('customers.fields.email')"               class="cfm__input" type="email" />
-      <input v-model="form.phone"               :placeholder="$t('customers.fields.phone')"               class="cfm__input" type="tel" />
-      <input v-model="form.street"              :placeholder="$t('customers.fields.street')"              class="cfm__input" />
+      <input v-model="form.name"                :placeholder="$t('customers.fields.name')" :aria-label="$t('customers.fields.name')" class="cfm__input" />
+      <input v-model="form.customerNumber"      :placeholder="$t('customers.fields.customerNumber')" :aria-label="$t('customers.fields.customerNumber')" class="cfm__input" />
+      <input v-model="form.kvk"                 :placeholder="$t('customers.fields.kvk')" :aria-label="$t('customers.fields.kvk')" class="cfm__input" />
+      <input v-model="form.vat"                 :placeholder="$t('customers.fields.vat')" :aria-label="$t('customers.fields.vat')" class="cfm__input" />
+      <input v-model="form.contactPerson"       :placeholder="$t('customers.fields.contactPerson')" :aria-label="$t('customers.fields.contactPerson')" class="cfm__input" />
+      <input v-model="form.email"               :placeholder="$t('customers.fields.email')" :aria-label="$t('customers.fields.email')" class="cfm__input" type="email" />
+      <input v-model="form.phone"               :placeholder="$t('customers.fields.phone')" :aria-label="$t('customers.fields.phone')" class="cfm__input" type="tel" />
+      <input v-model="form.street"              :placeholder="$t('customers.fields.street')" :aria-label="$t('customers.fields.street')" class="cfm__input" />
       <div class="cfm__row">
-        <input v-model="form.houseNumber"         :placeholder="$t('customers.fields.houseNumber')"         class="cfm__input" />
-        <input v-model="form.houseNumberAddition" :placeholder="$t('customers.fields.houseNumberAddition')" class="cfm__input" />
+        <input v-model="form.houseNumber"         :placeholder="$t('customers.fields.houseNumber')" :aria-label="$t('customers.fields.houseNumber')" class="cfm__input" />
+        <input v-model="form.houseNumberAddition" :placeholder="$t('customers.fields.houseNumberAddition')" :aria-label="$t('customers.fields.houseNumberAddition')" class="cfm__input" />
       </div>
-      <input v-model="form.postalCode"          :placeholder="$t('customers.fields.postalCode')"          class="cfm__input" />
-      <input v-model="form.city"                :placeholder="$t('customers.fields.city')"                class="cfm__input" />
-      <input v-model="form.province"            :placeholder="$t('customers.fields.province')"            class="cfm__input" />
-      <input v-model="form.country"             :placeholder="$t('customers.fields.country')"             class="cfm__input" />
-      <textarea v-model="form.notes"            :placeholder="$t('customers.fields.notes')"               class="cfm__input cfm__textarea" rows="3"></textarea>
+      <input v-model="form.postalCode"          :placeholder="$t('customers.fields.postalCode')" :aria-label="$t('customers.fields.postalCode')" class="cfm__input" />
+      <input v-model="form.city"                :placeholder="$t('customers.fields.city')" :aria-label="$t('customers.fields.city')" class="cfm__input" />
+      <input v-model="form.province"            :placeholder="$t('customers.fields.province')" :aria-label="$t('customers.fields.province')" class="cfm__input" />
+      <input v-model="form.country"             :placeholder="$t('customers.fields.country')" :aria-label="$t('customers.fields.country')" class="cfm__input" />
+      <textarea v-model="form.notes"            :placeholder="$t('customers.fields.notes')" :aria-label="$t('customers.fields.notes')" class="cfm__input cfm__textarea" rows="3"></textarea>
       <p v-if="formError" class="cfm__form-error">{{ formError }}</p>
       <div class="cfm__form-actions">
         <button class="cfm__btn cfm__btn--cancel" @click="$emit('cancel')">{{ $t('common.cancel') }}</button>

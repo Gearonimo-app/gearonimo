@@ -28,6 +28,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { resolve, relative } from "node:path";
 import * as XLSX from "xlsx";
+import { validateCatalog } from "../../packages/core/src/catalog.ts";
 import {
   readSource,
   writeSource,
@@ -70,6 +71,17 @@ if (toepassen) {
     gevuld++;
     perMerk.set(r.brand, (perMerk.get(r.brand) ?? 0) + 1);
   }
+  const report = validateCatalog(alle);
+  if (report.errors.length > 0) {
+    console.log(`\nFouten (${report.errors.length}) — niet weggeschreven:`);
+    for (const issue of report.errors.slice(0, 25)) {
+      const col = issue.column ? ` [${issue.column}]` : "";
+      console.log(`  regel ${issue.line}${col} — ${issue.product}: ${issue.message}`);
+    }
+    console.log("\nDe bronlijst is niet aangepast.\n");
+    process.exit(1);
+  }
+
   writeSource(alle);
   console.log(`\n${gevuld} producten kregen een handleiding-link:`);
   for (const [merk, n] of [...perMerk].sort((a, b) => b[1] - a[1])) {

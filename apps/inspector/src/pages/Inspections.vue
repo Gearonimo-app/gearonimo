@@ -76,10 +76,10 @@ import AppHeader from '../components/AppHeader.vue'
 import { onReactivated } from '../composables/onReactivated'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage, useOnline } from '@gearonimo/core'
+import { supabase, errorMessage, useOnline, formatDate as sharedFormatDate } from '@gearonimo/core'
 import { ensureInspector, deleteDraftInspection } from '../composables/useInspections'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const { isOnline } = useOnline()
 
 interface InspectionRow {
@@ -98,7 +98,7 @@ const error = ref('')
 const query = ref('')
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return sharedFormatDate(d, locale.value)
 }
 
 const filtered = computed(() => {

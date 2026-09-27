@@ -107,10 +107,19 @@ export function csvToObjects(text: string): Record<string, string>[] {
   return rows.slice(1)
     // Een lege regel onderaan het bestand is geen product.
     .filter((r) => r.some((c) => c.trim() !== ""))
-    .map((r) => {
+    .map((r, i) => {
+      // Meer cellen dan kolomkoppen: waarschijnlijk een niet-geëscapete komma
+      // in een handgetypt bestand. Zonder deze melding verdwijnt die laatste
+      // cel geruisloos -- de rij lijkt gewoon compleet.
+      if (r.length > header.length) {
+        console.warn(
+          `  let op: regel ${i + 2} heeft ${r.length} cellen voor ${header.length} kolomkoppen -- ` +
+            `laatste cel(len) worden genegeerd (niet-geëscapete komma in het brontekstveld?)`
+        );
+      }
       const obj: Record<string, string> = {};
-      header.forEach((h, i) => {
-        obj[h] = (r[i] ?? "").trim();
+      header.forEach((h, col) => {
+        obj[h] = (r[col] ?? "").trim();
       });
       return obj;
     });

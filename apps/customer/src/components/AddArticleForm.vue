@@ -19,7 +19,7 @@
         ref="searchInput"
         v-model="q"
         class="aa__input"
-        :placeholder="$t('home.addArticle.search')"
+        :placeholder="$t('home.addArticle.search')" :aria-label="$t('home.addArticle.search')"
         autocomplete="off"
         @input="triggerSearch"
         @keydown="onKeydown"
@@ -46,13 +46,13 @@
 
     <div v-if="chosen" class="aa__chosen">
       <span><strong>{{ chosen.brand }}</strong> {{ chosen.name }}</span>
-      <button type="button" class="aa__chosen-clear" @click="clearChosen">✕</button>
+      <button type="button" class="aa__chosen-clear" :title="$t('common.clearSelection')" :aria-label="$t('common.clearSelection')" @click="clearChosen">✕</button>
     </div>
 
     <template v-if="freeMode">
-      <input ref="descriptionInput" v-model="freeDescription" class="aa__input" :placeholder="$t('home.addArticle.description')" />
-      <input v-model="freeBrand" class="aa__input" :placeholder="$t('home.addArticle.brand')" />
-      <input v-model="freeCategory" class="aa__input" :placeholder="$t('home.addArticle.category')" />
+      <input ref="descriptionInput" v-model="freeDescription" class="aa__input" :placeholder="$t('home.addArticle.description')" :aria-label="$t('home.addArticle.description')" />
+      <input v-model="freeBrand" class="aa__input" :placeholder="$t('home.addArticle.brand')" :aria-label="$t('home.addArticle.brand')" />
+      <input v-model="freeCategory" class="aa__input" :placeholder="$t('home.addArticle.category')" :aria-label="$t('home.addArticle.category')" />
       <!-- Alleen bij Klimmateriaal: die tegel bundelt ppe/no_ppe/rigging, dus
            daar is de tegel zelf niet specifiek genoeg. -->
       <label v-if="needsTypeChoice" class="aa__date">
@@ -71,7 +71,7 @@
     </template>
 
     <div class="aa__row">
-      <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" />
+      <input ref="serialInput" v-model="serial" class="aa__input" :placeholder="$t('home.addArticle.serial')" :aria-label="$t('home.addArticle.serial')" />
       <ScanButton @scan="(text: string) => (serial = text)" />
     </div>
     <!-- Gebruiker: keuzelijst uit de medewerkers (besluit Jos 2026-08-04).
@@ -80,8 +80,8 @@
          gevallen die blijven werken. -->
     <UserPicker v-model="userName" :members="memberNames" />
     <div class="aa__row">
-      <input v-model.number="year" type="number" min="1990" max="2100" class="aa__input" :placeholder="$t('home.addArticle.year')" />
-      <input v-model.number="month" type="number" min="1" max="12" class="aa__input" :placeholder="$t('home.addArticle.month')" />
+      <input v-model.number="year" type="number" min="1990" max="2100" class="aa__input" :placeholder="$t('home.addArticle.year')" :aria-label="$t('home.addArticle.year')" />
+      <input v-model.number="month" type="number" min="1" max="12" class="aa__input" :placeholder="$t('home.addArticle.month')" :aria-label="$t('home.addArticle.month')" />
     </div>
     <!-- Aankoopdatum is leidend (zelfde lijn als de Pro-app,
          CustomerArticles.vue): de ingebruiknamedatum spiegelt 'm standaard
@@ -93,6 +93,7 @@
     <label class="aa__date">
       {{ $t('home.addArticle.firstUse') }}
       <input v-model="firstUse" type="date" class="aa__input" @input="firstUseTouched = true" />
+      <span class="aa__hint">{{ $t('articleDetail.firstUseHint') }}</span>
     </label>
 
     <p v-if="formError" class="aa__error">{{ formError }}</p>
@@ -329,6 +330,7 @@ async function save() {
 .aa__brand-select { background: #fff; color: #111827; }
 .aa__row { display: flex; gap: 0.5rem; }
 .aa__field { position: relative; }
+.aa__hint { display: block; font-size: 0.8rem; color: #6b7280; margin-top: 0.2rem; }
 .aa__field .aa__suggest { position: absolute; top: calc(100% + 0.25rem); left: 0; right: 0; z-index: 10; background: #fff; }
 .aa__suggest {
   list-style: none; margin: 0; padding: 0;

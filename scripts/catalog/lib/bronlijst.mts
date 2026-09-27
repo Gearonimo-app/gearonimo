@@ -6,7 +6,7 @@
  */
 
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, basename } from "node:path";
 import { fileURLToPath } from "node:url";
 import * as XLSX from "xlsx";
 import { csvToObjects, objectsToCsv } from "./csv.mts";
@@ -29,6 +29,32 @@ export function emptyRow(): CatalogRow {
 }
 
 /**
+ * Leest een tekstbestand als UTF-8, met een controle die verkeerde codering
+ * signaleert i.p.v. stil laat corrumperen.
+ *
+ * Excel's gewone "CSV (Comma delimited)"-export (i.t.t. "CSV UTF-8") schrijft
+ * Windows-1252/ANSI, niet UTF-8. `Buffer#toString("utf8")` decodeert zulke
+ * bytes gewoon (leesbaar-lijkend, maar corrupt bij é/ü/°/® e.d.) zonder ooit
+ * een fout te geven -- de eerste keer dat iemand het zou merken is een rare
+ * tekenreeks op het certificaat. `TextDecoder` met `fatal: true` gooit wél
+ * een fout bij een ongeldige UTF-8-byte, dus dat geeft een harde waarschuwing
+ * i.p.v. stille schade. Bewust geen extra afhankelijkheid voor een volledige
+ * codering-gok (chardet e.d.) -- deze repo houdt dat bewust klein.
+ */
+function readTextFile(path: string): string {
+  const buf = readFileSync(path);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buf);
+  } catch {
+    console.warn(
+      `  let op: ${basename(path)} lijkt geen geldige UTF-8-tekst -- controleer speciale ` +
+        `tekens (é, ü, °). Excel: kies bij exporteren "CSV UTF-8" i.p.v. gewoon "CSV".`
+    );
+    return buf.toString("latin1");
+  }
+}
+
+/**
  * Lees een aangeleverd bestand: .xlsx, .xls of .csv.
  *
  * Excel gaat door SheetJS — dezelfde bibliotheek die de app zelf gebruikt bij
@@ -37,7 +63,7 @@ export function emptyRow(): CatalogRow {
  */
 export function readAnyFile(path: string): Record<string, string>[] {
   if (/\.csv$/i.test(path)) {
-    return csvToObjects(readFileSync(path, "utf8"));
+    return csvToObjects(readTextFile(path));
   }
 
   const wb = XLSX.read(readFileSync(path), { type: "buffer" });

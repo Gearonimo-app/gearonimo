@@ -6,7 +6,9 @@
     "save": "Enregistrer",
     "signOut": "Se déconnecter",
     "cancel": "Annuler",
-    "back": "Retour"
+    "back": "Retour",
+    "close": "Fermer",
+    "clearSelection": "Effacer la sélection"
   },
   "sets": {
     "addPart": {
@@ -46,14 +48,6 @@
     "added": "Ajouté le {date}",
     "unnamed": "Cet appareil",
     "empty": "Aucun appareil lié pour l'instant."
-  },
-  "join": {
-    "title": "Lier votre entreprise",
-    "subtitle": "Saisissez le code d'invitation reçu de votre inspecteur.",
-    "code": "Code d'invitation",
-    "name": "Votre nom",
-    "namePlaceholder": "ex. Jean Dupont",
-    "submit": "Lier"
   },
   "home": {
     "title": "Gearonimo",
@@ -138,7 +132,17 @@
       "other": "Autre"
     },
     "allDomains": "Tous les types de matériel",
-    "attentionCount": "{n} nécessitant une attention"
+    "attentionCount": "{n} nécessitant une attention",
+    "retired": {
+      "title": "Mis au rebut ({n})",
+      "restore": "Restaurer",
+      "by": "par {name}",
+      "reasons": {
+        "broken": "Cassé",
+        "lost": "Perdu",
+        "stolen": "Volé"
+      }
+    }
   },
   "articleDetail": {
     "notFound": "Article introuvable.",
@@ -158,7 +162,9 @@
       "purchaseDate": "Date d'achat",
       "firstUse": "En service depuis",
       "nextDue": "Prochain contrôle"
-    }
+    },
+    "firstUseAction": "Mettre en service",
+    "firstUseHint": "À remplir uniquement lors de la première utilisation, neuf sorti de l'emballage. Pas lors d'une remise à un collègue. Possible une seule fois."
   },
   "settings": {
     "title": "Paramètres",
@@ -191,11 +197,9 @@
     }
   },
   "members": {
-    "title": "Collaborateurs",
-    "back": "Retour",
-    "add": "+ Collaborateur",
+    "add": "+ Utilisateur",
     "edit": "Modifier",
-    "empty": "Aucun collaborateur pour l'instant.",
+    "empty": "Aucun utilisateur pour l'instant.",
     "badgeAdmin": "Administrateur",
     "badgeInactive": "Inactif",
     "badgeNoAccount": "pas encore de compte",
@@ -206,21 +210,22 @@
       "phone": "Téléphone",
       "email": "Adresse e-mail",
       "active": "Actif",
-      "admin": "Administrateur (peut gérer les collaborateurs)"
+      "admin": "Administrateur (peut gérer les utilisateurs)"
     },
     "save": "Enregistrer",
     "cancel": "Annuler",
-    "inviteTitle": "Inviter des collègues",
-    "inviteHint": "Laissez un collègue se connecter lui-même à cette application et se lier avec ce code. Utilisez la même adresse e-mail que celle indiquée ici pour le collaborateur : le compte et la fiche seront alors fusionnés automatiquement.",
-    "copy": "Copier",
-    "readOnly": "Seul un administrateur peut modifier les collaborateurs."
+    "inviteTitle": "Ajouter un collègue",
+    "inviteHint": "Ajoutez votre collègue à la liste ci-dessous, avec son adresse e-mail. Il se connecte ensuite sur gearonimo.net/portal avec cette adresse et est lié immédiatement.",
+    "readOnly": "Seul un administrateur peut modifier les utilisateurs."
   },
   "start": {
     "title": "Bienvenue sur Gearonimo",
     "subtitle": "Comment souhaitez-vous commencer ?",
-    "haveCode": {
-      "title": "J'ai un code d'invitation",
-      "desc": "Votre organisme de contrôle vous a donné un code."
+    "company": {
+      "title": "J'appartiens à une entreprise",
+      "desc": "Demandez à votre administrateur ou contrôleur d'ajouter cette adresse e-mail à la liste des utilisateurs :",
+      "notFound": "Cette adresse e-mail ne figure encore sur la liste d'aucune entreprise.",
+      "retry": "Réessayer"
     },
     "self": {
       "title": "Commencer seul",
@@ -310,5 +315,11 @@
     "torch": "Lampe torche",
     "close": "Fermer",
     "unavailable": "Caméra indisponible. Vérifiez les autorisations."
+  },
+  "userPicker": {
+    "unassigned": "Aucun utilisateur",
+    "other": "+ Nouveau nom…",
+    "backToList": "Retour à la liste",
+    "noMembersHint": "Un nouveau nom est ajouté automatiquement à la liste des utilisateurs. Cela peut aussi être « Stock » ou « Set de réserve 2 »."
   }
 }

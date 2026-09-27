@@ -48,10 +48,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-import { supabase } from '@gearonimo/core'
+import { useI18n } from 'vue-i18n'
+import { supabase, formatDate as sharedFormatDate } from '@gearonimo/core'
 
 const route = useRoute()
 const token = route.params.token as string
+const { locale } = useI18n()
 
 interface VerifyQualification {
   name: string
@@ -77,7 +79,7 @@ const data = ref<VerifyResult | null>(null)
 const loading = ref(true)
 
 function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long', year: 'numeric' })
+  return sharedFormatDate(d, locale.value)
 }
 
 function qualUrl(q: VerifyQualification): string {

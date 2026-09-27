@@ -26,11 +26,14 @@ export function calcStatus(input: StatusInput): ArticleStatus {
   const { today, next_due, end_of_life, due_soon_days = 60 } = input;
 
   // End of life takes priority
-  if (end_of_life != null && today >= end_of_life) {
+  if (end_of_life != null && !Number.isNaN(end_of_life.getTime()) && today >= end_of_life) {
     return "end_of_life";
   }
 
-  if (next_due == null) return "never_inspected";
+  // Onleesbare datum telt als "nog geen bekende keurdatum", nooit als "ok" --
+  // in een veiligheidskeuring-app is een groen vinkje op kapotte data de
+  // verkeerde kant om in te falen (code review).
+  if (next_due == null || Number.isNaN(next_due.getTime())) return "never_inspected";
 
   const diff_ms = next_due.getTime() - today.getTime();
   const diff_days = diff_ms / (1000 * 60 * 60 * 24);

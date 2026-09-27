@@ -97,16 +97,16 @@
       "notFound": "Klant niet gevonden",
       "deleteTitle": "Klant verwijderen?",
       "deleteBody": "Dit kan niet ongedaan gemaakt worden.",
-      "inviteCode": "Uitnodigingscode klant-app",
+      "portalHint": "Klant-app: zet de contactpersoon hieronder bij Gebruikers, met e-mailadres en het vinkje Beheerder. Die logt daarna zelf in op gearonimo.net/portal met dat e-mailadres.",
       "inviteUrlLabel": "Link:",
       "deleteBlockedHistory": "Deze klant kan niet verwijderd worden: er is keurhistorie. Keurrapporten zijn een wettelijk bewijsstuk en blijven bewaard."
     }
   },
   "members": {
-    "title": "Medewerkers",
-    "add": "Medewerker toevoegen",
-    "edit": "Medewerker bewerken",
-    "empty": "Nog geen medewerkers",
+    "title": "Gebruikers",
+    "add": "Gebruiker toevoegen",
+    "edit": "Gebruiker bewerken",
+    "empty": "Nog geen gebruikers",
     "inactiveBadge": "Inactief",
     "fields": {
       "name": "Naam *",
@@ -114,15 +114,15 @@
       "phone": "Telefoon",
       "email": "E-mail",
       "notes": "Opmerkingen",
-      "active": "In dienst",
-      "admin": "Beheerder in de klant-app (mag daar medewerkers beheren)"
+      "active": "Actief",
+      "admin": "Beheerder in de klant-app (mag daar gebruikers beheren)"
     },
     "errors": {
       "nameRequired": "Naam is verplicht"
     },
     "detail": {
-      "deleteTitle": "Medewerker verwijderen?",
-      "deleteBody": "Dit kan niet ongedaan gemaakt worden."
+      "deleteTitle": "Gebruiker verwijderen?",
+      "deleteBody": "Dit kan niet ongedaan gemaakt worden. Artikelen van deze gebruiker houden de naam, maar zijn niet meer gekoppeld."
     },
     "adminBadge": "Beheerder klant-app"
   },
