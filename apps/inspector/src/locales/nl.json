@@ -705,6 +705,7 @@
         "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
         "inspectionNoticeDate": "Datum veiligheidsbulletin",
         "notes": "Opmerkingen",
+        "curatorNotes": "Interne notities (verantwoording)",
         "maxAgeHint": "999 = onbeperkte levensduur. Leeg = nog niet opgezocht."
       },
       "productTypes": {
@@ -766,10 +767,13 @@
         "productPageUrl": "https://…",
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
-        "notes": "bv. alleen keuren met de originele karabiner"
+        "notes": "bv. Mfr onbeperkt; vóór mei 2018 11,5mm lijn i.p.v. 11mm",
+        "curatorNotes": "bv. bronvermelding, citaat uit de handleiding, checksum-controle"
       },
       "hints": {
-        "barcodes": "De code op de doos of het label, niet het serienummer. Meerdere codes (bv. per maat) scheiden met een puntkomma."
+        "barcodes": "De code op de doos of het label, niet het serienummer. Meerdere codes (bv. per maat) scheiden met een puntkomma.",
+        "notes": "Staat altijd in beeld bij de keurmeester tijdens de keuring — houd het kort en praktisch.",
+        "curatorNotes": "Alleen voor curators: verantwoording van de ingevulde velden (bron, citaat, controle). Wordt nooit aan de keurmeester getoond."
       },
       "errors": {
         "invalidBarcodes": "Geen geldige streepjescode: {codes}. Alleen cijfers, 8, 12, 13 of 14 lang, met kloppend controlecijfer."

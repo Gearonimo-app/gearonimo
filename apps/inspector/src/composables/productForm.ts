@@ -34,6 +34,11 @@ export interface ProductFormModel {
   inspection_notice_url: string
   inspection_notice_date: string
   notes: string
+  // Interne verantwoording voor curators (bronvermelding, citaten uit
+  // handleidingen, checksum-controles) -- nooit aan de keurmeester getoond.
+  // Losgetrokken van `notes` op 2026-09-28 (besluit Jos): dat veld staat
+  // weer altijd in beeld tijdens de keuring en moet dus kort blijven.
+  curator_notes: string
 }
 
 export function emptyProductForm(): ProductFormModel {
@@ -46,7 +51,7 @@ export function emptyProductForm(): ProductFormModel {
     serial_number_location: '',
     interval_override_months: null,
     manual_url: '', product_page_url: '', recall_url: '', recall_date: '',
-    inspection_notice_url: '', inspection_notice_date: '', notes: '',
+    inspection_notice_url: '', inspection_notice_date: '', notes: '', curator_notes: '',
   }
 }
 
@@ -54,7 +59,7 @@ const STRING_FIELDS = [
   'brand', 'name', 'product_type', 'category', 'material', 'standard', 'manufacturer_code', 'barcodes',
   'breaking_strength', 'working_load_limit', 'max_user_weight_kg', 'serial_number_location',
   'manual_url', 'product_page_url', 'recall_url', 'recall_date',
-  'inspection_notice_url', 'inspection_notice_date', 'notes',
+  'inspection_notice_url', 'inspection_notice_date', 'notes', 'curator_notes',
 ] as const satisfies readonly (keyof ProductFormModel)[]
 
 // products.* laat de meeste tekstvelden null zijn in de database, ook al

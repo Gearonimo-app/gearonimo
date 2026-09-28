@@ -425,13 +425,6 @@
                       :title="$t('inspections.table.matchTooltip')"
                       @click="startMatch(row.it)"
                     >{{ row.label }}</button>
-                    <button
-                      v-else-if="itemProductNotes(row.it)"
-                      type="button"
-                      class="iw__match-btn iw__match-btn--notes"
-                      :title="$t('inspections.table.productNotesTitle')"
-                      @click="toggleNotes(row.it)"
-                    >{{ row.label }} <GIcon name="info" class="iw__notes-icon" /></button>
                     <span v-else>{{ row.label }}</span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
@@ -545,34 +538,31 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <!-- Opmerking uit de catalogus: achter een klik op de naam
-                     (Jos 2026-09-04: dit is achtergrond over het producttype,
-                     niet de eigen keuringsopmerking van de keurmeester -- die
-                     ("Opmerking..."-veld) blijft wél altijd in beeld). Eerder
-                     stond dit altijd open (Jos 2026-08-01), maar bij elke
-                     regel dezelfde producttekst zien tijdens het keuren bleek
-                     juist té veel. Het info-icoontje bij de naam laat zien
-                     dát er iets is; verbergen na lezen kan geen kwaad, het
-                     staat niet vast (geen ✕ nodig, opnieuw klikken volstaat). -->
-                <tr v-if="itemProductNotes(row.it) && openNotesId === row.it.id" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: altijd in beeld (Jos
+                     2026-09-28), niet meer achter een klik op de naam.
+                     Geschiedenis: stond eerst altijd open (2026-08-01), ging
+                     op 2026-09-04 achter een klik omdat de lange
+                     verantwoordingstekst die er toen in stond te veel werd.
+                     Die tekst is nu verhuisd naar `curator_notes` (nooit aan
+                     de keurmeester getoond); `notes` is weer kort en
+                     praktisch, dus kan gewoon altijd zichtbaar zijn. -->
+                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
                   </td>
                 </tr>
                 <!-- Levensduur-detail achter het icoon in de jaartal-kolom: de
-                     twee getallen uit de catalogus, plus (op Jos' verzoek,
-                     2026-09-19) dezelfde catalogusopmerking als hierboven, zodat
-                     beide in één vakje te vinden zijn bij het leeftijd-icoon. -->
+                     twee getallen uit de catalogus. De catalogusopmerking
+                     stond hier sinds 2026-09-19 ook nog eens bij, maar die
+                     staat sinds 2026-09-28 al permanent in de rij hierboven,
+                     dus dat zou hier dubbelop zijn. -->
                 <tr v-if="row.age && openAgeId === row.it.id" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.ageInfoTitle') }}:</strong>
                     {{ $t('inspections.table.ageMfrLabel') }} {{ row.age.mfrText }}
                     ·
                     {{ $t('inspections.table.ageUseLabel') }} {{ row.age.useText }}
-                    <template v-if="itemProductNotes(row.it)"><br />
-                      <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ itemProductNotes(row.it) }}
-                    </template>
                   </td>
                 </tr>
               </template>
@@ -991,17 +981,7 @@ const categoryRowId = ref<string | null>(null)
 // Zelfde, voor het per-rij merkveld.
 const brandRowId = ref<string | null>(null)
 
-// Opmerking uit de catalogus staat niet meer standaard open tijdens het
-// keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
-// relevant bij elke regel -- wél leuk om te zien bij een nieuw product). Eén
-// klik op de naam klapt 'm open; nogmaals klikken klapt 'm weer dicht.
-const openNotesId = ref<string | null>(null)
-function toggleNotes(it: Item) {
-  openNotesId.value = openNotesId.value === it.id ? null : it.id
-}
-
-// Levensduur-icoon in de jaartal-kolom: zelfde klik-open-patroon als de
-// catalogusopmerking hierboven, maar los bijgehouden (onafhankelijk open/dicht).
+// Levensduur-icoon in de jaartal-kolom: eigen klik-open/dicht-status.
 const openAgeId = ref<string | null>(null)
 function toggleAge(it: Item) {
   openAgeId.value = openAgeId.value === it.id ? null : it.id
@@ -1885,7 +1865,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2653,9 +2633,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
-.iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
-.iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
-.iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
 /* Inspection-notice-vlag: bewust oranje, nooit rood (Jos 2026-09-07) -- rood
    blijft gereserveerd voor een echte recall (zie iw__warn-icon/🚩 hierboven).
    Zelfde amber-token als de "aandacht"-status op het klantdashboard

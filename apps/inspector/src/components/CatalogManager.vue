@@ -269,6 +269,7 @@ function toRow(f: ProductFormModel) {
     inspection_notice_url: f.inspection_notice_url.trim() || null,
     inspection_notice_date: f.inspection_notice_date || null,
     notes: f.notes.trim() || null,
+    curator_notes: f.curator_notes.trim() || null,
   }
 }
 
@@ -398,6 +399,7 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
       inspection_notice_url: String(raw.inspection_notice_url ?? '').trim(),
       inspection_notice_date: String(raw.inspection_notice_date ?? '').trim(),
       notes: String(raw.notes ?? '').trim(),
+      curator_notes: String(raw.curator_notes ?? '').trim(),
     }
     if (!f.brand || !f.name) {
       errors.push(t('settings.catalog.manager.errorMissing', { line }))

@@ -705,6 +705,7 @@
         "inspectionNoticeUrl": "Safety bulletin (link)",
         "inspectionNoticeDate": "Safety bulletin date",
         "notes": "Notes",
+        "curatorNotes": "Internal notes (sourcing)",
         "maxAgeHint": "999 = unlimited service life. Empty = not looked up yet."
       },
       "productTypes": {
@@ -766,10 +767,13 @@
         "productPageUrl": "https://…",
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
-        "notes": "e.g. inspect only with the original carabiner"
+        "notes": "e.g. Mfr unlimited; before May 2018 11.5mm rope instead of 11mm",
+        "curatorNotes": "e.g. sourcing, quote from the manual, checksum verification"
       },
       "hints": {
-        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon."
+        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon.",
+        "notes": "Always shown to the inspector during inspection — keep it short and practical.",
+        "curatorNotes": "Curators only: sourcing for the fields above (source, quote, verification). Never shown to the inspector."
       },
       "errors": {
         "invalidBarcodes": "Not a valid barcode: {codes}. Digits only, 8, 12, 13 or 14 long, with a correct check digit."

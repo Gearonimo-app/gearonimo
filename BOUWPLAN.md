@@ -5,6 +5,43 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## `notes` weer altijd zichtbaar, bronvermelding naar `curator_notes` (Jos, 2026-09-28)
+
+> `notes` stond sinds 2026-08-01 in beeld bij de keurmeester tijdens de
+> keuring, maar raakte gevuld met lange bronvermeldingen (citaten uit
+> handleidingen, checksum-controles) tijdens de streepjescode-/leeftijden-
+> rondes — precies waarom het op 2026-09-04 achter een klik verdween. Jos:
+> *"Notes komt niet meer in beeld bij het keuren. Daar heb ik voor gekozen
+> omdat er lappen tekst in stonden. Maar ik mis aanwijzingen. Ook leeftijden
+> zou ik daar willen zien. 'Mfr unl pre 2014 andere lijndikte' bijvoorbeeld
+> bij de grillon."*
+>
+> Onderzocht of een al lege kolom de bronvermelding kon overnemen
+> ("ongestraft", zoals Jos voorstelde) — nee: `interval_override_months` is
+> weliswaar 0% gevuld maar is een `int`-kolom (ongeschikt voor tekst) mét een
+> eigen bestemming; elke andere weinig-gevulde kolom (`recall_date`,
+> `inspection_notice_date`, `serial_number_location`, `working_load_limit`)
+> wordt al voor zijn eigen smalle doel gelezen door de app. Laagste risico
+> was dus een nieuwe kolom, geen hergebruik. Zie `DATAMODEL.md` voor de volle
+> toelichting en migratie `20260928_products_curator_notes.sql`.
+>
+> **Resultaat:** `notes` is weer kort/praktisch en staat **altijd** in beeld
+> tijdens de keuring (niet meer achter het ℹ️-icoontje — dat bleek trouwens
+> ook een bug: de losse productquery in `InspectionWizard.vue` die de hele
+> catalogus laadt voor matching miste `notes` in de kolomlijst, dus het
+> icoontje kwam sowieso nooit in beeld). `curator_notes` is nieuw, alleen in
+> het productformulier voor curators, nooit getoond aan de keurmeester. De
+> bestaande lange `notes`-inhoud verhuist op CSV-niveau naar `curator_notes`
+> (geen losse SQL-datamigratie) en komt mee met de eerstvolgende volledige
+> Excel-export/import.
+>
+> Let op: Jos noemde "vóór 2014" bij de GRILLON-lijndikte; het eigen
+> onderzoek deze sessie wees op **mei 2018** als omslagpunt (11,5mm →
+> 11mm, uit Petzl's "GRILLON replacement rope"-mededeling) — de GRILLON-tip
+> in `notes` gebruikt daarom 2018, ter controle aan Jos voorgelegd.
+
+---
+
 ## Quarantaine: niet bouwen, via een afkeurcode (Jos, 2026-09-24)
 
 > Het plan voor een aparte quarantaine-uitslag (paars, lijst, vrijgeven) is
