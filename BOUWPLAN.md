@@ -5,6 +5,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Scroll-sprong na "+ Toevoegen" weggenomen (Jos, 2026-09-28)
+
+> Twee wijzigingen van eerder op de dag botsten: het "springen naar de net
+> toegevoegde rij" (`revealItem`, met scroll) en de "focus terug op Artikel"
+> volgden elkaar direct op, dus de pagina scrolde naar de nieuwe rij en meteen
+> daarna weer omhoog naar het Artikel-veld. Jos: *"na +toevoegen zie ik het
+> product in de lijst staan, en met typen schiet het scherm weer naar boven."*
+>
+> Drie opties voorgelegd (vastzetten van het typvak boven het scherm — twee
+> varianten — of de sprong gewoon weglaten); Jos koos voor de derde, met als
+> reden dat vastzetten op kleinere schermen waarschijnlijk juist hinderlijk
+> scrollen zou opleveren. `revealItem` (scroll + oplichten) gesplitst in
+> `flashItem` (alleen oplichten, gebruikt na "+ Toevoegen" in `addRow`/
+> `addRowOffline`, vlak vóór de focus) en `revealItem` zelf (ongewijzigd,
+> blijft scrollen bij de andere paden: SN-zoekresultaat kiezen, al-bestaand
+> artikel via serienummer toevoegen, ✅/❌ op een bestaande rij — daar volgt
+> geen concurrerende focus-actie, dus geen sprong-probleem).
+
+---
+
 ## Standaardsortering op Categorie, direct naar het net toegevoegde/gekeurde artikel, focus terug op Artikel (Jos, 2026-09-28)
 
 > Jos: *"kan het laatst gekeurde artikel bovenaan staan? Waarom is dat nu

@@ -1307,11 +1307,14 @@ function snBadgeText(r: SnResult): string {
 // Korte oplichting van de rij waar we naartoe springen, zodat duidelijk is welk
 // artikel bedoeld wordt nadat het zoekveld is leeggemaakt.
 const highlightId = ref<string | null>(null)
-function revealItem(itemId: string) {
+function flashItem(itemId: string) {
   highlightId.value = itemId
+  window.setTimeout(() => { if (highlightId.value === itemId) highlightId.value = null }, 2000)
+}
+function revealItem(itemId: string) {
+  flashItem(itemId)
   nextTick(() => {
     document.getElementById('iw-row-' + itemId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => { if (highlightId.value === itemId) highlightId.value = null }, 2000)
   })
 }
 
@@ -2213,11 +2216,11 @@ async function addRow() {
     if (itemErr) throw itemErr
 
     items.value.push({ ...item, article } as Item)
-    // Springt naar de rij en licht hem kort op (Jos 2026-09-28: bij Categorie
-    // als sortering beland je anders overal in de lijst, niet vanzelf boven-
-    // of onderaan) -- geen aparte "laatst gekeurd"-volgorde, gewoon zichtbaar
-    // maken wat er net bij kwam.
-    revealItem(item.id)
+    // Alleen kort oplichten, niet ernaartoe scrollen (Jos 2026-09-28): de
+    // focus gaat na het toevoegen terug naar het Artikel-veld hierboven, dat
+    // scrolt de pagina toch alweer omhoog -- scrollIntoView zou daar
+    // recht tegenin gaan en het scherm heen-en-weer laten springen.
+    flashItem(item.id)
     previousResults.value[article.id] = null
     // Ook in de SN-zoekbron opnemen, zodat een net toegevoegd artikel meteen via
     // het serienummer terugvindbaar is (en niet per ongeluk gedupliceerd wordt).
@@ -2321,7 +2324,7 @@ async function addRowOffline() {
     comment: itemRow.comment,
     article: articleWithProduct,
   })
-  revealItem(itemId)
+  flashItem(itemId)
   previousResults.value[articleId] = null
   customerArticles.value.push({
     id: articleId,
