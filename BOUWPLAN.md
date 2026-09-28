@@ -5,6 +5,37 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Echte oorzaak van de steeds terugkerende "~60 producten blijven verouderd" gevonden (Jos, 2026-09-28)
+
+> Na de notes-conventie-correcties (hieronder) opnieuw geëxporteerd en door
+> Jos laten controleren — en dezelfde soort mismatch kwam wéér terug: ~70
+> producten (verspreid over ART, Beal, EDELRID, Haberkorn, KONG, Petzl
+> GRILLON/ABSORBICA-Y) hadden in de app nog de oude, lange
+> voor-de-curator_notes-splitsing-tekst in `notes` staan, ondanks meerdere
+> eerdere "geslaagde" imports. Eerst id-mismatch vermoed (elke `toCreate` in
+> `CatalogManager.vue` slaat namelijk geen `id` mee bij het aanmaken, dus
+> Postgres genereert zelf een nieuwe) — met een volledige vergelijking
+> bronlijst-id vs. live app-id (uit een verse export) uitgesloten: alle
+> id's kwamen wél overeen.
+>
+> **Echte oorzaak**, gevonden in `commitImport()`: de bijwerk-lus liep
+> synchroon, één product per keer, over (bij deze catalogus) 3356 rijen, en
+> brak bij de EERSTE mislukte rij meteen helemaal af (`if (err) throw err`)
+> — alles daarvóór in die run was al écht opgeslagen, alles daarna werd
+> stilzwijgend nooit geprobeerd, met alleen één generieke foutmelding als
+> enig spoor. Bij een lijst van dit formaat, over meerdere imports heen op
+> verschillende momenten, verklaart dat precies het steeds terugkerende,
+> ogenschijnlijk willekeurige patroon van dezelfde ~60-70 achterblijvers.
+>
+> **Fix**: de lus stopt niet meer bij de eerste fout — elke rij wordt
+> geprobeerd, mislukkingen worden verzameld (merk + naam + foutmelding)
+> en pas ná de hele lus in één duidelijke melding getoond (eerste 20, met
+> "en nog N"). Zo komt een probleemrij niet meer de hele rest van de import
+> in de weg te staan, en is bij een volgende mislukking meteen zichtbaar
+> wélk product het betreft in plaats van een generieke foutmelding.
+
+---
+
 ## `notes`-conventie + vijf inhoudelijke correcties (Jos, 2026-09-28)
 
 > Jos: *"curator notes is wat je tijdens het keuren in beeld krijgt toch?

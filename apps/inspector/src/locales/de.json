@@ -689,6 +689,7 @@
         "duplicateExists": "Ein Produkt mit dieser Marke und diesem Namen ist bereits im Katalog. Passen Sie das bestehende Produkt an, oder geben Sie diesem einen eigenen Namen — zum Beispiel mit der Größe dahinter.",
         "andMore": "… und {count} weitere.",
         "importProgress": "{done} von {total} hinzugefügt…",
+        "importUpdateErrors": "{count} Produkt(e) konnten nicht aktualisiert werden — der Rest ist gelungen:",
         "delete": "Produkt löschen",
         "deleteUnused": "Sind Sie sicher? Dieses Produkt wird nirgends verwendet und wird endgültig gelöscht.",
         "deleteUsed": "Achtung: Dieses Produkt wird bereits {count}-mal verwendet. Diese Artikel bleiben bestehen — Marke und Name bleiben als freier Text erhalten, sodass Sie sie später erneut verknüpfen können.",

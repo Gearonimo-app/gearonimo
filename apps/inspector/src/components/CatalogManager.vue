@@ -460,12 +460,26 @@ async function commitImport() {
         total: toCreate.length,
       })
     }
+    // Eén voor één, niet afbreken bij de eerste fout (Jos, 2026-09-28: bij
+    // meerdere imports bleven dezelfde ~60 producten steeds bij oude
+    // opmerkingen hangen -- een rij die halverwege een reeks van 3356
+    // struikelde, liet tot nu toe stilzwijgend de hele rest van die reeks
+    // ongewijzigd, met alleen één generieke foutmelding als spoor). Nu wordt
+    // elke rij geprobeerd, en meldt het scherm precies welke zijn misgegaan.
+    const updateErrors: string[] = []
     for (const { id, row } of toUpdate) {
       const { error: err } = await supabase.from('products').update(row).eq('id', id)
-      if (err) throw err
+      if (err) updateErrors.push(`${row.brand} ${row.name}: ${err.message}`)
     }
     importPreview.value = null
     await load()
+    if (updateErrors.length) {
+      throw new Error(
+        t('settings.catalog.manager.importUpdateErrors', { count: updateErrors.length }) +
+          '\n' + updateErrors.slice(0, 20).join('\n') +
+          (updateErrors.length > 20 ? '\n' + t('settings.catalog.manager.andMore', { count: updateErrors.length - 20 }) : '')
+      )
+    }
   } catch (e) {
     importError.value = errorMessage(e)
   } finally {

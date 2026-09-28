@@ -690,6 +690,7 @@
         "duplicateExists": "A product with this brand and name is already in the catalogue. Edit the existing product, or give this one its own name — for example with the size after it.",
         "andMore": "… and {count} more.",
         "importProgress": "{done} of {total} added…",
+        "importUpdateErrors": "{count} product(s) could not be updated — the rest succeeded:",
         "delete": "Delete product",
         "deleteUnused": "Are you sure? This product is not in use anywhere and will be permanently deleted.",
         "deleteUsed": "Careful: this product is used {count} times. Those articles stay — their brand and name remain as free text, so you can re-link them later.",
