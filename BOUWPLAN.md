@@ -5,6 +5,48 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## `notes`-conventie + vijf inhoudelijke correcties (Jos, 2026-09-28)
+
+> Jos: *"curator notes is wat je tijdens het keuren in beeld krijgt toch?
+> zo ja: 1 terugdraaien wat je net gedaan hebt!"* Nee — dat is precies
+> andersom en zo ook bevestigd: `notes` (kort, praktisch) staat tijdens de
+> keuring in beeld, `curator_notes` (lange bronvermelding) nooit. Niets
+> terug te draaien.
+>
+> **Conventie voor `notes` vastgelegd:** een leeftijdsvermelding staat er
+> alleen in als er ook echt een eindige grens is (nooit "Mfr onbeperkt" als
+> vulling), en anders altijd in vaste volgorde mfr vóór use. Toegepast op de
+> enige rij die dat nog niet deed: `Petzl GRILLON (rope clamp body)` had
+> "Mfr onbeperkt (999)." voor de lijndiktetip staan — dat apparaat heeft geen
+> echte leeftijdsgrens, dus weg; de andere tien GRILLON-rijen deden het al
+> goed.
+>
+> **ART RopeGuide** (2010 Cocoon 150/300cm, 2010 Link 150/300cm, TwinLine —
+> de hybride alu+stof-varianten, niet de pure rope-sling-varianten die al
+> een eigen 5-jarige max_age_use_years hebben): `notes` erbij dat de stoffen
+> lijn/sling zelf maar 5 jaar mee mag, ook al is de metalen behuizing tot
+> 10 jaar bruikbaar. Stond al in `curator_notes` ("Textile parts must be
+> replaced after 5 years..."), maar dat veld ziet de keurmeester nooit.
+>
+> **Newton Easyfit-recall gecontroleerd** (Jos: *"recall is pre 2022"*) —
+> klopt niet: Petzl's eigen recallbericht (04-03-2025) noemt expliciet
+> specifieke partijen GEMAAKT IN 2022, referenties C073AA01/AA02 (NEWTON),
+> C073CA01/CA02 (NEWTON FAST), C073EA01/EA02 (NEWTON EASYFIT maat 1/2) — niet
+> "alles van vóór 2022". Bijvangst: **NEWTON EASYFIT European Version
+> (Size 0)** (C073EA00) stond wél gevlagd met deze recall, maar die
+> referentie wordt nergens in het officiële bericht genoemd — `recall_url`
+> van die ene rij verwijderd, met de reden vastgelegd in `curator_notes`. De
+> zes rijen die wél terecht gevlagd staan (NEWTON/NEWTON FAST/NEWTON EASYFIT,
+> Europese uitvoering, maat 1/2) hebben nu ook `recall_date` = 2025-03-04.
+>
+> **ISC UltraLink-recall gecontroleerd** (Jos: *"recal is voor20??"*) — geen
+> "vóór jaar X"-recall maar een smal venster: exemplaren in omloop tussen
+> 28-02-2023 en 13-03-2023, met negen specifieke partijnummers (LK100:
+> 168276/168153/166671/167961; LK101: 167962/166675/168231/168155/168277) —
+> vastgelegd in `curator_notes`, `recall_date` = 2023-03-13.
+
+---
+
 ## Al-bestaande artikelen in een keuring aan elkaar koppelen (Jos, 2026-09-28)
 
 > Jos: *"in de bestaande keuring, hoe kan ik meerdere artikelen aan elkaar
