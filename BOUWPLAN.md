@@ -35,10 +35,11 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 > (geen losse SQL-datamigratie) en komt mee met de eerstvolgende volledige
 > Excel-export/import.
 >
-> Let op: Jos noemde "vóór 2014" bij de GRILLON-lijndikte; het eigen
-> onderzoek deze sessie wees op **mei 2018** als omslagpunt (11,5mm →
-> 11mm, uit Petzl's "GRILLON replacement rope"-mededeling) — de GRILLON-tip
-> in `notes` gebruikt daarom 2018, ter controle aan Jos voorgelegd.
+> Jos noemde eerst "vóór 2014" bij de GRILLON-lijndikte; het eigen onderzoek
+> deze sessie wees op mei 2018 als omslagpunt (11,5mm → 11mm, uit Petzl's
+> "GRILLON replacement rope"-mededeling). Voorgelegd aan Jos, die 2018
+> bevestigde: *"2018 klopt, dat is beter."* De GRILLON-tip in `notes`
+> gebruikt dus 2018.
 
 ---
 
