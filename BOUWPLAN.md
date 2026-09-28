@@ -5,6 +5,31 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Standaardsortering op Categorie, direct naar het net toegevoegde/gekeurde artikel, focus terug op Artikel (Jos, 2026-09-28)
+
+> Jos: *"kan het laatst gekeurde artikel bovenaan staan? Waarom is dat nu
+> anders? wie bepaald de volgorde?"* Onderzocht: de tabel sorteerde altijd al
+> alfabetisch op de kolom Artikel (`sortKey`/`sortDir`, klikbare kolomkoppen)
+> — dat is nooit anders geweest, geen regressie. Drie opties voorgelegd; Jos
+> koos:
+> - **Standaardsortering naar Categorie** (`sortKey` default `'label'` →
+>   `'category'`). Nog altijd gewoon om te zetten door op een andere kolomkop
+>   te klikken.
+> - **Niet de volgorde veranderen, wel automatisch naar de rij springen** die
+>   je net hebt toegevoegd of gekeurd (kort oplichten via de al bestaande
+>   `revealItem`, tot nu toe alleen gebruikt bij een paar van de
+>   toevoeg-paden). Nu ook aangeroepen in `addRow()`, `addRowOffline()` en
+>   `setResult()` (de ✅/❌-knoppen per rij).
+>
+> Los meegenomen, zelfde bericht: *"na op toevoegen klikken wil ik meteen
+> kunnen typen in 'artikel', nu moet ik elke keer naar de muis grijpen."* Het
+> Artikel-veld had (in tegenstelling tot Merk/Categorie/Serienummer) geen
+> `ref` en kreeg nooit focus terug na "+ Toevoegen" — nu wel, alleen ná die
+> knop (niet bij de SN-zoek-paden, die hebben hun eigen veld-focus en zijn
+> hier niet in meegenomen om niets ongevraagds te veranderen).
+
+---
+
 ## Catalogusopmerking ook zichtbaar vóór het toevoegen + GRILLON-tip op de juiste rijen (Jos, 2026-09-28)
 
 > Jos zag de GRILLON-lijndikte-tip (11,5mm vóór mei 2018, 11mm erna) niet

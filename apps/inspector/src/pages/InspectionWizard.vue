@@ -57,6 +57,7 @@
           <div class="iw__scan-field">
             <input
               v-model="newDescription"
+              ref="articleRef"
               class="iw__input"
               :placeholder="$t('inspections.table.article')"
               @focus="activeField = 'article'"
@@ -835,7 +836,10 @@ const addError = ref('')
 // addError: wordt leeggemaakt zodra een volgende save slaagt.
 const rowSaveError = ref('')
 
-const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
+// Standaard op Categorie (wens Jos, 2026-09-28) i.p.v. Artikel -- een
+// keurmeester overziet zo per materiaalsoort, en kan met een klik op een
+// andere kolomkop nog altijd anders sorteren.
+const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('category')
 const sortDir = ref<1 | -1>(1)
 
 // Setleden bij elkaar in de tabel i.p.v. los verspreid (besloten met Jos
@@ -1074,6 +1078,7 @@ async function unlinkRowProduct(it: Item) {
 
 // Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
 // → serienummer → bouwjaar). Gebruikt door Enter; Tab doet dit van nature.
+const articleRef = ref<HTMLInputElement | null>(null)
 const brandRef = ref<HTMLInputElement | null>(null)
 const categoryRef = ref<HTMLInputElement | null>(null)
 const serialRef = ref<HTMLInputElement | null>(null)
@@ -2208,6 +2213,11 @@ async function addRow() {
     if (itemErr) throw itemErr
 
     items.value.push({ ...item, article } as Item)
+    // Springt naar de rij en licht hem kort op (Jos 2026-09-28: bij Categorie
+    // als sortering beland je anders overal in de lijst, niet vanzelf boven-
+    // of onderaan) -- geen aparte "laatst gekeurd"-volgorde, gewoon zichtbaar
+    // maken wat er net bij kwam.
+    revealItem(item.id)
     previousResults.value[article.id] = null
     // Ook in de SN-zoekbron opnemen, zodat een net toegevoegd artikel meteen via
     // het serienummer terugvindbaar is (en niet per ongeluk gedupliceerd wordt).
@@ -2246,6 +2256,9 @@ async function addRow() {
     }
 
     resetAddRow()
+    // Jos (2026-09-28): "na op toevoegen klikken wil ik meteen kunnen typen
+    // in artikel" -- anders moet je na elke rij weer naar de muis grijpen.
+    nextTick(() => articleRef.value?.focus())
   } catch (e) {
     addError.value = errorMessage(e)
   }
@@ -2308,6 +2321,7 @@ async function addRowOffline() {
     comment: itemRow.comment,
     article: articleWithProduct,
   })
+  revealItem(itemId)
   previousResults.value[articleId] = null
   customerArticles.value.push({
     id: articleId,
@@ -2332,6 +2346,7 @@ async function addRowOffline() {
 
   await touchDownloadActivity(customerId)
   resetAddRow()
+  nextTick(() => articleRef.value?.focus())
 }
 
 // Klik op een al actief resultaat zet 'm terug naar niet-beoordeeld (herstel
@@ -2345,6 +2360,7 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
     it.next_due = result === 'passed' ? suggestedNextDueIso(it) : null
     if (result === 'passed') it.rejection_code_id = null
   }
+  revealItem(it.id)
   saveRow(it)
 }
 
