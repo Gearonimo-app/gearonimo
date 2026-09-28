@@ -266,6 +266,17 @@
           <SnReferencePanel />
         </div>
 
+        <!-- Catalogusopmerking van het net getypte/gematchte product, al vóór
+             het toevoegen (Jos 2026-09-28: hij zag de GRILLON-lijndikte-tip
+             pas na het toevoegen niet meer terug -- die stond toen nog alleen
+             op de kale "rope clamp body"-rij, niet op de lengte-varianten
+             zoals GRILLON 2m die je hier daadwerkelijk intypt). Bewust onder
+             het spiekbriefje i.p.v. in de toevoegrij zelf (wens Jos), zodat
+             het niet meeschuift met elke veldwijziging. -->
+        <p v-if="newRowProductNotes" class="iw__addrow-notes">
+          <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ newRowProductNotes }}
+        </p>
+
         <!-- Excel-export (Jos, 2026-09-08): browser-tabellen bevatten
              knoppen/iconen door elkaar, dus plakken in Excel plakt alles in
              één cel. Een schone CSV met alleen de zichtbare gegevens werkt
@@ -2127,6 +2138,11 @@ function matchProduct(): Product | null {
   return matches[0]
 }
 
+// Zelfde catalogusopmerking als in de tabel (itemProductNotes), maar dan al
+// zichtbaar terwijl je nog aan het typen bent in de toevoegrij -- vóór het
+// artikel er überhaupt staat.
+const newRowProductNotes = computed(() => matchProduct()?.notes?.trim() || null)
+
 // Maakt de toevoeg-/zoekvelden leeg (na toevoegen of na een SN-keuze).
 function resetAddRow() {
   barcodeNotice.value = ''
@@ -2808,6 +2824,13 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   white-space: normal;
 }
 .iw__notes-row strong { color: #111827; }
+/* Zelfde neutrale stijl als .iw__notes-row, maar als los blokje buiten de
+   tabel (toevoegrij heeft nog geen <tr> om in te hangen). */
+.iw__addrow-notes {
+  margin: 0.5rem 0; padding: 0.5rem 0.75rem; font-size: 0.8rem; color: #374151;
+  background: #f9fafb; box-shadow: inset 3px 0 0 0 #d1d5db; border-radius: 4px;
+}
+.iw__addrow-notes strong { color: #111827; }
 .iw__category { color: #374151; }
 .iw__category--edit { position: relative; }
 .iw__sn { color: #6b7280; }

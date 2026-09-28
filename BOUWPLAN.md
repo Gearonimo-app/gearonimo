@@ -5,6 +5,31 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Catalogusopmerking ook zichtbaar vóór het toevoegen + GRILLON-tip op de juiste rijen (Jos, 2026-09-28)
+
+> Jos zag de GRILLON-lijndikte-tip (11,5mm vóór mei 2018, 11mm erna) niet
+> terwijl hij "GRILLON 2m" aan het toevoegen was: *"bij de grillon hadden we
+> al een opmerking staan toch? waarom zie ik deze niet."* Oorzaak: die tip
+> stond eerder deze sessie alleen op de kale "GRILLON (rope clamp body)"-rij
+> (het losse apparaat zonder lijn) als demonstratie van het nieuwe
+> `notes`-veld — niet op de rijen die een keurmeester in de praktijk
+> daadwerkelijk intypt/keurt (GRILLON 2m/3m/4m/5m/10m/15m/20m en GRILLON HOOK
+> 2m/3m/5m, elk de complete lijn+apparaat-combinatie). Nu op alle tien die
+> rijen gezet (tekst iets aangepast: geen "Mfr onbeperkt (999)" meer, want die
+> rijen hebben een 10-jarige textiellevensduur, niet de onbeperkte van het
+> kale apparaat). De "GRILLON Rope"-losse-vervanglijn-rijen (spare parts)
+> hebben er bewust geen: hun diameter staat al ondubbelzinnig vast (11mm,
+> alleen de huidige generatie wordt nog verkocht).
+>
+> Jos: *"onder production day lijkt me een goede plek"* — de catalogusopmerking
+> van het net getypte/gematchte product staat nu ook al zichtbaar in de
+> toevoegrij zelf, vlak onder het productiedag-/weeknummer-spiekbriefje, dus
+> vóórdat het artikel al is toegevoegd. Zelfde tekst en styling als de al
+> bestaande rij in de tabel (`itemProductNotes`), nu ook als los blokje
+> (`newRowProductNotes`, gebaseerd op de bestaande `matchProduct()`-matching).
+
+---
+
 ## Verkeerd gekoppeld product direct herstellen tijdens de keuring (Jos, 2026-09-28)
 
 > Tijdens het keuren viel een EDELRID-haak verkeerd gematcht (STEEL HMS
