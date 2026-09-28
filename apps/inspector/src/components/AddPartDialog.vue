@@ -143,21 +143,26 @@ const {
 })
 
 // Niet automatisch het merk invullen zolang het getypte een voorvoegsel is
-// van een langere productnaam elders in de catalogus (bv. "sir" bij een kort
-// product "SIR" terwijl er ook een langer "Sirius..." bestaat) -- anders
-// versmalt de suggestielijst stilletjes tot het verkeerde merk terwijl de
-// keurmeester nog aan het typen is. Zie CustomerArticles.vue voor de
-// aanleiding (Jos, 2026-09-27).
+// van een langere productnaam van een ANDER merk elders in de catalogus
+// (bv. "sir" bij "SIR" van Singing Rock terwijl er ook "Sirius..." van
+// Teufelberger bestaat) -- anders versmalt de suggestielijst stilletjes tot
+// het verkeerde merk terwijl de keurmeester nog aan het typen is. Alleen op
+// merk vergelijken (niet zomaar elke langere naam): "Akimbo" is ook een
+// voorvoegsel van "Akimbo²", maar allebei Rock Exotica -- daar mag het merk
+// gewoon meteen ingevuld worden. Zie CustomerArticles.vue voor de aanleiding
+// (Jos, 2026-09-27/28).
 watch(description, (name) => {
   const n = name.trim().toLowerCase()
   if (!n) return
-  const isPrefixOfLonger = props.products.some((p) => {
-    const pname = (p.name ?? '').toLowerCase()
-    return pname.length > n.length && pname.startsWith(n)
-  })
-  if (isPrefixOfLonger) return
   const p = props.products.find((p) => (p.name ?? '').toLowerCase() === n)
-  if (p?.brand) brand.value = p.brand
+  if (!p) return
+  const ownBrand = (p.brand ?? '').toLowerCase()
+  const isPrefixOfLongerOtherBrand = props.products.some((o) => {
+    const oname = (o.name ?? '').toLowerCase()
+    return oname.length > n.length && oname.startsWith(n) && (o.brand ?? '').toLowerCase() !== ownBrand
+  })
+  if (isPrefixOfLongerOtherBrand) return
+  if (p.brand) brand.value = p.brand
 })
 
 function matchProduct(): CatalogProduct | null {

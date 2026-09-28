@@ -405,18 +405,22 @@ function onBarcodeScan(text: string) {
 // categorie meteen invullen. Vrije tekst laat de velden met rust. Staat het
 // merk al goed (bv. na een scan), dan wint het product van dát merk.
 //
-// Bug gevonden (Jos, 2026-09-27): "sir" matchte exact een kort Rock Empire-
+// Bug gevonden (Jos, 2026-09-27): "sir" matchte exact een kort Singing Rock-
 // product "SIR" en vulde meteen dat merk in; daarna leverde verder typen naar
-// "sirius" niets meer op, want de suggestielijst was al versmald tot Rock
-// Empire (Teufelberger's Sirius-lijn zat daar niet bij). Fix: niet automatisch
-// invullen zolang het getypte een voorvoegsel is van een langere productnaam
-// elders in de catalogus -- dan kan de keurmeester nog steeds aan het typen
-// zijn. De suggestielijst zelf blijft gewoon alles tonen; alleen het
-// automatisch dichttimmeren van het merk wacht dan nog even.
-function isPrefixOfLongerProductName(n: string): boolean {
+// "sirius" niets meer op, want de suggestielijst was al versmald tot Singing
+// Rock (Teufelberger's Sirius-lijn zat daar niet bij). Eerste fix (niet
+// automatisch invullen bij een voorvoegsel van een langere productnaam) bleek
+// te streng (Jos, 2026-09-28): "Akimbo" matcht exact, maar is ook een
+// voorvoegsel van "Akimbo²" -- allebei Rock Exotica, dus daar was niets mis
+// mee om toch in te vullen. Verfijning: alleen wachten als de langere naam
+// bij een ANDER merk hoort (zoals SIR/Singing Rock vs. Sirius/Teufelberger);
+// twee varianten van hetzelfde merk (Akimbo/Akimbo², ZIGZAG/ZIGZAG PLUS)
+// mogen gewoon meteen het merk invullen.
+function isPrefixOfLongerProductName(n: string, ownBrand: string | null): boolean {
+  const brand = (ownBrand ?? '').toLowerCase()
   return products.value.some(p => {
     const name = (p.name ?? '').toLowerCase()
-    return name.length > n.length && name.startsWith(n)
+    return name.length > n.length && name.startsWith(n) && (p.brand ?? '').toLowerCase() !== brand
   })
 }
 watch(newDescription, (name) => {
@@ -427,11 +431,11 @@ watch(newDescription, (name) => {
     if (byCode) { applyBarcodeProduct(byCode); return }
   }
   const n = typed.toLowerCase()
-  if (!n || isPrefixOfLongerProductName(n)) return
+  if (!n) return
   const b = newBrand.value.trim().toLowerCase()
   const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
   const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
-  if (p) {
+  if (p && !isPrefixOfLongerProductName(n, p.brand)) {
     if (p.brand) newBrand.value = p.brand
     if (p.category) newCategory.value = categoryLabel(p.category)
   }
