@@ -418,14 +418,29 @@
                         >{{ s }}</button>
                       </div>
                     </template>
-                    <button
-                      v-else-if="!row.it.article.product"
-                      type="button"
-                      class="iw__match-btn"
-                      :title="$t('inspections.table.matchTooltip')"
-                      @click="startMatch(row.it)"
-                    >{{ row.label }}</button>
-                    <span v-else>{{ row.label }}</span>
+                    <template v-else-if="!row.it.article.product">
+                      <input
+                        v-model="row.it.article.free_description"
+                        class="iw__cell-input"
+                        :placeholder="$t('inspections.table.description')"
+                        @change="saveArticle(row.it)"
+                      />
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__match-icon-btn"
+                        :title="$t('inspections.table.matchTooltip')"
+                        @click="startMatch(row.it)"
+                      ><GIcon name="search" class="iw__match-icon" /></button>
+                    </template>
+                    <span v-else class="iw__linked-name">
+                      {{ row.label }}
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__rename-btn"
+                        :title="$t('inspections.table.wrongProductTooltip')"
+                        @click="unlinkRowProduct(row.it)"
+                      ><GIcon name="edit" class="iw__rename-icon" /></button>
+                    </span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
                       class="iw__set-flag"
@@ -1021,6 +1036,28 @@ async function applyRowMatch(it: Item, name: string) {
   it.article.free_brand = null
   it.article.free_category = null
   it.article.free_description = null
+}
+
+// Verkeerd catalogusproduct gekoppeld? Loskoppelen zonder de keuring te
+// verlaten (Jos 2026-09-28: "ik wil de naam kunnen aanpassen ... ik wil dus
+// meteen door kunnen werken"). Merk/naam van het gekoppelde product blijven
+// als vrije tekst staan (zelfde aanpak als het loskoppelen op de eigen
+// artikelpagina, ArticleDetail.vue) zodat er niets weg is om vanaf te
+// corrigeren, en de rij valt terug op de vrije invoervelden hierboven.
+async function unlinkRowProduct(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const p = it.article.product
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ product_id: null, free_brand: p?.brand ?? null, free_description: p?.name ?? null })
+    .eq('id', it.article.id)
+  if (err) { addError.value = err.message; return }
+  it.article.product = null
+  it.article.free_brand = p?.brand ?? null
+  it.article.free_description = p?.name ?? null
 }
 
 // Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
@@ -2327,14 +2364,16 @@ async function saveArticle(it: Item) {
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
-    // Merk/categorie alleen aanpasbaar bij een vrij artikel (geen
+    // Merk/naam/categorie alleen aanpasbaar bij een vrij artikel (geen
     // catalogusproduct) -- bij een gekoppeld artikel komen die uit het
-    // product zelf en tonen we ze read-only (zie iw__category/colBrand).
+    // product zelf en tonen we ze read-only (zie iw__category/colBrand/
+    // iw__match-cell).
     ...(a.product
       ? {}
       : {
           free_brand: a.free_brand?.toString().trim() || null,
           free_category: a.free_category?.toString().trim() || null,
+          free_description: a.free_description?.toString().trim() || null,
         }),
   }
   if (!isOnline.value) {
@@ -2633,6 +2672,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
+.iw__linked-name { display: inline-flex; align-items: center; gap: 0.15rem; }
+.iw__match-icon-btn, .iw__rename-btn { margin-right: 0; opacity: 0.4; }
+.iw__match-icon-btn:hover, .iw__rename-btn:hover { opacity: 1; }
+.iw__match-icon, .iw__rename-icon { width: 0.85rem; height: 0.85rem; }
 /* Inspection-notice-vlag: bewust oranje, nooit rood (Jos 2026-09-07) -- rood
    blijft gereserveerd voor een echte recall (zie iw__warn-icon/🚩 hierboven).
    Zelfde amber-token als de "aandacht"-status op het klantdashboard

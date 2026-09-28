@@ -5,6 +5,38 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Verkeerd gekoppeld product direct herstellen tijdens de keuring (Jos, 2026-09-28)
+
+> Tijdens het keuren viel een EDELRID-haak verkeerd gematcht (STEEL HMS
+> TRIPLE i.p.v. de gelijknamige aluminium haak, die niet meer gemaakt wordt en
+> dus niet in de catalogus staat). Jos kon de naam niet aanpassen — bij een
+> gekoppeld artikel komt de naam uit het product, bewust read-only, en
+> loskoppelen kon alleen via de losse artikelpagina (weg uit de keuring). Jos:
+> *"ik ben hier als keurmeester bezig met het registreren en keuren van
+> materiaal, in een keer ... ik wil dus meteen door kunnen werken en foutjes
+> kunnen oplossen. dat dit niet meer gaat na het afronden van een keuring is
+> goed. maar het is nog niet afgerond."*
+>
+> Losgetrokken van de losse artikelpagina (`ArticleDetail.vue`, die had het al
+> via "Ander product kiezen"/"Ontkoppelen"): in `InspectionWizard.vue` staat nu
+> een klein potlood-icoontje naast een gekoppelde productnaam. Klikken
+> ontkoppelt het artikel meteen (merk/naam van het oude product blijven als
+> vrije tekst staan, niets is weg om vanaf te corrigeren) en de rij valt terug
+> op een gewoon tekstveld — direct te typen, met een zoek-icoontje ernaast om
+> het eventueel opnieuw aan een catalogusproduct te koppelen. Bewust geen
+> bevestigingsdialoog (past bij de rest van dit scherm: elke wijziging wordt
+> direct opgeslagen, ook per ingevuld keurresultaat) en geen aparte gating op
+> "keuring nog niet afgerond" nodig — dat hele bewerk-scherm verdwijnt toch al
+> achter het certificaat zodra een keuring is afgerond.
+>
+> Kleine bijvangst: `free_description` (de vrije omschrijving van een
+> niet-gekoppeld artikel) werd in deze tabel wel getoond maar nooit
+> opgeslagen bij een wijziging (`saveArticle` nam alleen `free_brand`/
+> `free_category` mee) — nu gecorrigeerd, want zonder die fix zou het nieuwe
+> tekstveld niets doen.
+
+---
+
 ## `notes` weer altijd zichtbaar, bronvermelding naar `curator_notes` (Jos, 2026-09-28)
 
 > `notes` stond sinds 2026-08-01 in beeld bij de keurmeester tijdens de
