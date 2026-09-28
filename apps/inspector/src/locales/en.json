@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Add part",
+      "selectTitle": "Tick to link to another article",
       "linkedTo": "Will be linked to: {name}",
       "rolePlaceholder": "Role (e.g. bridge, carabiner)",
       "replaces": "This replaces",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Brand or description is required."
       }
+    },
+    "group": {
+      "title": "Link selected ({count}) into a set",
+      "rolePlaceholder": "Role/name (optional)",
+      "confirm": "Link",
+      "offline": "Linking needs a connection."
     },
     "openDetail": "Open set — rename, edit members or delete"
   },

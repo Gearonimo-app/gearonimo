@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Onderdeel toevoegen",
+      "selectTitle": "Aanvinken om te koppelen aan een ander artikel",
       "linkedTo": "Wordt gekoppeld aan: {name}",
       "rolePlaceholder": "Rol (bijv. brug, karabiner)",
       "replaces": "Dit vervangt",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Merk of omschrijving is verplicht."
       }
+    },
+    "group": {
+      "title": "Koppel geselecteerd ({count}) tot een set",
+      "rolePlaceholder": "Rol/naam (optioneel)",
+      "confirm": "Koppelen",
+      "offline": "Koppelen kan alleen online."
     },
     "openDetail": "Set openen — hernoemen, leden wijzigen of verwijderen"
   },

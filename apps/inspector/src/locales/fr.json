@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Ajouter un élément",
+      "selectTitle": "Cocher pour lier à un autre article",
       "linkedTo": "Sera lié à : {name}",
       "rolePlaceholder": "Rôle (ex. pont, mousqueton)",
       "replaces": "Ceci remplace",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "La marque ou la description est obligatoire."
       }
+    },
+    "group": {
+      "title": "Lier les {count} articles sélectionnés en un ensemble",
+      "rolePlaceholder": "Rôle/nom (optionnel)",
+      "confirm": "Lier",
+      "offline": "La liaison nécessite une connexion."
     },
     "openDetail": "Ouvrir l'ensemble — renommer, modifier les membres ou supprimer"
   },

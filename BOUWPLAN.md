@@ -5,6 +5,36 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Al-bestaande artikelen in een keuring aan elkaar koppelen (Jos, 2026-09-28)
+
+> Jos: *"in de bestaande keuring, hoe kan ik meerdere artikelen aan elkaar
+> koppelen? zonder nieuwe artikelen toe te voegen?"* Uitgezocht: dat kon nog
+> niet. Het bestaande 🔗+-knopje (`startLinkPart`) was uitsluitend gebouwd voor
+> "koppel het volgende NIEUW toe te voegen artikel aan dit artikel" — twee
+> artikelen die al allebei in de keuring staan, koppelen kon niet. De
+> database-functie eronder (`get_or_create_article_set`) had daar overigens
+> geen enkel bezwaar tegen: die accepteert gewoon twee bestaande artikel-ID's,
+> "nieuw" in `p_new_article_id` is alleen een naam uit de oorspronkelijke
+> use case, geen echte eis.
+>
+> Voorgesteld en akkoord (Jos: *"jij snapt hem 😉"*): het 🔗+-icoon vervangen
+> door een vinkje per rij. Precies één aangevinkt = de bestaande "voeg nieuw
+> onderdeel toe en koppel"-flow (ongewijzigd, inclusief rol-/vervangt-velden).
+> Twee of meer aangevinkt = nieuw balkje "Koppel geselecteerd (n) tot een
+> set" met een rol/naam-veldje; roept dezelfde `get_or_create_article_set`
+> aan, één keer per extra geselecteerd artikel, met het eerst aangevinkte als
+> hoofdartikel. Bijvangst: `articleSetInfo` (de 🔗-badges) ververst nu ook na
+> de bestaande nieuw-onderdeel-koppeling — dat gebeurde eerder pas na een
+> paginaherlaad.
+>
+> **Bekende beperking, niet opgelost:** vink je twee artikelen aan die allebei
+> al in een (verschillende) bestaande set zitten, dan voegt de functie het
+> tweede artikel toe aan de set van het eerste zonder het uit zijn oude set te
+> halen — een artikel kan zo in twee sets tegelijk belanden. Bewust niet
+> dichtgetimmerd in deze ronde (randgeval); komt terug als het zich voordoet.
+
+---
+
 ## Scroll-sprong na "+ Toevoegen" weggenomen (Jos, 2026-09-28)
 
 > Twee wijzigingen van eerder op de dag botsten: het "springen naar de net

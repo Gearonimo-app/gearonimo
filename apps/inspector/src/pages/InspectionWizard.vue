@@ -46,7 +46,18 @@
             <option :value="null">{{ $t('sets.addPart.replacesNone') }}</option>
             <option v-for="c in linkCandidates" :key="c.article_id" :value="c.article_id">{{ c.label }}</option>
           </select>
-          <button type="button" class="iw__link-cancel" @click="cancelLinkPart">✕</button>
+          <button type="button" class="iw__link-cancel" @click="clearLinkSelection">✕</button>
+        </div>
+
+        <!-- Meerdere al-bestaande artikelen aanvinken en koppelen tot een set,
+             zonder er iets nieuws bij te typen (Jos 2026-09-28). -->
+        <div v-if="linkSelection.size >= 2" class="iw__link-bar">
+          <span>{{ $t('sets.group.title', { count: linkSelection.size }) }}</span>
+          <input v-model="groupRole" class="iw__input iw__input--sm" :placeholder="$t('sets.group.rolePlaceholder')" />
+          <button type="button" class="iw__btn iw__btn--save" :disabled="groupingBusy" @click="groupSelectedArticles">
+            {{ $t('sets.group.confirm') }}
+          </button>
+          <button type="button" class="iw__link-cancel" @click="clearLinkSelection">✕</button>
         </div>
 
         <div class="iw__add">
@@ -561,7 +572,13 @@
                             @click="suggestFor = row.it.article">
                       📚
                     </button>
-                    <button class="iw__part-btn" :title="$t('sets.addPart.title')" @click="startLinkPart(row.it)">🔗+</button>
+                    <input
+                      type="checkbox"
+                      class="iw__link-check"
+                      :checked="linkSelection.has(row.it.article_id)"
+                      :title="$t('sets.addPart.selectTitle')"
+                      @change="toggleLinkSelect(row.it)"
+                    />
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
@@ -816,6 +833,72 @@ function cancelLinkPart() {
   linkRole.value = ''
   linkReplaceId.value = null
   linkCandidates.value = []
+}
+
+// Meerdere al-bestaande artikelen tot een set koppelen, zonder er iets nieuws
+// bij te typen (Jos 2026-09-28: "hoe kan ik meerdere artikelen aan elkaar
+// koppelen? zonder nieuwe artikelen toe te voegen?"). Hetzelfde vinkje als
+// hierboven doet dus dubbel dienst: precies één aangevinkt artikel is de
+// bestaande "voeg een nieuw onderdeel toe en koppel het meteen"-flow
+// (startLinkPart/linkTo, ongewijzigd); twee of meer aangevinkt is deze nieuwe
+// flow, die louter al-bestaande artikelen aan elkaar hangt. Beide roepen
+// dezelfde get_or_create_article_set aan -- die functie stelt geen eis dat
+// "p_new_article_id" ook echt nieuw is, dat is puur een naam uit de eerste
+// (nieuw-onderdeel) use case.
+const linkSelection = ref<Set<string>>(new Set())
+const groupRole = ref('')
+const groupingBusy = ref(false)
+
+function clearLinkSelection() {
+  linkSelection.value = new Set()
+  cancelLinkPart()
+  groupRole.value = ''
+}
+
+function toggleLinkSelect(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const next = new Set(linkSelection.value)
+  if (next.has(it.article_id)) next.delete(it.article_id)
+  else next.add(it.article_id)
+  linkSelection.value = next
+  cancelLinkPart()
+  if (next.size === 1) {
+    const only = items.value.find((i) => i.article_id === [...next][0])
+    if (only) void startLinkPart(only)
+  }
+}
+
+async function groupSelectedArticles() {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const ids = [...linkSelection.value]
+  if (ids.length < 2) return
+  const primary = items.value.find((i) => i.article_id === ids[0])
+  if (!primary) return
+  groupingBusy.value = true
+  try {
+    for (const id of ids.slice(1)) {
+      const { error: err } = await supabase.rpc('get_or_create_article_set', {
+        p_customer_id: inspection.value!.customer_id,
+        p_primary_article_id: primary.article_id,
+        p_primary_label: itemLabel(primary),
+        p_new_article_id: id,
+        p_role: groupRole.value.trim() || null,
+      })
+      if (err) throw err
+    }
+    await loadArticleSetInfo(inspection.value!.customer_id)
+    clearLinkSelection()
+  } catch (e) {
+    addError.value = errorMessage(e)
+  } finally {
+    groupingBusy.value = false
+  }
 }
 
 const previousResults = ref<Record<string, PreviousResult>>({})
@@ -2255,7 +2338,8 @@ async function addRow() {
         p_retire_article_id: linkReplaceId.value,
       })
       if (linkErr) throw linkErr
-      cancelLinkPart()
+      await loadArticleSetInfo(inspection.value!.customer_id)
+      clearLinkSelection()
     }
 
     resetAddRow()
@@ -2865,8 +2949,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__result-cell { min-width: 11rem; }
 .iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
 .iw__actions-cell { text-align: center; }
-.iw__part-btn { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.5; margin-right: 0.35rem; }
-.iw__part-btn:hover { opacity: 1; }
+.iw__link-check { margin-right: 0.5rem; cursor: pointer; width: 1rem; height: 1rem; vertical-align: middle; }
 .iw__retire-btn { border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: 0.6; }
 .iw__retire-btn:hover { opacity: 1; }
 .iw__link-bar {

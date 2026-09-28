@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Teil hinzufügen",
+      "selectTitle": "Ankreuzen, um mit einem anderen Artikel zu verknüpfen",
       "linkedTo": "Wird verknüpft mit: {name}",
       "rolePlaceholder": "Funktion (z. B. Brücke, Karabiner)",
       "replaces": "Dies ersetzt",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Marke oder Beschreibung ist erforderlich."
       }
+    },
+    "group": {
+      "title": "{count} ausgewählte zu einem Set verknüpfen",
+      "rolePlaceholder": "Funktion/Name (optional)",
+      "confirm": "Verknüpfen",
+      "offline": "Verknüpfen geht nur online."
     },
     "openDetail": "Set öffnen — umbenennen, Mitglieder ändern oder löschen"
   },
