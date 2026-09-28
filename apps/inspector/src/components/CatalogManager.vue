@@ -466,10 +466,30 @@ async function commitImport() {
     // struikelde, liet tot nu toe stilzwijgend de hele rest van die reeks
     // ongewijzigd, met alleen één generieke foutmelding als spoor). Nu wordt
     // elke rij geprobeerd, en meldt het scherm precies welke zijn misgegaan.
+    //
+    // Eén keer opnieuw proberen bij een netwerkhapering (bv. "TypeError:
+    // Failed to fetch" op mobiel bereik, gezien 2026-09-28): supabase-js
+    // gooit dan een echte exception i.p.v. een { error }-resultaat terug te
+    // geven, dus die moest ook binnen deze try/catch gevangen worden, niet
+    // alleen de normale database-foutmelding hierboven.
     const updateErrors: string[] = []
-    for (const { id, row } of toUpdate) {
-      const { error: err } = await supabase.from('products').update(row).eq('id', id)
-      if (err) updateErrors.push(`${row.brand} ${row.name}: ${err.message}`)
+    for (let i = 0; i < toUpdate.length; i++) {
+      const { id, row } = toUpdate[i]
+      try {
+        const { error: err } = await supabase.from('products').update(row).eq('id', id)
+        if (err) throw err
+      } catch (e) {
+        await new Promise((resolve) => setTimeout(resolve, 500))
+        try {
+          const { error: err } = await supabase.from('products').update(row).eq('id', id)
+          if (err) throw err
+        } catch (e2) {
+          updateErrors.push(`${row.brand} ${row.name}: ${errorMessage(e2)}`)
+        }
+      }
+      if (i % 25 === 0 || i === toUpdate.length - 1) {
+        importProgress.value = t('settings.catalog.manager.importUpdateProgress', { done: i + 1, total: toUpdate.length })
+      }
     }
     importPreview.value = null
     await load()

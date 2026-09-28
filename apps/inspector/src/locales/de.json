@@ -689,6 +689,7 @@
         "duplicateExists": "Ein Produkt mit dieser Marke und diesem Namen ist bereits im Katalog. Passen Sie das bestehende Produkt an, oder geben Sie diesem einen eigenen Namen — zum Beispiel mit der Größe dahinter.",
         "andMore": "… und {count} weitere.",
         "importProgress": "{done} von {total} hinzugefügt…",
+        "importUpdateProgress": "{done} von {total} aktualisiert…",
         "importUpdateErrors": "{count} Produkt(e) konnten nicht aktualisiert werden — der Rest ist gelungen:",
         "delete": "Produkt löschen",
         "deleteUnused": "Sind Sie sicher? Dieses Produkt wird nirgends verwendet und wird endgültig gelöscht.",

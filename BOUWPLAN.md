@@ -5,6 +5,26 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Import-fix bleek onvolledig: netwerkhapering brak de bijwerk-lus nog steeds af (Jos, 2026-09-28)
+
+> Direct na de vorige fix (die alleen database-foutmeldingen ving) liep de
+> import op Jos' telefoon (1 balkje bereik) alsnog vast met "TypeError:
+> Failed to fetch" bovenaan het scherm. Oorzaak: supabase-js gooit bij een
+> netwerkhapering een echte exception i.p.v. een normaal `{ data, error }`-
+> resultaat terug te geven — die viel buiten de `if (err) ...`-check van de
+> vorige fix en brak de hele resterende lus (duizenden losse verzoeken, nog
+> steeds één voor één) alsnog af.
+>
+> Nu binnen een try/catch, mét één herkansing na een halve seconde wachten
+> vóór een rij als mislukt geldt (een korte hapering op mobiel bereik hoeft
+> zo niet meteen een "fout" te zijn). Bijvangst: de bijwerk-lus had nog
+> geen enkele voortgangsindicatie (in tegenstelling tot de toevoeg-lus, die
+> wel per 500 een update toont) — bij duizenden rijen op een trage
+> verbinding zag het scherm er zo minutenlang doodstil uit. Nu ook een
+> "{done} van {total} bijgewerkt…"-teller, elke 25 rijen.
+
+---
+
 ## Echte oorzaak van de steeds terugkerende "~60 producten blijven verouderd" gevonden (Jos, 2026-09-28)
 
 > Na de notes-conventie-correcties (hieronder) opnieuw geëxporteerd en door

@@ -690,6 +690,7 @@
         "duplicateExists": "Er staat al een product met dit merk en deze naam in de catalogus. Pas het bestaande product aan, of geef dit een eigen naam — bijvoorbeeld met de maat erachter.",
         "andMore": "… en nog {count}.",
         "importProgress": "{done} van {total} toegevoegd…",
+        "importUpdateProgress": "{done} van {total} bijgewerkt…",
         "importUpdateErrors": "{count} product(en) konden niet worden bijgewerkt — de rest is wel gelukt:",
         "delete": "Product verwijderen",
         "deleteUnused": "Weet u het zeker? Dit product staat nergens in gebruik en wordt definitief verwijderd.",
