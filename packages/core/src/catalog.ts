@@ -47,6 +47,13 @@ export const CATALOG_COLUMNS = [
   "inspection_notice_url",
   "inspection_notice_date",
   "notes",
+  // Interne verantwoording (bronvermelding, checksum-controles, citaten uit
+  // handleidingen) voor curators -- nooit aan de keurmeester getoond. Sinds
+  // 2026-09-28 (besluit Jos) losgetrokken van `notes`: dat veld is weer wat
+  // het oorspronkelijk was, een korte praktische aanwijzing die altijd in
+  // beeld staat tijdens de keuring (bv. "Mfr onbeperkt; vóór mei 2018 11,5mm
+  // lijn i.p.v. 11mm").
+  "curator_notes",
 ] as const;
 
 export type CatalogColumn = (typeof CATALOG_COLUMNS)[number];

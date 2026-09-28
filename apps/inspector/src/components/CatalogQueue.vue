@@ -147,6 +147,7 @@ async function createProduct(form: ProductFormModel) {
         inspection_notice_url: form.inspection_notice_url.trim() || null,
         inspection_notice_date: form.inspection_notice_date || null,
         notes: form.notes.trim() || null,
+        curator_notes: form.curator_notes.trim() || null,
       })
       .select('id')
       .single()

@@ -418,21 +418,29 @@
                         >{{ s }}</button>
                       </div>
                     </template>
-                    <button
-                      v-else-if="!row.it.article.product"
-                      type="button"
-                      class="iw__match-btn"
-                      :title="$t('inspections.table.matchTooltip')"
-                      @click="startMatch(row.it)"
-                    >{{ row.label }}</button>
-                    <button
-                      v-else-if="itemProductNotes(row.it)"
-                      type="button"
-                      class="iw__match-btn iw__match-btn--notes"
-                      :title="$t('inspections.table.productNotesTitle')"
-                      @click="toggleNotes(row.it)"
-                    >{{ row.label }} <GIcon name="info" class="iw__notes-icon" /></button>
-                    <span v-else>{{ row.label }}</span>
+                    <template v-else-if="!row.it.article.product">
+                      <input
+                        v-model="row.it.article.free_description"
+                        class="iw__cell-input"
+                        :placeholder="$t('inspections.table.description')"
+                        @change="saveArticle(row.it)"
+                      />
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__match-icon-btn"
+                        :title="$t('inspections.table.matchTooltip')"
+                        @click="startMatch(row.it)"
+                      ><GIcon name="search" class="iw__match-icon" /></button>
+                    </template>
+                    <span v-else class="iw__linked-name">
+                      {{ row.label }}
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__rename-btn"
+                        :title="$t('inspections.table.wrongProductTooltip')"
+                        @click="unlinkRowProduct(row.it)"
+                      ><GIcon name="edit" class="iw__rename-icon" /></button>
+                    </span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
                       class="iw__set-flag"
@@ -545,34 +553,31 @@
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <!-- Opmerking uit de catalogus: achter een klik op de naam
-                     (Jos 2026-09-04: dit is achtergrond over het producttype,
-                     niet de eigen keuringsopmerking van de keurmeester -- die
-                     ("Opmerking..."-veld) blijft wél altijd in beeld). Eerder
-                     stond dit altijd open (Jos 2026-08-01), maar bij elke
-                     regel dezelfde producttekst zien tijdens het keuren bleek
-                     juist té veel. Het info-icoontje bij de naam laat zien
-                     dát er iets is; verbergen na lezen kan geen kwaad, het
-                     staat niet vast (geen ✕ nodig, opnieuw klikken volstaat). -->
-                <tr v-if="itemProductNotes(row.it) && openNotesId === row.it.id" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: altijd in beeld (Jos
+                     2026-09-28), niet meer achter een klik op de naam.
+                     Geschiedenis: stond eerst altijd open (2026-08-01), ging
+                     op 2026-09-04 achter een klik omdat de lange
+                     verantwoordingstekst die er toen in stond te veel werd.
+                     Die tekst is nu verhuisd naar `curator_notes` (nooit aan
+                     de keurmeester getoond); `notes` is weer kort en
+                     praktisch, dus kan gewoon altijd zichtbaar zijn. -->
+                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
                   </td>
                 </tr>
                 <!-- Levensduur-detail achter het icoon in de jaartal-kolom: de
-                     twee getallen uit de catalogus, plus (op Jos' verzoek,
-                     2026-09-19) dezelfde catalogusopmerking als hierboven, zodat
-                     beide in één vakje te vinden zijn bij het leeftijd-icoon. -->
+                     twee getallen uit de catalogus. De catalogusopmerking
+                     stond hier sinds 2026-09-19 ook nog eens bij, maar die
+                     staat sinds 2026-09-28 al permanent in de rij hierboven,
+                     dus dat zou hier dubbelop zijn. -->
                 <tr v-if="row.age && openAgeId === row.it.id" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.ageInfoTitle') }}:</strong>
                     {{ $t('inspections.table.ageMfrLabel') }} {{ row.age.mfrText }}
                     ·
                     {{ $t('inspections.table.ageUseLabel') }} {{ row.age.useText }}
-                    <template v-if="itemProductNotes(row.it)"><br />
-                      <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ itemProductNotes(row.it) }}
-                    </template>
                   </td>
                 </tr>
               </template>
@@ -992,17 +997,7 @@ const categoryRowId = ref<string | null>(null)
 // Zelfde, voor het per-rij merkveld.
 const brandRowId = ref<string | null>(null)
 
-// Opmerking uit de catalogus staat niet meer standaard open tijdens het
-// keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
-// relevant bij elke regel -- wél leuk om te zien bij een nieuw product). Eén
-// klik op de naam klapt 'm open; nogmaals klikken klapt 'm weer dicht.
-const openNotesId = ref<string | null>(null)
-function toggleNotes(it: Item) {
-  openNotesId.value = openNotesId.value === it.id ? null : it.id
-}
-
-// Levensduur-icoon in de jaartal-kolom: zelfde klik-open-patroon als de
-// catalogusopmerking hierboven, maar los bijgehouden (onafhankelijk open/dicht).
+// Levensduur-icoon in de jaartal-kolom: eigen klik-open/dicht-status.
 const openAgeId = ref<string | null>(null)
 function toggleAge(it: Item) {
   openAgeId.value = openAgeId.value === it.id ? null : it.id
@@ -1042,6 +1037,28 @@ async function applyRowMatch(it: Item, name: string) {
   it.article.free_brand = null
   it.article.free_category = null
   it.article.free_description = null
+}
+
+// Verkeerd catalogusproduct gekoppeld? Loskoppelen zonder de keuring te
+// verlaten (Jos 2026-09-28: "ik wil de naam kunnen aanpassen ... ik wil dus
+// meteen door kunnen werken"). Merk/naam van het gekoppelde product blijven
+// als vrije tekst staan (zelfde aanpak als het loskoppelen op de eigen
+// artikelpagina, ArticleDetail.vue) zodat er niets weg is om vanaf te
+// corrigeren, en de rij valt terug op de vrije invoervelden hierboven.
+async function unlinkRowProduct(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const p = it.article.product
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ product_id: null, free_brand: p?.brand ?? null, free_description: p?.name ?? null })
+    .eq('id', it.article.id)
+  if (err) { addError.value = err.message; return }
+  it.article.product = null
+  it.article.free_brand = p?.brand ?? null
+  it.article.free_description = p?.name ?? null
 }
 
 // Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
@@ -1905,7 +1922,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2381,14 +2398,16 @@ async function saveArticle(it: Item) {
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
-    // Merk/categorie alleen aanpasbaar bij een vrij artikel (geen
+    // Merk/naam/categorie alleen aanpasbaar bij een vrij artikel (geen
     // catalogusproduct) -- bij een gekoppeld artikel komen die uit het
-    // product zelf en tonen we ze read-only (zie iw__category/colBrand).
+    // product zelf en tonen we ze read-only (zie iw__category/colBrand/
+    // iw__match-cell).
     ...(a.product
       ? {}
       : {
           free_brand: a.free_brand?.toString().trim() || null,
           free_category: a.free_category?.toString().trim() || null,
+          free_description: a.free_description?.toString().trim() || null,
         }),
   }
   if (!isOnline.value) {
@@ -2687,9 +2706,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
-.iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
-.iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
-.iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
+.iw__linked-name { display: inline-flex; align-items: center; gap: 0.15rem; }
+.iw__match-icon-btn, .iw__rename-btn { margin-right: 0; opacity: 0.4; }
+.iw__match-icon-btn:hover, .iw__rename-btn:hover { opacity: 1; }
+.iw__match-icon, .iw__rename-icon { width: 0.85rem; height: 0.85rem; }
 /* Inspection-notice-vlag: bewust oranje, nooit rood (Jos 2026-09-07) -- rood
    blijft gereserveerd voor een echte recall (zie iw__warn-icon/🚩 hierboven).
    Zelfde amber-token als de "aandacht"-status op het klantdashboard

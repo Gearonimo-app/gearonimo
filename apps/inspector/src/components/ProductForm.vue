@@ -140,6 +140,12 @@
       <span>{{ $t('settings.catalog.fields.notes') }}</span>
       <textarea v-model="form.notes" :placeholder="$t('settings.catalog.placeholders.notes')" class="pf__input" rows="2"></textarea>
     </label>
+    <p class="pf__hint">{{ $t('settings.catalog.hints.notes') }}</p>
+    <label class="pf__field">
+      <span>{{ $t('settings.catalog.fields.curatorNotes') }}</span>
+      <textarea v-model="form.curator_notes" :placeholder="$t('settings.catalog.placeholders.curatorNotes')" class="pf__input" rows="4"></textarea>
+    </label>
+    <p class="pf__hint">{{ $t('settings.catalog.hints.curatorNotes') }}</p>
 
     <p v-if="barcodeError" class="pf__error">{{ barcodeError }}</p>
     <p v-if="error" class="pf__error">{{ error }}</p>
