@@ -5,6 +5,27 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Certificaat: "— — —" bij een artikel waarvan het product later is verwijderd (Jos, 2026-09-29)
+
+> Jos: *"Waarom staan er streepjes op mijn certificaat?"* — EDELRID HMS TRIPLE,
+> in de zoeklijst een "Vrij artikel" met merk en naam, op het certificaat
+> alleen streepjes.
+
+Oorzaak: de bevroren artikelrij (`inspection_items.article_snapshot`) ging
+met een gewone spread vóór de live rij. Hing het artikel bij het keuren aan
+een catalogusproduct, dan staan `free_brand`/`free_description` in de
+snapshot op `null`; "Product verwijderen" (`delete_product`) zet merk/naam
+daarna als vrije tekst op de live rij en ontkoppelt het product — maar die
+`null` uit de snapshot overschreef ze weer. Fix in `useCertificate.ts`: de
+snapshot wint alleen met een gevulde waarde, per veld.
+
+Consequentie: een veld dat bij het keuren leeg was en later is ingevuld
+(bv. een serienummer), komt nu ook op een opnieuw gemaakt certificaat.
+
+**Nog open:** de openbare verificatiepagina (`verify_certificate` in de
+database) heeft hetzelfde gat en toont voor zo'n artikel geen omschrijving.
+Dat vraagt een migratie; niet meegenomen.
+
 ## Import verstuurt alleen nog wat echt veranderd is (Jos, 2026-09-29)
 
 > Jos: *"Uploaden gaat ook extreem traag … net meer dan 15 min zitten
