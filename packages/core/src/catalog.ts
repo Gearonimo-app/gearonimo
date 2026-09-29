@@ -303,6 +303,38 @@ export function formatBarcodes(raw: string | null | undefined): string | null {
 }
 
 /**
+ * Is de rij die de importwizard zou wegschrijven gelijk aan wat er al in de
+ * database staat? Dan hoeft hij niet verstuurd te worden (Jos, 2026-09-29:
+ * een import van ~3500 producten deed er een kwartier over, ook als er maar
+ * een paar anders waren).
+ *
+ * Bewust scheef: bij élke twijfel (onbekend type, ontbrekend veld, getal dat
+ * geen getal is) telt de rij als gewijzigd en gaat hij gewoon mee, zoals
+ * vroeger alles. Een onterecht "gewijzigd" kost alleen tijd; een onterecht
+ * "ongewijzigd" zou een wijziging kwijtraken. `next` is de uitvoer van
+ * `toRow()` (al getrimd, leeg = null); `current` komt rauw uit Supabase.
+ */
+export function catalogRowUnchanged(
+  next: Record<string, unknown>,
+  current: Record<string, unknown>,
+): boolean {
+  for (const [key, a] of Object.entries(next)) {
+    const raw = current[key];
+    const b = raw === undefined || raw === "" ? null : raw;
+    if (a === null) {
+      if (b !== null) return false;
+    } else if (typeof a === "number") {
+      if (b === null || typeof b === "boolean" || Number(b) !== a) return false;
+    } else if (typeof a === "string") {
+      if (typeof b !== "string" || b !== a) return false;
+    } else {
+      return false;
+    }
+  }
+  return true;
+}
+
+/**
  * Dezelfde GTIN kan in verschillende lengtes geschreven worden: een scanner
  * leest een Amerikaanse UPC-A als 12 cijfers ("036000291452"), een lijst van
  * de fabrikant noemt hem als EAN-13 ("0036000291452"). Aangevuld tot 14

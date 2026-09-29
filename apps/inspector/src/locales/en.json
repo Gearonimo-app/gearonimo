@@ -680,7 +680,7 @@
         "empty": "No products found.",
         "export": "Export to Excel",
         "import": "Import from Excel",
-        "previewSummary": "{create} new, {update} updated, {duplicate} already present (skipped), {skip} failed. Review and confirm.",
+        "previewSummary": "{create} new, {update} updated, {unchanged} unchanged, {duplicate} already present (skipped), {skip} failed. Review and confirm.",
         "importConfirm": "Confirm import",
         "errorMissing": "Row {line}: brand and name are required.",
         "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",

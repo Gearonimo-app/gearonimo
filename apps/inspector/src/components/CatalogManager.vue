@@ -24,6 +24,7 @@
         {{ $t('settings.catalog.manager.previewSummary', {
           create: importPreview.toCreate.length,
           update: importPreview.toUpdate.length,
+          unchanged: importPreview.unchanged,
           duplicate: importPreview.duplicates.length,
           skip: importPreview.errors.length,
         }) }}
@@ -118,7 +119,7 @@ import { ref, computed, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
 import * as XLSX from 'xlsx'
-import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey, parseBarcodes, formatBarcodes } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows, CATALOG_COLUMNS, productKey, parseBarcodes, formatBarcodes, catalogRowUnchanged } from '@gearonimo/core'
 import { fuzzySearch } from '@gearonimo/ui'
 import { emptyProductForm, toFormModel, type ProductFormModel } from '../composables/productForm'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
@@ -324,6 +325,8 @@ function exportExcel() {
 interface ImportPreview {
   toCreate: ReturnType<typeof toRow>[]
   toUpdate: { id: string; row: ReturnType<typeof toRow> }[]
+  /** Rijen mét id die al precies zo in de database staan — niet verstuurd. */
+  unchanged: number
   /** Rijen die al in de catalogus staan (merk + naam) — bewust overgeslagen. */
   duplicates: string[]
   errors: string[]
@@ -344,11 +347,17 @@ function onFilePicked(e: Event) {
   if (!file) return
 
   const reader = new FileReader()
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const wb = XLSX.read(reader.result, { type: 'array' })
       const sheet = wb.Sheets[wb.SheetNames[0]]
       const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: null })
+      // Vers ophalen vóór het vergelijken: buildPreview slaat rijen over die
+      // al precies zo in de database staan, en dat mag nooit tegen een
+      // verouderde kopie (ander tabblad, collega) gebeuren. Lukt ophalen niet,
+      // dan geen preview -- liever niets dan een onbetrouwbare vergelijking.
+      await load()
+      if (error.value) { importError.value = error.value; return }
       importPreview.value = buildPreview(rows)
     } catch (err) {
       importError.value = errorMessage(err)
@@ -367,6 +376,7 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
   const known = new Set(products.value.map((p) => productKey(p.brand ?? '', p.name ?? '')))
   const toCreate: ReturnType<typeof toRow>[] = []
   const toUpdate: { id: string; row: ReturnType<typeof toRow> }[] = []
+  let unchanged = 0
   const duplicates: string[] = []
   const errors: string[] = []
 
@@ -415,7 +425,15 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
         errors.push(t('settings.catalog.manager.errorUnknownId', { line, id }))
         return
       }
-      toUpdate.push({ id, row: toRow(f) })
+      const row = toRow(f)
+      // Alleen versturen wat echt anders is (Jos 2026-09-29: ~3500 losse
+      // verzoeken duurden een kwartier). Bij twijfel telt het als gewijzigd,
+      // zie catalogRowUnchanged.
+      if (catalogRowUnchanged(row, byId.get(id) as unknown as Record<string, unknown>)) {
+        unchanged++
+        return
+      }
+      toUpdate.push({ id, row })
     } else {
       const key = productKey(f.brand, f.name)
       if (known.has(key)) {
@@ -427,7 +445,7 @@ function buildPreview(rows: Record<string, unknown>[]): ImportPreview {
     }
   })
 
-  return { toCreate, toUpdate, duplicates, errors }
+  return { toCreate, toUpdate, unchanged, duplicates, errors }
 }
 
 function numOrNull(v: unknown): number | null {

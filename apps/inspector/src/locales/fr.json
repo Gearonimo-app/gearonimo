@@ -679,7 +679,7 @@
         "empty": "Aucun produit trouvé.",
         "export": "Exporter vers Excel",
         "import": "Importer depuis Excel",
-        "previewSummary": "{create} nouveau(x), {update} mis à jour, {duplicate} déjà présent(s) (ignoré(s)), {skip} en erreur. Vérifiez et confirmez.",
+        "previewSummary": "{create} nouveau(x), {update} mis à jour, {unchanged} inchangé(s), {duplicate} déjà présent(s) (ignoré(s)), {skip} en erreur. Vérifiez et confirmez.",
         "importConfirm": "Confirmer l'import",
         "errorMissing": "Ligne {line} : la marque et le nom sont obligatoires.",
         "errorUnknownId": "Ligne {line} : l'id {id} n'existe pas dans le catalogue.",

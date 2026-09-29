@@ -5,6 +5,31 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Import verstuurt alleen nog wat echt veranderd is (Jos, 2026-09-29)
+
+> Jos: *"Uploaden gaat ook extreem traag … net meer dan 15 min zitten
+> wachten"* — en: *"alleen als dit risicoloos kan"*. De importwizard stuurde
+> elke rij mét id los naar de database, ook als er niets aan veranderd was
+> (~3500 verzoeken). Nu vergelijkt `buildPreview()` eerst met wat er al in de
+> database staat en slaat identieke rijen over (`catalogRowUnchanged` in
+> `packages/core/src/catalog.ts`, met eigen tests). De preview toont daarom
+> nu ook "N ongewijzigd", en "bijgewerkt" is het echte aantal wijzigingen.
+>
+> Waarom risicoloos:
+> - De vergelijking is bewust scheef: bij élke twijfel (onbekend type,
+>   ontbrekend veld, getal dat geen getal is) telt een rij als gewijzigd en
+>   gaat hij gewoon mee, zoals voorheen. Een onterecht "ongewijzigd" is het
+>   enige dat een wijziging zou kunnen missen, en dat kan alleen als élk veld
+>   exact gelijk is.
+> - Vóór het vergelijken wordt de catalogus vers uit de database gehaald (niet
+>   de kopie van toen de pagina openging); lukt dat niet, dan komt er geen
+>   preview.
+> - Proef op echte data (Jos' export tegen de nieuwe Excel): 3356 ongewijzigd,
+>   119 te versturen — precies de rijen met de id-reparatie — en 0 gemist ten
+>   opzichte van een volledige kolom-voor-kolom-vergelijking.
+
+---
+
 ## De échte reden dat ~60-120 producten niet bijgewerkt werden: ontbrekende id's (Jos, 2026-09-29)
 
 > Controle-export na de Klimstrop-import, dit keer strikt vergeleken (álle

@@ -679,7 +679,7 @@
         "empty": "Keine Produkte gefunden.",
         "export": "Nach Excel exportieren",
         "import": "Aus Excel importieren",
-        "previewSummary": "{create} neu, {update} aktualisiert, {duplicate} bereits vorhanden (übersprungen), {skip} fehlerhaft. Prüfen und bestätigen.",
+        "previewSummary": "{create} neu, {update} aktualisiert, {unchanged} unverändert, {duplicate} bereits vorhanden (übersprungen), {skip} fehlerhaft. Prüfen und bestätigen.",
         "importConfirm": "Import bestätigen",
         "errorMissing": "Zeile {line}: Marke und Name sind erforderlich.",
         "errorUnknownId": "Zeile {line}: ID {id} existiert nicht im Katalog.",

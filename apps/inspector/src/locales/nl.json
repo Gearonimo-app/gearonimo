@@ -680,7 +680,7 @@
         "empty": "Geen producten gevonden.",
         "export": "Exporteren naar Excel",
         "import": "Importeren uit Excel",
-        "previewSummary": "{create} nieuw, {update} bijgewerkt, {duplicate} stond er al (overgeslagen), {skip} fout. Controleer en bevestig.",
+        "previewSummary": "{create} nieuw, {update} bijgewerkt, {unchanged} ongewijzigd, {duplicate} stond er al (overgeslagen), {skip} fout. Controleer en bevestig.",
         "importConfirm": "Importeren bevestigen",
         "errorMissing": "Rij {line}: merk en naam zijn verplicht.",
         "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
