@@ -110,6 +110,21 @@ van één merk: `npm run catalog:export -- --merk=Tractel`.
 > Let op: de import weigert een `id` die niet meer in de catalogus voorkomt.
 > Is de catalogus tussentijds leeggemaakt, gebruik dan `--new-only`.
 
+**Na het importeren van nieuwe producten: id's terughalen.** Een nieuw product
+krijgt zijn `id` pas in de database. Zolang de bronlijst dat id niet heeft,
+ziet elke volgende import de rij als "nieuw", vindt merk + naam al terug en
+slaat hem over ("… stond er al (overgeslagen)") — het product wordt dan nooit
+meer bijgewerkt. Dus: exporteer na de import uit de app, zet dat bestand in
+`catalog/inbox/` en draai
+
+```bash
+npm run catalog:ids -- catalog/inbox/<export-uit-de-app>.xlsx
+```
+
+Dat vult alleen lege id's (op merk + naam) en overschrijft nooit iets. Staat er
+bij `catalog:check` "N zonder id" terwijl die producten al in Gearonimo staan,
+dan is deze stap vergeten.
+
 **Stuur nooit een besluit- of deelbestand naar de importwizard.** De regel "een
 lege cel wist niets" geldt alleen hier in de repo. De wizard in de app bouwt bij
 een rij mét `id` een volledige rij op uit het bestand en schrijft die met

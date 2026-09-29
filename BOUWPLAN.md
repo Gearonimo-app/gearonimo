@@ -5,6 +5,32 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## De échte reden dat ~60-120 producten niet bijgewerkt werden: ontbrekende id's (Jos, 2026-09-29)
+
+> Controle-export na de Klimstrop-import, dit keer strikt vergeleken (álle
+> kolommen, óók lege — `vergelijk.mts` slaat een lege cel in het aangeleverde
+> bestand over en zag dit daardoor nooit): de 3356 rijen mét id waren
+> allemaal volledig gelijk. De afwijkingen zaten alleen in de 119 rijen
+> **zonder id** in de bronlijst — precies de producten die deze sessie zijn
+> toegevoegd (Beal 60, Haberkorn 35, Petzl 15, KONG 7, EDELRID 2). Die staan
+> in de app met een door de database gegeven id; de bronlijst had dat id nooit
+> teruggekregen. Gevolg: elke import zag ze als "nieuw", vond merk + naam al
+> terug en sloeg ze over — het "119 stond er al (overgeslagen)" uit Jos'
+> screenshot van 2026-09-28. Daardoor bleven hun oude lange `notes` staan,
+> kwam `curator_notes` nooit aan en bleef Beal Jammy op "Ankerstrop".
+>
+> De importlus-fixes van 2026-09-28 (doorgaan na een fout, herkansing bij
+> netwerkhapering) waren terecht, maar verklaarden dit patroon níét — dat
+> staat daar te stellig als "echte oorzaak".
+>
+> Opgelost: de 119 id's uit Jos' export overgenomen (op merk + naam, alleen
+> lege id's), zodat de volgende import ze gewoon bijwerkt. Om herhaling te
+> voorkomen een vast script `npm run catalog:ids -- <export-uit-de-app>`
+> (`scripts/catalog/ids.mts`) en een stap in `catalog/README.md`: na het
+> importeren van nieuwe producten altijd de id's terughalen.
+
+---
+
 ## Nieuwe categorie "Klimstrop" (`hitch_cord`) + cambium savers en ankerstroppen rechtgezet (Jos, 2026-09-29)
 
 > Jos: *"Ocean polyester is een prusik — staat nu als ankerstrop."* Bij de
