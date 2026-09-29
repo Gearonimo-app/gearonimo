@@ -468,7 +468,10 @@ opgeschoond tot 27 canonieke codes in `CATEGORIES`
 (`packages/core/src/catalog.ts`) — "zoals de keurmeester het herkent", niet
 zoals de CE-norm het indeelt (EN 566 dekt bijvoorbeeld zowel `slings` als
 `anchor_strop`, maar dat zijn voor een keurmeester twee andere dingen; zie de
-uitleg bij `CATEGORIES` voor de niet-vanzelfsprekende scheidingen). Vertaald
+uitleg bij `CATEGORIES` voor de niet-vanzelfsprekende scheidingen). Op
+2026-09-29 kwam `hitch_cord` erbij (NL "Klimstrop", EN "Hitch cord"): de
+prusiks en e2e's stonden tot dan onder `anchor_strop`, puur op grond van hun
+EN 566/EN 795B-norm. Vertaald
 via `settings.catalog.categories.<code>` in de taalbestanden van beide apps.
 Weergave in de schermen loopt via de composable `useCategoryLabel()`
 (`apps/inspector/src/composables/`, `apps/customer/src/composables/`): die

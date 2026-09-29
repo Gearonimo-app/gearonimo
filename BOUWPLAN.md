@@ -5,6 +5,40 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Nieuwe categorie "Klimstrop" (`hitch_cord`) + cambium savers en ankerstroppen rechtgezet (Jos, 2026-09-29)
+
+> Jos: *"Ocean polyester is een prusik — staat nu als ankerstrop."* Bij de
+> opschoning van 2026-09-10 waren alle prusiks/hitch cords op norm (EN 566 /
+> EN 795B) onder `anchor_strop` gezet. Een eerste voorstel "Prusiklus" viel
+> af (*"vaak is dit ook een e2e"*), net als een strikte normindeling: van de
+> groep heeft 45× alleen EN 566, 26× alleen EN 795B, 13× beide en 30× geen
+> opgegeven norm — identieke e2e's van twee merken zouden zo in verschillende
+> categorieën belanden. Gekozen: een categorie op functie. Jos: *"hitch cord
+> in Engels klinkt goed. Klemknoop is geen ingeburgerde term, klimstrop wordt
+> het voor Nederland."* DE "Klemmschlinge", FR "Cordelette autobloquante".
+>
+> 133 producten naar `hitch_cord`: 119 uit `anchor_strop` (o.a. Liros Safe
+> Prusik, Courant Phoenix, Teufelberger Ocean/Sirius/prusikLOOP, Tango Sanity,
+> STEIN ATOL/COPIOUS, Yale Bee Line, Cousin Aramadillo, Beal Jammy), 11 DMM
+> Fidus uit `anchor_hardware`, 3 uit `accessory_cord` (Silva Prusik, Eyolf
+> Tak, Singing Rock Prusik Sling — die hebben EN 795B of geen norm). Silva
+> Prusik Pro (uitsluitend EN 564) blijft bewust `accessory_cord`, volgens de
+> bestaande regel.
+>
+> Tegelijk (Jos: *"Cambiumsaver staan nu als ankerplaats hardware"*): 5 EDELRID
+> cambium savers (ADJUSTABLE 125/500cm, BICOLOR 90/120/150cm) van
+> `anchor_hardware` naar het al bestaande `cambium_saver`, en 12 textiele
+> ankerstroppen die ook onder hardware stonden (ART SnakeAnchor ×2/SnakeTail,
+> EDELRID ANCORA ×3/MATCH SLING/MULTICHAIN/TIBOR ×3/POWER STEEL — EDELRID
+> rekent die zelf tot "anchor devices") naar `anchor_strop`. "Ankerplaat &
+> hardware" is daarmee weer puur metaal.
+>
+> Ook: het verouderde Teufelberger-keuringsbericht (naadcontrole EN 566,
+> 22-07-13) weg bij alle 9 Ocean Polyester-rijen (Jos: *"oud en niet meer van
+> toepassing"*).
+
+---
+
 ## Import-fix bleek onvolledig: netwerkhapering brak de bijwerk-lus nog steeds af (Jos, 2026-09-28)
 
 > Direct na de vorige fix (die alleen database-foutmeldingen ving) liep de

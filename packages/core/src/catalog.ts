@@ -123,6 +123,12 @@ export const ARTICLE_TYPES = [...PRODUCT_TYPES, "other"] as const;
  *   of EN 795B is `anchor_strop`; draagt hij uitsluitend EN 564 (hulplijn),
  *   dan is dat geen lastdragende PBM-norm en blijft het apart als
  *   `accessory_cord` — dat verbloemt geen fabrieksfout in de certificering.
+ * - `hitch_cord` (NL "Klimstrop", EN "Hitch cord") vs `anchor_strop`: een
+ *   koord waarmee een klemknoop gelegd wordt, lus óf eye-to-eye, los van de
+ *   norm (EN 566 en EN 795B komen allebei voor, soms geen van beide).
+ *   Losgetrokken uit `anchor_strop` op 2026-09-29 (Jos): daar stonden ~130
+ *   prusiks/e2e's tussen de echte ankerstroppen. Uitsluitend EN 564 blijft
+ *   ook hier `accessory_cord` (zie hierboven).
  * - `mechanical_prusik` (grijpt de lijn zelf, bv. ZigZag) vs `line_brake`
  *   (rem/geleider, de hitch cord eronder doet het grijpwerk, bv. rope
  *   wrench, Chicane, Freexion).
@@ -138,6 +144,7 @@ export const CATEGORIES = [
   "positioning_lanyards",
   "slings",
   "anchor_strop",
+  "hitch_cord",
   "accessory_cord",
   "anchor_hardware",
   "pulleys",
