@@ -64,6 +64,10 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   nooit van herpublicatiesites (manualslib en soortgenoten): die zetten er de
   verkeerde revisie of zelfs het verkeerde product bij. Controleren:
   `node scripts/catalog/winkels.mts`.
+- **Opmerking (`notes`) kort houden** (Jos, 2026-09-29: *"minder tekst is
+  vaak beter, anders begin ik niet eens met lezen"*). Eén zin met wat de
+  keurmeester moet weten; bronnen, onderbouwing en uitleg horen in
+  `curator_notes`, niet in de opmerking.
 - **Handleiding-link is het belangrijkste veld** (Jos, 2026-08-25:
   *"vanaf nu alle handleidingen meenemen, dat is belangrijker dan
   artikelnummers — handleidingen zijn juist een van de kernzaken waarom deze
