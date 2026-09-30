@@ -9,6 +9,7 @@ import {
   parseBarcodes,
   formatBarcodes,
   findProductByBarcode,
+  catalogRowUnchanged,
   type CatalogRow,
 } from "./catalog";
 
@@ -282,5 +283,43 @@ describe("streepjescodes", () => {
       [4, "barcodes"],
     ]);
     expect(report.errors[1].message).toContain("regel 3");
+  });
+});
+
+describe("catalogRowUnchanged", () => {
+  const db = {
+    id: "x", brand: "Petzl", name: "GRILLON 2m", notes: "tip", curator_notes: null,
+    max_age_use_years: 10, rope_diameter_min_mm: 11.5, recall_date: "2025-03-04", barcodes: null,
+  };
+  const next = {
+    brand: "Petzl", name: "GRILLON 2m", notes: "tip", curator_notes: null,
+    max_age_use_years: 10, rope_diameter_min_mm: 11.5, recall_date: "2025-03-04", barcodes: null,
+  };
+
+  it("gelijk als alle velden gelijk zijn", () => {
+    expect(catalogRowUnchanged(next, db)).toBe(true);
+  });
+  it("leeg in de database (\"\" of ontbrekend) telt als null", () => {
+    expect(catalogRowUnchanged({ notes: null }, { notes: "" })).toBe(true);
+    expect(catalogRowUnchanged({ notes: null }, {})).toBe(true);
+  });
+  it("getal tegen getal-als-tekst (numeric uit Postgres) is gelijk", () => {
+    expect(catalogRowUnchanged({ rope_diameter_min_mm: 11.5 }, { rope_diameter_min_mm: "11.5" })).toBe(true);
+  });
+  it("elke echte wijziging telt", () => {
+    expect(catalogRowUnchanged({ ...next, notes: "nieuw" }, db)).toBe(false);
+    expect(catalogRowUnchanged({ ...next, max_age_use_years: 5 }, db)).toBe(false);
+    expect(catalogRowUnchanged({ ...next, recall_date: null }, db)).toBe(false);
+    expect(catalogRowUnchanged({ ...next, curator_notes: "bron" }, db)).toBe(false);
+  });
+  it("veld wissen telt als wijziging", () => {
+    expect(catalogRowUnchanged({ notes: null }, { notes: "oud" })).toBe(false);
+  });
+  it("bij twijfel: gewijzigd", () => {
+    expect(catalogRowUnchanged({ notes: "x" }, {})).toBe(false);
+    expect(catalogRowUnchanged({ max_age_use_years: 10 }, { max_age_use_years: "tien" })).toBe(false);
+    expect(catalogRowUnchanged({ max_age_use_years: 1 }, { max_age_use_years: true })).toBe(false);
+    expect(catalogRowUnchanged({ notes: "10" }, { notes: 10 })).toBe(false);
+    expect(catalogRowUnchanged({ flag: true } as Record<string, unknown>, { flag: true })).toBe(false);
   });
 });

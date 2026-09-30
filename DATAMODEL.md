@@ -332,7 +332,8 @@ keurbedrijf B.
 | recall_date | date? | **toegevoegd 2026-09-09** — datum van het recall-bericht zélf (niet een automatisch toe te passen serienummer-grens, zie hierboven). Staat zichtbaar naast de vlag in de keuringstabel, zodat de keurmeester 'm meteen naast het bouwjaar van het artikel kan leggen in plaats van door te klikken. Aanleiding: een jonge gordel kreeg dezelfde vlag als een oude, zonder enig aanknopingspunt |
 | inspection_notice_url | text? | link naar inspection notice / veiligheidsbulletin van de fabrikant; zelfde vlag-gedrag als recall_url |
 | inspection_notice_date | date? | **toegevoegd 2026-09-09** — zelfde als recall_date, voor de inspection notice |
-| notes | text? | bijzonderheden |
+| notes | text? | korte, praktische aanwijzing voor de keurmeester, bv. "Mfr onbeperkt; vóór mei 2018 11,5mm lijn i.p.v. 11mm" — staat altijd in beeld tijdens de keuring, dus bewust kort houden |
+| curator_notes | text? | **toegevoegd 2026-09-28** — interne verantwoording voor curators (bronvermelding, citaten uit handleidingen, checksum-controles); nooit aan de keurmeester getoond, zie toelichting hieronder |
 | interval_override_months | int? | wijkt af van het regime voor dit product |
 | status | text | `approved` / `pending` (wachtrij) / `rejected` / `archived` |
 | created_by | FK → users | wie hem aandroeg (klant of curator) |
@@ -343,6 +344,27 @@ gaat via `npm run catalog:ingest` / `:check` / `:export`; zie `catalog/README.md
 voor de werkwijze. De kolomvolgorde en de toegestane `product_type`-waarden
 staan in `packages/core/src/catalog.ts`, gedeeld met het productformulier en met
 de import/export in de app.
+
+**`notes` en `curator_notes` losgetrokken (besloten Jos, 2026-09-28):** `notes`
+stond sinds 2026-08-01 in beeld bij de keurmeester tijdens de keuring, maar
+raakte in de praktijk gevuld met lange bronvermeldingen (citaten uit
+handleidingen, checksum-controles) — precies waarom het op 2026-09-04 achter
+een klik verdween. Jos: *"Notes komt niet meer in beeld bij het keuren. Daar
+heb ik voor gekozen omdat er lappen tekst in stonden. Maar ik mis
+aanwijzingen."* Onderzocht of een al bestaande, verder ongebruikte kolom kon
+dienen voor de bronvermelding (`interval_override_months` is 0% gevuld) —
+afgewezen: dat is een `int`-kolom (ongeschikt voor tekst) én heeft al een
+eigen, actief gebruikte betekenis; elke andere kolom met een lage vulgraad
+(`recall_date`, `inspection_notice_date`, `serial_number_location`,
+`working_load_limit`) wordt al voor zijn eigen smalle doel gelezen door de
+app. Laagste risico bleek dus een nieuwe kolom, niet het hergebruiken van een
+bestaande. Resultaat: `notes` is weer kort en praktisch en staat **altijd**
+in beeld tijdens de keuring (niet meer achter een klik); `curator_notes` is
+nieuw en bewaart de verantwoording, alleen zichtbaar voor curators in het
+productformulier. De verhuizing van de bestaande `notes`-inhoud naar
+`curator_notes` gebeurt op het niveau van `catalog/producten.csv`, niet als
+losse SQL-migratie op productiedata — komt vanzelf mee met de eerstvolgende
+volledige Excel-export/import.
 
 **`max_user_weight_kg` van int naar text (besloten 2026-07-27):** de
 bronlijst-import van 2294 producten klapte op
@@ -446,7 +468,10 @@ opgeschoond tot 27 canonieke codes in `CATEGORIES`
 (`packages/core/src/catalog.ts`) — "zoals de keurmeester het herkent", niet
 zoals de CE-norm het indeelt (EN 566 dekt bijvoorbeeld zowel `slings` als
 `anchor_strop`, maar dat zijn voor een keurmeester twee andere dingen; zie de
-uitleg bij `CATEGORIES` voor de niet-vanzelfsprekende scheidingen). Vertaald
+uitleg bij `CATEGORIES` voor de niet-vanzelfsprekende scheidingen). Op
+2026-09-29 kwam `hitch_cord` erbij (NL "Klimstrop", EN "Hitch cord"): de
+prusiks en e2e's stonden tot dan onder `anchor_strop`, puur op grond van hun
+EN 566/EN 795B-norm. Vertaald
 via `settings.catalog.categories.<code>` in de taalbestanden van beide apps.
 Weergave in de schermen loopt via de composable `useCategoryLabel()`
 (`apps/inspector/src/composables/`, `apps/customer/src/composables/`): die

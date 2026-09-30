@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Onderdeel toevoegen",
+      "selectTitle": "Aanvinken om te koppelen aan een ander artikel",
       "linkedTo": "Wordt gekoppeld aan: {name}",
       "rolePlaceholder": "Rol (bijv. brug, karabiner)",
       "replaces": "Dit vervangt",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Merk of omschrijving is verplicht."
       }
+    },
+    "group": {
+      "title": "Koppel geselecteerd ({count}) tot een set",
+      "rolePlaceholder": "Rol/naam (optioneel)",
+      "confirm": "Koppelen",
+      "offline": "Koppelen kan alleen online."
     },
     "openDetail": "Set openen — hernoemen, leden wijzigen of verwijderen"
   },
@@ -356,6 +363,7 @@
       "copyLastTooltip": "Vult alle velden van het laatst toegevoegde artikel opnieuw in (zonder serienummer) — handig bij meerdere identieke exemplaren.",
       "matchTooltip": "Koppelen aan een artikel uit de catalogus — merk, categorie en levensduurgegevens worden dan automatisch ingevuld.",
       "matchPlaceholder": "Typ om te zoeken…",
+      "wrongProductTooltip": "Verkeerd product gekoppeld? Klik om los te koppelen en de naam zelf te typen.",
       "addManualUrl": "Handleiding-link toevoegen",
       "recallHint": "Recall bekend voor dit product",
       "noticeHint": "Keuringsmelding bekend voor dit product",
@@ -673,7 +681,7 @@
         "empty": "Geen producten gevonden.",
         "export": "Exporteren naar Excel",
         "import": "Importeren uit Excel",
-        "previewSummary": "{create} nieuw, {update} bijgewerkt, {duplicate} stond er al (overgeslagen), {skip} fout. Controleer en bevestig.",
+        "previewSummary": "{create} nieuw, {update} bijgewerkt, {unchanged} ongewijzigd, {duplicate} stond er al (overgeslagen), {skip} fout. Controleer en bevestig.",
         "importConfirm": "Importeren bevestigen",
         "errorMissing": "Rij {line}: merk en naam zijn verplicht.",
         "errorUnknownId": "Rij {line}: id {id} bestaat niet in de catalogus.",
@@ -683,6 +691,8 @@
         "duplicateExists": "Er staat al een product met dit merk en deze naam in de catalogus. Pas het bestaande product aan, of geef dit een eigen naam — bijvoorbeeld met de maat erachter.",
         "andMore": "… en nog {count}.",
         "importProgress": "{done} van {total} toegevoegd…",
+        "importUpdateProgress": "{done} van {total} bijgewerkt…",
+        "importUpdateErrors": "{count} product(en) konden niet worden bijgewerkt — de rest is wel gelukt:",
         "delete": "Product verwijderen",
         "deleteUnused": "Weet u het zeker? Dit product staat nergens in gebruik en wordt definitief verwijderd.",
         "deleteUsed": "Let op: dit product wordt al {count} keer gebruikt. Die artikelen blijven gewoon bestaan — merk en naam blijven er als vrije tekst op staan, zodat u ze later opnieuw kunt koppelen.",
@@ -713,6 +723,7 @@
         "inspectionNoticeUrl": "Veiligheidsbulletin (link)",
         "inspectionNoticeDate": "Datum veiligheidsbulletin",
         "notes": "Opmerkingen",
+        "curatorNotes": "Interne notities (verantwoording)",
         "maxAgeHint": "999 = onbeperkte levensduur. Leeg = nog niet opgezocht."
       },
       "productTypes": {
@@ -732,6 +743,7 @@
         "positioning_lanyards": "Positioneringslijn",
         "slings": "Sling",
         "anchor_strop": "Ankerstrop",
+        "hitch_cord": "Klimstrop",
         "accessory_cord": "Hulplijn",
         "anchor_hardware": "Ankerplaat & hardware",
         "pulleys": "Katrol",
@@ -774,10 +786,13 @@
         "productPageUrl": "https://…",
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
-        "notes": "bv. alleen keuren met de originele karabiner"
+        "notes": "bv. Mfr onbeperkt; vóór mei 2018 11,5mm lijn i.p.v. 11mm",
+        "curatorNotes": "bv. bronvermelding, citaat uit de handleiding, checksum-controle"
       },
       "hints": {
-        "barcodes": "De code op de doos of het label, niet het serienummer. Meerdere codes (bv. per maat) scheiden met een puntkomma."
+        "barcodes": "De code op de doos of het label, niet het serienummer. Meerdere codes (bv. per maat) scheiden met een puntkomma.",
+        "notes": "Staat altijd in beeld bij de keurmeester tijdens de keuring — houd het kort en praktisch.",
+        "curatorNotes": "Alleen voor curators: verantwoording van de ingevulde velden (bron, citaat, controle). Wordt nooit aan de keurmeester getoond."
       },
       "errors": {
         "invalidBarcodes": "Geen geldige streepjescode: {codes}. Alleen cijfers, 8, 12, 13 of 14 lang, met kloppend controlecijfer."

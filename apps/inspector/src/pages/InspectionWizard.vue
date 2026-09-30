@@ -46,7 +46,18 @@
             <option :value="null">{{ $t('sets.addPart.replacesNone') }}</option>
             <option v-for="c in linkCandidates" :key="c.article_id" :value="c.article_id">{{ c.label }}</option>
           </select>
-          <button type="button" class="iw__link-cancel" @click="cancelLinkPart">✕</button>
+          <button type="button" class="iw__link-cancel" @click="clearLinkSelection">✕</button>
+        </div>
+
+        <!-- Meerdere al-bestaande artikelen aanvinken en koppelen tot een set,
+             zonder er iets nieuws bij te typen (Jos 2026-09-28). -->
+        <div v-if="linkSelection.size >= 2" class="iw__link-bar">
+          <span>{{ $t('sets.group.title', { count: linkSelection.size }) }}</span>
+          <input v-model="groupRole" class="iw__input iw__input--sm" :placeholder="$t('sets.group.rolePlaceholder')" />
+          <button type="button" class="iw__btn iw__btn--save" :disabled="groupingBusy" @click="groupSelectedArticles">
+            {{ $t('sets.group.confirm') }}
+          </button>
+          <button type="button" class="iw__link-cancel" @click="clearLinkSelection">✕</button>
         </div>
 
         <div class="iw__add">
@@ -57,6 +68,7 @@
           <div class="iw__scan-field">
             <input
               v-model="newDescription"
+              ref="articleRef"
               class="iw__input"
               :placeholder="$t('inspections.table.article')"
               @focus="activeField = 'article'"
@@ -266,6 +278,17 @@
           <SnReferencePanel />
         </div>
 
+        <!-- Catalogusopmerking van het net getypte/gematchte product, al vóór
+             het toevoegen (Jos 2026-09-28: hij zag de GRILLON-lijndikte-tip
+             pas na het toevoegen niet meer terug -- die stond toen nog alleen
+             op de kale "rope clamp body"-rij, niet op de lengte-varianten
+             zoals GRILLON 2m die je hier daadwerkelijk intypt). Bewust onder
+             het spiekbriefje i.p.v. in de toevoegrij zelf (wens Jos), zodat
+             het niet meeschuift met elke veldwijziging. -->
+        <p v-if="newRowProductNotes" class="iw__addrow-notes">
+          <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ newRowProductNotes }}
+        </p>
+
         <!-- Excel-export (Jos, 2026-09-08): browser-tabellen bevatten
              knoppen/iconen door elkaar, dus plakken in Excel plakt alles in
              één cel. Een schone CSV met alleen de zichtbare gegevens werkt
@@ -418,21 +441,29 @@
                         >{{ s }}</button>
                       </div>
                     </template>
-                    <button
-                      v-else-if="!row.it.article.product"
-                      type="button"
-                      class="iw__match-btn"
-                      :title="$t('inspections.table.matchTooltip')"
-                      @click="startMatch(row.it)"
-                    >{{ row.label }}</button>
-                    <button
-                      v-else-if="itemProductNotes(row.it)"
-                      type="button"
-                      class="iw__match-btn iw__match-btn--notes"
-                      :title="$t('inspections.table.productNotesTitle')"
-                      @click="toggleNotes(row.it)"
-                    >{{ row.label }} <GIcon name="info" class="iw__notes-icon" /></button>
-                    <span v-else>{{ row.label }}</span>
+                    <template v-else-if="!row.it.article.product">
+                      <input
+                        v-model="row.it.article.free_description"
+                        class="iw__cell-input"
+                        :placeholder="$t('inspections.table.description')"
+                        @change="saveArticle(row.it)"
+                      />
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__match-icon-btn"
+                        :title="$t('inspections.table.matchTooltip')"
+                        @click="startMatch(row.it)"
+                      ><GIcon name="search" class="iw__match-icon" /></button>
+                    </template>
+                    <span v-else class="iw__linked-name">
+                      {{ row.label }}
+                      <button
+                        type="button"
+                        class="iw__icon-btn iw__rename-btn"
+                        :title="$t('inspections.table.wrongProductTooltip')"
+                        @click="unlinkRowProduct(row.it)"
+                      ><GIcon name="edit" class="iw__rename-icon" /></button>
+                    </span>
                     <span
                       v-if="articleSetInfo[row.it.article_id]"
                       class="iw__set-flag"
@@ -541,38 +572,41 @@
                             @click="suggestFor = row.it.article">
                       📚
                     </button>
-                    <button class="iw__part-btn" :title="$t('sets.addPart.title')" @click="startLinkPart(row.it)">🔗+</button>
+                    <input
+                      type="checkbox"
+                      class="iw__link-check"
+                      :checked="linkSelection.has(row.it.article_id)"
+                      :title="$t('sets.addPart.selectTitle')"
+                      @change="toggleLinkSelect(row.it)"
+                    />
                     <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
-                <!-- Opmerking uit de catalogus: achter een klik op de naam
-                     (Jos 2026-09-04: dit is achtergrond over het producttype,
-                     niet de eigen keuringsopmerking van de keurmeester -- die
-                     ("Opmerking..."-veld) blijft wél altijd in beeld). Eerder
-                     stond dit altijd open (Jos 2026-08-01), maar bij elke
-                     regel dezelfde producttekst zien tijdens het keuren bleek
-                     juist té veel. Het info-icoontje bij de naam laat zien
-                     dát er iets is; verbergen na lezen kan geen kwaad, het
-                     staat niet vast (geen ✕ nodig, opnieuw klikken volstaat). -->
-                <tr v-if="itemProductNotes(row.it) && openNotesId === row.it.id" class="iw__notes-row">
+                <!-- Opmerking uit de catalogus: altijd in beeld (Jos
+                     2026-09-28), niet meer achter een klik op de naam.
+                     Geschiedenis: stond eerst altijd open (2026-08-01), ging
+                     op 2026-09-04 achter een klik omdat de lange
+                     verantwoordingstekst die er toen in stond te veel werd.
+                     Die tekst is nu verhuisd naar `curator_notes` (nooit aan
+                     de keurmeester getoond); `notes` is weer kort en
+                     praktisch, dus kan gewoon altijd zichtbaar zijn. -->
+                <tr v-if="itemProductNotes(row.it)" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong>
                     {{ itemProductNotes(row.it) }}
                   </td>
                 </tr>
                 <!-- Levensduur-detail achter het icoon in de jaartal-kolom: de
-                     twee getallen uit de catalogus, plus (op Jos' verzoek,
-                     2026-09-19) dezelfde catalogusopmerking als hierboven, zodat
-                     beide in één vakje te vinden zijn bij het leeftijd-icoon. -->
+                     twee getallen uit de catalogus. De catalogusopmerking
+                     stond hier sinds 2026-09-19 ook nog eens bij, maar die
+                     staat sinds 2026-09-28 al permanent in de rij hierboven,
+                     dus dat zou hier dubbelop zijn. -->
                 <tr v-if="row.age && openAgeId === row.it.id" class="iw__notes-row">
                   <td colspan="12">
                     <strong>{{ $t('inspections.table.ageInfoTitle') }}:</strong>
                     {{ $t('inspections.table.ageMfrLabel') }} {{ row.age.mfrText }}
                     ·
                     {{ $t('inspections.table.ageUseLabel') }} {{ row.age.useText }}
-                    <template v-if="itemProductNotes(row.it)"><br />
-                      <strong>{{ $t('inspections.table.productNotesTitle') }}:</strong> {{ itemProductNotes(row.it) }}
-                    </template>
                   </td>
                 </tr>
               </template>
@@ -801,6 +835,72 @@ function cancelLinkPart() {
   linkCandidates.value = []
 }
 
+// Meerdere al-bestaande artikelen tot een set koppelen, zonder er iets nieuws
+// bij te typen (Jos 2026-09-28: "hoe kan ik meerdere artikelen aan elkaar
+// koppelen? zonder nieuwe artikelen toe te voegen?"). Hetzelfde vinkje als
+// hierboven doet dus dubbel dienst: precies één aangevinkt artikel is de
+// bestaande "voeg een nieuw onderdeel toe en koppel het meteen"-flow
+// (startLinkPart/linkTo, ongewijzigd); twee of meer aangevinkt is deze nieuwe
+// flow, die louter al-bestaande artikelen aan elkaar hangt. Beide roepen
+// dezelfde get_or_create_article_set aan -- die functie stelt geen eis dat
+// "p_new_article_id" ook echt nieuw is, dat is puur een naam uit de eerste
+// (nieuw-onderdeel) use case.
+const linkSelection = ref<Set<string>>(new Set())
+const groupRole = ref('')
+const groupingBusy = ref(false)
+
+function clearLinkSelection() {
+  linkSelection.value = new Set()
+  cancelLinkPart()
+  groupRole.value = ''
+}
+
+function toggleLinkSelect(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const next = new Set(linkSelection.value)
+  if (next.has(it.article_id)) next.delete(it.article_id)
+  else next.add(it.article_id)
+  linkSelection.value = next
+  cancelLinkPart()
+  if (next.size === 1) {
+    const only = items.value.find((i) => i.article_id === [...next][0])
+    if (only) void startLinkPart(only)
+  }
+}
+
+async function groupSelectedArticles() {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const ids = [...linkSelection.value]
+  if (ids.length < 2) return
+  const primary = items.value.find((i) => i.article_id === ids[0])
+  if (!primary) return
+  groupingBusy.value = true
+  try {
+    for (const id of ids.slice(1)) {
+      const { error: err } = await supabase.rpc('get_or_create_article_set', {
+        p_customer_id: inspection.value!.customer_id,
+        p_primary_article_id: primary.article_id,
+        p_primary_label: itemLabel(primary),
+        p_new_article_id: id,
+        p_role: groupRole.value.trim() || null,
+      })
+      if (err) throw err
+    }
+    await loadArticleSetInfo(inspection.value!.customer_id)
+    clearLinkSelection()
+  } catch (e) {
+    addError.value = errorMessage(e)
+  } finally {
+    groupingBusy.value = false
+  }
+}
+
 const previousResults = ref<Record<string, PreviousResult>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
 
@@ -819,7 +919,10 @@ const addError = ref('')
 // addError: wordt leeggemaakt zodra een volgende save slaagt.
 const rowSaveError = ref('')
 
-const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('label')
+// Standaard op Categorie (wens Jos, 2026-09-28) i.p.v. Artikel -- een
+// keurmeester overziet zo per materiaalsoort, en kan met een klik op een
+// andere kolomkop nog altijd anders sorteren.
+const sortKey = ref<'category' | 'brand' | 'label' | 'serial' | 'year' | 'nextDue'>('category')
 const sortDir = ref<1 | -1>(1)
 
 // Setleden bij elkaar in de tabel i.p.v. los verspreid (besloten met Jos
@@ -992,17 +1095,7 @@ const categoryRowId = ref<string | null>(null)
 // Zelfde, voor het per-rij merkveld.
 const brandRowId = ref<string | null>(null)
 
-// Opmerking uit de catalogus staat niet meer standaard open tijdens het
-// keuren (Jos 2026-09-04: dat is achtergrond over het producttype, niet
-// relevant bij elke regel -- wél leuk om te zien bij een nieuw product). Eén
-// klik op de naam klapt 'm open; nogmaals klikken klapt 'm weer dicht.
-const openNotesId = ref<string | null>(null)
-function toggleNotes(it: Item) {
-  openNotesId.value = openNotesId.value === it.id ? null : it.id
-}
-
-// Levensduur-icoon in de jaartal-kolom: zelfde klik-open-patroon als de
-// catalogusopmerking hierboven, maar los bijgehouden (onafhankelijk open/dicht).
+// Levensduur-icoon in de jaartal-kolom: eigen klik-open/dicht-status.
 const openAgeId = ref<string | null>(null)
 function toggleAge(it: Item) {
   openAgeId.value = openAgeId.value === it.id ? null : it.id
@@ -1044,8 +1137,31 @@ async function applyRowMatch(it: Item, name: string) {
   it.article.free_description = null
 }
 
+// Verkeerd catalogusproduct gekoppeld? Loskoppelen zonder de keuring te
+// verlaten (Jos 2026-09-28: "ik wil de naam kunnen aanpassen ... ik wil dus
+// meteen door kunnen werken"). Merk/naam van het gekoppelde product blijven
+// als vrije tekst staan (zelfde aanpak als het loskoppelen op de eigen
+// artikelpagina, ArticleDetail.vue) zodat er niets weg is om vanaf te
+// corrigeren, en de rij valt terug op de vrije invoervelden hierboven.
+async function unlinkRowProduct(it: Item) {
+  if (!isOnline.value) {
+    addError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  const p = it.article.product
+  const { error: err } = await supabase
+    .from('articles')
+    .update({ product_id: null, free_brand: p?.brand ?? null, free_description: p?.name ?? null })
+    .eq('id', it.article.id)
+  if (err) { addError.value = err.message; return }
+  it.article.product = null
+  it.article.free_brand = p?.brand ?? null
+  it.article.free_description = p?.name ?? null
+}
+
 // Verplaats de focus naar het volgende invoerveld (artikel → merk → categorie
 // → serienummer → bouwjaar). Gebruikt door Enter; Tab doet dit van nature.
+const articleRef = ref<HTMLInputElement | null>(null)
 const brandRef = ref<HTMLInputElement | null>(null)
 const categoryRef = ref<HTMLInputElement | null>(null)
 const serialRef = ref<HTMLInputElement | null>(null)
@@ -1274,11 +1390,14 @@ function snBadgeText(r: SnResult): string {
 // Korte oplichting van de rij waar we naartoe springen, zodat duidelijk is welk
 // artikel bedoeld wordt nadat het zoekveld is leeggemaakt.
 const highlightId = ref<string | null>(null)
-function revealItem(itemId: string) {
+function flashItem(itemId: string) {
   highlightId.value = itemId
+  window.setTimeout(() => { if (highlightId.value === itemId) highlightId.value = null }, 2000)
+}
+function revealItem(itemId: string) {
+  flashItem(itemId)
   nextTick(() => {
     document.getElementById('iw-row-' + itemId)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-    window.setTimeout(() => { if (highlightId.value === itemId) highlightId.value = null }, 2000)
   })
 }
 
@@ -1905,7 +2024,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2110,6 +2229,11 @@ function matchProduct(): Product | null {
   return matches[0]
 }
 
+// Zelfde catalogusopmerking als in de tabel (itemProductNotes), maar dan al
+// zichtbaar terwijl je nog aan het typen bent in de toevoegrij -- vóór het
+// artikel er überhaupt staat.
+const newRowProductNotes = computed(() => matchProduct()?.notes?.trim() || null)
+
 // Maakt de toevoeg-/zoekvelden leeg (na toevoegen of na een SN-keuze).
 function resetAddRow() {
   barcodeNotice.value = ''
@@ -2175,6 +2299,11 @@ async function addRow() {
     if (itemErr) throw itemErr
 
     items.value.push({ ...item, article } as Item)
+    // Alleen kort oplichten, niet ernaartoe scrollen (Jos 2026-09-28): de
+    // focus gaat na het toevoegen terug naar het Artikel-veld hierboven, dat
+    // scrolt de pagina toch alweer omhoog -- scrollIntoView zou daar
+    // recht tegenin gaan en het scherm heen-en-weer laten springen.
+    flashItem(item.id)
     previousResults.value[article.id] = null
     // Ook in de SN-zoekbron opnemen, zodat een net toegevoegd artikel meteen via
     // het serienummer terugvindbaar is (en niet per ongeluk gedupliceerd wordt).
@@ -2209,10 +2338,14 @@ async function addRow() {
         p_retire_article_id: linkReplaceId.value,
       })
       if (linkErr) throw linkErr
-      cancelLinkPart()
+      await loadArticleSetInfo(inspection.value!.customer_id)
+      clearLinkSelection()
     }
 
     resetAddRow()
+    // Jos (2026-09-28): "na op toevoegen klikken wil ik meteen kunnen typen
+    // in artikel" -- anders moet je na elke rij weer naar de muis grijpen.
+    nextTick(() => articleRef.value?.focus())
   } catch (e) {
     addError.value = errorMessage(e)
   }
@@ -2275,6 +2408,7 @@ async function addRowOffline() {
     comment: itemRow.comment,
     article: articleWithProduct,
   })
+  flashItem(itemId)
   previousResults.value[articleId] = null
   customerArticles.value.push({
     id: articleId,
@@ -2299,6 +2433,7 @@ async function addRowOffline() {
 
   await touchDownloadActivity(customerId)
   resetAddRow()
+  nextTick(() => articleRef.value?.focus())
 }
 
 // Klik op een al actief resultaat zet 'm terug naar niet-beoordeeld (herstel
@@ -2312,6 +2447,7 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
     it.next_due = result === 'passed' ? suggestedNextDueIso(it) : null
     if (result === 'passed') it.rejection_code_id = null
   }
+  revealItem(it.id)
   saveRow(it)
 }
 
@@ -2381,14 +2517,16 @@ async function saveArticle(it: Item) {
     first_use_date: a.first_use_date || null,
     assigned_user_name: a.assigned_user_name?.toString().trim() || null,
     suggest_for_catalog: a.suggest_for_catalog,
-    // Merk/categorie alleen aanpasbaar bij een vrij artikel (geen
+    // Merk/naam/categorie alleen aanpasbaar bij een vrij artikel (geen
     // catalogusproduct) -- bij een gekoppeld artikel komen die uit het
-    // product zelf en tonen we ze read-only (zie iw__category/colBrand).
+    // product zelf en tonen we ze read-only (zie iw__category/colBrand/
+    // iw__match-cell).
     ...(a.product
       ? {}
       : {
           free_brand: a.free_brand?.toString().trim() || null,
           free_category: a.free_category?.toString().trim() || null,
+          free_description: a.free_description?.toString().trim() || null,
         }),
   }
   if (!isOnline.value) {
@@ -2687,9 +2825,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   text-decoration: underline dotted; text-decoration-color: #9ca3af;
 }
 .iw__match-btn:hover { color: #16a34a; }
-.iw__match-btn--notes { text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; }
-.iw__notes-icon { width: 0.85rem; height: 0.85rem; flex-shrink: 0; color: #9ca3af; }
-.iw__match-btn--notes:hover .iw__notes-icon { color: #16a34a; }
+.iw__linked-name { display: inline-flex; align-items: center; gap: 0.15rem; }
+.iw__match-icon-btn, .iw__rename-btn { margin-right: 0; opacity: 0.4; }
+.iw__match-icon-btn:hover, .iw__rename-btn:hover { opacity: 1; }
+.iw__match-icon, .iw__rename-icon { width: 0.85rem; height: 0.85rem; }
 /* Inspection-notice-vlag: bewust oranje, nooit rood (Jos 2026-09-07) -- rood
    blijft gereserveerd voor een echte recall (zie iw__warn-icon/🚩 hierboven).
    Zelfde amber-token als de "aandacht"-status op het klantdashboard
@@ -2788,6 +2927,13 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   white-space: normal;
 }
 .iw__notes-row strong { color: #111827; }
+/* Zelfde neutrale stijl als .iw__notes-row, maar als los blokje buiten de
+   tabel (toevoegrij heeft nog geen <tr> om in te hangen). */
+.iw__addrow-notes {
+  margin: 0.5rem 0; padding: 0.5rem 0.75rem; font-size: 0.8rem; color: #374151;
+  background: #f9fafb; box-shadow: inset 3px 0 0 0 #d1d5db; border-radius: 4px;
+}
+.iw__addrow-notes strong { color: #111827; }
 .iw__category { color: #374151; }
 .iw__category--edit { position: relative; }
 .iw__sn { color: #6b7280; }
@@ -2803,8 +2949,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__result-cell { min-width: 11rem; }
 .iw__comment-input { flex: 1 1 9rem; min-width: 9rem; }
 .iw__actions-cell { text-align: center; }
-.iw__part-btn { border: none; background: transparent; cursor: pointer; font-size: 0.95rem; opacity: 0.5; margin-right: 0.35rem; }
-.iw__part-btn:hover { opacity: 1; }
+.iw__link-check { margin-right: 0.5rem; cursor: pointer; width: 1rem; height: 1rem; vertical-align: middle; }
 .iw__retire-btn { border: none; background: transparent; cursor: pointer; font-size: 1rem; opacity: 0.6; }
 .iw__retire-btn:hover { opacity: 1; }
 .iw__link-bar {

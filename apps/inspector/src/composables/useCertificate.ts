@@ -1038,8 +1038,17 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     rejection_code: { label: string } | null
   }
   const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
-    // Snapshot eerst, live artikel als vangnet.
-    const a = { ...(r.article ?? {}), ...(r.article_snapshot ?? {}) } as NonNullable<ItemRow['article_snapshot']>
+    // Snapshot eerst, live artikel als vangnet -- ook per veld: een lege
+    // waarde in de snapshot overschrijft geen gevulde live waarde. Nodig voor
+    // een artikel dat bij het keuren aan een catalogusproduct hing (free_* in
+    // de snapshot leeg) en daarna door "Product verwijderen" is losgemaakt:
+    // dan staan merk/naam alleen nog als vrije tekst op de live rij, en gaf de
+    // gewone spread "— — —" op het certificaat (Jos, 2026-09-29, HMS TRIPLE).
+    const snap = r.article_snapshot ?? {}
+    const a = { ...(r.article ?? {}) } as NonNullable<ItemRow['article_snapshot']>
+    for (const [k, v] of Object.entries(snap)) {
+      if (v !== null && v !== undefined && v !== '') (a as Record<string, unknown>)[k] = v
+    }
     const p = r.article?.product
     return {
       result: r.result,

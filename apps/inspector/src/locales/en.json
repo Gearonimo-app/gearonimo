@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Add part",
+      "selectTitle": "Tick to link to another article",
       "linkedTo": "Will be linked to: {name}",
       "rolePlaceholder": "Role (e.g. bridge, carabiner)",
       "replaces": "This replaces",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Brand or description is required."
       }
+    },
+    "group": {
+      "title": "Link selected ({count}) into a set",
+      "rolePlaceholder": "Role/name (optional)",
+      "confirm": "Link",
+      "offline": "Linking needs a connection."
     },
     "openDetail": "Open set — rename, edit members or delete"
   },
@@ -356,6 +363,7 @@
       "copyLastTooltip": "Fills in all fields from the last added article again (without serial number) — handy for multiple identical items.",
       "matchTooltip": "Match to a catalog article — brand, category and lifespan data will be filled in automatically.",
       "matchPlaceholder": "Type to search…",
+      "wrongProductTooltip": "Wrong product linked? Click to unlink and type the name yourself.",
       "addManualUrl": "Add manual link",
       "recallHint": "Recall known for this product",
       "noticeHint": "Inspection notice known for this product",
@@ -673,7 +681,7 @@
         "empty": "No products found.",
         "export": "Export to Excel",
         "import": "Import from Excel",
-        "previewSummary": "{create} new, {update} updated, {duplicate} already present (skipped), {skip} failed. Review and confirm.",
+        "previewSummary": "{create} new, {update} updated, {unchanged} unchanged, {duplicate} already present (skipped), {skip} failed. Review and confirm.",
         "importConfirm": "Confirm import",
         "errorMissing": "Row {line}: brand and name are required.",
         "errorUnknownId": "Row {line}: id {id} does not exist in the catalogue.",
@@ -683,6 +691,8 @@
         "duplicateExists": "A product with this brand and name is already in the catalogue. Edit the existing product, or give this one its own name — for example with the size after it.",
         "andMore": "… and {count} more.",
         "importProgress": "{done} of {total} added…",
+        "importUpdateProgress": "{done} of {total} updated…",
+        "importUpdateErrors": "{count} product(s) could not be updated — the rest succeeded:",
         "delete": "Delete product",
         "deleteUnused": "Are you sure? This product is not in use anywhere and will be permanently deleted.",
         "deleteUsed": "Careful: this product is used {count} times. Those articles stay — their brand and name remain as free text, so you can re-link them later.",
@@ -713,6 +723,7 @@
         "inspectionNoticeUrl": "Safety bulletin (link)",
         "inspectionNoticeDate": "Safety bulletin date",
         "notes": "Notes",
+        "curatorNotes": "Internal notes (sourcing)",
         "maxAgeHint": "999 = unlimited service life. Empty = not looked up yet."
       },
       "productTypes": {
@@ -732,6 +743,7 @@
         "positioning_lanyards": "Positioning lanyard",
         "slings": "Sling",
         "anchor_strop": "Anchor strop",
+        "hitch_cord": "Hitch cord",
         "accessory_cord": "Accessory cord",
         "anchor_hardware": "Anchor plate & hardware",
         "pulleys": "Pulley",
@@ -774,10 +786,13 @@
         "productPageUrl": "https://…",
         "recallUrl": "https://…",
         "inspectionNoticeUrl": "https://…",
-        "notes": "e.g. inspect only with the original carabiner"
+        "notes": "e.g. Mfr unlimited; before May 2018 11.5mm rope instead of 11mm",
+        "curatorNotes": "e.g. sourcing, quote from the manual, checksum verification"
       },
       "hints": {
-        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon."
+        "barcodes": "The code on the box or label, not the serial number. Separate multiple codes (e.g. per size) with a semicolon.",
+        "notes": "Always shown to the inspector during inspection — keep it short and practical.",
+        "curatorNotes": "Curators only: sourcing for the fields above (source, quote, verification). Never shown to the inspector."
       },
       "errors": {
         "invalidBarcodes": "Not a valid barcode: {codes}. Digits only, 8, 12, 13 or 14 long, with a correct check digit."

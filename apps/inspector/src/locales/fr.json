@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Ajouter un élément",
+      "selectTitle": "Cocher pour lier à un autre article",
       "linkedTo": "Sera lié à : {name}",
       "rolePlaceholder": "Rôle (ex. pont, mousqueton)",
       "replaces": "Ceci remplace",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "La marque ou la description est obligatoire."
       }
+    },
+    "group": {
+      "title": "Lier les {count} articles sélectionnés en un ensemble",
+      "rolePlaceholder": "Rôle/nom (optionnel)",
+      "confirm": "Lier",
+      "offline": "La liaison nécessite une connexion."
     },
     "openDetail": "Ouvrir l'ensemble — renommer, modifier les membres ou supprimer"
   },
@@ -673,7 +680,7 @@
         "empty": "Aucun produit trouvé.",
         "export": "Exporter vers Excel",
         "import": "Importer depuis Excel",
-        "previewSummary": "{create} nouveau(x), {update} mis à jour, {duplicate} déjà présent(s) (ignoré(s)), {skip} en erreur. Vérifiez et confirmez.",
+        "previewSummary": "{create} nouveau(x), {update} mis à jour, {unchanged} inchangé(s), {duplicate} déjà présent(s) (ignoré(s)), {skip} en erreur. Vérifiez et confirmez.",
         "importConfirm": "Confirmer l'import",
         "errorMissing": "Ligne {line} : la marque et le nom sont obligatoires.",
         "errorUnknownId": "Ligne {line} : l'id {id} n'existe pas dans le catalogue.",
@@ -683,6 +690,8 @@
         "duplicateExists": "Un produit avec cette marque et ce nom existe déjà dans le catalogue. Modifiez le produit existant, ou donnez-lui un nom propre — par exemple avec la taille à la suite.",
         "andMore": "… et {count} de plus.",
         "importProgress": "{done} sur {total} ajoutés…",
+        "importUpdateProgress": "{done} sur {total} mis à jour…",
+        "importUpdateErrors": "{count} produit(s) n'ont pas pu être mis à jour — le reste a réussi :",
         "delete": "Supprimer le produit",
         "deleteUnused": "Êtes-vous sûr ? Ce produit n'est utilisé nulle part et sera définitivement supprimé.",
         "deleteUsed": "Attention : ce produit est déjà utilisé {count} fois. Ces articles restent conservés — marque et nom y restent inscrits en texte libre, pour pouvoir être reliés plus tard.",
@@ -732,6 +741,7 @@
         "positioning_lanyards": "Longe de maintien",
         "slings": "Anneau (sling)",
         "anchor_strop": "Sangle d'ancrage",
+        "hitch_cord": "Cordelette autobloquante",
         "accessory_cord": "Cordelette (accessoire)",
         "anchor_hardware": "Plaque et matériel d'ancrage",
         "pulleys": "Poulie",

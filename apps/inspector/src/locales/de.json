@@ -212,6 +212,7 @@
     },
     "addPart": {
       "title": "Teil hinzufügen",
+      "selectTitle": "Ankreuzen, um mit einem anderen Artikel zu verknüpfen",
       "linkedTo": "Wird verknüpft mit: {name}",
       "rolePlaceholder": "Funktion (z. B. Brücke, Karabiner)",
       "replaces": "Dies ersetzt",
@@ -220,6 +221,12 @@
       "errors": {
         "missing": "Marke oder Beschreibung ist erforderlich."
       }
+    },
+    "group": {
+      "title": "{count} ausgewählte zu einem Set verknüpfen",
+      "rolePlaceholder": "Funktion/Name (optional)",
+      "confirm": "Verknüpfen",
+      "offline": "Verknüpfen geht nur online."
     },
     "openDetail": "Set öffnen — umbenennen, Mitglieder ändern oder löschen"
   },
@@ -673,7 +680,7 @@
         "empty": "Keine Produkte gefunden.",
         "export": "Nach Excel exportieren",
         "import": "Aus Excel importieren",
-        "previewSummary": "{create} neu, {update} aktualisiert, {duplicate} bereits vorhanden (übersprungen), {skip} fehlerhaft. Prüfen und bestätigen.",
+        "previewSummary": "{create} neu, {update} aktualisiert, {unchanged} unverändert, {duplicate} bereits vorhanden (übersprungen), {skip} fehlerhaft. Prüfen und bestätigen.",
         "importConfirm": "Import bestätigen",
         "errorMissing": "Zeile {line}: Marke und Name sind erforderlich.",
         "errorUnknownId": "Zeile {line}: ID {id} existiert nicht im Katalog.",
@@ -683,6 +690,8 @@
         "duplicateExists": "Ein Produkt mit dieser Marke und diesem Namen ist bereits im Katalog. Passen Sie das bestehende Produkt an, oder geben Sie diesem einen eigenen Namen — zum Beispiel mit der Größe dahinter.",
         "andMore": "… und {count} weitere.",
         "importProgress": "{done} von {total} hinzugefügt…",
+        "importUpdateProgress": "{done} von {total} aktualisiert…",
+        "importUpdateErrors": "{count} Produkt(e) konnten nicht aktualisiert werden — der Rest ist gelungen:",
         "delete": "Produkt löschen",
         "deleteUnused": "Sind Sie sicher? Dieses Produkt wird nirgends verwendet und wird endgültig gelöscht.",
         "deleteUsed": "Achtung: Dieses Produkt wird bereits {count}-mal verwendet. Diese Artikel bleiben bestehen — Marke und Name bleiben als freier Text erhalten, sodass Sie sie später erneut verknüpfen können.",
@@ -732,6 +741,7 @@
         "positioning_lanyards": "Halteseil",
         "slings": "Schlinge",
         "anchor_strop": "Ankerschlinge",
+        "hitch_cord": "Klemmschlinge",
         "accessory_cord": "Reepschnur (Hilfsleine)",
         "anchor_hardware": "Ankerplatte & Hardware",
         "pulleys": "Seilrolle",

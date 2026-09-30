@@ -5,6 +5,374 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Certificaat: "— — —" bij een artikel waarvan het product later is verwijderd (Jos, 2026-09-29)
+
+> Jos: *"Waarom staan er streepjes op mijn certificaat?"* — EDELRID HMS TRIPLE,
+> in de zoeklijst een "Vrij artikel" met merk en naam, op het certificaat
+> alleen streepjes.
+
+Oorzaak: de bevroren artikelrij (`inspection_items.article_snapshot`) ging
+met een gewone spread vóór de live rij. Hing het artikel bij het keuren aan
+een catalogusproduct, dan staan `free_brand`/`free_description` in de
+snapshot op `null`; "Product verwijderen" (`delete_product`) zet merk/naam
+daarna als vrije tekst op de live rij en ontkoppelt het product — maar die
+`null` uit de snapshot overschreef ze weer. Fix in `useCertificate.ts`: de
+snapshot wint alleen met een gevulde waarde, per veld.
+
+Consequentie: een veld dat bij het keuren leeg was en later is ingevuld
+(bv. een serienummer), komt nu ook op een opnieuw gemaakt certificaat.
+
+**Nog open:** de openbare verificatiepagina (`verify_certificate` in de
+database) heeft hetzelfde gat en toont voor zo'n artikel geen omschrijving.
+Dat vraagt een migratie; niet meegenomen.
+
+## Import verstuurt alleen nog wat echt veranderd is (Jos, 2026-09-29)
+
+> Jos: *"Uploaden gaat ook extreem traag … net meer dan 15 min zitten
+> wachten"* — en: *"alleen als dit risicoloos kan"*. De importwizard stuurde
+> elke rij mét id los naar de database, ook als er niets aan veranderd was
+> (~3500 verzoeken). Nu vergelijkt `buildPreview()` eerst met wat er al in de
+> database staat en slaat identieke rijen over (`catalogRowUnchanged` in
+> `packages/core/src/catalog.ts`, met eigen tests). De preview toont daarom
+> nu ook "N ongewijzigd", en "bijgewerkt" is het echte aantal wijzigingen.
+>
+> Waarom risicoloos:
+> - De vergelijking is bewust scheef: bij élke twijfel (onbekend type,
+>   ontbrekend veld, getal dat geen getal is) telt een rij als gewijzigd en
+>   gaat hij gewoon mee, zoals voorheen. Een onterecht "ongewijzigd" is het
+>   enige dat een wijziging zou kunnen missen, en dat kan alleen als élk veld
+>   exact gelijk is.
+> - Vóór het vergelijken wordt de catalogus vers uit de database gehaald (niet
+>   de kopie van toen de pagina openging); lukt dat niet, dan komt er geen
+>   preview.
+> - Proef op echte data (Jos' export tegen de nieuwe Excel): 3356 ongewijzigd,
+>   119 te versturen — precies de rijen met de id-reparatie — en 0 gemist ten
+>   opzichte van een volledige kolom-voor-kolom-vergelijking.
+
+---
+
+## De échte reden dat ~60-120 producten niet bijgewerkt werden: ontbrekende id's (Jos, 2026-09-29)
+
+> Controle-export na de Klimstrop-import, dit keer strikt vergeleken (álle
+> kolommen, óók lege — `vergelijk.mts` slaat een lege cel in het aangeleverde
+> bestand over en zag dit daardoor nooit): de 3356 rijen mét id waren
+> allemaal volledig gelijk. De afwijkingen zaten alleen in de 119 rijen
+> **zonder id** in de bronlijst — precies de producten die deze sessie zijn
+> toegevoegd (Beal 60, Haberkorn 35, Petzl 15, KONG 7, EDELRID 2). Die staan
+> in de app met een door de database gegeven id; de bronlijst had dat id nooit
+> teruggekregen. Gevolg: elke import zag ze als "nieuw", vond merk + naam al
+> terug en sloeg ze over — het "119 stond er al (overgeslagen)" uit Jos'
+> screenshot van 2026-09-28. Daardoor bleven hun oude lange `notes` staan,
+> kwam `curator_notes` nooit aan en bleef Beal Jammy op "Ankerstrop".
+>
+> De importlus-fixes van 2026-09-28 (doorgaan na een fout, herkansing bij
+> netwerkhapering) waren terecht, maar verklaarden dit patroon níét — dat
+> staat daar te stellig als "echte oorzaak".
+>
+> Opgelost: de 119 id's uit Jos' export overgenomen (op merk + naam, alleen
+> lege id's), zodat de volgende import ze gewoon bijwerkt. Om herhaling te
+> voorkomen een vast script `npm run catalog:ids -- <export-uit-de-app>`
+> (`scripts/catalog/ids.mts`) en een stap in `catalog/README.md`: na het
+> importeren van nieuwe producten altijd de id's terughalen.
+
+---
+
+## Nieuwe categorie "Klimstrop" (`hitch_cord`) + cambium savers en ankerstroppen rechtgezet (Jos, 2026-09-29)
+
+> Jos: *"Ocean polyester is een prusik — staat nu als ankerstrop."* Bij de
+> opschoning van 2026-09-10 waren alle prusiks/hitch cords op norm (EN 566 /
+> EN 795B) onder `anchor_strop` gezet. Een eerste voorstel "Prusiklus" viel
+> af (*"vaak is dit ook een e2e"*), net als een strikte normindeling: van de
+> groep heeft 45× alleen EN 566, 26× alleen EN 795B, 13× beide en 30× geen
+> opgegeven norm — identieke e2e's van twee merken zouden zo in verschillende
+> categorieën belanden. Gekozen: een categorie op functie. Jos: *"hitch cord
+> in Engels klinkt goed. Klemknoop is geen ingeburgerde term, klimstrop wordt
+> het voor Nederland."* DE "Klemmschlinge", FR "Cordelette autobloquante".
+>
+> 133 producten naar `hitch_cord`: 119 uit `anchor_strop` (o.a. Liros Safe
+> Prusik, Courant Phoenix, Teufelberger Ocean/Sirius/prusikLOOP, Tango Sanity,
+> STEIN ATOL/COPIOUS, Yale Bee Line, Cousin Aramadillo, Beal Jammy), 11 DMM
+> Fidus uit `anchor_hardware`, 3 uit `accessory_cord` (Silva Prusik, Eyolf
+> Tak, Singing Rock Prusik Sling — die hebben EN 795B of geen norm). Silva
+> Prusik Pro (uitsluitend EN 564) blijft bewust `accessory_cord`, volgens de
+> bestaande regel.
+>
+> Tegelijk (Jos: *"Cambiumsaver staan nu als ankerplaats hardware"*): 5 EDELRID
+> cambium savers (ADJUSTABLE 125/500cm, BICOLOR 90/120/150cm) van
+> `anchor_hardware` naar het al bestaande `cambium_saver`, en 12 textiele
+> ankerstroppen die ook onder hardware stonden (ART SnakeAnchor ×2/SnakeTail,
+> EDELRID ANCORA ×3/MATCH SLING/MULTICHAIN/TIBOR ×3/POWER STEEL — EDELRID
+> rekent die zelf tot "anchor devices") naar `anchor_strop`. "Ankerplaat &
+> hardware" is daarmee weer puur metaal.
+>
+> Ook: het verouderde Teufelberger-keuringsbericht (naadcontrole EN 566,
+> 22-07-13) weg bij alle 9 Ocean Polyester-rijen (Jos: *"oud en niet meer van
+> toepassing"*).
+
+---
+
+## Import-fix bleek onvolledig: netwerkhapering brak de bijwerk-lus nog steeds af (Jos, 2026-09-28)
+
+> Direct na de vorige fix (die alleen database-foutmeldingen ving) liep de
+> import op Jos' telefoon (1 balkje bereik) alsnog vast met "TypeError:
+> Failed to fetch" bovenaan het scherm. Oorzaak: supabase-js gooit bij een
+> netwerkhapering een echte exception i.p.v. een normaal `{ data, error }`-
+> resultaat terug te geven — die viel buiten de `if (err) ...`-check van de
+> vorige fix en brak de hele resterende lus (duizenden losse verzoeken, nog
+> steeds één voor één) alsnog af.
+>
+> Nu binnen een try/catch, mét één herkansing na een halve seconde wachten
+> vóór een rij als mislukt geldt (een korte hapering op mobiel bereik hoeft
+> zo niet meteen een "fout" te zijn). Bijvangst: de bijwerk-lus had nog
+> geen enkele voortgangsindicatie (in tegenstelling tot de toevoeg-lus, die
+> wel per 500 een update toont) — bij duizenden rijen op een trage
+> verbinding zag het scherm er zo minutenlang doodstil uit. Nu ook een
+> "{done} van {total} bijgewerkt…"-teller, elke 25 rijen.
+
+---
+
+## Echte oorzaak van de steeds terugkerende "~60 producten blijven verouderd" gevonden (Jos, 2026-09-28)
+
+> Na de notes-conventie-correcties (hieronder) opnieuw geëxporteerd en door
+> Jos laten controleren — en dezelfde soort mismatch kwam wéér terug: ~70
+> producten (verspreid over ART, Beal, EDELRID, Haberkorn, KONG, Petzl
+> GRILLON/ABSORBICA-Y) hadden in de app nog de oude, lange
+> voor-de-curator_notes-splitsing-tekst in `notes` staan, ondanks meerdere
+> eerdere "geslaagde" imports. Eerst id-mismatch vermoed (elke `toCreate` in
+> `CatalogManager.vue` slaat namelijk geen `id` mee bij het aanmaken, dus
+> Postgres genereert zelf een nieuwe) — met een volledige vergelijking
+> bronlijst-id vs. live app-id (uit een verse export) uitgesloten: alle
+> id's kwamen wél overeen.
+>
+> **Echte oorzaak**, gevonden in `commitImport()`: de bijwerk-lus liep
+> synchroon, één product per keer, over (bij deze catalogus) 3356 rijen, en
+> brak bij de EERSTE mislukte rij meteen helemaal af (`if (err) throw err`)
+> — alles daarvóór in die run was al écht opgeslagen, alles daarna werd
+> stilzwijgend nooit geprobeerd, met alleen één generieke foutmelding als
+> enig spoor. Bij een lijst van dit formaat, over meerdere imports heen op
+> verschillende momenten, verklaart dat precies het steeds terugkerende,
+> ogenschijnlijk willekeurige patroon van dezelfde ~60-70 achterblijvers.
+>
+> **Fix**: de lus stopt niet meer bij de eerste fout — elke rij wordt
+> geprobeerd, mislukkingen worden verzameld (merk + naam + foutmelding)
+> en pas ná de hele lus in één duidelijke melding getoond (eerste 20, met
+> "en nog N"). Zo komt een probleemrij niet meer de hele rest van de import
+> in de weg te staan, en is bij een volgende mislukking meteen zichtbaar
+> wélk product het betreft in plaats van een generieke foutmelding.
+
+---
+
+## `notes`-conventie + vijf inhoudelijke correcties (Jos, 2026-09-28)
+
+> Jos: *"curator notes is wat je tijdens het keuren in beeld krijgt toch?
+> zo ja: 1 terugdraaien wat je net gedaan hebt!"* Nee — dat is precies
+> andersom en zo ook bevestigd: `notes` (kort, praktisch) staat tijdens de
+> keuring in beeld, `curator_notes` (lange bronvermelding) nooit. Niets
+> terug te draaien.
+>
+> **Conventie voor `notes` vastgelegd:** een leeftijdsvermelding staat er
+> alleen in als er ook echt een eindige grens is (nooit "Mfr onbeperkt" als
+> vulling), en anders altijd in vaste volgorde mfr vóór use. Toegepast op de
+> enige rij die dat nog niet deed: `Petzl GRILLON (rope clamp body)` had
+> "Mfr onbeperkt (999)." voor de lijndiktetip staan — dat apparaat heeft geen
+> echte leeftijdsgrens, dus weg; de andere tien GRILLON-rijen deden het al
+> goed.
+>
+> **ART RopeGuide** (2010 Cocoon 150/300cm, 2010 Link 150/300cm, TwinLine —
+> de hybride alu+stof-varianten, niet de pure rope-sling-varianten die al
+> een eigen 5-jarige max_age_use_years hebben): `notes` erbij dat de stoffen
+> lijn/sling zelf maar 5 jaar mee mag, ook al is de metalen behuizing tot
+> 10 jaar bruikbaar. Stond al in `curator_notes` ("Textile parts must be
+> replaced after 5 years..."), maar dat veld ziet de keurmeester nooit.
+>
+> **Newton Easyfit-recall gecontroleerd** (Jos: *"recall is pre 2022"*) —
+> klopt niet: Petzl's eigen recallbericht (04-03-2025) noemt expliciet
+> specifieke partijen GEMAAKT IN 2022, referenties C073AA01/AA02 (NEWTON),
+> C073CA01/CA02 (NEWTON FAST), C073EA01/EA02 (NEWTON EASYFIT maat 1/2) — niet
+> "alles van vóór 2022". Bijvangst: **NEWTON EASYFIT European Version
+> (Size 0)** (C073EA00) stond wél gevlagd met deze recall, maar die
+> referentie wordt nergens in het officiële bericht genoemd — `recall_url`
+> van die ene rij verwijderd, met de reden vastgelegd in `curator_notes`. De
+> zes rijen die wél terecht gevlagd staan (NEWTON/NEWTON FAST/NEWTON EASYFIT,
+> Europese uitvoering, maat 1/2) hebben nu ook `recall_date` = 2025-03-04.
+>
+> **ISC UltraLink-recall gecontroleerd** (Jos: *"recal is voor20??"*) — geen
+> "vóór jaar X"-recall maar een smal venster: exemplaren in omloop tussen
+> 28-02-2023 en 13-03-2023, met negen specifieke partijnummers (LK100:
+> 168276/168153/166671/167961; LK101: 167962/166675/168231/168155/168277) —
+> vastgelegd in `curator_notes`, `recall_date` = 2023-03-13.
+
+---
+
+## Al-bestaande artikelen in een keuring aan elkaar koppelen (Jos, 2026-09-28)
+
+> Jos: *"in de bestaande keuring, hoe kan ik meerdere artikelen aan elkaar
+> koppelen? zonder nieuwe artikelen toe te voegen?"* Uitgezocht: dat kon nog
+> niet. Het bestaande 🔗+-knopje (`startLinkPart`) was uitsluitend gebouwd voor
+> "koppel het volgende NIEUW toe te voegen artikel aan dit artikel" — twee
+> artikelen die al allebei in de keuring staan, koppelen kon niet. De
+> database-functie eronder (`get_or_create_article_set`) had daar overigens
+> geen enkel bezwaar tegen: die accepteert gewoon twee bestaande artikel-ID's,
+> "nieuw" in `p_new_article_id` is alleen een naam uit de oorspronkelijke
+> use case, geen echte eis.
+>
+> Voorgesteld en akkoord (Jos: *"jij snapt hem 😉"*): het 🔗+-icoon vervangen
+> door een vinkje per rij. Precies één aangevinkt = de bestaande "voeg nieuw
+> onderdeel toe en koppel"-flow (ongewijzigd, inclusief rol-/vervangt-velden).
+> Twee of meer aangevinkt = nieuw balkje "Koppel geselecteerd (n) tot een
+> set" met een rol/naam-veldje; roept dezelfde `get_or_create_article_set`
+> aan, één keer per extra geselecteerd artikel, met het eerst aangevinkte als
+> hoofdartikel. Bijvangst: `articleSetInfo` (de 🔗-badges) ververst nu ook na
+> de bestaande nieuw-onderdeel-koppeling — dat gebeurde eerder pas na een
+> paginaherlaad.
+>
+> **Bekende beperking, niet opgelost:** vink je twee artikelen aan die allebei
+> al in een (verschillende) bestaande set zitten, dan voegt de functie het
+> tweede artikel toe aan de set van het eerste zonder het uit zijn oude set te
+> halen — een artikel kan zo in twee sets tegelijk belanden. Bewust niet
+> dichtgetimmerd in deze ronde (randgeval); komt terug als het zich voordoet.
+
+---
+
+## Scroll-sprong na "+ Toevoegen" weggenomen (Jos, 2026-09-28)
+
+> Twee wijzigingen van eerder op de dag botsten: het "springen naar de net
+> toegevoegde rij" (`revealItem`, met scroll) en de "focus terug op Artikel"
+> volgden elkaar direct op, dus de pagina scrolde naar de nieuwe rij en meteen
+> daarna weer omhoog naar het Artikel-veld. Jos: *"na +toevoegen zie ik het
+> product in de lijst staan, en met typen schiet het scherm weer naar boven."*
+>
+> Drie opties voorgelegd (vastzetten van het typvak boven het scherm — twee
+> varianten — of de sprong gewoon weglaten); Jos koos voor de derde, met als
+> reden dat vastzetten op kleinere schermen waarschijnlijk juist hinderlijk
+> scrollen zou opleveren. `revealItem` (scroll + oplichten) gesplitst in
+> `flashItem` (alleen oplichten, gebruikt na "+ Toevoegen" in `addRow`/
+> `addRowOffline`, vlak vóór de focus) en `revealItem` zelf (ongewijzigd,
+> blijft scrollen bij de andere paden: SN-zoekresultaat kiezen, al-bestaand
+> artikel via serienummer toevoegen, ✅/❌ op een bestaande rij — daar volgt
+> geen concurrerende focus-actie, dus geen sprong-probleem).
+
+---
+
+## Standaardsortering op Categorie, direct naar het net toegevoegde/gekeurde artikel, focus terug op Artikel (Jos, 2026-09-28)
+
+> Jos: *"kan het laatst gekeurde artikel bovenaan staan? Waarom is dat nu
+> anders? wie bepaald de volgorde?"* Onderzocht: de tabel sorteerde altijd al
+> alfabetisch op de kolom Artikel (`sortKey`/`sortDir`, klikbare kolomkoppen)
+> — dat is nooit anders geweest, geen regressie. Drie opties voorgelegd; Jos
+> koos:
+> - **Standaardsortering naar Categorie** (`sortKey` default `'label'` →
+>   `'category'`). Nog altijd gewoon om te zetten door op een andere kolomkop
+>   te klikken.
+> - **Niet de volgorde veranderen, wel automatisch naar de rij springen** die
+>   je net hebt toegevoegd of gekeurd (kort oplichten via de al bestaande
+>   `revealItem`, tot nu toe alleen gebruikt bij een paar van de
+>   toevoeg-paden). Nu ook aangeroepen in `addRow()`, `addRowOffline()` en
+>   `setResult()` (de ✅/❌-knoppen per rij).
+>
+> Los meegenomen, zelfde bericht: *"na op toevoegen klikken wil ik meteen
+> kunnen typen in 'artikel', nu moet ik elke keer naar de muis grijpen."* Het
+> Artikel-veld had (in tegenstelling tot Merk/Categorie/Serienummer) geen
+> `ref` en kreeg nooit focus terug na "+ Toevoegen" — nu wel, alleen ná die
+> knop (niet bij de SN-zoek-paden, die hebben hun eigen veld-focus en zijn
+> hier niet in meegenomen om niets ongevraagds te veranderen).
+
+---
+
+## Catalogusopmerking ook zichtbaar vóór het toevoegen + GRILLON-tip op de juiste rijen (Jos, 2026-09-28)
+
+> Jos zag de GRILLON-lijndikte-tip (11,5mm vóór mei 2018, 11mm erna) niet
+> terwijl hij "GRILLON 2m" aan het toevoegen was: *"bij de grillon hadden we
+> al een opmerking staan toch? waarom zie ik deze niet."* Oorzaak: die tip
+> stond eerder deze sessie alleen op de kale "GRILLON (rope clamp body)"-rij
+> (het losse apparaat zonder lijn) als demonstratie van het nieuwe
+> `notes`-veld — niet op de rijen die een keurmeester in de praktijk
+> daadwerkelijk intypt/keurt (GRILLON 2m/3m/4m/5m/10m/15m/20m en GRILLON HOOK
+> 2m/3m/5m, elk de complete lijn+apparaat-combinatie). Nu op alle tien die
+> rijen gezet (tekst iets aangepast: geen "Mfr onbeperkt (999)" meer, want die
+> rijen hebben een 10-jarige textiellevensduur, niet de onbeperkte van het
+> kale apparaat). De "GRILLON Rope"-losse-vervanglijn-rijen (spare parts)
+> hebben er bewust geen: hun diameter staat al ondubbelzinnig vast (11mm,
+> alleen de huidige generatie wordt nog verkocht).
+>
+> Jos: *"onder production day lijkt me een goede plek"* — de catalogusopmerking
+> van het net getypte/gematchte product staat nu ook al zichtbaar in de
+> toevoegrij zelf, vlak onder het productiedag-/weeknummer-spiekbriefje, dus
+> vóórdat het artikel al is toegevoegd. Zelfde tekst en styling als de al
+> bestaande rij in de tabel (`itemProductNotes`), nu ook als los blokje
+> (`newRowProductNotes`, gebaseerd op de bestaande `matchProduct()`-matching).
+
+---
+
+## Verkeerd gekoppeld product direct herstellen tijdens de keuring (Jos, 2026-09-28)
+
+> Tijdens het keuren viel een EDELRID-haak verkeerd gematcht (STEEL HMS
+> TRIPLE i.p.v. de gelijknamige aluminium haak, die niet meer gemaakt wordt en
+> dus niet in de catalogus staat). Jos kon de naam niet aanpassen — bij een
+> gekoppeld artikel komt de naam uit het product, bewust read-only, en
+> loskoppelen kon alleen via de losse artikelpagina (weg uit de keuring). Jos:
+> *"ik ben hier als keurmeester bezig met het registreren en keuren van
+> materiaal, in een keer ... ik wil dus meteen door kunnen werken en foutjes
+> kunnen oplossen. dat dit niet meer gaat na het afronden van een keuring is
+> goed. maar het is nog niet afgerond."*
+>
+> Losgetrokken van de losse artikelpagina (`ArticleDetail.vue`, die had het al
+> via "Ander product kiezen"/"Ontkoppelen"): in `InspectionWizard.vue` staat nu
+> een klein potlood-icoontje naast een gekoppelde productnaam. Klikken
+> ontkoppelt het artikel meteen (merk/naam van het oude product blijven als
+> vrije tekst staan, niets is weg om vanaf te corrigeren) en de rij valt terug
+> op een gewoon tekstveld — direct te typen, met een zoek-icoontje ernaast om
+> het eventueel opnieuw aan een catalogusproduct te koppelen. Bewust geen
+> bevestigingsdialoog (past bij de rest van dit scherm: elke wijziging wordt
+> direct opgeslagen, ook per ingevuld keurresultaat) en geen aparte gating op
+> "keuring nog niet afgerond" nodig — dat hele bewerk-scherm verdwijnt toch al
+> achter het certificaat zodra een keuring is afgerond.
+>
+> Kleine bijvangst: `free_description` (de vrije omschrijving van een
+> niet-gekoppeld artikel) werd in deze tabel wel getoond maar nooit
+> opgeslagen bij een wijziging (`saveArticle` nam alleen `free_brand`/
+> `free_category` mee) — nu gecorrigeerd, want zonder die fix zou het nieuwe
+> tekstveld niets doen.
+
+---
+
+## `notes` weer altijd zichtbaar, bronvermelding naar `curator_notes` (Jos, 2026-09-28)
+
+> `notes` stond sinds 2026-08-01 in beeld bij de keurmeester tijdens de
+> keuring, maar raakte gevuld met lange bronvermeldingen (citaten uit
+> handleidingen, checksum-controles) tijdens de streepjescode-/leeftijden-
+> rondes — precies waarom het op 2026-09-04 achter een klik verdween. Jos:
+> *"Notes komt niet meer in beeld bij het keuren. Daar heb ik voor gekozen
+> omdat er lappen tekst in stonden. Maar ik mis aanwijzingen. Ook leeftijden
+> zou ik daar willen zien. 'Mfr unl pre 2014 andere lijndikte' bijvoorbeeld
+> bij de grillon."*
+>
+> Onderzocht of een al lege kolom de bronvermelding kon overnemen
+> ("ongestraft", zoals Jos voorstelde) — nee: `interval_override_months` is
+> weliswaar 0% gevuld maar is een `int`-kolom (ongeschikt voor tekst) mét een
+> eigen bestemming; elke andere weinig-gevulde kolom (`recall_date`,
+> `inspection_notice_date`, `serial_number_location`, `working_load_limit`)
+> wordt al voor zijn eigen smalle doel gelezen door de app. Laagste risico
+> was dus een nieuwe kolom, geen hergebruik. Zie `DATAMODEL.md` voor de volle
+> toelichting en migratie `20260928_products_curator_notes.sql`.
+>
+> **Resultaat:** `notes` is weer kort/praktisch en staat **altijd** in beeld
+> tijdens de keuring (niet meer achter het ℹ️-icoontje — dat bleek trouwens
+> ook een bug: de losse productquery in `InspectionWizard.vue` die de hele
+> catalogus laadt voor matching miste `notes` in de kolomlijst, dus het
+> icoontje kwam sowieso nooit in beeld). `curator_notes` is nieuw, alleen in
+> het productformulier voor curators, nooit getoond aan de keurmeester. De
+> bestaande lange `notes`-inhoud verhuist op CSV-niveau naar `curator_notes`
+> (geen losse SQL-datamigratie) en komt mee met de eerstvolgende volledige
+> Excel-export/import.
+>
+> Jos noemde eerst "vóór 2014" bij de GRILLON-lijndikte; het eigen onderzoek
+> deze sessie wees op mei 2018 als omslagpunt (11,5mm → 11mm, uit Petzl's
+> "GRILLON replacement rope"-mededeling). Voorgelegd aan Jos, die 2018
+> bevestigde: *"2018 klopt, dat is beter."* De GRILLON-tip in `notes`
+> gebruikt dus 2018.
+
+---
 ## Besluit: klantrollen, eigenaar per artikel, inloggen (Jos, 2026-09-26)
 
 > Vervangt het "open idee" van 2026-09-25 (dat is hiermee besloten).

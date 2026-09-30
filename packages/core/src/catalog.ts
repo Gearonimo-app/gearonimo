@@ -47,6 +47,13 @@ export const CATALOG_COLUMNS = [
   "inspection_notice_url",
   "inspection_notice_date",
   "notes",
+  // Interne verantwoording (bronvermelding, checksum-controles, citaten uit
+  // handleidingen) voor curators -- nooit aan de keurmeester getoond. Sinds
+  // 2026-09-28 (besluit Jos) losgetrokken van `notes`: dat veld is weer wat
+  // het oorspronkelijk was, een korte praktische aanwijzing die altijd in
+  // beeld staat tijdens de keuring (bv. "Mfr onbeperkt; vóór mei 2018 11,5mm
+  // lijn i.p.v. 11mm").
+  "curator_notes",
 ] as const;
 
 export type CatalogColumn = (typeof CATALOG_COLUMNS)[number];
@@ -116,6 +123,12 @@ export const ARTICLE_TYPES = [...PRODUCT_TYPES, "other"] as const;
  *   of EN 795B is `anchor_strop`; draagt hij uitsluitend EN 564 (hulplijn),
  *   dan is dat geen lastdragende PBM-norm en blijft het apart als
  *   `accessory_cord` — dat verbloemt geen fabrieksfout in de certificering.
+ * - `hitch_cord` (NL "Klimstrop", EN "Hitch cord") vs `anchor_strop`: een
+ *   koord waarmee een klemknoop gelegd wordt, lus óf eye-to-eye, los van de
+ *   norm (EN 566 en EN 795B komen allebei voor, soms geen van beide).
+ *   Losgetrokken uit `anchor_strop` op 2026-09-29 (Jos): daar stonden ~130
+ *   prusiks/e2e's tussen de echte ankerstroppen. Uitsluitend EN 564 blijft
+ *   ook hier `accessory_cord` (zie hierboven).
  * - `mechanical_prusik` (grijpt de lijn zelf, bv. ZigZag) vs `line_brake`
  *   (rem/geleider, de hitch cord eronder doet het grijpwerk, bv. rope
  *   wrench, Chicane, Freexion).
@@ -131,6 +144,7 @@ export const CATEGORIES = [
   "positioning_lanyards",
   "slings",
   "anchor_strop",
+  "hitch_cord",
   "accessory_cord",
   "anchor_hardware",
   "pulleys",
@@ -286,6 +300,38 @@ export function parseBarcodes(raw: string | null | undefined): { codes: string[]
 export function formatBarcodes(raw: string | null | undefined): string | null {
   const { codes } = parseBarcodes(raw);
   return codes.length ? codes.join(";") : null;
+}
+
+/**
+ * Is de rij die de importwizard zou wegschrijven gelijk aan wat er al in de
+ * database staat? Dan hoeft hij niet verstuurd te worden (Jos, 2026-09-29:
+ * een import van ~3500 producten deed er een kwartier over, ook als er maar
+ * een paar anders waren).
+ *
+ * Bewust scheef: bij élke twijfel (onbekend type, ontbrekend veld, getal dat
+ * geen getal is) telt de rij als gewijzigd en gaat hij gewoon mee, zoals
+ * vroeger alles. Een onterecht "gewijzigd" kost alleen tijd; een onterecht
+ * "ongewijzigd" zou een wijziging kwijtraken. `next` is de uitvoer van
+ * `toRow()` (al getrimd, leeg = null); `current` komt rauw uit Supabase.
+ */
+export function catalogRowUnchanged(
+  next: Record<string, unknown>,
+  current: Record<string, unknown>,
+): boolean {
+  for (const [key, a] of Object.entries(next)) {
+    const raw = current[key];
+    const b = raw === undefined || raw === "" ? null : raw;
+    if (a === null) {
+      if (b !== null) return false;
+    } else if (typeof a === "number") {
+      if (b === null || typeof b === "boolean" || Number(b) !== a) return false;
+    } else if (typeof a === "string") {
+      if (typeof b !== "string" || b !== a) return false;
+    } else {
+      return false;
+    }
+  }
+  return true;
 }
 
 /**
