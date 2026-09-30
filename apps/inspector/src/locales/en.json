@@ -497,6 +497,7 @@
         "category": "Category",
         "norm": "Standard (e.g. EN 361)",
         "mbs": "MBS / breaking strength",
+        "swl": "SWL / safe working load",
         "user": "User",
         "next": "Next inspection",
         "note": "Rejection code / comment"

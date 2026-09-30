@@ -38,6 +38,7 @@ export interface CertLayout {
     category: boolean
     norm: boolean
     mbs: boolean
+    swl: boolean
     user: boolean
     next: boolean
     note: boolean
@@ -56,7 +57,7 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   showContact: true,
   showRegistration: true,
   accent: '#1a3a2a',
-  columns: { year: false, category: true, norm: false, mbs: false, user: true, next: true, note: true },
+  columns: { year: false, category: true, norm: false, mbs: false, swl: false, user: true, next: true, note: true },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
@@ -99,6 +100,15 @@ export interface CertItem {
   category: string | null
   norm: string | null
   mbs: string | null
+  /**
+   * Veilige werklast (Safe Working Load / Working Load Limit) -- LOLER
+   * Schedule 1 §5 (Verenigd Koninkrijk) eist dit, niet de breeksterkte (MBS):
+   * dat is een ander getal (breeksterkte gedeeld door een veiligheidsfactor).
+   * Komt uit `products.working_load_limit` (Jos, 2026-09-30). Nog geen
+   * invoerveld voor vrije (niet-catalogus) artikelen -- die blijft dus leeg,
+   * zelfde gat als norm/mbs vóór migratie 20260701.
+   */
+  swl: string | null
   user: string | null
   next_due: string | null
   rejection_code_label: string | null
@@ -192,7 +202,7 @@ const CERT_LABELS = {
     cols: {
       article: 'Artikel', brand: 'Merk', category: 'Categorie',
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
-      year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS',
+      year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
       note: 'Afkeurcode / opmerking',
     } as Record<string, string>,
   },
@@ -212,7 +222,7 @@ const CERT_LABELS = {
     cols: {
       article: 'Item', brand: 'Brand', category: 'Category',
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
-      year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS',
+      year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS', swl: 'SWL',
       note: 'Rejection code / comment',
     } as Record<string, string>,
   },
@@ -232,7 +242,7 @@ const CERT_LABELS = {
     cols: {
       article: 'Article', brand: 'Marque', category: 'Catégorie',
       sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
-      year: 'Année', user: 'Utilisateur', norm: 'Norme', mbs: 'MBS',
+      year: 'Année', user: 'Utilisateur', norm: 'Norme', mbs: 'MBS', swl: 'CMU',
       note: 'Code de refus / remarque',
     } as Record<string, string>,
   },
@@ -252,7 +262,7 @@ const CERT_LABELS = {
     cols: {
       article: 'Artikel', brand: 'Marke', category: 'Kategorie',
       sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
-      year: 'Baujahr', user: 'Nutzer', norm: 'Norm', mbs: 'MBS',
+      year: 'Baujahr', user: 'Nutzer', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
       note: 'Ablehnungscode / Anmerkung',
     } as Record<string, string>,
   },
@@ -361,6 +371,7 @@ function sanitizeCertData(data: CertData): CertData {
       category: S(it.category),
       norm: S(it.norm),
       mbs: S(it.mbs),
+      swl: S(it.swl),
       user: S(it.user),
       rejection_code_label: S(it.rejection_code_label),
       comment: S(it.comment),
@@ -506,6 +517,7 @@ const ALL_COLUMNS: ColDef[] = [
   { key: 'user',     header: 'Gebruiker',              optional: true,  flex: false, min: 64, cap: 130, value: (it) => it.user || '' },
   { key: 'norm',     header: 'Norm',                   optional: true,  flex: false, min: 56, cap: 120, value: (it) => it.norm || '' },
   { key: 'mbs',      header: 'MBS',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.mbs || '' },
+  { key: 'swl',      header: 'SWL',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.swl || '' },
   { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
@@ -991,7 +1003,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
+      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -1032,7 +1044,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       assigned_user_name: string | null
       product: {
         brand: string | null; name: string | null; category: string | null
-        standard: string | null; breaking_strength: string | null
+        standard: string | null; breaking_strength: string | null; working_load_limit: string | null
       } | null
     } | null
     rejection_code: { label: string } | null
@@ -1060,6 +1072,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       category: p ? categoryLabel(p.category, certLanguage) : (a?.free_category ?? null),
       norm: (p ? p.standard : a?.free_norm) ?? null,
       mbs: (p ? p.breaking_strength : a?.free_mbs) ?? null,
+      // Alleen uit de catalogus: er is nog geen invoerveld voor vrije
+      // artikelen (zelfde gat als norm/mbs vóór migratie 20260701).
+      swl: p?.working_load_limit ?? null,
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,

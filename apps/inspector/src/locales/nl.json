@@ -497,6 +497,7 @@
         "category": "Categorie",
         "norm": "Norm (bijv. EN 361)",
         "mbs": "MBS / breeksterkte",
+        "swl": "SWL / veilige werklast",
         "user": "Gebruiker",
         "next": "Volgende keuring",
         "note": "Afkeurcode / opmerking"

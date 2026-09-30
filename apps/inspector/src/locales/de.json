@@ -496,6 +496,7 @@
         "category": "Kategorie",
         "norm": "Norm (z. B. EN 361)",
         "mbs": "MBS / Bruchlast",
+        "swl": "SWL / zulässige Tragfähigkeit",
         "user": "Nutzer",
         "next": "Nächste Prüfung",
         "note": "Ablehnungscode / Anmerkung"

@@ -496,6 +496,7 @@
         "category": "Catégorie",
         "norm": "Norme (ex. EN 361)",
         "mbs": "MBS / charge de rupture",
+        "swl": "CMU / charge maximale d'utilisation",
         "user": "Utilisateur",
         "next": "Prochain contrôle",
         "note": "Code de refus / remarque"
