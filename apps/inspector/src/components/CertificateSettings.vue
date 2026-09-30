@@ -295,6 +295,7 @@ function sampleData(): CertData {
       cert_footer: form.cert_footer || null,
     },
     customerName: t('settings.certificate.sampleCustomer'),
+    customerAddress: t('settings.certificate.sampleCustomerAddress'),
     inspectionDate: new Date().toISOString().slice(0, 10),
     inspectorName: t('settings.certificate.sampleInspector'),
     assessedByNames: [t('settings.certificate.sampleInspector')],

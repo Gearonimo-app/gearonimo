@@ -108,6 +108,14 @@ export interface CertItem {
 export interface CertData {
   company: CertCompany
   customerName: string
+  /**
+   * Adres van de klant, op één regel voorgeformatteerd (net als de
+   * bedrijfsgegevens hierboven). LOLER Schedule 1 §1/§2 (Verenigd Koninkrijk)
+   * eist naam én adres van de werkgever voor wie de keuring is gedaan --
+   * stond al in `customers` (straat/postcode/plaats), maar kwam nooit op het
+   * certificaat terecht. `null` = geen adres bekend, dan blijft de regel weg.
+   */
+  customerAddress: string | null
   inspectionDate: string // ISO
   inspectorName: string | null
   number: string
@@ -260,6 +268,27 @@ function formatDate(d: string | Date, locale = 'nl-NL'): string {
   return date.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+/**
+ * Klantadres op één regel, zelfde stijl als de bedrijfsadresregel verderop
+ * (straat, postcode+plaats, provincie -- alles wat leeg is valt gewoon weg).
+ * `null` als er niets bekend is, zodat de aanroeper de regel kan overslaan.
+ */
+function formatCustomerAddress(c: {
+  street: string | null
+  house_number: string | null
+  house_number_addition: string | null
+  postal_code: string | null
+  city: string | null
+  province: string | null
+}): string | null {
+  const streetLine = [c.street, [c.house_number, c.house_number_addition].filter(Boolean).join('')]
+    .filter(Boolean)
+    .join(' ')
+  const parts = [streetLine, [[c.postal_code, c.city].filter(Boolean).join(' '), c.province].filter(Boolean).join(', ')]
+    .filter(Boolean)
+  return parts.length ? parts.join(', ') : null
+}
+
 function slugify(s: string): string {
   return s
     .normalize('NFKD')
@@ -306,6 +335,7 @@ function sanitizeCertData(data: CertData): CertData {
   return {
     ...data,
     customerName: sanitizeWinAnsi(data.customerName),
+    customerAddress: S(data.customerAddress),
     inspectorName: S(data.inspectorName),
     assessedByNames: data.assessedByNames.map((n) => sanitizeWinAnsi(n)),
     number: sanitizeWinAnsi(data.number),
@@ -733,6 +763,9 @@ export async function renderCertificatePdf(
     const meta = [
       `${L.number}: ${data.number}`,
       `${L.customer}: ${data.customerName}`,
+      // Alleen als er iets bekend is (LOLER Schedule 1 §1/§2: adres van de
+      // klant voor wie de keuring is gedaan -- Jos, 2026-09-30).
+      ...(data.customerAddress ? [data.customerAddress] : []),
       `${L.inspectionDate}: ${formatDate(data.inspectionDate, L.dateLocale)}`,
       `${L.inspector}: ${data.inspectorName || '—'}`,
     ]
@@ -929,7 +962,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       // rechtstreekse FK hier, én via inspection_items als bridge-tabel) en
       // weigert dan met "more than one relationship was found" -- precies de
       // fout die "Afronden" liet mislukken (Jos, 2026-09-14).
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -939,7 +972,15 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     customer_id: string
     company_id: string
     inspection_date: string
-    customer: { name: string }
+    customer: {
+      name: string
+      street: string | null
+      house_number: string | null
+      house_number_addition: string | null
+      postal_code: string | null
+      city: string | null
+      province: string | null
+    }
     company: CompanyRow
     inspector: { name: string | null; signature_path: string | null }
   }
@@ -1066,6 +1107,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const data: CertData = {
     company,
     customerName: inspection.customer.name,
+    customerAddress: formatCustomerAddress(inspection.customer),
     inspectionDate: inspection.inspection_date,
     inspectorName: inspection.inspector?.name ?? null,
     assessedByNames,

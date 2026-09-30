@@ -460,6 +460,7 @@
       "insertDefault": "insérer le texte par défaut",
       "sampleCompany": "Mon organisme de contrôle SARL",
       "sampleCustomer": "Client Exemple SARL",
+      "sampleCustomerAddress": "12 rue de l'Exemple, 75000 Villeexemple",
       "sampleInspector": "J. Exemple",
       "fields": {
         "name": "Raison sociale",

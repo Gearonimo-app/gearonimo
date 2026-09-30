@@ -460,6 +460,7 @@
       "insertDefault": "Standardtext einfügen",
       "sampleCompany": "Mein Prüfunternehmen GmbH",
       "sampleCustomer": "Beispielkunde GmbH",
+      "sampleCustomerAddress": "Musterstraße 12, 12345 Musterstadt",
       "sampleInspector": "J. Beispiel",
       "fields": {
         "name": "Firmenname",

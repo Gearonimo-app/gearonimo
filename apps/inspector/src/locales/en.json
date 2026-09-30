@@ -460,6 +460,7 @@
       "insertDefault": "insert default text",
       "sampleCompany": "My Inspection Co. Ltd.",
       "sampleCustomer": "Sample Customer Ltd.",
+      "sampleCustomerAddress": "12 Sample Street, AB1 2CD Sample Town",
       "sampleInspector": "J. Sample",
       "fields": {
         "name": "Company name",

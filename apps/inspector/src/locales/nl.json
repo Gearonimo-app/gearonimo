@@ -460,6 +460,7 @@
       "insertDefault": "standaardtekst invoegen",
       "sampleCompany": "Mijn Keurbedrijf B.V.",
       "sampleCustomer": "Voorbeeld Klant B.V.",
+      "sampleCustomerAddress": "Voorbeeldstraat 12, 1234 AB Voorbeeldstad",
       "sampleInspector": "J. Voorbeeld",
       "fields": {
         "name": "Bedrijfsnaam",
