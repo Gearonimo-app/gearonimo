@@ -172,6 +172,10 @@
             <option :value="null">{{ $t('inspections.noCode') }}</option>
             <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
+          <select v-if="newResult === 'passed'" v-model="newApprovalCodeId" class="iw__select iw__select--sm">
+            <option :value="null">{{ $t('inspections.noCode') }}</option>
+            <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
+          </select>
           <input
             v-model="newComment"
             class="iw__input iw__input--sm iw__comment-input"
@@ -551,6 +555,10 @@
                         <option :value="null">{{ $t('inspections.noCode') }}</option>
                         <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
                       </select>
+                      <select v-if="row.it.result === 'passed'" v-model="row.it.approval_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
+                        <option :value="null">{{ $t('inspections.noCode') }}</option>
+                        <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
+                      </select>
                       <input
                         v-model="row.it.comment"
                         class="iw__input iw__input--sm iw__comment-input"
@@ -687,7 +695,7 @@ import {
   type CountryCode,
 } from '@gearonimo/core'
 import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
-import { fetchRejectionCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
+import { fetchRejectionCodes, fetchApprovalCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
 import { generateCertificate } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
@@ -757,6 +765,7 @@ interface Item {
   result: string
   next_due: string | null
   rejection_code_id: string | null
+  approval_code_id: string | null
   comment: string | null
   article: Article
 }
@@ -914,6 +923,7 @@ async function groupSelectedArticles() {
 
 const previousResults = ref<Record<string, PreviousResult>>({})
 const rejectionCodes = ref<{ id: string; code: number; label: string | null }[]>([])
+const approvalCodes = ref<{ id: string; code: number; label: string | null }[]>([])
 
 const completing = ref(false)
 const completeError = ref('')
@@ -1267,6 +1277,7 @@ const newMonth = ref<number | null>(null)
 const newUser = ref('')
 const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
+const newApprovalCodeId = ref<string | null>(null)
 const newNorm = ref('')
 const newMbs = ref('')
 const newSwl = ref('')
@@ -1427,7 +1438,7 @@ async function addCustomerArticle(articleId: string) {
   const { data: item, error: itemErr } = await supabase
     .from('inspection_items')
     .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed' })
-    .select('id, article_id, result, next_due, rejection_code_id, comment')
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment')
     .single()
   if (itemErr || !item) { addError.value = itemErr?.message ?? ''; return }
   const newItem = { ...item, article } as Item
@@ -1462,6 +1473,7 @@ async function addCustomerArticleOffline(articleId: string) {
       result: 'not_assessed',
       next_due: null,
       rejection_code_id: null,
+      approval_code_id: null,
       comment: null,
     }
     await putInspectionItems(key, id, [itemRow])
@@ -1473,6 +1485,7 @@ async function addCustomerArticleOffline(articleId: string) {
       result: itemRow.result,
       next_due: itemRow.next_due,
       rejection_code_id: itemRow.rejection_code_id,
+      approval_code_id: itemRow.approval_code_id,
       comment: itemRow.comment,
       article,
     }
@@ -1719,7 +1732,11 @@ function exportInspectionCsv() {
     const year = it.article.manufacture_year
       ? String(it.article.manufacture_year) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '')
       : ''
-    const code = it.result === 'rejected' ? rejectionCodes.value.find((c) => c.id === it.rejection_code_id)?.code ?? '' : ''
+    const code = it.result === 'rejected'
+      ? rejectionCodes.value.find((c) => c.id === it.rejection_code_id)?.code ?? ''
+      : it.result === 'passed'
+        ? approvalCodes.value.find((c) => c.id === it.approval_code_id)?.code ?? ''
+        : ''
     return [
       row.category, row.brand, row.label, it.article.serial_number, year, it.article.first_use_date,
       it.article.assigned_user_name, resultLabel(it.result), code, it.comment,
@@ -2021,13 +2038,14 @@ async function load() {
 
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, comment, article:articles(*, product:products(*))')
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment, article:articles(*, product:products(*))')
     .eq('inspection_id', id)
     .order('created_at')
   if (itemsErr) { error.value = itemsErr.message; loading.value = false; return }
   items.value = (rowsData ?? []) as unknown as Item[]
 
   rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
+  approvalCodes.value = await fetchApprovalCodes(insp.company_id)
   freeFields.value = await fetchFreeInputFields()
 
   previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
@@ -2168,6 +2186,7 @@ async function loadOffline() {
       result: string
       next_due: string | null
       rejection_code_id: string | null
+      approval_code_id: string | null
       comment: string | null
     }>(key, id)
     const cachedArticles = await getArticlesForCustomer<Article & { product_id: string | null }>(key, insp.customer_id)
@@ -2185,12 +2204,14 @@ async function loadOffline() {
         result: it.result,
         next_due: it.next_due,
         rejection_code_id: it.rejection_code_id,
+        approval_code_id: it.approval_code_id,
         comment: it.comment,
         article: { ...(article as Article), product },
       }
     }) as Item[]
 
     rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
+    approvalCodes.value = await fetchApprovalCodes(insp.company_id)
     freeFields.value = await fetchFreeInputFields()
 
     previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
@@ -2262,6 +2283,7 @@ function resetAddRow() {
   newUser.value = ''
   newResult.value = 'not_assessed'
   newRejectionCodeId.value = null
+  newApprovalCodeId.value = null
   newNorm.value = ''
   newMbs.value = ''
   newSwl.value = ''
@@ -2313,9 +2335,10 @@ async function addRow() {
         result: newResult.value,
         next_due: initialNextDue,
         rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
+        approval_code_id: newResult.value === 'passed' ? newApprovalCodeId.value : null,
         comment: newComment.value.trim() || null,
       })
-      .select('id, article_id, result, next_due, rejection_code_id, comment')
+      .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment')
       .single()
     if (itemErr) throw itemErr
 
@@ -2416,6 +2439,7 @@ async function addRowOffline() {
     result: newResult.value,
     next_due: initialNextDue,
     rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
+    approval_code_id: newResult.value === 'passed' ? newApprovalCodeId.value : null,
     comment: newComment.value.trim() || null,
   }
   await putInspectionItems(key, id, [itemRow])
@@ -2427,6 +2451,7 @@ async function addRowOffline() {
     result: itemRow.result,
     next_due: itemRow.next_due,
     rejection_code_id: itemRow.rejection_code_id,
+    approval_code_id: itemRow.approval_code_id,
     comment: itemRow.comment,
     article: articleWithProduct,
   })
@@ -2468,6 +2493,7 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
     it.result = result
     it.next_due = result === 'passed' ? suggestedNextDueIso(it) : null
     if (result === 'passed') it.rejection_code_id = null
+    if (result === 'rejected') it.approval_code_id = null
   }
   revealItem(it.id)
   saveRow(it)
@@ -2582,6 +2608,7 @@ async function saveRow(it: Item) {
     result: it.result,
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
+    approval_code_id: it.approval_code_id,
     comment: it.comment,
     inspector_id: inspector.id,
   }
@@ -2744,7 +2771,7 @@ async function refreshItems() {
   refreshError.value = ''
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, comment, article:articles(*, product:products(*))')
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment, article:articles(*, product:products(*))')
     .eq('inspection_id', id)
     .order('created_at')
   if (itemsErr) {

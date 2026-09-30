@@ -430,6 +430,29 @@
         "codeRequired": "Un numéro valide est obligatoire"
       }
     },
+    "approval": {
+      "menuTitle": "Codes d'approbation",
+      "menuDesc": "Gérer les codes pour les articles approuvés",
+      "title": "Codes d'approbation",
+      "intro": "Vous pouvez éventuellement choisir ces codes lors de l'approbation d'un article pendant un contrôle, par exemple pour signaler une usure accrue. Ne rien choisir reste comme avant : simplement approuvé, éventuellement avec une remarque libre. Ils ne s'appliquent qu'à votre organisme de contrôle.",
+      "add": "Code",
+      "edit": "Modifier le code",
+      "empty": "Aucun code d'approbation pour l'instant.",
+      "on": "Actif",
+      "off": "Inactif",
+      "deleteTitle": "Supprimer ce code d'approbation ?",
+      "deleteBody": "Cette action est irréversible. Les codes déjà utilisés restent sur les certificats existants.",
+      "fields": {
+        "code": "Numéro",
+        "label": "Description",
+        "labelPh": "ex. Approuvé, usure accrue",
+        "active": "Actif"
+      },
+      "errors": {
+        "labelRequired": "La description est obligatoire",
+        "codeRequired": "Un numéro valide est obligatoire"
+      }
+    },
     "certificate": {
       "menuTitle": "Modèle de certificat",
       "menuDesc": "Logo, mise en page, en-tête et pied de page du certificat",

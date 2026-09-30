@@ -16,6 +16,7 @@ import {
   getInspectionItems,
   findLocalPreviousResult,
   findLocalPreviousResults,
+  getApprovalCodes,
   getLocallyInspectedArticleIds,
   getLocalInspectionStatus,
   deleteInspectionCache,
@@ -501,6 +502,39 @@ export async function fetchRejectionCodes(companyId: string): Promise<{ id: stri
 
   const platform = await supabase
     .from('rejection_codes')
+    .select('id, code, label')
+    .eq('active', true)
+    .is('company_id', null)
+    .order('code')
+  if (platform.error) throw platform.error
+  return (platform.data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
+}
+
+// Goedkeuringscodes (Jos, 2026-09-30): zelfde opzet als afkeurcodes hierboven,
+// maar voor een goedgekeurd artikel -- bv. "goed, let op verhoogde slijtage"
+// of "goed tot [datum aangepast]". Optioneel: bij niets selecteren blijft het
+// gewoon zoals nu (geen code, eventueel alleen vrije opmerking).
+export async function fetchApprovalCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
+  const { isOnline } = useOnline()
+  if (!isOnline.value) {
+    const key = requireOfflineKey()
+    return getApprovalCodes<{ id: string; code: number; label: string | null }>(key, companyId)
+  }
+
+  const own = await supabase
+    .from('approval_codes')
+    .select('id, code, label, active')
+    .eq('company_id', companyId)
+    .order('code')
+  if (own.error) throw own.error
+  if (own.data && own.data.length) {
+    return own.data
+      .filter((r) => r.active)
+      .map((r) => ({ id: r.id, code: r.code, label: r.label }))
+  }
+
+  const platform = await supabase
+    .from('approval_codes')
     .select('id, code, label')
     .eq('active', true)
     .is('company_id', null)

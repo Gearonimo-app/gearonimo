@@ -137,6 +137,13 @@ export interface CertItem {
    */
   examType: string | null
   rejection_code_label: string | null
+  /**
+   * Optionele goedkeuringscode (Jos, 2026-09-30, naast de afkeurcode
+   * hierboven) -- bv. "Goed, let op verhoogde slijtage". Verschijnt, samen
+   * met de opmerking, in dezelfde kolom als de afkeurcode/opmerking nu al
+   * doet; alleen bij result 'passed' wordt dit veld gelezen.
+   */
+  approval_code_label: string | null
   comment: string | null
 }
 
@@ -412,6 +419,7 @@ function sanitizeCertData(data: CertData): CertData {
       examType: S(it.examType),
       user: S(it.user),
       rejection_code_label: S(it.rejection_code_label),
+      approval_code_label: S(it.approval_code_label),
       comment: S(it.comment),
     })),
   }
@@ -530,8 +538,12 @@ function yearStr(it: CertItem): string {
     : String(it.manufacture_year)
 }
 function noteStr(it: CertItem): string {
-  if (it.result === 'passed') return ''
-  return [it.rejection_code_label, it.comment].filter(Boolean).join(' — ')
+  // Bij afkeuring de afkeurcode, bij goedkeuring de optionele
+  // goedkeuringscode (Jos, 2026-09-30) -- allebei gevolgd door de vrije
+  // opmerking. Een goedgekeurd artikel zonder code/opmerking blijft leeg,
+  // net als voorheen.
+  const codeLabel = it.result === 'rejected' ? it.rejection_code_label : it.approval_code_label
+  return [codeLabel, it.comment].filter(Boolean).join(' — ')
 }
 
 // Alle mogelijke kolommen in vaste volgorde. Vaste kolommen
@@ -1068,7 +1080,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'article_id, result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
+      'article_id, result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), approval_code:approval_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -1143,6 +1155,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       } | null
     } | null
     rejection_code: { label: string } | null
+    approval_code: { label: string } | null
   }
   const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
     // Snapshot eerst, live artikel als vangnet -- ook per veld: een lege
@@ -1188,6 +1201,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,
+      approval_code_label: r.approval_code?.label ?? null,
       comment: r.comment,
     }
   })

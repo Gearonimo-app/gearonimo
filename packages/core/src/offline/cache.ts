@@ -168,6 +168,23 @@ export async function getRejectionCodes<T>(key: CryptoKey, companyId: string): P
   return decryptJson<T[]>(key, row.enc);
 }
 
+export async function putApprovalCodes(
+  key: CryptoKey,
+  companyId: string,
+  codes: { id: string; code: number; label: string | null }[]
+): Promise<void> {
+  const db = await getOfflineDb();
+  const enc = await encryptJson(key, codes);
+  await db.put("approvalCodes", { id: companyId, enc });
+}
+
+export async function getApprovalCodes<T>(key: CryptoKey, companyId: string): Promise<T[]> {
+  const db = await getOfflineDb();
+  const row = await db.get("approvalCodes", companyId);
+  if (!row) return [];
+  return decryptJson<T[]>(key, row.enc);
+}
+
 export async function putCompanySettings(
   key: CryptoKey,
   companyId: string,

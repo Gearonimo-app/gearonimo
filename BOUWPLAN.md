@@ -425,6 +425,32 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-09-30, goedkeuringscodes)
+
+> Vervolg op het sparren over LOLER punt 8 (zie hieronder): een goedgekeurd
+> artikel met een opmerking liet die opmerking stilletjes van het
+> certificaat vallen (`noteStr()` gaf altijd `''` terug bij
+> `result === 'passed'`). Jos' voorstel -- een **goedkeuringscode**, de
+> tegenhanger van de bestaande afkeurcode -- lost dit op zonder de
+> status/stoplicht-logica aan te raken (bewust afgewogen tegen een nieuwe
+> "oranje" tussenstatus, die wél overal in de app had geraakt).
+>
+> - Nieuwe tabel `approval_codes`, per keurbedrijf instelbaar
+>   (`ApprovalCodes.vue`, eigen tegel bij Instellingen), zelfde opzet als
+>   `rejection_codes`: platformstandaard als sjabloon/fallback, begint leeg
+>   (Jos levert zelf de codes aan).
+>   `inspection_items.approval_code_id` als FK.
+> - Kiesbaar in de keuring-wizard zodra een artikel op "goedgekeurd" staat,
+>   naast (niet i.p.v.) de vrije opmerking. Niets kiezen = precies zoals nu.
+> - **Grotere bijvangst**: de opmerking bij een goedgekeurd artikel is nu
+>   sowieso zichtbaar op het certificaat, ook zónder code -- dat gat bestond
+>   al langer en is hiermee in één keer meegenomen.
+> - Offline-ondersteuning: eigen IndexedDB-store (`approvalCodes`,
+>   schema-versie 3) + download-/sync-pad, zelfde als afkeurcodes.
+>
+> Migratie `20261006_approval_codes.sql` nog door Jos uit te voeren (samen
+> met 20261004/20261005 van de SWL/LOLER-kolommen).
+
 ## Voortgang (2026-09-30, LOLER-checklist Engelse keurmeester)
 
 > Aanleiding: Jos had contact met een Engelse LOLER-keurmeester en vroeg wat

@@ -568,6 +568,32 @@ voorschrijft, gewoon een termijn.
 > codes zijn van het bedrijf zelf, vrij te bewerken/verwijderen. De gedeelde
 > platformrijen worden níét meer door een keurbedrijf ter plekke bewerkt.
 
+### `approval_codes` (goedkeuringscodes)
+| kolom | type | uitleg |
+|---|---|---|
+| company_id | FK? → inspection_companies | leeg = platformstandaard, gevuld = eigen code van het keurbedrijf |
+| code | int | |
+| label | text? | vrije tekst |
+| active | boolean | |
+
+> **Toegevoegd 2026-09-30** (Jos, sparren over LOLER-rapportage): tegenhanger
+> van `rejection_codes`, maar voor een gekéurd artikel -- bv. "goed, let op
+> verhoogde slijtage" of "goed tot [datum aangepast]". Optioneel: niets
+> selecteren blijft zoals voorheen (geen code, eventueel alleen vrije
+> opmerking). Zelfde opzet als afkeurcodes: per keurbedrijf instelbaar
+> (`apps/inspector/src/components/ApprovalCodes.vue`,
+> `fetchApprovalCodes` in `useInspections.ts`), platformstandaard
+> (`company_id` leeg) als sjabloon/fallback, eigen offline-cache (IndexedDB
+> store `approvalCodes`, schema-versie 3). Geen platformstandaard-inhoud
+> meegeseed (Jos levert die zelf aan via Instellingen, zoals bij afkeurcodes
+> in 2026-06-25 ook al leeg begon). `inspection_items.approval_code_id` is
+> de FK; op het certificaat verschijnt de code samen met de vrije opmerking
+> in dezelfde kolom als de afkeurcode -- **en dat geldt nu voor élk
+> goedgekeurd artikel met een opmerking, ook zonder code**: vóór deze
+> wijziging werd een opmerking op een goedgekeurd artikel stilletjes
+> weggelaten van het certificaat (`noteStr()` gaf altijd `''` terug bij
+> `result === 'passed'`). Migratie `20261006_approval_codes.sql`.
+
 ---
 
 ## 3. Artikelen (het bezit van de klant)

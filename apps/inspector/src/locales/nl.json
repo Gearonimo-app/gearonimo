@@ -431,6 +431,29 @@
         "codeRequired": "Een geldig nummer is verplicht"
       }
     },
+    "approval": {
+      "menuTitle": "Goedkeuringscodes",
+      "menuDesc": "Codes voor goedgekeurde artikelen beheren",
+      "title": "Goedkeuringscodes",
+      "intro": "Deze codes kies je optioneel bij het goedkeuren van een artikel in de keuring, bijvoorbeeld om verhoogde slijtage te vermelden. Niets kiezen blijft zoals nu: gewoon goedgekeurd, eventueel met een vrije opmerking. Ze gelden alleen voor jouw keurbedrijf.",
+      "add": "Code",
+      "edit": "Code bewerken",
+      "empty": "Nog geen goedkeuringscodes.",
+      "on": "Aan",
+      "off": "Uit",
+      "deleteTitle": "Goedkeuringscode verwijderen?",
+      "deleteBody": "Dit kan niet ongedaan worden gemaakt. Eerder gebruikte codes blijven op bestaande certificaten staan.",
+      "fields": {
+        "code": "Nummer",
+        "label": "Omschrijving",
+        "labelPh": "bijv. Goed, let op verhoogde slijtage",
+        "active": "Actief"
+      },
+      "errors": {
+        "labelRequired": "Omschrijving is verplicht",
+        "codeRequired": "Een geldig nummer is verplicht"
+      }
+    },
     "certificate": {
       "menuTitle": "Certificaat-template",
       "menuDesc": "Logo, opmaak, kop- en voettekst van het certificaat",

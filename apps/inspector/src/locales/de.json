@@ -430,6 +430,29 @@
         "codeRequired": "Eine gültige Nummer ist erforderlich"
       }
     },
+    "approval": {
+      "menuTitle": "Freigabecodes",
+      "menuDesc": "Codes für freigegebene Artikel verwalten",
+      "title": "Freigabecodes",
+      "intro": "Diese Codes können Sie optional beim Freigeben eines Artikels während einer Prüfung wählen, z. B. um erhöhten Verschleiß zu vermerken. Nichts auswählen bleibt wie bisher: einfach bestanden, optional mit freiem Kommentar. Sie gelten nur für Ihr Prüfunternehmen.",
+      "add": "Code",
+      "edit": "Code bearbeiten",
+      "empty": "Noch keine Freigabecodes.",
+      "on": "Ein",
+      "off": "Aus",
+      "deleteTitle": "Freigabecode löschen?",
+      "deleteBody": "Dies kann nicht rückgängig gemacht werden. Bereits verwendete Codes bleiben auf bestehenden Zertifikaten erhalten.",
+      "fields": {
+        "code": "Nummer",
+        "label": "Beschreibung",
+        "labelPh": "z. B. Bestanden, erhöhter Verschleiß",
+        "active": "Aktiv"
+      },
+      "errors": {
+        "labelRequired": "Beschreibung ist erforderlich",
+        "codeRequired": "Eine gültige Nummer ist erforderlich"
+      }
+    },
     "certificate": {
       "menuTitle": "Zertifikatvorlage",
       "menuDesc": "Logo, Layout, Kopf- und Fußzeile des Zertifikats",

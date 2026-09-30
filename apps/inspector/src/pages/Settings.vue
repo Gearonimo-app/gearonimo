@@ -24,6 +24,7 @@
     <!-- Gekozen onderdeel -->
     <div v-else class="set__section">
       <RejectionCodes v-if="section === 'rejection'" />
+      <ApprovalCodes v-else-if="section === 'approval'" />
       <CertificateSettings v-else-if="section === 'certificate'" />
       <InspectorsSettings v-else-if="section === 'inspectors'" />
       <ImportWizard v-else-if="section === 'import'" />
@@ -42,6 +43,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import RejectionCodes from '../components/RejectionCodes.vue'
+import ApprovalCodes from '../components/ApprovalCodes.vue'
 import CertificateSettings from '../components/CertificateSettings.vue'
 import InspectorsSettings from '../components/InspectorsSettings.vue'
 import ImportWizard from '../components/ImportWizard.vue'
@@ -56,7 +58,7 @@ import { supabase } from '@gearonimo/core'
 const router = useRouter()
 const { t } = useI18n()
 
-type SectionKey = 'rejection' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero' | 'companies' | 'security'
+type SectionKey = 'rejection' | 'approval' | 'certificate' | 'inspectors' | 'import' | 'listing' | 'catalog' | 'hero' | 'companies' | 'security'
 interface SectionDef {
   key: SectionKey
   icon: string
@@ -93,6 +95,7 @@ const sections = computed<SectionDef[]>(() => {
   const base: SectionDef[] = [
     ...(isCompanyAdmin.value ? [
       { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
+      { key: 'approval',    icon: '✅', title: 'settings.approval.menuTitle',    desc: 'settings.approval.menuDesc',    ready: true },
       { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
       { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
       { key: 'listing',     icon: '📍', title: 'settings.listing.menuTitle',     desc: 'settings.listing.menuDesc',     ready: true },
@@ -118,6 +121,7 @@ const section = ref<SectionKey | null>(null)
 
 const headerTitle = computed(() => {
   if (section.value === 'rejection') return t('settings.rejection.menuTitle')
+  if (section.value === 'approval') return t('settings.approval.menuTitle')
   if (section.value === 'certificate') return t('settings.certificate.menuTitle')
   if (section.value === 'inspectors') return t('settings.inspectors.menuTitle')
   if (section.value === 'import') return t('settings.import.menuTitle')

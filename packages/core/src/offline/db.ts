@@ -65,6 +65,7 @@ interface OfflineSchema extends DBSchema {
   };
   products: { key: string; value: EncryptedRecord };
   rejectionCodes: { key: string; value: EncryptedRecord };
+  approvalCodes: { key: string; value: EncryptedRecord };
   companySettings: { key: string; value: EncryptedRecord };
   customerMembers: {
     key: string;
@@ -97,7 +98,7 @@ let dbPromise: Promise<IDBPDatabase<OfflineSchema>> | null = null;
 
 export function getOfflineDb(): Promise<IDBPDatabase<OfflineSchema>> {
   if (!dbPromise) {
-    dbPromise = openDB<OfflineSchema>("gearonimo-offline", 2, {
+    dbPromise = openDB<OfflineSchema>("gearonimo-offline", 3, {
       upgrade(db, oldVersion) {
         if (oldVersion < 1) {
           db.createObjectStore("meta");
@@ -127,6 +128,12 @@ export function getOfflineDb(): Promise<IDBPDatabase<OfflineSchema>> {
           const sets = db.createObjectStore("articleSets", { keyPath: "id" });
           sets.createIndex("customerId", "customerId");
         }
+        if (oldVersion < 3) {
+          // v3: goedkeuringscodes (Jos, 2026-09-30) -- zelfde opzet als
+          // rejectionCodes, eigen store zodat ze los van elkaar gecached/
+          // gewist worden.
+          db.createObjectStore("approvalCodes", { keyPath: "id" });
+        }
       },
     });
   }
@@ -153,6 +160,7 @@ export async function wipeAllOfflineData(): Promise<void> {
     db.clear("articles"),
     db.clear("products"),
     db.clear("rejectionCodes"),
+    db.clear("approvalCodes"),
     db.clear("companySettings"),
     db.clear("customerMembers"),
     db.clear("articleSets"),

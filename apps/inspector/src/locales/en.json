@@ -431,6 +431,29 @@
         "codeRequired": "A valid number is required"
       }
     },
+    "approval": {
+      "menuTitle": "Approval codes",
+      "menuDesc": "Manage codes for approved items",
+      "title": "Approval codes",
+      "intro": "You can optionally pick these codes when approving an item during an inspection, for example to note increased wear. Picking nothing stays exactly as now: simply passed, optionally with a free comment. They apply only to your inspection company.",
+      "add": "Code",
+      "edit": "Edit code",
+      "empty": "No approval codes yet.",
+      "on": "On",
+      "off": "Off",
+      "deleteTitle": "Delete approval code?",
+      "deleteBody": "This cannot be undone. Codes already used stay on existing certificates.",
+      "fields": {
+        "code": "Number",
+        "label": "Description",
+        "labelPh": "e.g. Passed, note increased wear",
+        "active": "Active"
+      },
+      "errors": {
+        "labelRequired": "Description is required",
+        "codeRequired": "A valid number is required"
+      }
+    },
     "certificate": {
       "menuTitle": "Certificate template",
       "menuDesc": "Logo, layout, header and footer of the certificate",

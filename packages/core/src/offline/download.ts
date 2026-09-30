@@ -6,6 +6,7 @@ import {
   putArticles,
   putProducts,
   putRejectionCodes,
+  putApprovalCodes,
   putCompanySettings,
   putCustomerMembers,
   putArticleSets,
@@ -133,6 +134,14 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
     .order("code");
   if (rcErr) throw rcErr;
 
+  const { data: approvalCodes, error: acErr } = await supabase
+    .from("approval_codes")
+    .select("id, code, label, active")
+    .eq("company_id", ctx.companyId)
+    .eq("active", true)
+    .order("code");
+  if (acErr) throw acErr;
+
   const { data: company, error: companyErr } = await supabase
     .from("inspection_companies")
     .select("*")
@@ -180,6 +189,7 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   await putArticleSets(key, customerId, sets ?? []);
   if (products.length) await putProducts(key, products);
   await putRejectionCodes(key, ctx.companyId, (rejectionCodes ?? []) as { id: string; code: number; label: string | null }[]);
+  await putApprovalCodes(key, ctx.companyId, (approvalCodes ?? []) as { id: string; code: number; label: string | null }[]);
   await putCompanySettings(key, ctx.companyId, company);
   // Niet overschrijven als deze keuring lokaal al "pending_completion" is
   // (offline afgerond, certificaat wacht nog op sync, zie BOUWPLAN slice 5):
