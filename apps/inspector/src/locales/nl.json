@@ -501,6 +501,8 @@
         "swl": "SWL / veilige werklast",
         "user": "Gebruiker",
         "next": "Volgende keuring",
+        "prev": "Vorige keuring",
+        "examType": "Type keuring",
         "note": "Afkeurcode / opmerking"
       }
     },

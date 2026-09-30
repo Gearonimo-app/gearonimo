@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { supabase, CATEGORIES } from '@gearonimo/core'
+import { supabase, CATEGORIES, getRegime, isInspectedType, type ProductType, type CountryCode } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
 import nlLocale from '../locales/nl.json'
 import enLocale from '../locales/en.json'
@@ -41,6 +41,8 @@ export interface CertLayout {
     swl: boolean
     user: boolean
     next: boolean
+    prev: boolean
+    examType: boolean
     note: boolean
   }
 }
@@ -57,7 +59,10 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   showContact: true,
   showRegistration: true,
   accent: '#1a3a2a',
-  columns: { year: false, category: true, norm: false, mbs: false, swl: false, user: true, next: true, note: true },
+  // prev/examType staan default uit (Jos, 2026-09-30: nemen ruimte in en zijn
+  // voor de meeste keurbedrijven geen zinvolle informatie) -- wél beschikbaar
+  // als vinkje, net als SWL.
+  columns: { year: false, category: true, norm: false, mbs: false, swl: false, user: true, next: true, prev: false, examType: false, note: true },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
@@ -113,6 +118,22 @@ export interface CertItem {
   swl: string | null
   user: string | null
   next_due: string | null
+  /**
+   * Datum van de vorige keuring (LOLER Schedule 1 §4) -- ISO-datumstring,
+   * zelfde vangnet-patroon als swl: `articles.free_previous_inspection_date`
+   * wint als het is ingevuld, anders de laatste eerdere voltooide keuring van
+   * dit artikel in Gearonimo zelf (leeg voor een artikel dat hier voor het
+   * eerst gekeurd wordt en waar niemand iets heeft ingevuld).
+   */
+  previousDate: string | null
+  /**
+   * Type keuring (LOLER Schedule 1 §6/§7) -- in dit programma vrijwel altijd
+   * een periodieke keuring op het interval dat ook de kolom "Volgende keuring"
+   * gebruikt (dezelfde resolutievolgorde, zie resolveIntervalMonths hieronder).
+   * `articles.free_exam_type` wint voor een afwijkende keuring (bv. "na een
+   * val", Reg. 6(2)) -- ook hier blijft vrije invoer altijd mogelijk.
+   */
+  examType: string | null
   rejection_code_label: string | null
   comment: string | null
 }
@@ -201,10 +222,13 @@ const CERT_LABELS = {
     scanToVerify: 'Scan om te verifiëren',
     verifiedWith: 'geverifieerd met gearonimo',
     page: (n: number, total: number) => `Pagina ${n} van ${total}`,
+    periodicExam: 'Periodieke keuring',
+    monthsUnit: 'maanden',
     cols: {
       article: 'Artikel', brand: 'Merk', category: 'Categorie',
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
       year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
+      prev: 'Vorige keuring', examType: 'Type keuring',
       note: 'Afkeurcode / opmerking',
     } as Record<string, string>,
   },
@@ -221,10 +245,13 @@ const CERT_LABELS = {
     scanToVerify: 'Scan to verify',
     verifiedWith: 'verified with gearonimo',
     page: (n: number, total: number) => `Page ${n} of ${total}`,
+    periodicExam: 'Periodic examination',
+    monthsUnit: 'months',
     cols: {
       article: 'Item', brand: 'Brand', category: 'Category',
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
       year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS', swl: 'SWL',
+      prev: 'Previous examination', examType: 'Examination type',
       note: 'Rejection code / comment',
     } as Record<string, string>,
   },
@@ -241,10 +268,13 @@ const CERT_LABELS = {
     scanToVerify: 'Scanner pour vérifier',
     verifiedWith: 'vérifié avec gearonimo',
     page: (n: number, total: number) => `Page ${n} sur ${total}`,
+    periodicExam: 'Contrôle périodique',
+    monthsUnit: 'mois',
     cols: {
       article: 'Article', brand: 'Marque', category: 'Catégorie',
       sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
       year: 'Année', user: 'Utilisateur', norm: 'Norme', mbs: 'MBS', swl: 'CMU',
+      prev: 'Dernier contrôle', examType: 'Type de contrôle',
       note: 'Code de refus / remarque',
     } as Record<string, string>,
   },
@@ -261,10 +291,13 @@ const CERT_LABELS = {
     scanToVerify: 'Zum Verifizieren scannen',
     verifiedWith: 'verifiziert mit gearonimo',
     page: (n: number, total: number) => `Seite ${n} von ${total}`,
+    periodicExam: 'Wiederkehrende Prüfung',
+    monthsUnit: 'Monate',
     cols: {
       article: 'Artikel', brand: 'Marke', category: 'Kategorie',
       sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
       year: 'Baujahr', user: 'Nutzer', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
+      prev: 'Letzte Prüfung', examType: 'Prüfungsart',
       note: 'Ablehnungscode / Anmerkung',
     } as Record<string, string>,
   },
@@ -374,6 +407,7 @@ function sanitizeCertData(data: CertData): CertData {
       norm: S(it.norm),
       mbs: S(it.mbs),
       swl: S(it.swl),
+      examType: S(it.examType),
       user: S(it.user),
       rejection_code_label: S(it.rejection_code_label),
       comment: S(it.comment),
@@ -520,6 +554,8 @@ const ALL_COLUMNS: ColDef[] = [
   { key: 'norm',     header: 'Norm',                   optional: true,  flex: false, min: 56, cap: 120, value: (it) => it.norm || '' },
   { key: 'mbs',      header: 'MBS',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.mbs || '' },
   { key: 'swl',      header: 'SWL',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.swl || '' },
+  { key: 'prev',     header: 'Vorige keuring',         optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.previousDate ? formatDate(it.previousDate) : '') },
+  { key: 'examType', header: 'Type keuring',           optional: true,  flex: true,  min: 90, cap: 190, value: (it) => it.examType || '' },
   { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
@@ -962,6 +998,30 @@ interface CompanyRow extends CertCompany {
   country_code: string
   logo_path: string | null
   cert_layout: unknown
+  default_interval_ppe_months: number | null
+  default_interval_rigging_months: number | null
+}
+
+// Zelfde resolutievolgorde als defaultIntervalMonths() in InspectionWizard.vue
+// (artikel-override > product-override > bedrijfsinstelling per type >
+// wettelijk regime) -- bewust hier gedupliceerd i.p.v. gedeeld, zelfde reden
+// als nextDue.ts in packages/core: wijzig je de volgorde, doe het op alle
+// drie de plekken (nextDue.ts, InspectionWizard.vue, hier). Gebruikt voor de
+// kolom "Type keuring" (LOLER Schedule 1 §6/§7), niet voor de echte
+// keurtermijn zelf (die staat al vast in next_due op het item).
+function resolveIntervalMonths(
+  productType: ProductType | null | undefined,
+  articleOverride: number | null | undefined,
+  productOverride: number | null | undefined,
+  company: { country_code: string; default_interval_ppe_months: number | null; default_interval_rigging_months: number | null }
+): number | null {
+  if (articleOverride != null) return articleOverride
+  if (productOverride != null) return productOverride
+  if (productType == null) return null
+  if (!isInspectedType(productType as ProductType)) return null
+  if (productType === 'rigging' && company.default_interval_rigging_months != null) return company.default_interval_rigging_months
+  if (productType !== 'rigging' && company.default_interval_ppe_months != null) return company.default_interval_ppe_months
+  return getRegime(productType as ProductType, (company.country_code as CountryCode) ?? 'NL')
 }
 
 export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
@@ -976,7 +1036,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       // rechtstreekse FK hier, én via inspection_items als bridge-tabel) en
       // weigert dan met "more than one relationship was found" -- precies de
       // fout die "Afronden" liet mislukken (Jos, 2026-09-14).
-      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout), inspector:inspectors!inspector_id(name, signature_path)'
+      'id, customer_id, company_id, inspector_id, inspection_date, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout, default_interval_ppe_months, default_interval_rigging_months), inspector:inspectors!inspector_id(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -1001,19 +1061,41 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   // Vroeg bepaald, want de items hieronder hebben 'm al nodig om category te
   // vertalen -- zelfde regel als de rest van de vaste PDF-teksten.
   const certLanguage = certLanguageForCountry(inspection.company.country_code)
+  const L = CERT_LABELS[certLanguage]
 
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
+      'article_id, result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
   if (itemsErr) throw itemsErr
 
+  // Datum van de vorige keuring per artikel (LOLER Schedule 1 §4): één bulk-
+  // query i.p.v. per artikel (zoals findPreviousResult in useInspections.ts
+  // doet), want hier kunnen tientallen artikelen tegelijk spelen. Zelfde
+  // regels: 'not_assessed' en niet-voltooide keuringen tellen niet mee.
+  const articleIds = [...new Set(((rows ?? []) as unknown as { article_id: string }[]).map((r) => r.article_id).filter(Boolean))]
+  const previousDateByArticle: Record<string, string> = {}
+  if (articleIds.length) {
+    const { data: prevRows } = await supabase
+      .from('inspection_items')
+      .select('article_id, inspection:inspections(inspection_date, status)')
+      .in('article_id', articleIds)
+      .neq('inspection_id', inspectionId)
+      .neq('result', 'not_assessed')
+    for (const pr of (prevRows ?? []) as unknown as { article_id: string; inspection: { inspection_date: string; status: string } | null }[]) {
+      if (pr.inspection?.status !== 'completed') continue
+      const cur = previousDateByArticle[pr.article_id]
+      if (!cur || pr.inspection.inspection_date > cur) previousDateByArticle[pr.article_id] = pr.inspection.inspection_date
+    }
+  }
+
   // Niet-beoordeelde artikelen (vergeten/kwijt op de keurdag) horen niet op
   // het certificaat — ze blijven wel bij de klant staan voor een volgende keer.
   interface ItemRow {
+    article_id: string
     result: string
     next_due: string | null
     comment: string | null
@@ -1031,6 +1113,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_norm?: string | null
       free_mbs?: string | null
       free_working_load_limit?: string | null
+      free_previous_inspection_date?: string | null
+      free_exam_type?: string | null
+      interval_override_months?: number | null
       manufacture_year?: number | null
       manufacture_month?: number | null
       assigned_user_name?: string | null
@@ -1043,12 +1128,16 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_norm: string | null
       free_mbs: string | null
       free_working_load_limit: string | null
+      free_previous_inspection_date: string | null
+      free_exam_type: string | null
+      interval_override_months: number | null
       manufacture_year: number | null
       manufacture_month: number | null
       assigned_user_name: string | null
       product: {
         brand: string | null; name: string | null; category: string | null
         standard: string | null; breaking_strength: string | null; working_load_limit: string | null
+        product_type: string | null; interval_override_months: number | null
       } | null
     } | null
     rejection_code: { label: string } | null
@@ -1079,6 +1168,21 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       // Vrije invoer wint (ook als er een product gekoppeld is): zie de
       // toelichting bij CertItem.swl hierboven.
       swl: (a?.free_working_load_limit || p?.working_load_limit) ?? null,
+      // Zelfde vangnet-volgorde: vrije invoer wint, anders de laatst
+      // voltooide eerdere keuring van dit artikel in Gearonimo (leeg als
+      // er geen van beide is -- eerste keuring hier).
+      previousDate: a?.free_previous_inspection_date || previousDateByArticle[r.article_id] || null,
+      examType:
+        a?.free_exam_type ||
+        (() => {
+          const months = resolveIntervalMonths(
+            (p?.product_type as ProductType | null) ?? null,
+            a?.interval_override_months ?? null,
+            p?.interval_override_months ?? null,
+            { country_code: inspection.company.country_code, default_interval_ppe_months: inspection.company.default_interval_ppe_months, default_interval_rigging_months: inspection.company.default_interval_rigging_months }
+          )
+          return months == null ? L.periodicExam : `${L.periodicExam} — ${months} ${L.monthsUnit}`
+        })(),
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,

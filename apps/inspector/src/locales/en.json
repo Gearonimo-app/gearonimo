@@ -501,6 +501,8 @@
         "swl": "SWL / safe working load",
         "user": "User",
         "next": "Next inspection",
+        "prev": "Previous inspection",
+        "examType": "Examination type",
         "note": "Rejection code / comment"
       }
     },

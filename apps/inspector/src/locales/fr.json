@@ -500,6 +500,8 @@
         "swl": "CMU / charge maximale d'utilisation",
         "user": "Utilisateur",
         "next": "Prochain contrôle",
+        "prev": "Dernier contrôle",
+        "examType": "Type de contrôle",
         "note": "Code de refus / remarque"
       }
     },

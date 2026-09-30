@@ -116,6 +116,8 @@
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.norm" /> {{ $t('settings.certificate.columns.norm') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.mbs" /> {{ $t('settings.certificate.columns.mbs') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.swl" /> {{ $t('settings.certificate.columns.swl') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.prev" /> {{ $t('settings.certificate.columns.prev') }}</label>
+          <label class="cs__check"><input type="checkbox" v-model="layout.columns.examType" /> {{ $t('settings.certificate.columns.examType') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.user" /> {{ $t('settings.certificate.columns.user') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.next" /> {{ $t('settings.certificate.columns.next') }}</label>
           <label class="cs__check"><input type="checkbox" v-model="layout.columns.note" /> {{ $t('settings.certificate.columns.note') }}</label>
@@ -305,11 +307,11 @@ function sampleData(): CertData {
     // Preview in dezelfde taal als het echte certificaat (land van het bedrijf).
     language: certLanguageForCountry(countryCode.value),
     items: [
-      { result: 'passed', brand: 'Petzl', name: 'Avao Bod Fast harnasgordel', serial_number: '21A0001234', manufacture_year: 2021, manufacture_month: 3, category: 'Harnasgordel', norm: 'EN 361', mbs: '15 kN', swl: '150 kg', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'passed', brand: 'Petzl', name: 'Astro Bod Fast', serial_number: '20B0007777', manufacture_year: 2020, manufacture_month: null, category: 'Harnasgordel', norm: 'EN 813', mbs: '15 kN', swl: '150 kg', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'failed', brand: 'Edelrid', name: 'Karabiner staal met schroefsluiting', serial_number: '19C0042000', manufacture_year: 2019, manufacture_month: 7, category: 'Karabiner', norm: 'EN 362', mbs: '25 kN', swl: null, user: 'Piet de Vries', next_due: null, rejection_code_label: 'Slijtage, opgebruikt', comment: 'Sluiting loopt stroef, zichtbare slijtage aan de poort.' },
-      { result: 'passed', brand: 'Camp Safety', name: 'Helm Titan', serial_number: '22D0005555', manufacture_year: 2022, manufacture_month: 1, category: 'Helm', norm: 'EN 397', mbs: null, swl: null, user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
-      { result: 'passed', brand: 'Beal', name: 'Touw 11mm 50m', serial_number: '21E0009999', manufacture_year: 2021, manufacture_month: null, category: 'Touw', norm: 'EN 1891', mbs: '22 kN', swl: null, user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Petzl', name: 'Avao Bod Fast harnasgordel', serial_number: '21A0001234', manufacture_year: 2021, manufacture_month: 3, category: 'Harnasgordel', norm: 'EN 361', mbs: '15 kN', swl: '150 kg', previousDate: '2026-12-25', examType: 'Periodieke keuring — 6 maanden', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Petzl', name: 'Astro Bod Fast', serial_number: '20B0007777', manufacture_year: 2020, manufacture_month: null, category: 'Harnasgordel', norm: 'EN 813', mbs: '15 kN', swl: '150 kg', previousDate: '2026-12-25', examType: 'Periodieke keuring — 6 maanden', user: 'Jan Jansen', next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'failed', brand: 'Edelrid', name: 'Karabiner staal met schroefsluiting', serial_number: '19C0042000', manufacture_year: 2019, manufacture_month: 7, category: 'Karabiner', norm: 'EN 362', mbs: '25 kN', swl: null, previousDate: '2026-06-25', examType: 'Periodieke keuring — 12 maanden', user: 'Piet de Vries', next_due: null, rejection_code_label: 'Slijtage, opgebruikt', comment: 'Sluiting loopt stroef, zichtbare slijtage aan de poort.' },
+      { result: 'passed', brand: 'Camp Safety', name: 'Helm Titan', serial_number: '22D0005555', manufacture_year: 2022, manufacture_month: 1, category: 'Helm', norm: 'EN 397', mbs: null, swl: null, previousDate: null, examType: 'Periodieke keuring', user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
+      { result: 'passed', brand: 'Beal', name: 'Touw 11mm 50m', serial_number: '21E0009999', manufacture_year: 2021, manufacture_month: null, category: 'Touw', norm: 'EN 1891', mbs: '22 kN', swl: null, previousDate: '2026-06-25', examType: 'Periodieke keuring — na een val', user: null, next_due: '2027-06-25', rejection_code_label: null, comment: null },
     ],
     // De handtekening is per keurmeester (Instellingen → Keurmeesters), niet
     // per bedrijf; in deze bedrijfsbrede voorbeeldweergave tonen we 'm niet.
