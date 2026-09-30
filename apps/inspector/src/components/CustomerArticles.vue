@@ -152,6 +152,11 @@
            mag dat altijd overschrijven (Jos, 2026-09-30: "vrije invoer
            altijd mogelijk houden"). -->
       <input v-if="freeFields.swl" v-model="form.free_working_load_limit" :placeholder="$t('inspections.table.swl')" class="ca__input" />
+      <!-- Type keuring: vrij tekstveld, overschrijft de automatische
+           "Periodieke keuring — N maanden"-tekst op het certificaat (bv. voor
+           een afwijkende keuring na een val). Geen auto-vulling vanuit een
+           product (die tekst wordt pas bij het certificaat zelf berekend). -->
+      <input v-if="freeFields.examType" v-model="form.free_exam_type" :placeholder="$t('inspections.table.examType')" class="ca__input" />
 
       <hr class="ca__sep" />
       <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
@@ -467,7 +472,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 
 function emptyForm() {
   return {
-    free_norm: '', free_mbs: '', free_working_load_limit: '',
+    free_norm: '', free_mbs: '', free_working_load_limit: '', free_exam_type: '',
     serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', notes: '',
   }
 }
@@ -545,7 +550,7 @@ watch(() => form.value.purchase_date, (v) => {
 })
 
 // Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
-const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean }>({ norm: false, mbs: false, swl: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, examType: false })
 
 function articleLabel(a: Article) {
   const s = a.product
@@ -630,6 +635,9 @@ async function save() {
     // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
     // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
     free_working_load_limit: form.value.free_working_load_limit.trim() || null,
+    // Zelfde reden: niet product-gated, er is geen "product.exam_type" om op
+    // terug te vallen -- alleen de berekende tekst op het certificaat zelf.
+    free_exam_type: form.value.free_exam_type.trim() || null,
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,

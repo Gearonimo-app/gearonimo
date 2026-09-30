@@ -372,6 +372,7 @@
       "norm": "Norme (ex. EN 361)",
       "mbs": "MBS / charge de rupture",
       "swl": "CMU / charge maximale d'utilisation",
+      "examType": "Type de contrôle (ex. après une chute)",
       "noMatchesFiltered": "Aucun article ne correspond à vos critères -- complétez-les et cliquez sur + Ajouter pour l'ajouter comme nouvel article.",
       "snRetired": "Retiré",
       "snReinstateConfirm": "« {name} » a été retiré{info}. Le remettre en service et l'ajouter à ce contrôle ?",

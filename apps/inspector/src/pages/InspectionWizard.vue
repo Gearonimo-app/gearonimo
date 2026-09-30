@@ -242,6 +242,14 @@
           <input v-model="newSwl" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.swl')" />
         </div>
 
+        <!-- Type keuring: vrij tekstveld, overschrijft de automatische
+             "Periodieke keuring — N maanden"-tekst op het certificaat. Geen
+             auto-vulling vanuit een product (die tekst wordt pas bij het
+             certificaat zelf berekend, niet hier). -->
+        <div v-if="freeFields.examType" class="iw__free-extras">
+          <input v-model="newExamType" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.examType')" />
+        </div>
+
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
              de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
              Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
@@ -1309,9 +1317,10 @@ const newApprovalCodeId = ref<string | null>(null)
 const newNorm = ref('')
 const newMbs = ref('')
 const newSwl = ref('')
+const newExamType = ref('')
 const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
-const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean }>({ norm: false, mbs: false, swl: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, examType: false })
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
 // Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
 // het naar de catalogus-wachtlijst voor de curator.
@@ -2321,6 +2330,7 @@ function resetAddRow() {
   newNorm.value = ''
   newMbs.value = ''
   newSwl.value = ''
+  newExamType.value = ''
   newComment.value = ''
   dayHint.value = null
   weekHint.value = null
@@ -2348,6 +2358,7 @@ async function addRow() {
         // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
         // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
         free_working_load_limit: newSwl.value.trim() || null,
+        free_exam_type: newExamType.value.trim() || null,
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
@@ -2451,6 +2462,7 @@ async function addRowOffline() {
     free_norm: product ? null : (newNorm.value.trim() || null),
     free_mbs: product ? null : (newMbs.value.trim() || null),
     free_working_load_limit: newSwl.value.trim() || null,
+    free_exam_type: newExamType.value.trim() || null,
     serial_number: newSerial.value.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,

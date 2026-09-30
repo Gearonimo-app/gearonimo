@@ -91,8 +91,8 @@ export async function ensureInspector(): Promise<Inspector> {
 
 // Welke optionele velden een keurbedrijf bij vrije invoer wil kunnen invullen,
 // afgeleid van de aangezette certificaat-kolommen (cert_layout.columns).
-// Norm/MBS/SWL; leeg/onbekend = uit (gelijk aan DEFAULT_CERT_LAYOUT).
-export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: boolean; swl: boolean }> {
+// Norm/MBS/SWL/Type keuring; leeg/onbekend = uit (gelijk aan DEFAULT_CERT_LAYOUT).
+export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: boolean; swl: boolean; examType: boolean }> {
   const inspector = await ensureInspector()
   const { isOnline } = useOnline()
   let certLayout: { columns?: Record<string, boolean> } | null = null
@@ -112,7 +112,7 @@ export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: bool
     certLayout = company?.cert_layout ?? null
   }
   const cols = certLayout?.columns ?? {}
-  return { norm: !!cols.norm, mbs: !!cols.mbs, swl: !!cols.swl }
+  return { norm: !!cols.norm, mbs: !!cols.mbs, swl: !!cols.swl, examType: !!cols.examType }
 }
 
 export interface ArticleScope { allIds: string[]; newIds: string[] }
