@@ -981,14 +981,7 @@
     "mismatch": "Les mots de passe ne correspondent pas."
   },
   "cheatSheet": {
-    "title": "Antisèche — jour/semaine & référence SN",
-    "tabDayWeek": "Jour / semaine",
     "tabSnRef": "Référence SN",
-    "dayToDate": "Jour de l'année → date",
-    "dayPh": "Jour (1-366)",
-    "weekToRange": "Numéro de semaine → plage de dates",
-    "weekPh": "Semaine (1-53)",
-    "invalidDay": "N'existe pas cette année-là",
     "filterPh": "Filtrer par marque...",
     "legend": "Y = année · M = mois · D = jour · W = semaine · x = autre chiffre · # = lettre",
     "example": "Exemple",

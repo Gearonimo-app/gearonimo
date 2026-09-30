@@ -986,14 +986,7 @@
     "mismatch": "The passwords do not match."
   },
   "cheatSheet": {
-    "title": "Cheat sheet — day/week & serial reference",
-    "tabDayWeek": "Day / week",
     "tabSnRef": "Serial reference",
-    "dayToDate": "Day of year → date",
-    "dayPh": "Day (1-366)",
-    "weekToRange": "Week number → date range",
-    "weekPh": "Week (1-53)",
-    "invalidDay": "Does not exist in this year",
     "filterPh": "Filter by brand...",
     "legend": "Y = year · M = month · D = day number · W = week · x = other digit · # = letter",
     "example": "Example",

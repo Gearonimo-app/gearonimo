@@ -981,14 +981,7 @@
     "mismatch": "Die Passwörter stimmen nicht überein."
   },
   "cheatSheet": {
-    "title": "Spickzettel — Tag/Woche & SN-Referenz",
-    "tabDayWeek": "Tag / Woche",
     "tabSnRef": "SN-Referenz",
-    "dayToDate": "Tag des Jahres → Datum",
-    "dayPh": "Tag (1-366)",
-    "weekToRange": "Wochennummer → Datumsbereich",
-    "weekPh": "Woche (1-53)",
-    "invalidDay": "Existiert in diesem Jahr nicht",
     "filterPh": "Nach Marke filtern...",
     "legend": "Y = Jahr · M = Monat · D = Tagesnummer · W = Woche · x = sonstige Ziffer · # = Buchstabe",
     "example": "Beispiel",

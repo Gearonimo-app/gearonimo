@@ -1,6 +1,6 @@
-<!-- SN-referentie per merk (voorbeeld + formaat, filterbaar) -- het
-     deelcomponent van het spiekbriefje. Gebruikt in de keuring-wizard
-     (uitklap op de dag/week-regel) en in SerialCheatSheet (SN zoeken). -->
+<!-- SN-referentie per merk (voorbeeld + formaat, filterbaar). Gebruikt in
+     de keuring-wizard (uitklap op de dag/week-regel). Het losse spiekbriefje
+     op SN zoeken is weg (Jos, 2026-09-30). -->
 <template>
   <div class="snp">
     <input v-model="filter" class="snp__input snp__filter" :placeholder="$t('cheatSheet.filterPh')" />
