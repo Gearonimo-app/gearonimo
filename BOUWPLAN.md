@@ -440,9 +440,15 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 >   formulier wat automatisch is ingevuld; alleen dat wordt vervangen of
 >   gewist, wat de keurmeester zelf typt blijft staan.
 >
-> Nog open (bewust niet gebouwd, Jos beslist): invulveld "Vorige keuring",
-> LOLER 7b "safe to operate"-zin (kan via voettekst), emoji in nieuwe
-> tegel/link i.p.v. GIcon.
+> Daarna (Jos: "maak van vorige keuring vrije invoer mogelijk"): datumveld
+> "Vorige keuring" in het klantartikel- en keuringsscherm, alleen zichtbaar
+> als de kolom aan staat (zelfde regel als Type keuring/SWL). Vult
+> `articles.free_previous_inspection_date`, die op het certificaat wint van
+> de datum uit de keuringsgeschiedenis. Net als de andere vrije velden alleen
+> bij het toevoegen van een artikel in te vullen.
+>
+> Nog open (bewust niet gebouwd, Jos beslist): LOLER 7b "safe to
+> operate"-zin (kan via voettekst), emoji in nieuwe tegel/link i.p.v. GIcon.
 
 ## Voortgang (2026-09-30, locatie van de keuring)
 

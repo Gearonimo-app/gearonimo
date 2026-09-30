@@ -373,6 +373,7 @@
       "mbs": "MBS / Bruchlast",
       "swl": "SWL / zulässige Tragfähigkeit",
       "examType": "Prüfungsart (z. B. nach einem Sturz)",
+      "previousDate": "Letzte Prüfung",
       "noMatchesFiltered": "Kein Artikel entspricht Ihren Suchfeldern -- ergänzen Sie diese und klicken Sie auf + Hinzufügen, um ihn als neuen Artikel hinzuzufügen.",
       "snRetired": "Ausgemustert",
       "snReinstateConfirm": "„{name}“ wurde ausgemustert{info}. Wieder in Gebrauch nehmen und dieser Prüfung hinzufügen?",

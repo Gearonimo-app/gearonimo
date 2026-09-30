@@ -250,6 +250,16 @@
           <input v-model="newExamType" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.examType')" />
         </div>
 
+        <!-- Vorige keuring: vangnet voor een artikel dat hier voor het eerst
+             gekeurd wordt maar buiten de app om al eerder gekeurd is. Wint op
+             het certificaat van de datum uit de keuringsgeschiedenis. -->
+        <div v-if="freeFields.prev" class="iw__free-extras">
+          <label class="iw__prev-date">
+            {{ $t('inspections.table.previousDate') }}
+            <input v-model="newPrevDate" type="date" class="iw__input iw__input--sm" />
+          </label>
+        </div>
+
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
              de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
              Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
@@ -1318,9 +1328,10 @@ const newNorm = ref('')
 const newMbs = ref('')
 const newSwl = ref('')
 const newExamType = ref('')
+const newPrevDate = ref('')
 const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
-const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, examType: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; prev: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, prev: false, examType: false })
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
 // Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
 // het naar de catalogus-wachtlijst voor de curator.
@@ -2345,6 +2356,7 @@ function resetAddRow() {
   newSwl.value = ''
   autoSwl = ''
   newExamType.value = ''
+  newPrevDate.value = ''
   newComment.value = ''
   dayHint.value = null
   weekHint.value = null
@@ -2373,6 +2385,7 @@ async function addRow() {
         // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
         free_working_load_limit: newSwl.value.trim() || null,
         free_exam_type: newExamType.value.trim() || null,
+        free_previous_inspection_date: newPrevDate.value || null,
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
@@ -2477,6 +2490,7 @@ async function addRowOffline() {
     free_mbs: product ? null : (newMbs.value.trim() || null),
     free_working_load_limit: newSwl.value.trim() || null,
     free_exam_type: newExamType.value.trim() || null,
+    free_previous_inspection_date: newPrevDate.value || null,
     serial_number: newSerial.value.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,
@@ -2891,6 +2905,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   font-size: 0.85rem; padding: 0; margin: 0 0 0.6rem; display: block;
 }
 .iw__location-field { margin: 0 0 0.6rem; }
+.iw__prev-date { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #374151; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }

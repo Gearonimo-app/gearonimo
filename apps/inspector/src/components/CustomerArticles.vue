@@ -157,6 +157,13 @@
            een afwijkende keuring na een val). Geen auto-vulling vanuit een
            product (die tekst wordt pas bij het certificaat zelf berekend). -->
       <input v-if="freeFields.examType" v-model="form.free_exam_type" :placeholder="$t('inspections.table.examType')" class="ca__input" />
+      <!-- Vorige keuring: vangnet voor een artikel dat hier voor het eerst
+           gekeurd wordt maar buiten de app om al eerder gekeurd is. Wint op
+           het certificaat van de datum uit de keuringsgeschiedenis. -->
+      <label v-if="freeFields.prev" class="ca__date-label">
+        {{ $t('inspections.table.previousDate') }}
+        <input v-model="form.free_previous_inspection_date" type="date" class="ca__input" />
+      </label>
 
       <hr class="ca__sep" />
       <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
@@ -482,7 +489,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 
 function emptyForm() {
   return {
-    free_norm: '', free_mbs: '', free_working_load_limit: '', free_exam_type: '',
+    free_norm: '', free_mbs: '', free_working_load_limit: '', free_exam_type: '', free_previous_inspection_date: '',
     serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', notes: '',
   }
 }
@@ -560,7 +567,7 @@ watch(() => form.value.purchase_date, (v) => {
 })
 
 // Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
-const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, examType: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean; prev: boolean; examType: boolean }>({ norm: false, mbs: false, swl: false, prev: false, examType: false })
 
 function articleLabel(a: Article) {
   const s = a.product
@@ -649,6 +656,7 @@ async function save() {
     // Zelfde reden: niet product-gated, er is geen "product.exam_type" om op
     // terug te vallen -- alleen de berekende tekst op het certificaat zelf.
     free_exam_type: form.value.free_exam_type.trim() || null,
+    free_previous_inspection_date: form.value.free_previous_inspection_date || null,
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
