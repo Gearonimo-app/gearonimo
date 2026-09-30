@@ -292,6 +292,8 @@
     "notAssessed": "Skipped",
     "lifeCycleWarning": "Lifespan: {months} mo left",
     "noCode": "No code",
+    "locationToggle": "Different location for this inspection?",
+    "locationPlaceholder": "Address of the inspection location (if different from the customer address)",
     "commentPlaceholder": "Comment…",
     "totalCount": "{n} articles total",
     "notAssessedTitle": "Not yet assessed:",

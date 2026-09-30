@@ -425,6 +425,23 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-09-30, locatie van de keuring)
+
+> LOLER punt 2 ("adres van de locatie van de keuring"): bleek bij het bouwen
+> dat `inspections.location` al sinds `20260624_inspections.sql` in het
+> schema stond maar nergens door de app werd gelezen/geschreven -- geen
+> nieuwe migratie dus. Nu een optioneel veldje in de keuring-wizard,
+> standaard dicht (`📍 Andere locatie voor deze keuring?`), zodat het bij de
+> meeste keuringen (zelfde adres als de klant) niemand in de weg zit; alleen
+> ingevuld verschijnt het als losse regel op het certificaat. Online-only,
+> geen offline-schrijfpad (net als de rest van de keuringsmetadata).
+>
+> Zelfde check liet zien dat `inspections.examination_type` óók al bestaat
+> maar nog niet is aangesloten -- dat is bewust een apart gesprek, want dat
+> raakt de net gebouwde `examType`-kolom op het certificaat (die per artikel
+> werkt, niet per keuring). Nog met Jos te bespreken of/hoe die twee
+> samenkomen.
+
 ## Voortgang (2026-09-30, goedkeuringscodes)
 
 > Vervolg op het sparren over LOLER punt 8 (zie hieronder): een goedgekeurd

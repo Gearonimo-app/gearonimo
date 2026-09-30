@@ -817,11 +817,23 @@ voorkomen.
 | inspector_id | FK → inspectors | |
 | certificate_number | text | |
 | inspection_date | date | |
-| location | text? | locatie van de keuring (LOLER/WAHR-rapportveld) |
-| examination_type | text | `periodic` / `interim` / `after_event` / `pre_first_use` (BetrSichV §14, INDG367) |
+| location | text? | locatie van de keuring (LOLER Schedule 1 §2) |
+| examination_type | text | `periodic` / `interim` / `after_event` / `pre_first_use` (BetrSichV §14, INDG367) — kolom bestaat, **nog niet uit de UI gelezen/geschreven** (zie `examType` op het certificaat, die zit los op artikelniveau, niet hier) |
 | status | text | `draft` / `completed` — na completed onveranderlijk |
 | completed_at | timestamptz? | |
 | notes | text? | |
+
+> **`location` eindelijk aangesloten (2026-09-30):** deze kolom stond sinds
+> `20260624_inspections.sql` in het schema maar werd nergens door de app
+> gelezen of geschreven -- LOLER Schedule 1 §2-gap-analyse met Jos bracht dat
+> aan het licht. Nu een optioneel veld in de keuring-wizard (standaard dicht,
+> `📍 Andere locatie voor deze keuring?`-linkje erboven, zodat het bij het
+> overgrote deel van de keuringen -- zelfde adres als de klant -- niemand in
+> de weg zit), en verschijnt als aparte regel op het certificaat wanneer
+> ingevuld (`useCertificate.ts`, `CertData.locationAddress`). Geen nieuwe
+> migratie nodig. `examination_type` bleek bij dezelfde check óók al te
+> bestaan maar is nog niet aangesloten -- dat is een apart gesprek, zie de
+> toelichting bij `examType` verderop (§certificates).
 
 ### `inspection_items`
 | kolom | type | uitleg |

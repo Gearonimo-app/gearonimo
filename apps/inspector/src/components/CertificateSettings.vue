@@ -299,6 +299,7 @@ function sampleData(): CertData {
     },
     customerName: t('settings.certificate.sampleCustomer'),
     customerAddress: t('settings.certificate.sampleCustomerAddress'),
+    locationAddress: null,
     inspectionDate: new Date().toISOString().slice(0, 10),
     inspectorName: t('settings.certificate.sampleInspector'),
     assessedByNames: [t('settings.certificate.sampleInspector')],

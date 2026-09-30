@@ -292,6 +292,8 @@
     "notAssessed": "Ignoré",
     "lifeCycleWarning": "Durée de vie : encore {months} mois",
     "noCode": "Pas de code",
+    "locationToggle": "Lieu différent pour ce contrôle ?",
+    "locationPlaceholder": "Adresse du lieu de contrôle (si différente de l'adresse du client)",
     "commentPlaceholder": "Remarque…",
     "totalCount": "{n} articles au total",
     "notAssessedTitle": "Pas encore évalués :",

@@ -292,6 +292,8 @@
     "notAssessed": "Übersprungen",
     "lifeCycleWarning": "Lebensdauer: noch {months} Monate",
     "noCode": "Kein Code",
+    "locationToggle": "Andere Prüflocation für diese Prüfung?",
+    "locationPlaceholder": "Adresse der Prüflocation (falls abweichend von der Kundenadresse)",
     "commentPlaceholder": "Anmerkung…",
     "totalCount": "{n} Artikel insgesamt",
     "notAssessedTitle": "Noch nicht bewertet:",

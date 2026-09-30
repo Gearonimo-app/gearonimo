@@ -32,6 +32,24 @@
 
     <template v-else>
       <div class="iw__body">
+        <!-- Locatie van de keuring (LOLER §2): standaard dicht en niet
+             zichtbaar, alleen relevant als deze keuring niet bij het
+             klantadres plaatsvond. Online-only (zie saveLocation). -->
+        <button
+          v-if="isOnline && !showLocation"
+          type="button"
+          class="iw__location-toggle"
+          @click="showLocation = true"
+        >📍 {{ $t('inspections.locationToggle') }}</button>
+        <div v-if="showLocation" class="iw__location-field">
+          <input
+            v-model="locationAddress"
+            class="iw__input"
+            :placeholder="$t('inspections.locationPlaceholder')"
+            @blur="saveLocation"
+          />
+        </div>
+
         <!-- Zoek én toevoegen in één: deze velden filteren meteen de tabel
              hieronder; staat een artikel er niet bij, vul de overige velden
              aan en klik op Toevoegen. De velden staan bovenaan zodat invoer
@@ -776,6 +794,9 @@ interface InspectionRecord {
   company_id: string
   // 'import' = uit een oud certificaat geïmporteerd (geen eigen certificaat-PDF).
   source: string | null
+  // LOLER §2: adres van de locatie van de keuring, als dat afwijkt van het
+  // klantadres (dat er al los bij staat). Leeg = geen apart adres nodig.
+  location: string | null
   customer: { name: string } | null
   company: {
     country_code: string | null
@@ -784,6 +805,13 @@ interface InspectionRecord {
   } | null
 }
 const inspection = ref<InspectionRecord | null>(null)
+// Locatie van de keuring: standaard dicht, alleen zichtbaar/ingevuld als het
+// van het klantadres afwijkt (Jos, 2026-09-30: "niemand in de weg zitten,
+// wel vindbaar wanneer nodig"). Online-only, zelfde als de rest van de
+// keuringsmetadata -- er is geen offline-schrijfpad voor de inspections-rij.
+const showLocation = ref(false)
+const locationAddress = ref('')
+const savingLocation = ref(false)
 const items = ref<Item[]>([])
 const loading = ref(true)
 const error = ref('')
@@ -2035,6 +2063,8 @@ async function load() {
   if (insErr) { error.value = insErr.message; loading.value = false; return }
   if (!insp) { error.value = t('inspections.notFound'); loading.value = false; return }
   inspection.value = insp as unknown as InspectionRecord
+  locationAddress.value = inspection.value.location ?? ''
+  showLocation.value = !!inspection.value.location
 
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
@@ -2150,6 +2180,7 @@ async function loadOffline() {
       company_id: string
       status: string
       source: string | null
+      location: string | null
     }>(key, id)
     if (!insp) {
       error.value = t('offline.notCachedInspection')
@@ -2170,6 +2201,7 @@ async function loadOffline() {
       customer_id: insp.customer_id,
       company_id: insp.company_id,
       source: insp.source ?? null,
+      location: insp.location ?? null,
       customer: customer ? { name: customer.name } : null,
       company: company
         ? {
@@ -2179,6 +2211,8 @@ async function loadOffline() {
           }
         : null,
     }
+    locationAddress.value = inspection.value.location ?? ''
+    showLocation.value = !!inspection.value.location
 
     const rawItems = await getInspectionItems<{
       id: string
@@ -2481,6 +2515,20 @@ async function addRowOffline() {
   await touchDownloadActivity(customerId)
   resetAddRow()
   nextTick(() => articleRef.value?.focus())
+}
+
+// Locatie van de keuring opslaan (LOLER §2). Leeg opslaan mag -- dat is
+// gewoon "geen apart adres", niet anders dan nooit geopend hebben.
+async function saveLocation() {
+  if (!inspection.value || !isOnline.value) return
+  savingLocation.value = true
+  const value = locationAddress.value.trim() || null
+  const { error: err } = await supabase
+    .from('inspections')
+    .update({ location: value })
+    .eq('id', inspection.value.id)
+  savingLocation.value = false
+  if (!err) inspection.value.location = value
 }
 
 // Klik op een al actief resultaat zet 'm terug naar niet-beoordeeld (herstel
@@ -2809,6 +2857,14 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__scan-field--sm { min-width: 9.5rem; }
 .iw__scan-field .iw__input { min-width: 0; }
 .iw__barcode-notice { margin: -0.4rem 0 0.6rem; font-size: 0.85rem; color: #b45309; }
+
+/* Locatie van de keuring (LOLER §2): bewust een kale link, geen knop --
+   hoort niet op te vallen naast Toevoegen/Afronden, dit is de uitzondering. */
+.iw__location-toggle {
+  border: none; background: none; color: #1e40af; cursor: pointer;
+  font-size: 0.85rem; padding: 0; margin: 0 0 0.6rem; display: block;
+}
+.iw__location-field { margin: 0 0 0.6rem; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
