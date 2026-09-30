@@ -71,6 +71,7 @@ interface ArticleRow {
   free_material: string | null
   free_norm: string | null
   free_mbs: string | null
+  free_working_load_limit: string | null
   suggest_for_catalog: boolean
   catalog_suggestion: ProductFormModel | null
 }
@@ -84,7 +85,7 @@ onMounted(async () => {
   try {
     const { data, error } = await supabase
       .from('articles')
-      .select('free_brand, free_description, free_category, free_material, free_norm, free_mbs, suggest_for_catalog, catalog_suggestion')
+      .select('free_brand, free_description, free_category, free_material, free_norm, free_mbs, free_working_load_limit, suggest_for_catalog, catalog_suggestion')
       .eq('id', props.articleId)
       .single()
     if (error) throw error
@@ -103,6 +104,7 @@ onMounted(async () => {
           material: row.free_material ?? '',
           standard: row.free_norm ?? '',
           breaking_strength: row.free_mbs ?? '',
+          working_load_limit: row.free_working_load_limit ?? '',
         }
   } catch (e) {
     loadError.value = errorMessage(e)

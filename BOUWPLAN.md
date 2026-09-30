@@ -425,6 +425,34 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-09-30, LOLER-checklist Engelse keurmeester)
+
+> Aanleiding: Jos had contact met een Engelse LOLER-keurmeester en vroeg wat
+> Gearonimo nog mist t.o.v. de LOLER 1998 Schedule 1-checklist (11 verplichte
+> velden op een thorough-examination-rapport).
+>
+> - **Klantadres op het certificaat** (§1/§2): `customers.street/house_number/
+>   postal_code/city/province` stonden al in de database maar kwamen nooit op
+>   het certificaat -- nu een regel onder de klantnaam, alleen als er iets
+>   bekend is.
+> - **SWL als eigen aan/uit-kolom** (§5, veilige werklast — niet de MBS): los
+>   vinkje "SWL / veilige werklast" bij Instellingen → Certificaat, naast
+>   (niet i.p.v.) MBS. Bron: `products.working_load_limit` (bestond al in de
+>   catalogus, alleen nog niet op het certificaat).
+> - **Vrije invoer voor SWL** (migratie `20261004_articles_free_swl.sql`,
+>   **nog door Jos uit te voeren**): nieuwe kolom
+>   `articles.free_working_load_limit`. Anders dan Norm/MBS blijft dit veld
+>   ook zichtbaar/bewerkbaar bij een gekoppeld catalogusproduct — vult zich
+>   dan vanzelf met de WLL uit de catalogus, maar wint altijd op het
+>   certificaat als de keurmeester het heeft overschreven (Jos: "vrije invoer
+>   altijd mogelijk houden"). Invoervelden in `CustomerArticles.vue` en
+>   `InspectionWizard.vue`; auto-vullen bij productmatch net als merk/categorie.
+>
+> Nog open (niet gevraagd om te bouwen, alleen geconstateerd bij de
+> gap-analyse): de overige LOLER-Schedule-1-velden (uniek certificaatnummer,
+> keurmeester-kwalificatie op het rapport, "safe to operate until"-datum als
+> apart veld) waren al gedekt of vielen buiten deze ronde.
+
 ## Voortgang (bijgewerkt 2026-09-26, opruimen na stap 1-4)
 
 > **Migratie uitgevoerd** door Jos op 2026-09-27: `20261002_cleanup_codes_and_end_user.sql`

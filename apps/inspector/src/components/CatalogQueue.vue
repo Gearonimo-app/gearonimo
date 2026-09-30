@@ -55,6 +55,7 @@ interface QueueArticle {
   free_material: string | null
   free_norm: string | null
   free_mbs: string | null
+  free_working_load_limit: string | null
   catalog_suggestion: ProductFormModel | null
   serial_number: string | null
   customer: { name: string } | null
@@ -80,7 +81,7 @@ async function load() {
     const { data, error: err } = await supabase
       .from('articles')
       .select(
-        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, catalog_suggestion, serial_number, customer:customers!articles_customer_id_fkey(name)'
+        'id, free_brand, free_description, free_category, free_material, free_norm, free_mbs, free_working_load_limit, catalog_suggestion, serial_number, customer:customers!articles_customer_id_fkey(name)'
       )
       .eq('suggest_for_catalog', true)
       .is('product_id', null)
@@ -112,6 +113,7 @@ function openAdd(a: QueueArticle) {
         material: a.free_material ?? '',
         standard: a.free_norm ?? '',
         breaking_strength: a.free_mbs ?? '',
+        working_load_limit: a.free_working_load_limit ?? '',
       }
 }
 

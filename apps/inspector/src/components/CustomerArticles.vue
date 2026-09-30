@@ -146,6 +146,12 @@
         <input v-if="freeFields.norm" v-model="form.free_norm" :placeholder="$t('inspections.table.norm')" class="ca__input" />
         <input v-if="freeFields.mbs"  v-model="form.free_mbs"  :placeholder="$t('inspections.table.mbs')"  class="ca__input" />
       </template>
+      <!-- SWL: blijft, anders dan Norm/MBS hierboven, ook zichtbaar en
+           bewerkbaar als het artikel wél een catalogusmatch heeft -- vult
+           zich dan vanzelf met de WLL uit de catalogus, maar de keurmeester
+           mag dat altijd overschrijven (Jos, 2026-09-30: "vrije invoer
+           altijd mogelijk houden"). -->
+      <input v-if="freeFields.swl" v-model="form.free_working_load_limit" :placeholder="$t('inspections.table.swl')" class="ca__input" />
 
       <hr class="ca__sep" />
       <!-- Volgorde volgt de invulflow bij het artikel in de hand: eerst het
@@ -238,7 +244,7 @@ const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
 const categoryLabel = useCategoryLabel()
 
-interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null; barcodes?: string | null }
+interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null; barcodes?: string | null; working_load_limit: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
 interface Article {
   id: string
@@ -438,6 +444,10 @@ watch(newDescription, (name) => {
   if (p && !isPrefixOfLongerProductName(n, p.brand)) {
     if (p.brand) newBrand.value = p.brand
     if (p.category) newCategory.value = categoryLabel(p.category)
+    // SWL blijft, anders dan brand/category, een vrij invoerveld: dit vult
+    // het alleen voor -- de keurmeester mag het altijd overschrijven (Jos,
+    // 2026-09-30: "vrije invoer altijd mogelijk houden").
+    if (p.working_load_limit) form.value.free_working_load_limit = p.working_load_limit
   }
 })
 
@@ -457,7 +467,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 
 function emptyForm() {
   return {
-    free_norm: '', free_mbs: '',
+    free_norm: '', free_mbs: '', free_working_load_limit: '',
     serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', notes: '',
   }
 }
@@ -535,7 +545,7 @@ watch(() => form.value.purchase_date, (v) => {
 })
 
 // Extra vrije-invoervelden die het keurbedrijf heeft aangezet (Norm/MBS).
-const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean }>({ norm: false, mbs: false, swl: false })
 
 function articleLabel(a: Article) {
   const s = a.product
@@ -616,6 +626,10 @@ async function save() {
     free_description: product ? null : (newDescription.value.trim() || null),
     free_norm: product ? null : (form.value.free_norm.trim() || null),
     free_mbs: product ? null : (form.value.free_mbs.trim() || null),
+    // Anders dan free_norm/free_mbs: niet leeggemaakt zodra er een product
+    // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
+    // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
+    free_working_load_limit: form.value.free_working_load_limit.trim() || null,
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
     first_use_date: form.value.first_use_date || null,
@@ -648,7 +662,7 @@ onMounted(async () => {
       products.value = await fetchAllRows<Product>((from, to) =>
         supabase
           .from('products')
-          .select('id, brand, name, category, manufacturer_code, barcodes')
+          .select('id, brand, name, category, manufacturer_code, barcodes, working_load_limit')
           .order('brand')
           .order('name')
           .range(from, to),

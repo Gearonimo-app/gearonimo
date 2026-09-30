@@ -104,9 +104,11 @@ export interface CertItem {
    * Veilige werklast (Safe Working Load / Working Load Limit) -- LOLER
    * Schedule 1 §5 (Verenigd Koninkrijk) eist dit, niet de breeksterkte (MBS):
    * dat is een ander getal (breeksterkte gedeeld door een veiligheidsfactor).
-   * Komt uit `products.working_load_limit` (Jos, 2026-09-30). Nog geen
-   * invoerveld voor vrije (niet-catalogus) artikelen -- die blijft dus leeg,
-   * zelfde gat als norm/mbs vóór migratie 20260701.
+   * Anders dan norm/mbs (die het catalogusproduct laten winnen zodra er een
+   * koppeling is): hier wint `articles.free_working_load_limit` altijd als
+   * die is ingevuld, met `products.working_load_limit` als vangnet -- de
+   * keurmeester mag de auto-ingevulde WLL van een gekoppeld product blijven
+   * overschrijven (Jos, 2026-09-30: "vrije invoer altijd mogelijk houden").
    */
   swl: string | null
   user: string | null
@@ -1003,7 +1005,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
+      'result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit)), rejection_code:rejection_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -1028,6 +1030,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_category?: string | null
       free_norm?: string | null
       free_mbs?: string | null
+      free_working_load_limit?: string | null
       manufacture_year?: number | null
       manufacture_month?: number | null
       assigned_user_name?: string | null
@@ -1039,6 +1042,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_category: string | null
       free_norm: string | null
       free_mbs: string | null
+      free_working_load_limit: string | null
       manufacture_year: number | null
       manufacture_month: number | null
       assigned_user_name: string | null
@@ -1072,9 +1076,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       category: p ? categoryLabel(p.category, certLanguage) : (a?.free_category ?? null),
       norm: (p ? p.standard : a?.free_norm) ?? null,
       mbs: (p ? p.breaking_strength : a?.free_mbs) ?? null,
-      // Alleen uit de catalogus: er is nog geen invoerveld voor vrije
-      // artikelen (zelfde gat als norm/mbs vóór migratie 20260701).
-      swl: p?.working_load_limit ?? null,
+      // Vrije invoer wint (ook als er een product gekoppeld is): zie de
+      // toelichting bij CertItem.swl hierboven.
+      swl: (a?.free_working_load_limit || p?.working_load_limit) ?? null,
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,

@@ -121,15 +121,21 @@ de koppeltabellen (`inspectors`, `customer_members`, `platform_admins`).
 > `logoOffsetY`, `headerOffsetY` (gegevens verticaal nudgen), `companyInfo`
 > (gegevens links/rechts), `showAddress`, `showContact`, `showRegistration`,
 > `accent` (hex), en `columns` (per keurbedrijf aan/uit te zetten
-> tabelkolommen: `category`/`norm`/`mbs`/`user`/`next`/`note`; de vaste
+> tabelkolommen: `category`/`norm`/`mbs`/`swl`/`user`/`next`/`note`; de vaste
 > kolommen status/merk/artikel/bouwjaar/serienummer staan altijd aan). Een
 > kolom verschijnt alleen als hij aan staat én er data voor is; `norm` =
 > `products.standard`, `mbs` = `products.breaking_strength` (catalogus), of
 > `articles.free_norm`/`free_mbs` (vrij artikel — migratie
 > `20260701_articles_free_norm_mbs.sql`). Die vrije-invoervelden verschijnen in
 > de keuring-wizard en het klantartikelformulier **alleen** als het keurbedrijf
-> de betreffende kolom heeft aangezet (`fetchFreeInputFields`). Leeg =
-> `DEFAULT_CERT_LAYOUT` in
+> de betreffende kolom heeft aangezet (`fetchFreeInputFields`). `swl`
+> (LOLER Schedule 1 §5, veilige werklast) werkt anders: `articles.
+> free_working_load_limit` (migratie `20261004_articles_free_swl.sql`) wint
+> altijd als het is ingevuld, met `products.working_load_limit` als vangnet —
+> dit veld verschijnt óók bij een gekoppeld catalogusproduct (auto-ingevuld
+> vanuit dat product) en blijft dan bewerkbaar, in plaats van te verdwijnen
+> zoals Norm/MBS (Jos, 2026-09-30: "vrije invoer altijd mogelijk houden").
+> Leeg = `DEFAULT_CERT_LAYOUT` in
 > `apps/inspector/src/composables/useCertificate.ts`. Te beheren via de
 > Instellingen-tegel → Certificaat-template (live preview). De velden zijn een
 > opmaak-sjabloon voor **nieuwe** certificaten; al uitgegeven PDF's blijven

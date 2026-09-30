@@ -210,6 +210,16 @@
                  :placeholder="$t('inspections.table.mbs')" />
         </div>
 
+        <!-- SWL: blijft, anders dan Norm/MBS hierboven, ook zichtbaar en
+             bewerkbaar als het artikel wél een catalogusmatch heeft -- vult
+             zich dan vanzelf met de WLL uit de catalogus (zie
+             watch(newDescription)), maar de keurmeester mag dat altijd
+             overschrijven (Jos, 2026-09-30: "vrije invoer altijd mogelijk
+             houden"). -->
+        <div v-if="freeFields.swl" class="iw__free-extras">
+          <input v-model="newSwl" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.swl')" />
+        </div>
+
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
              de tabel naar beneden i.p.v. eroverheen te vallen. Artikel/Merk/
              Categorie zoeken in de catalogus; Serienummer heeft hieronder z'n
@@ -716,6 +726,7 @@ interface Product {
   notes: string | null
   manufacturer_code: string | null
   barcodes?: string | null
+  working_load_limit: string | null
 }
 interface Article {
   id: string
@@ -1258,9 +1269,10 @@ const newResult = ref<'not_assessed' | 'passed' | 'rejected'>('not_assessed')
 const newRejectionCodeId = ref<string | null>(null)
 const newNorm = ref('')
 const newMbs = ref('')
+const newSwl = ref('')
 const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
-const freeFields = ref<{ norm: boolean; mbs: boolean }>({ norm: false, mbs: false })
+const freeFields = ref<{ norm: boolean; mbs: boolean; swl: boolean }>({ norm: false, mbs: false, swl: false })
 const canAdd = computed(() => !!newDescription.value.trim() || !!newCategory.value.trim())
 // Het getypte artikel wordt een vrij artikel (geen catalogusmatch) → dan kan
 // het naar de catalogus-wachtlijst voor de curator.
@@ -1565,6 +1577,10 @@ watch(newDescription, (name) => {
   if (p && !isPrefixOfLongerProductName(n, p.brand)) {
     if (p.brand) newBrand.value = p.brand
     if (p.category) newCategory.value = categoryLabel(p.category)
+    // SWL blijft, anders dan brand/category, een vrij invoerveld: dit vult
+    // het alleen voor -- de keurmeester mag het altijd overschrijven (Jos,
+    // 2026-09-30: "vrije invoer altijd mogelijk houden").
+    if (p.working_load_limit) newSwl.value = p.working_load_limit
   }
 })
 
@@ -2024,7 +2040,7 @@ async function load() {
   for (let offset = 0; ; offset += PAGE) {
     const { data: page, error: prodErr } = await supabase
       .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes')
+      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes, working_load_limit')
       .order('id')
       .range(offset, offset + PAGE - 1)
     if (prodErr) break
@@ -2248,6 +2264,7 @@ function resetAddRow() {
   newRejectionCodeId.value = null
   newNorm.value = ''
   newMbs.value = ''
+  newSwl.value = ''
   newComment.value = ''
   dayHint.value = null
   weekHint.value = null
@@ -2271,6 +2288,10 @@ async function addRow() {
         free_description: product ? null : (newDescription.value.trim() || null),
         free_norm: product ? null : (newNorm.value.trim() || null),
         free_mbs: product ? null : (newMbs.value.trim() || null),
+        // Anders dan free_norm/free_mbs: niet leeggemaakt zodra er een product
+        // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
+        // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
+        free_working_load_limit: newSwl.value.trim() || null,
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
         manufacture_month: newMonth.value || null,
@@ -2372,6 +2393,7 @@ async function addRowOffline() {
     free_description: product ? null : (newDescription.value.trim() || null),
     free_norm: product ? null : (newNorm.value.trim() || null),
     free_mbs: product ? null : (newMbs.value.trim() || null),
+    free_working_load_limit: newSwl.value.trim() || null,
     serial_number: newSerial.value.trim() || null,
     manufacture_year: newYear.value || null,
     manufacture_month: newMonth.value || null,

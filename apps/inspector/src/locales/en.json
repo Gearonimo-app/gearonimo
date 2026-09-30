@@ -372,6 +372,7 @@
       "suggestForCatalog": "Suggest for product database",
       "norm": "Standard (e.g. EN 361)",
       "mbs": "MBS / breaking strength",
+      "swl": "SWL / safe working load",
       "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article.",
       "snRetired": "Retired",
       "snReinstateConfirm": "\"{name}\" has been retired{info}. Reinstate it and add it to this inspection?",
