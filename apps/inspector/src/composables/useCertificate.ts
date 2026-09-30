@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { supabase, CATEGORIES, getRegime, isInspectedType, type ProductType, type CountryCode } from '@gearonimo/core'
+import { supabase, CATEGORIES, fetchAllRows, getRegime, isInspectedType, type ProductType, type CountryCode } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
 import nlLocale from '../locales/nl.json'
 import enLocale from '../locales/en.json'
@@ -1104,23 +1104,36 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     .order('created_at')
   if (itemsErr) throw itemsErr
 
-  // Datum van de vorige keuring per artikel (LOLER Schedule 1 §4): één bulk-
-  // query i.p.v. per artikel (zoals findPreviousResult in useInspections.ts
-  // doet), want hier kunnen tientallen artikelen tegelijk spelen. Zelfde
-  // regels: 'not_assessed' en niet-voltooide keuringen tellen niet mee.
-  const articleIds = [...new Set(((rows ?? []) as unknown as { article_id: string }[]).map((r) => r.article_id).filter(Boolean))]
+  // Datum van de vorige keuring per artikel (LOLER Schedule 1 §4). Alleen
+  // opgevraagd als de kolom aan staat. Per blok van 100 artikelen (anders
+  // wordt de URL te lang bij grote keuringen) en gepagineerd via
+  // fetchAllRows (Supabase kapt anders stil af op 1000 rijen); een fout
+  // breekt het afronden af i.p.v. stil een lege kolom te geven. Alleen
+  // voltooide keuringen met een keurdatum vóór déze keuring tellen: een later
+  // opnieuw gegenereerd certificaat mag geen nieuwere keuring als "vorige"
+  // tonen, en een correctie op dezelfde dag is geen vorige keuring.
   const previousDateByArticle: Record<string, string> = {}
-  if (articleIds.length) {
-    const { data: prevRows } = await supabase
-      .from('inspection_items')
-      .select('article_id, inspection:inspections(inspection_date, status)')
-      .in('article_id', articleIds)
-      .neq('inspection_id', inspectionId)
-      .neq('result', 'not_assessed')
-    for (const pr of (prevRows ?? []) as unknown as { article_id: string; inspection: { inspection_date: string; status: string } | null }[]) {
-      if (pr.inspection?.status !== 'completed') continue
-      const cur = previousDateByArticle[pr.article_id]
-      if (!cur || pr.inspection.inspection_date > cur) previousDateByArticle[pr.article_id] = pr.inspection.inspection_date
+  if (resolveLayout(inspection.company.cert_layout).columns.prev) {
+    const articleIds = [...new Set(((rows ?? []) as unknown as { article_id: string }[]).map((r) => r.article_id).filter(Boolean))]
+    for (let i = 0; i < articleIds.length; i += 100) {
+      const chunk = articleIds.slice(i, i + 100)
+      const prevRows = await fetchAllRows<{ article_id: string; inspection: { inspection_date: string } | null }>((from, to) =>
+        supabase
+          .from('inspection_items')
+          .select('id, article_id, inspection:inspections!inner(inspection_date, status)')
+          .in('article_id', chunk)
+          .neq('result', 'not_assessed')
+          .eq('inspection.status', 'completed')
+          .lt('inspection.inspection_date', inspection.inspection_date)
+          .order('id')
+          .range(from, to)
+      )
+      for (const pr of prevRows) {
+        const date = pr.inspection?.inspection_date
+        if (!date) continue
+        const cur = previousDateByArticle[pr.article_id]
+        if (!cur || date > cur) previousDateByArticle[pr.article_id] = date
+      }
     }
   }
 

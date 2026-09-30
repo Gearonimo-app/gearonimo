@@ -1620,19 +1620,32 @@ watch(newDescription, (name) => {
     if (byCode) { applyBarcodeProduct(byCode); return }
   }
   const n = typed.toLowerCase()
-  if (!n) return
+  if (!n) { syncAutoSwl(null); return }
   const b = newBrand.value.trim().toLowerCase()
   const byName = products.value.filter(p => (p.name ?? '').toLowerCase() === n)
   const p = byName.find(p => (p.brand ?? '').toLowerCase() === b) ?? byName[0]
   if (p && !isPrefixOfLongerProductName(n, p.brand)) {
     if (p.brand) newBrand.value = p.brand
     if (p.category) newCategory.value = categoryLabel(p.category)
-    // SWL blijft, anders dan brand/category, een vrij invoerveld: dit vult
-    // het alleen voor -- de keurmeester mag het altijd overschrijven (Jos,
-    // 2026-09-30: "vrije invoer altijd mogelijk houden").
-    if (p.working_load_limit) newSwl.value = p.working_load_limit
+    syncAutoSwl(p)
+  } else {
+    syncAutoSwl(null)
   }
 })
+
+// SWL blijft een vrij invoerveld dat alleen wordt voorgevuld vanuit het
+// gekoppelde product (Jos, 2026-09-30: "vrije invoer altijd mogelijk
+// houden"). `autoSwl` onthoudt wat er automatisch in is gezet: alleen die
+// waarde mag bij een ander (of geen) product vervangen of gewist worden, zodat
+// er nooit een SWL van een eerder getypt product blijft hangen -- en wat de
+// keurmeester zelf typte of wiste blijft altijd staan.
+let autoSwl = ''
+function syncAutoSwl(p: Product | null) {
+  if (newSwl.value !== autoSwl) return
+  const next = p?.working_load_limit ?? ''
+  newSwl.value = next
+  autoSwl = next
+}
 
 function itemBrand(it: Item) { return it.article.product?.brand ?? it.article.free_brand ?? '' }
 function itemName(it: Item) { return it.article.product?.name ?? it.article.free_description ?? '' }
@@ -2330,6 +2343,7 @@ function resetAddRow() {
   newNorm.value = ''
   newMbs.value = ''
   newSwl.value = ''
+  autoSwl = ''
   newExamType.value = ''
   newComment.value = ''
   dayHint.value = null

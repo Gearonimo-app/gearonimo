@@ -425,6 +425,25 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-09-30, review-fixes LOLER-kolommen)
+
+> Dubbele check op verzoek van Jos, drie fouten opgelost:
+> - **Vorige keuring**: werd in één query voor alle artikelen opgehaald --
+>   bij grote keuringen te lange URL én stil afgekapt op 1000 rijen, fout
+>   werd genegeerd. Nu per 100 artikelen, gepagineerd (`fetchAllRows`), fout
+>   breekt het afronden af, en alleen opgevraagd als de kolom aan staat.
+> - **Vorige keuring**: telde ook keuringen van ná deze keuring mee (bij
+>   opnieuw genereren). Nu alleen voltooide keuringen met een keurdatum
+>   strikt vóór deze keuring (een correctie op dezelfde dag telt dus niet).
+> - **SWL bleef hangen**: na een product met SWL en daarna een ander/vrij
+>   artikel bleef de oude SWL staan en werd opgeslagen. Nu onthoudt het
+>   formulier wat automatisch is ingevuld; alleen dat wordt vervangen of
+>   gewist, wat de keurmeester zelf typt blijft staan.
+>
+> Nog open (bewust niet gebouwd, Jos beslist): invulveld "Vorige keuring",
+> LOLER 7b "safe to operate"-zin (kan via voettekst), emoji in nieuwe
+> tegel/link i.p.v. GIcon.
+
 ## Voortgang (2026-09-30, locatie van de keuring)
 
 > LOLER punt 2 ("adres van de locatie van de keuring"): bleek bij het bouwen
