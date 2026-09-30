@@ -5,6 +5,19 @@ Hoort bij `BLAUWDRUK.md`, `DATAMODEL.md`, `UX-FLOW.md` en
 
 ---
 
+## Miller: Amerikaanse harnassen blijven, Europese ontbreken nog (Jos, 2026-09-30)
+
+De 117 Miller H500/H700-rijen zijn Amerikaanse uitvoeringen (ANSI Z359.11 /
+CSA, geen CE) en hun handleiding noemt geen levensduur. Besluit Jos: *"De
+keurmeester in Canada komt deze vast wel tegen. Gewoon erin houden."* —
+niet weghalen, leeftijdsvelden leeg.
+
+De Europese H500 is een ander product met dezelfde naam (eigen
+artikelnummers 10360xx, textiele borstlussen, valindicatoren, EN 361). De
+Europese Miller-handleidingen (Honeywell, prod-edam en-gb) noemen 10 jaar
+vanaf productie. Europese families (H500 EU, H-Design, Revolution,
+Elastolight, Kevlar, tree-pruning) staan nog niet in de catalogus.
+
 ## Certificaat: "— — —" bij een artikel waarvan het product later is verwijderd (Jos, 2026-09-29)
 
 > Jos: *"Waarom staan er streepjes op mijn certificaat?"* — EDELRID HMS TRIPLE,
