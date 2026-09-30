@@ -103,6 +103,34 @@ const ICONS: Record<string, string> = {
   // communiceert "lees een code" beter op kleine knopgrootte.
   scan:
     '<path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/><line x1="7" y1="12" x2="17" y2="12"/>',
+  // ─── Instellingen-menu (inspector-app, 2026-09-30) ───
+  // Vervangen de emoji in dat menu; voorstel gerenderd en goedgekeurd door Jos.
+  // Afkeur- en goedkeuringscodes als paar: kruis / vinkje in een cirkel.
+  "circle-x":
+    '<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>',
+  "circle-check":
+    '<circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 4.5-5"/>',
+  // Keurmeesters: persoon met vinkje. Geen helm -- die betekent in de
+  // klant-app al "Klimmateriaal" (`climbing`).
+  "user-check":
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/>',
+  // Vindbaarheid op de kaart én "andere locatie voor deze keuring".
+  "map-pin":
+    '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  // Excel/CSV-import: document met pijl omhoog (los van `offline`, pijl omlaag).
+  "file-up":
+    '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3-3 3 3"/>',
+  lock:
+    '<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  // Catalogus: open boek.
+  "book-open":
+    '<path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/>',
+  // Hero-foto: fotolijst met berg en zon.
+  image:
+    '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/>',
+  // Bedrijven: kantoorgebouw.
+  building:
+    '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
 };
 
 export const GIcon = defineComponent({

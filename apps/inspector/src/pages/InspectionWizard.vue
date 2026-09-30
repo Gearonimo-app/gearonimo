@@ -40,7 +40,7 @@
           type="button"
           class="iw__location-toggle"
           @click="showLocation = true"
-        >📍 {{ $t('inspections.locationToggle') }}</button>
+        ><GIcon name="map-pin" class="iw__location-icon" /> {{ $t('inspections.locationToggle') }}</button>
         <div v-if="showLocation" class="iw__location-field">
           <input
             v-model="locationAddress"
@@ -2902,8 +2902,10 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
    hoort niet op te vallen naast Toevoegen/Afronden, dit is de uitzondering. */
 .iw__location-toggle {
   border: none; background: none; color: #1e40af; cursor: pointer;
-  font-size: 0.85rem; padding: 0; margin: 0 0 0.6rem; display: block;
+  font-size: 0.85rem; padding: 0; margin: 0 0 0.6rem;
+  display: inline-flex; align-items: center; gap: 0.3rem;
 }
+.iw__location-icon { width: 16px; height: 16px; flex-shrink: 0; }
 .iw__location-field { margin: 0 0 0.6rem; }
 .iw__prev-date { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #374151; }
 

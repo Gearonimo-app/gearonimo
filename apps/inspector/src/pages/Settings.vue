@@ -11,7 +11,7 @@
         :class="{ 'set__row--disabled': !s.ready }"
         @click="open(s)"
       >
-        <span class="set__row-icon">{{ s.icon }}</span>
+        <GIcon :name="s.icon" class="set__row-icon" />
         <div class="set__row-body">
           <div class="set__row-title">{{ $t(s.title) }}</div>
           <div class="set__row-desc">{{ $t(s.desc) }}</div>
@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
+import { GIcon } from '@gearonimo/ui'
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -94,25 +95,25 @@ const sections = computed<SectionDef[]>(() => {
   // alleen de platform-tegels: Catalogus, Hero-foto en Bedrijven.
   const base: SectionDef[] = [
     ...(isCompanyAdmin.value ? [
-      { key: 'rejection',   icon: '⚖️', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
-      { key: 'approval',    icon: '✅', title: 'settings.approval.menuTitle',    desc: 'settings.approval.menuDesc',    ready: true },
-      { key: 'certificate', icon: '📄', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
-      { key: 'inspectors',  icon: '👷', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
-      { key: 'listing',     icon: '📍', title: 'settings.listing.menuTitle',     desc: 'settings.listing.menuDesc',     ready: true },
+      { key: 'rejection',   icon: 'circle-x', title: 'settings.rejection.menuTitle',   desc: 'settings.rejection.menuDesc',   ready: true },
+      { key: 'approval',    icon: 'circle-check', title: 'settings.approval.menuTitle',    desc: 'settings.approval.menuDesc',    ready: true },
+      { key: 'certificate', icon: 'certificates', title: 'settings.certificate.menuTitle', desc: 'settings.certificate.menuDesc', ready: true },
+      { key: 'inspectors',  icon: 'user-check', title: 'settings.inspectors.menuTitle',  desc: 'settings.inspectors.menuDesc',  ready: true },
+      { key: 'listing',     icon: 'map-pin', title: 'settings.listing.menuTitle',     desc: 'settings.listing.menuDesc',     ready: true },
     ] as SectionDef[] : []),
     ...(isInspector.value ? [
-      { key: 'import',      icon: '📥', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true },
+      { key: 'import',      icon: 'file-up', title: 'settings.import.menuTitle',      desc: 'settings.import.menuDesc',      ready: true },
     ] as SectionDef[] : []),
   ]
   // Eigen wachtwoord: voor iedereen die hier komt (keurmeester én
   // platform-admin) -- je eigen account, geen beheerdersrecht nodig.
-  base.push({ key: 'security', icon: '🔒', title: 'settings.security.menuTitle', desc: 'settings.security.menuDesc', ready: true })
+  base.push({ key: 'security', icon: 'lock', title: 'settings.security.menuTitle', desc: 'settings.security.menuDesc', ready: true })
   if (canCurateCatalog.value || isPlatformAdmin.value) {
-    base.push({ key: 'catalog', icon: '📚', title: 'settings.catalog.menuTitle', desc: 'settings.catalog.menuDesc', ready: true })
+    base.push({ key: 'catalog', icon: 'book-open', title: 'settings.catalog.menuTitle', desc: 'settings.catalog.menuDesc', ready: true })
   }
   if (isPlatformAdmin.value) {
-    base.push({ key: 'hero', icon: '🖼️', title: 'settings.hero.menuTitle', desc: 'settings.hero.menuDesc', ready: true })
-    base.push({ key: 'companies', icon: '🏢', title: 'settings.companies.menuTitle', desc: 'settings.companies.menuDesc', ready: true })
+    base.push({ key: 'hero', icon: 'image', title: 'settings.hero.menuTitle', desc: 'settings.hero.menuDesc', ready: true })
+    base.push({ key: 'companies', icon: 'building', title: 'settings.companies.menuTitle', desc: 'settings.companies.menuDesc', ready: true })
   }
   return base
 })
@@ -174,7 +175,7 @@ function back() {
 .set__row:active { background: #f9fafb; }
 .set__row--disabled { cursor: default; }
 .set__row--disabled:active { background: none; }
-.set__row-icon { font-size: 1.5rem; line-height: 1; }
+.set__row-icon { width: 24px; height: 24px; flex-shrink: 0; color: #1a3a2a; }
 .set__row-body { flex: 1; min-width: 0; }
 .set__row-title { font-weight: 600; }
 .set__row-desc { font-size: 0.85rem; color: #6b7280; margin-top: 0.1rem; }
