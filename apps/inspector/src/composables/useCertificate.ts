@@ -61,8 +61,10 @@ export const DEFAULT_CERT_LAYOUT: CertLayout = {
   accent: '#1a3a2a',
   // prev/examType staan default uit (Jos, 2026-09-30: nemen ruimte in en zijn
   // voor de meeste keurbedrijven geen zinvolle informatie) -- wél beschikbaar
-  // als vinkje, net als SWL.
-  columns: { year: false, category: true, norm: false, mbs: false, swl: false, user: true, next: true, prev: false, examType: false, note: true },
+  // als vinkje, net als SWL. year (Bouwjaar) juist default aan (Jos,
+  // 2026-09-30: "mag altijd aan staan") -- LOLER Schedule 1 §3 eist het
+  // bouwjaar van het materiaal, waar bekend.
+  columns: { year: true, category: true, norm: false, mbs: false, swl: false, user: true, next: true, prev: false, examType: false, note: true },
 }
 
 // Vul ontbrekende velden aan met de standaard, zodat oude/lege configs niet
