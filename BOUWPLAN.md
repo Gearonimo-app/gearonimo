@@ -15,8 +15,14 @@ niet weghalen, leeftijdsvelden leeg.
 De Europese H500 is een ander product met dezelfde naam (eigen
 artikelnummers 10360xx, textiele borstlussen, valindicatoren, EN 361). De
 Europese Miller-handleidingen (Honeywell, prod-edam en-gb) noemen 10 jaar
-vanaf productie. Europese families (H500 EU, H-Design, Revolution,
-Elastolight, Kevlar, tree-pruning) staan nog niet in de catalogus.
+vanaf productie. 2026-10-01 toegevoegd (89 rijen, één per model en maat, 10 jaar vanaf
+productie): H700 EU (IC2/CC3/CC5/CC7, maat 1-4; datasheet van Jos), H500 EU
+(13 modellen x 3 maten), Revolution R2 Comfort, R5, R6, Kevlar 751K/650K/
+850K, Butterfly II, Tree-Pruning Harness, TS Harness -- alleen families met
+een Honeywell-datasheet mét artikelnummertabel. Niet toegevoegd: H-Design
+2-punt stretch (datasheet met 16 artikelen, maar geen eigen handleiding
+gevonden) en de families zonder datasheet-tabel (H-Design overig, R4, R7,
+R8, Elastolight, Morpho, Dragonfly, ATEX, Titanium e.a.).
 
 ## Certificaat: "— — —" bij een artikel waarvan het product later is verwijderd (Jos, 2026-09-29)
 
