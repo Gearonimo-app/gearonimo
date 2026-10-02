@@ -64,6 +64,11 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   nooit van herpublicatiesites (manualslib en soortgenoten): die zetten er de
   verkeerde revisie of zelfs het verkeerde product bij. Controleren:
   `node scripts/catalog/winkels.mts`.
+- **Geen kettingzaagbescherming in de catalogus** (Jos, 2026-10-02:
+  *"deze worden nog nergens gekeurd, ook al zijn het wel pbm's"*). Zaagbroeken,
+  -laarzen, -handschoenen en -jassen (EN 381 / EN ISO 11393) blijven eruit,
+  ook als een merk ze naast klimmateriaal verkoopt. Zaag-lanyards (tool
+  lanyards) vallen hier niet onder.
 - **Opmerking (`notes`) kort houden** (Jos, 2026-09-29: *"minder tekst is
   vaak beter, anders begin ik niet eens met lezen"*). Eén zin met wat de
   keurmeester moet weten; bronnen, onderbouwing en uitleg horen in
