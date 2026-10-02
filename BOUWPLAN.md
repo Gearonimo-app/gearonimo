@@ -441,6 +441,11 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 >   keurbedrijf. Met NL en GB als enige landen is de uitkomst gelijk; zodra
 >   er een keurbedrijf is waarvan taal en land niet overeenkomen, alsnog via
 >   het land laten lopen.
+> - **"Onbeperkt" misleidend** (Jos, Sirius Bull Rope: max. 5 jaar na
+>   productie, 999 vanaf eerste gebruik → "vanaf gebruik: onbeperkt"). Nu:
+>   999 naast een echte grens in het andere veld toont "geen aparte termijn";
+>   alleen als beide 999 zijn staat er "onbeperkt". Catalogusdata klopte
+>   (handleiding Teufelberger: "up to 5 years from date of manufacture").
 > - **Levensduur tijdens het invullen** (Jos: "voordat ik bij het vinkje
 >   ben"): zodra bouwjaar (en maand) ingevuld zijn en het catalogusproduct een
 >   max. leeftijd heeft, verschijnt naast Maand ⛔ "Levensduur verstreken" of

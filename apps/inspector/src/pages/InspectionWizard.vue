@@ -1994,8 +1994,13 @@ function ageInfo(it: Item): AgeInfo | null {
 
   const mfrYears = product.max_age_mfr_years
   const useYears = product.max_age_use_years
-  const mfrText = fmtAgeYears(mfrYears)
-  const useText = fmtAgeYears(useYears)
+  // 999 naast een échte grens in het andere veld = "geen aparte termijn", niet
+  // "onbeperkt": de Sirius Bull Rope (max. 5 jaar na productie, niets vanaf
+  // eerste gebruik) leek anders eeuwig mee te mogen (Jos, 2026-10-02).
+  // Alleen als beide 999 zijn is het product echt onbeperkt.
+  const limited = (y: number | null) => y != null && !isUnlimitedAge(y)
+  const mfrText = isUnlimitedAge(mfrYears) && limited(useYears) ? t('inspections.table.ageNoSeparateLimit') : fmtAgeYears(mfrYears)
+  const useText = isUnlimitedAge(useYears) && limited(mfrYears) ? t('inspections.table.ageNoSeparateLimit') : fmtAgeYears(useYears)
   const detail = `${t('inspections.table.ageMfrLabel')} ${mfrText} — ${t('inspections.table.ageUseLabel')} ${useText}`
 
   if (mfrYears == null && useYears == null) {

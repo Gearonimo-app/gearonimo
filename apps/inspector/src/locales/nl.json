@@ -391,7 +391,8 @@
       "productNotesTitle": "Opmerking uit de catalogus",
       "clearFlagPrompt": "Opmerking (bv. \"voldaan\" of \"valt niet binnen de batch\"):",
       "swlShort": "SWL",
-      "ageWarningSoonShort": "Verloopt binnenkort"
+      "ageWarningSoonShort": "Verloopt binnenkort",
+      "ageNoSeparateLimit": "geen aparte termijn"
     },
     "deleteDraft": "Concept verwijderen",
     "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan.",
