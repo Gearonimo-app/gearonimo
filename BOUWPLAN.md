@@ -425,6 +425,32 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-02, type keuring per keuringsregel + toevoegrij in 2 rijen)
+
+> Jos: het scherm werd onoverzichtelijk (SWL en type keuring elk een eigen
+> rij). Gebouwd na akkoord:
+> - **Toevoegrij in twee rijen**: rij 1 het artikel (… gebruiker · SWL ·
+>   vorige keuring), rij 2 het oordeel (✅ ❌ · code · type keuring ·
+>   opmerking · Toevoegen).
+> - **Type keuring = dropdown** met de LOLER-termen (Schedule 1 §6/§7):
+>   eerste keuring / periodiek / volgens keuringsschema / na uitzonderlijke
+>   omstandigheden. Standaard periodiek, blijft staan voor het volgende
+>   artikel. Bij keuringsschema een veldje "mnd" (eigen termijn, telt mee
+>   voor de volgende-keuringdatum). Ook per regel in de tabel aan te passen
+>   (bestaande artikelen komen via SN-zoeken binnen). Opgeslagen per
+>   keuringsregel (`inspection_items.exam_type`), niet meer per artikel: het
+>   vrije tekstveld `articles.free_exam_type` is uit wizard en
+>   klantartikelscherm, blijft alleen als vangnet voor oude certificaten.
+> - **Vrij artikel: knopje PBM | Rigging** (`articles.free_product_type`,
+>   kolom bestond al): voorgevuld met wat de catalogus in die categorie het
+>   meest is, bepaalt 6 of 12 maanden. Voorheen kreeg een vrij artikel altijd
+>   de PBM-termijn.
+> - Migratie **`20261007_inspection_items_exam_type.sql`** moet vóór de
+>   push naar main gedraaid zijn (de wizard leest de nieuwe kolommen).
+>
+> Nog open: klantartikelscherm heeft (nog) geen PBM/Rigging-knopje; oude
+> vrije artikelen zonder type blijven PBM.
+
 ## Voortgang (2026-10-02, Excel-export keuring: alle artikelen)
 
 > Jos zag 1 van de 4 artikelen in de Excel, terwijl het certificaat er 4

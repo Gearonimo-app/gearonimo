@@ -131,6 +131,13 @@
               :class="{ 'iw__suggest-item--active': i === suggestIndex }"
               @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
           </div>
+          <!-- Vrij artikel: PBM of rigging bepaalt de keurtermijn (6/12 mnd).
+               Voorgevuld vanuit de categorie, één klik om te wisselen (Jos,
+               2026-10-02: "iedere keer een datum aanklikken kost veel tijd"). -->
+          <div v-if="showFreeType" class="iw__type-toggle" role="group" :title="$t('inspections.freeType.tooltip')">
+            <button type="button" :class="{ 'iw__type-toggle--active': newFreeType === 'ppe' }" @click="setFreeType('ppe')">{{ $t('inspections.freeType.ppe') }}</button>
+            <button type="button" :class="{ 'iw__type-toggle--active': newFreeType === 'rigging' }" @click="setFreeType('rigging')">{{ $t('inspections.freeType.rigging') }}</button>
+          </div>
           <!-- Scan vult hetzelfde veld -- de bestaande SN-zoeklogica (snResults
                hierboven) pikt dat vanzelf op: gevonden = kies uit de lijst,
                niet gevonden = gewoon als nieuw artikel toevoegen. -->
@@ -174,6 +181,18 @@
               :class="{ 'iw__suggest-item--active': i === suggestIndex }"
               @mousedown.prevent="pickSuggestion(s)" @mouseenter="suggestIndex = i">{{ s }}</button>
           </div>
+          <!-- SWL en Vorige keuring horen bij het artikel, dus in rij 1 (Jos,
+               2026-10-02). SWL vult zich vanuit de catalogus (zie
+               watch(newDescription)) maar blijft vrij te overschrijven. -->
+          <input v-if="freeFields.swl" v-model="newSwl" class="iw__input iw__input--swl"
+                 :placeholder="$t('inspections.table.swlShort')" :title="$t('inspections.table.swl')" />
+          <label v-if="freeFields.prev" class="iw__prev-date">
+            {{ $t('inspections.table.previousDate') }}
+            <input v-model="newPrevDate" type="date" class="iw__input iw__input--date" />
+          </label>
+          <!-- Rij 2: het oordeel (Jos, 2026-10-02: "als er iets naar de 2de rij
+               verhuist, dan het vinkje en kruisje met opmerkingen en codes"). -->
+          <div class="iw__add-break" aria-hidden="true"></div>
           <div class="iw__result-buttons">
             <button
               class="iw__result-btn iw__result-btn--pass"
@@ -194,6 +213,14 @@
             <option :value="null">{{ $t('inspections.noCode') }}</option>
             <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
+          <!-- Type keuring (LOLER Schedule 1 §6/§7): blijft staan voor het
+               volgende artikel, standaard Periodiek. -->
+          <select v-if="freeFields.examType" v-model="newExamKind" class="iw__select iw__select--exam" :title="$t('inspections.table.examType')">
+            <option v-for="k in EXAM_KINDS" :key="k" :value="k">{{ $t('inspections.examKind.' + k) }}</option>
+          </select>
+          <input v-if="freeFields.examType && newExamKind === 'scheme'" v-model.number="newSchemeMonths" type="number" min="1" max="120"
+                 class="iw__input iw__input--months iw__input--nospin"
+                 :placeholder="$t('inspections.schemeMonths')" :title="$t('inspections.schemeMonthsTooltip')" />
           <input
             v-model="newComment"
             class="iw__input iw__input--sm iw__comment-input"
@@ -230,34 +257,6 @@
                  :placeholder="$t('inspections.table.norm')" />
           <input v-if="freeFields.mbs" v-model="newMbs" class="iw__input iw__input--sm"
                  :placeholder="$t('inspections.table.mbs')" />
-        </div>
-
-        <!-- SWL: blijft, anders dan Norm/MBS hierboven, ook zichtbaar en
-             bewerkbaar als het artikel wél een catalogusmatch heeft -- vult
-             zich dan vanzelf met de WLL uit de catalogus (zie
-             watch(newDescription)), maar de keurmeester mag dat altijd
-             overschrijven (Jos, 2026-09-30: "vrije invoer altijd mogelijk
-             houden"). -->
-        <div v-if="freeFields.swl" class="iw__free-extras">
-          <input v-model="newSwl" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.swl')" />
-        </div>
-
-        <!-- Type keuring: vrij tekstveld, overschrijft de automatische
-             "Periodieke keuring — N maanden"-tekst op het certificaat. Geen
-             auto-vulling vanuit een product (die tekst wordt pas bij het
-             certificaat zelf berekend, niet hier). -->
-        <div v-if="freeFields.examType" class="iw__free-extras">
-          <input v-model="newExamType" class="iw__input iw__input--sm" :placeholder="$t('inspections.table.examType')" />
-        </div>
-
-        <!-- Vorige keuring: vangnet voor een artikel dat hier voor het eerst
-             gekeurd wordt maar buiten de app om al eerder gekeurd is. Wint op
-             het certificaat van de datum uit de keuringsgeschiedenis. -->
-        <div v-if="freeFields.prev" class="iw__free-extras">
-          <label class="iw__prev-date">
-            {{ $t('inspections.table.previousDate') }}
-            <input v-model="newPrevDate" type="date" class="iw__input iw__input--sm" />
-          </label>
         </div>
 
         <!-- Eigen, niet-zwevende suggestielijst (i.p.v. native datalist): duwt
@@ -595,6 +594,17 @@
                         <option :value="null">{{ $t('inspections.noCode') }}</option>
                         <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
                       </select>
+                      <!-- Per regel aan te passen: een bestaand artikel komt via
+                           SN-zoeken binnen zonder de toevoegrij te gebruiken. -->
+                      <select v-if="freeFields.examType" :value="row.it.exam_type ?? 'periodic'" class="iw__select iw__select--exam"
+                              :title="$t('inspections.table.examType')"
+                              @change="setExamKind(row.it, ($event.target as HTMLSelectElement).value as ExamKind)">
+                        <option v-for="k in EXAM_KINDS" :key="k" :value="k">{{ $t('inspections.examKind.' + k) }}</option>
+                      </select>
+                      <input v-if="freeFields.examType && row.it.exam_type === 'scheme'" v-model.number="row.it.exam_interval_months"
+                             type="number" min="1" max="120" class="iw__input iw__input--months iw__input--nospin"
+                             :placeholder="$t('inspections.schemeMonths')" :title="$t('inspections.schemeMonthsTooltip')"
+                             @change="onSchemeMonthsChange(row.it)" />
                       <input
                         v-model="row.it.comment"
                         class="iw__input iw__input--sm iw__comment-input"
@@ -777,6 +787,7 @@ interface Article {
   serial_number: string | null
   free_brand: string | null
   free_category: string | null
+  free_product_type?: string | null
   free_description: string | null
   free_manual_url: string | null
   free_recall_flag: boolean
@@ -795,6 +806,9 @@ interface Article {
   suggest_for_catalog: boolean
   product: Product | null
 }
+// LOLER 1998 Schedule 1 §6/§7 -- volgorde zoals in de dropdown.
+type ExamKind = 'first' | 'periodic' | 'scheme' | 'exceptional'
+const EXAM_KINDS: ExamKind[] = ['first', 'periodic', 'scheme', 'exceptional']
 interface Item {
   id: string
   article_id: string
@@ -802,6 +816,10 @@ interface Item {
   next_due: string | null
   rejection_code_id: string | null
   approval_code_id: string | null
+  // Type keuring per keuringsregel (Jos, 2026-10-02). null = regel van vóór
+  // migratie 20261007 -> geldt als periodiek.
+  exam_type: ExamKind | null
+  exam_interval_months: number | null
   comment: string | null
   article: Article
 }
@@ -1327,7 +1345,40 @@ const newApprovalCodeId = ref<string | null>(null)
 const newNorm = ref('')
 const newMbs = ref('')
 const newSwl = ref('')
-const newExamType = ref('')
+// Type keuring: bewust NIET leeggemaakt na toevoegen -- neemt de keuze van
+// het vorige artikel over, standaard Periodiek (Jos, 2026-10-02).
+const newExamKind = ref<ExamKind>('periodic')
+const newSchemeMonths = ref<number | null>(null)
+// Vrij artikel: PBM of rigging (bepaalt 6 of 12 maanden). Voorgevuld vanuit
+// de categorie zolang de keurmeester niet zelf geklikt heeft.
+const newFreeType = ref<'ppe' | 'rigging'>('ppe')
+let freeTypeTouched = false
+function newExamFields(): { exam_type: ExamKind; exam_interval_months: number | null } {
+  const kind = newExamKind.value
+  return { exam_type: kind, exam_interval_months: kind === 'scheme' ? (newSchemeMonths.value || null) : null }
+}
+const showFreeType = computed(() => !!(newDescription.value.trim() || newCategory.value.trim()) && !matchProduct())
+// Wat de catalogus in deze categorie het meest is. Gemengde categorieën
+// (katrollen, slings, ankers) vallen zo meestal op PBM -- daarom het knopje.
+function guessFreeType(categoryText: string): 'ppe' | 'rigging' {
+  const c = categoryText.trim().toLowerCase()
+  if (!c) return 'ppe'
+  let ppe = 0
+  let rigging = 0
+  for (const p of products.value) {
+    if (categoryLabel(p.category).toLowerCase() !== c) continue
+    if (p.product_type === 'rigging') rigging++
+    else if (p.product_type === 'ppe') ppe++
+  }
+  return rigging > ppe ? 'rigging' : 'ppe'
+}
+function setFreeType(type: 'ppe' | 'rigging') {
+  newFreeType.value = type
+  freeTypeTouched = true
+}
+watch(newCategory, (c) => {
+  if (!freeTypeTouched) newFreeType.value = guessFreeType(c)
+})
 const newPrevDate = ref('')
 const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
@@ -1485,8 +1536,8 @@ async function addCustomerArticle(articleId: string) {
   if (artErr || !article) { addError.value = artErr?.message ?? ''; return }
   const { data: item, error: itemErr } = await supabase
     .from('inspection_items')
-    .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed' })
-    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment')
+    .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed', ...newExamFields() })
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment')
     .single()
   if (itemErr || !item) { addError.value = itemErr?.message ?? ''; return }
   const newItem = { ...item, article } as Item
@@ -1522,6 +1573,7 @@ async function addCustomerArticleOffline(articleId: string) {
       next_due: null,
       rejection_code_id: null,
       approval_code_id: null,
+      ...newExamFields(),
       comment: null,
     }
     await putInspectionItems(key, id, [itemRow])
@@ -1534,6 +1586,8 @@ async function addCustomerArticleOffline(articleId: string) {
       next_due: itemRow.next_due,
       rejection_code_id: itemRow.rejection_code_id,
       approval_code_id: itemRow.approval_code_id,
+      exam_type: itemRow.exam_type,
+      exam_interval_months: itemRow.exam_interval_months,
       comment: itemRow.comment,
       article,
     }
@@ -1838,10 +1892,15 @@ function addMonths(date: Date, months: number): Date {
 // waarschuwing (zie ageInfo) is alleen advies.
 function defaultIntervalMonths(it: Item): number | null {
   const a = it.article
+  // Keuringsschema (LOLER 9(3)(a)(iii)): de keurmeester legt zelf de termijn
+  // vast voor deze keuring -- wint van alles hieronder.
+  if (it.exam_type === 'scheme' && it.exam_interval_months) return it.exam_interval_months
   if (a.interval_override_months != null) return a.interval_override_months
   if (a.product?.interval_override_months != null) return a.product.interval_override_months
 
-  const type = a.product?.product_type
+  // Vrij artikel: het type komt uit articles.free_product_type (PBM/rigging-
+  // knopje in de toevoegrij). Leeg (oude vrije artikelen) = PBM, zoals altijd.
+  const type = a.product?.product_type ?? a.free_product_type
   const company = inspection.value?.company
 
   // "Wordt dit type überhaupt gekeurd?" staat bewust vóór de
@@ -2109,7 +2168,7 @@ async function load() {
 
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment, article:articles(*, product:products(*))')
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment, article:articles(*, product:products(*))')
     .eq('inspection_id', id)
     .order('created_at')
   if (itemsErr) { error.value = itemsErr.message; loading.value = false; return }
@@ -2262,6 +2321,8 @@ async function loadOffline() {
       next_due: string | null
       rejection_code_id: string | null
       approval_code_id: string | null
+      exam_type?: ExamKind | null
+      exam_interval_months?: number | null
       comment: string | null
     }>(key, id)
     const cachedArticles = await getArticlesForCustomer<Article & { product_id: string | null }>(key, insp.customer_id)
@@ -2280,6 +2341,8 @@ async function loadOffline() {
         next_due: it.next_due,
         rejection_code_id: it.rejection_code_id,
         approval_code_id: it.approval_code_id,
+        exam_type: it.exam_type ?? null,
+        exam_interval_months: it.exam_interval_months ?? null,
         comment: it.comment,
         article: { ...(article as Article), product },
       }
@@ -2363,7 +2426,8 @@ function resetAddRow() {
   newMbs.value = ''
   newSwl.value = ''
   autoSwl = ''
-  newExamType.value = ''
+  newFreeType.value = 'ppe'
+  freeTypeTouched = false
   newPrevDate.value = ''
   newComment.value = ''
   dayHint.value = null
@@ -2392,7 +2456,7 @@ async function addRow() {
         // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
         // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
         free_working_load_limit: newSwl.value.trim() || null,
-        free_exam_type: newExamType.value.trim() || null,
+        free_product_type: product ? null : newFreeType.value,
         free_previous_inspection_date: newPrevDate.value || null,
         serial_number: newSerial.value.trim() || null,
         manufacture_year: newYear.value || null,
@@ -2405,7 +2469,8 @@ async function addRow() {
       .single()
     if (artErr) throw artErr
 
-    const initialNextDue = newResult.value === 'passed' ? suggestedNextDueIso({ article } as Item) : null
+    const exam = newExamFields()
+    const initialNextDue = newResult.value === 'passed' ? suggestedNextDueIso({ article, ...exam } as Item) : null
     const { data: item, error: itemErr } = await supabase
       .from('inspection_items')
       .insert({
@@ -2416,9 +2481,10 @@ async function addRow() {
         next_due: initialNextDue,
         rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
         approval_code_id: newResult.value === 'passed' ? newApprovalCodeId.value : null,
+        ...exam,
         comment: newComment.value.trim() || null,
       })
-      .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment')
+      .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment')
       .single()
     if (itemErr) throw itemErr
 
@@ -2497,7 +2563,7 @@ async function addRowOffline() {
     free_norm: product ? null : (newNorm.value.trim() || null),
     free_mbs: product ? null : (newMbs.value.trim() || null),
     free_working_load_limit: newSwl.value.trim() || null,
-    free_exam_type: newExamType.value.trim() || null,
+    free_product_type: product ? null : newFreeType.value,
     free_previous_inspection_date: newPrevDate.value || null,
     serial_number: newSerial.value.trim() || null,
     manufacture_year: newYear.value || null,
@@ -2510,8 +2576,9 @@ async function addRowOffline() {
   await enqueueMutation({ customerId, table: 'articles', op: 'insert', payload: articleRow })
 
   const articleWithProduct = { ...articleRow, product: product ?? null } as unknown as Article
+  const exam = newExamFields()
   const initialNextDue =
-    newResult.value === 'passed' ? suggestedNextDueIso({ article: articleWithProduct } as Item) : null
+    newResult.value === 'passed' ? suggestedNextDueIso({ article: articleWithProduct, ...exam } as Item) : null
   const itemId = crypto.randomUUID()
   const itemRow = {
     id: itemId,
@@ -2522,6 +2589,7 @@ async function addRowOffline() {
     next_due: initialNextDue,
     rejection_code_id: newResult.value === 'rejected' ? newRejectionCodeId.value : null,
     approval_code_id: newResult.value === 'passed' ? newApprovalCodeId.value : null,
+    ...exam,
     comment: newComment.value.trim() || null,
   }
   await putInspectionItems(key, id, [itemRow])
@@ -2534,6 +2602,8 @@ async function addRowOffline() {
     next_due: itemRow.next_due,
     rejection_code_id: itemRow.rejection_code_id,
     approval_code_id: itemRow.approval_code_id,
+    exam_type: itemRow.exam_type,
+    exam_interval_months: itemRow.exam_interval_months,
     comment: itemRow.comment,
     article: articleWithProduct,
   })
@@ -2592,6 +2662,20 @@ function setResult(it: Item, result: 'passed' | 'rejected') {
     if (result === 'rejected') it.approval_code_id = null
   }
   revealItem(it.id)
+  saveRow(it)
+}
+
+// Type keuring per regel wijzigen. De volgende-keuringdatum rekent mee, want
+// een keuringsschema heeft een eigen termijn.
+function setExamKind(it: Item, kind: ExamKind) {
+  it.exam_type = kind
+  if (kind !== 'scheme') it.exam_interval_months = null
+  if (it.result === 'passed') it.next_due = suggestedNextDueIso(it)
+  saveRow(it)
+}
+function onSchemeMonthsChange(it: Item) {
+  if (!it.exam_interval_months || it.exam_interval_months < 1) it.exam_interval_months = null
+  if (it.result === 'passed') it.next_due = suggestedNextDueIso(it)
   saveRow(it)
 }
 
@@ -2705,6 +2789,8 @@ async function saveRow(it: Item) {
     next_due: it.next_due,
     rejection_code_id: it.rejection_code_id,
     approval_code_id: it.approval_code_id,
+    exam_type: it.exam_type,
+    exam_interval_months: it.exam_interval_months,
     comment: it.comment,
     inspector_id: inspector.id,
   }
@@ -2867,7 +2953,7 @@ async function refreshItems() {
   refreshError.value = ''
   const { data: rowsData, error: itemsErr } = await supabase
     .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, comment, article:articles(*, product:products(*))')
+    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment, article:articles(*, product:products(*))')
     .eq('inspection_id', id)
     .order('created_at')
   if (itemsErr) {
@@ -2915,7 +3001,7 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__location-icon { width: 16px; height: 16px; flex-shrink: 0; }
 .iw__location-field { margin: 0 0 0.6rem; }
-.iw__prev-date { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #374151; }
+.iw__prev-date { display: flex; flex: 0 0 auto; white-space: nowrap; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #374151; }
 
 /* Inline suggestielijst (Optie A): duwt de tabel naar beneden i.p.v. eroverheen. */
 .iw__free-extras { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin: 0.5rem 0 0; }
@@ -3002,6 +3088,22 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__input--nospin { -moz-appearance: textfield; }
 .iw__input--nospin::-webkit-outer-spin-button,
 .iw__input--nospin::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+/* Toevoegrij in twee rijen: artikel boven, oordeel onder (Jos, 2026-10-02). */
+.iw__add-break { flex-basis: 100%; height: 0; }
+.iw__input--swl { flex: 0 1 8rem; min-width: 6rem; }
+.iw__input--date { flex: 0 0 auto; min-width: 0; padding: 0.5rem 0.6rem; }
+.iw__input--months { flex: 0 0 5.5rem; min-width: 4.5rem; }
+.iw__select--exam { flex: 0 1 auto; min-width: 9rem; }
+/* In de toevoegrij krijgt de opmerking de ruimte, niet de keuzelijsten. */
+.iw__add .iw__select--sm { flex: 0 1 auto; }
+.iw__type-toggle { display: inline-flex; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
+.iw__type-toggle button {
+  border: none; background: #fff; padding: 0.6rem 0.7rem; font-size: 0.85rem;
+  font-family: inherit; color: #374151; cursor: pointer;
+}
+.iw__type-toggle button + button { border-left: 1px solid #ddd; }
+.iw__type-toggle .iw__type-toggle--active { background: #1a3a2a; color: #fff; }
 
 .iw__cheatsheet {
   display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;

@@ -241,8 +241,8 @@ const CERT_LABELS = {
     scanToVerify: 'Scan om te verifiëren',
     verifiedWith: 'geverifieerd met gearonimo',
     page: (n: number, total: number) => `Pagina ${n} van ${total}`,
-    periodicExam: 'Periodieke keuring',
-    monthsUnit: 'maanden',
+    // Type keuring, LOLER 1998 Schedule 1 §6/§7 (Engels letterlijk).
+    examKind: { first: 'Eerste keuring', periodic: (n: number | null) => n == null ? 'Periodieke keuring' : `Periodiek, binnen ${n} maanden`, scheme: 'Volgens keuringsschema', exceptional: 'Na uitzonderlijke omstandigheden' },
     cols: {
       article: 'Artikel', brand: 'Merk', category: 'Categorie',
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
@@ -265,8 +265,7 @@ const CERT_LABELS = {
     scanToVerify: 'Scan to verify',
     verifiedWith: 'verified with gearonimo',
     page: (n: number, total: number) => `Page ${n} of ${total}`,
-    periodicExam: 'Periodic examination',
-    monthsUnit: 'months',
+    examKind: { first: 'First thorough examination', periodic: (n: number | null) => n == null ? 'Periodic examination' : `Within an interval of ${n} months`, scheme: 'In accordance with an examination scheme', exceptional: 'After the occurrence of exceptional circumstances' },
     cols: {
       article: 'Item', brand: 'Brand', category: 'Category',
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
@@ -289,8 +288,7 @@ const CERT_LABELS = {
     scanToVerify: 'Scanner pour vérifier',
     verifiedWith: 'vérifié avec gearonimo',
     page: (n: number, total: number) => `Page ${n} sur ${total}`,
-    periodicExam: 'Contrôle périodique',
-    monthsUnit: 'mois',
+    examKind: { first: 'Premier examen approfondi', periodic: (n: number | null) => n == null ? 'Contrôle périodique' : `Périodique, intervalle de ${n} mois`, scheme: "Selon un programme d'examen", exceptional: 'Après des circonstances exceptionnelles' },
     cols: {
       article: 'Article', brand: 'Marque', category: 'Catégorie',
       sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
@@ -313,8 +311,7 @@ const CERT_LABELS = {
     scanToVerify: 'Zum Verifizieren scannen',
     verifiedWith: 'verifiziert mit gearonimo',
     page: (n: number, total: number) => `Seite ${n} von ${total}`,
-    periodicExam: 'Wiederkehrende Prüfung',
-    monthsUnit: 'Monate',
+    examKind: { first: 'Erstprüfung', periodic: (n: number | null) => n == null ? 'Wiederkehrende Prüfung' : `Wiederkehrend, Intervall ${n} Monate`, scheme: 'Gemäß Prüfprogramm', exceptional: 'Nach außergewöhnlichen Ereignissen' },
     cols: {
       article: 'Artikel', brand: 'Marke', category: 'Kategorie',
       sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
@@ -1098,7 +1095,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
     .select(
-      'article_id, result, next_due, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), approval_code:approval_codes(label), item_inspector:inspectors!inspector_id(name)'
+      'article_id, result, next_due, exam_type, exam_interval_months, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_product_type, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), approval_code:approval_codes(label), item_inspector:inspectors!inspector_id(name)'
     )
     .eq('inspection_id', inspectionId)
     .order('created_at')
@@ -1143,6 +1140,8 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     article_id: string
     result: string
     next_due: string | null
+    exam_type: 'first' | 'periodic' | 'scheme' | 'exceptional' | null
+    exam_interval_months: number | null
     comment: string | null
     item_inspector: { name: string | null } | null
     // Bevroren artikelrij van het keurmoment (code review 2026-07-18, punt 7):
@@ -1160,6 +1159,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_working_load_limit?: string | null
       free_previous_inspection_date?: string | null
       free_exam_type?: string | null
+      free_product_type?: string | null
       interval_override_months?: number | null
       manufacture_year?: number | null
       manufacture_month?: number | null
@@ -1175,6 +1175,7 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       free_working_load_limit: string | null
       free_previous_inspection_date: string | null
       free_exam_type: string | null
+      free_product_type: string | null
       interval_override_months: number | null
       manufacture_year: number | null
       manufacture_month: number | null
@@ -1218,17 +1219,22 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
       // voltooide eerdere keuring van dit artikel in Gearonimo (leeg als
       // er geen van beide is -- eerste keuring hier).
       previousDate: a?.free_previous_inspection_date || previousDateByArticle[r.article_id] || null,
-      examType:
-        a?.free_exam_type ||
-        (() => {
-          const months = resolveIntervalMonths(
-            (p?.product_type as ProductType | null) ?? null,
-            a?.interval_override_months ?? null,
-            p?.interval_override_months ?? null,
-            { country_code: inspection.company.country_code, default_interval_ppe_months: inspection.company.default_interval_ppe_months, default_interval_rigging_months: inspection.company.default_interval_rigging_months }
-          )
-          return months == null ? L.periodicExam : `${L.periodicExam} — ${months} ${L.monthsUnit}`
-        })(),
+      // Per keuringsregel (Jos, 2026-10-02). Oude regels zonder exam_type:
+      // het vroegere vrije tekstveld op het artikel, anders periodiek.
+      examType: (() => {
+        if (r.exam_type === 'first') return L.examKind.first
+        if (r.exam_type === 'scheme') return L.examKind.scheme
+        if (r.exam_type === 'exceptional') return L.examKind.exceptional
+        if (r.exam_type == null && a?.free_exam_type) return a.free_exam_type
+        const months = resolveIntervalMonths(
+          // Vrij artikel zonder type = PBM, zelfde afspraak als in de wizard.
+          ((p ? p.product_type : a?.free_product_type) as ProductType | null) ?? 'ppe',
+          a?.interval_override_months ?? null,
+          p?.interval_override_months ?? null,
+          { country_code: inspection.company.country_code, default_interval_ppe_months: inspection.company.default_interval_ppe_months, default_interval_rigging_months: inspection.company.default_interval_rigging_months }
+        )
+        return L.examKind.periodic(months)
+      })(),
       user: a?.assigned_user_name ?? null,
       next_due: r.next_due,
       rejection_code_label: r.rejection_code?.label ?? null,

@@ -375,7 +375,7 @@
       "norm": "Standard (e.g. EN 361)",
       "mbs": "MBS / breaking strength",
       "swl": "SWL / safe working load",
-      "examType": "Examination type (e.g. after a fall)",
+      "examType": "Examination type",
       "previousDate": "Previous examination",
       "noMatchesFiltered": "No article matches your search fields -- complete them and tap + Add to add it as a new article.",
       "snRetired": "Retired",
@@ -389,10 +389,24 @@
       "clearedTitle": "Cleared",
       "noticeFlag": "Manufacturer inspection notice",
       "productNotesTitle": "Note from the catalogue",
-      "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):"
+      "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):",
+      "swlShort": "SWL"
     },
     "deleteDraft": "Delete draft",
-    "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept."
+    "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept.",
+    "examKind": {
+      "first": "First thorough examination",
+      "periodic": "Periodic",
+      "scheme": "Examination scheme",
+      "exceptional": "Exceptional circumstances"
+    },
+    "schemeMonths": "mths",
+    "schemeMonthsTooltip": "Interval under the examination scheme, in months",
+    "freeType": {
+      "ppe": "PPE",
+      "rigging": "Rigging",
+      "tooltip": "Free item: PPE or rigging sets the inspection interval"
+    }
   },
   "verify": {
     "authentic": "Authentic certificate",

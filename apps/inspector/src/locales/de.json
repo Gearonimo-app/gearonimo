@@ -372,7 +372,7 @@
       "norm": "Norm (z. B. EN 361)",
       "mbs": "MBS / Bruchlast",
       "swl": "SWL / zulässige Tragfähigkeit",
-      "examType": "Prüfungsart (z. B. nach einem Sturz)",
+      "examType": "Prüfungsart",
       "previousDate": "Letzte Prüfung",
       "noMatchesFiltered": "Kein Artikel entspricht Ihren Suchfeldern -- ergänzen Sie diese und klicken Sie auf + Hinzufügen, um ihn als neuen Artikel hinzuzufügen.",
       "snRetired": "Ausgemustert",
@@ -388,10 +388,24 @@
       "productNotesTitle": "Anmerkung aus dem Katalog",
       "clearFlagPrompt": "Anmerkung (z. B. „erledigt“ oder „fällt nicht in die betroffene Charge“):",
       "refresh": "Aktualisieren",
-      "othersActiveConfirm": "{names} arbeitet/arbeiten ebenfalls noch an dieser Prüfung. Möchten Sie wirklich abschließen?"
+      "othersActiveConfirm": "{names} arbeitet/arbeiten ebenfalls noch an dieser Prüfung. Möchten Sie wirklich abschließen?",
+      "swlShort": "SWL"
     },
     "deleteDraft": "Entwurf löschen",
-    "deleteDraftConfirm": "Entwurf von {name} ({date}) endgültig löschen, einschließlich der eingegebenen Ergebnisse? Die Artikel des Kunden bleiben erhalten."
+    "deleteDraftConfirm": "Entwurf von {name} ({date}) endgültig löschen, einschließlich der eingegebenen Ergebnisse? Die Artikel des Kunden bleiben erhalten.",
+    "examKind": {
+      "first": "Erstprüfung",
+      "periodic": "Wiederkehrend",
+      "scheme": "Gemäß Prüfprogramm",
+      "exceptional": "Nach außergewöhnlichen Ereignissen"
+    },
+    "schemeMonths": "Mon.",
+    "schemeMonthsTooltip": "Intervall laut Prüfprogramm, in Monaten",
+    "freeType": {
+      "ppe": "PSA",
+      "rigging": "Rigging",
+      "tooltip": "Freier Artikel: PSA oder Rigging bestimmt das Prüfintervall"
+    }
   },
   "verify": {
     "authentic": "Echtes Zertifikat",

@@ -152,11 +152,6 @@
            mag dat altijd overschrijven (Jos, 2026-09-30: "vrije invoer
            altijd mogelijk houden"). -->
       <input v-if="freeFields.swl" v-model="form.free_working_load_limit" :placeholder="$t('inspections.table.swl')" class="ca__input" />
-      <!-- Type keuring: vrij tekstveld, overschrijft de automatische
-           "Periodieke keuring — N maanden"-tekst op het certificaat (bv. voor
-           een afwijkende keuring na een val). Geen auto-vulling vanuit een
-           product (die tekst wordt pas bij het certificaat zelf berekend). -->
-      <input v-if="freeFields.examType" v-model="form.free_exam_type" :placeholder="$t('inspections.table.examType')" class="ca__input" />
       <!-- Vorige keuring: vangnet voor een artikel dat hier voor het eerst
            gekeurd wordt maar buiten de app om al eerder gekeurd is. Wint op
            het certificaat van de datum uit de keuringsgeschiedenis. -->
@@ -489,7 +484,7 @@ const willBeFreeArticle = computed(() => !!newDescription.value.trim() && !match
 
 function emptyForm() {
   return {
-    free_norm: '', free_mbs: '', free_working_load_limit: '', free_exam_type: '', free_previous_inspection_date: '',
+    free_norm: '', free_mbs: '', free_working_load_limit: '', free_previous_inspection_date: '',
     serial_number: '', assigned_user_name: '', first_use_date: '', purchase_date: '', notes: '',
   }
 }
@@ -653,9 +648,6 @@ async function save() {
     // gekoppeld is -- vrije invoer moet altijd mogelijk blijven (Jos,
     // 2026-09-30), ook als de waarde hier vanuit dat product is voorgevuld.
     free_working_load_limit: form.value.free_working_load_limit.trim() || null,
-    // Zelfde reden: niet product-gated, er is geen "product.exam_type" om op
-    // terug te vallen -- alleen de berekende tekst op het certificaat zelf.
-    free_exam_type: form.value.free_exam_type.trim() || null,
     free_previous_inspection_date: form.value.free_previous_inspection_date || null,
     serial_number: form.value.serial_number.trim() || null,
     assigned_user_name: form.value.assigned_user_name.trim() || null,
