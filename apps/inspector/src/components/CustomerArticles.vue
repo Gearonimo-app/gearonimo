@@ -139,6 +139,7 @@
         </div>
       </div>
 
+      <FreeTypeToggle v-if="willBeFreeArticle" class="ca__free-type" :model-value="newFreeType" @update:model-value="setFreeType" />
       <!-- Vrij artikel: alleen de extra velden die het keurbedrijf aanzet
            (Norm/MBS). Het aanbieden voor de catalogus staat bewust niet hier
            maar per rij in de artikellijst hierboven. -->
@@ -244,6 +245,8 @@ import { fetchFreeInputFields } from '../composables/useInspections'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from './CatalogSuggestDialog.vue'
 import AddPartDialog from './AddPartDialog.vue'
+import FreeTypeToggle from './FreeTypeToggle.vue'
+import { useFreeType } from '../composables/useFreeType'
 
 const { isOnline } = useOnline()
 
@@ -251,7 +254,7 @@ const props = defineProps<{ customerId: string }>()
 const { t } = useI18n()
 const categoryLabel = useCategoryLabel()
 
-interface Product { id: string; brand: string | null; name: string | null; category: string | null; manufacturer_code: string | null; barcodes?: string | null; working_load_limit: string | null }
+interface Product { id: string; brand: string | null; name: string | null; category: string | null; product_type: string | null; manufacturer_code: string | null; barcodes?: string | null; working_load_limit: string | null }
 interface ProductMatch { id: string; brand: string | null; name: string | null; product_type?: string | null }
 interface Article {
   id: string
@@ -350,6 +353,10 @@ function unique(arr: (string | null)[]): string[] {
 const newDescription = ref('')
 const newBrand = ref('')
 const newCategory = ref('')
+// Vrij artikel: PBM of rigging (6/12 maanden), zelfde knopje en logica als in
+// de keuring (Jos, 2026-10-02) -- anders kreeg een vrij rigging-artikel dat
+// hier werd toegevoegd stil de PBM-termijn.
+const { freeType: newFreeType, setFreeType, resetFreeType } = useFreeType(products, newCategory)
 const newYear = ref<number | null>(null)
 const newMonth = ref<number | null>(null)
 
@@ -621,6 +628,7 @@ function openAdd() { showAdd.value = true }
 function closeAdd() {
   showAdd.value = false
   newDescription.value = ''; newBrand.value = ''; newCategory.value = ''; barcodeNotice.value = ''
+  resetFreeType()
   newYear.value = null; newMonth.value = null
   activeField.value = null; suggestIndex.value = -1
   formError.value = ''
@@ -642,6 +650,7 @@ async function save() {
     free_brand: product ? null : (newBrand.value.trim() || null),
     free_category: product ? null : (newCategory.value.trim() || null),
     free_description: product ? null : (newDescription.value.trim() || null),
+    free_product_type: product ? null : newFreeType.value,
     free_norm: product ? null : (form.value.free_norm.trim() || null),
     free_mbs: product ? null : (form.value.free_mbs.trim() || null),
     // Anders dan free_norm/free_mbs: niet leeggemaakt zodra er een product
@@ -681,7 +690,7 @@ onMounted(async () => {
       products.value = await fetchAllRows<Product>((from, to) =>
         supabase
           .from('products')
-          .select('id, brand, name, category, manufacturer_code, barcodes, working_load_limit')
+          .select('id, brand, name, category, product_type, manufacturer_code, barcodes, working_load_limit')
           .order('brand')
           .order('name')
           .range(from, to),
@@ -768,6 +777,8 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .ca__form h3 { margin: 0 0 0.25rem; font-size: 1rem; }
 .ca__field { position: relative; }
+/* In de kolom-opmaak niet over de hele breedte uitrekken. */
+.ca__free-type { align-self: flex-start; }
 .ca__field--scan { display: flex; gap: 0.6rem; align-items: center; }
 .ca__barcode-notice { margin: -0.25rem 0 0; font-size: 0.85rem; color: #b45309; }
 .ca__input {

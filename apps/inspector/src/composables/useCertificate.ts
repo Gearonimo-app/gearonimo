@@ -243,6 +243,8 @@ const CERT_LABELS = {
     page: (n: number, total: number) => `Pagina ${n} van ${total}`,
     // Type keuring, LOLER 1998 Schedule 1 §6/§7 (Engels letterlijk).
     examKind: { first: 'Eerste keuring', periodic: (n: number | null) => n == null ? 'Periodieke keuring' : `Periodiek, binnen ${n} maanden`, scheme: 'Volgens keuringsschema', exceptional: 'Na uitzonderlijke omstandigheden' },
+    statusPass: 'Goedgekeurd',
+    statusFail: 'Afgekeurd',
     cols: {
       article: 'Artikel', brand: 'Merk', category: 'Categorie',
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
@@ -266,6 +268,8 @@ const CERT_LABELS = {
     verifiedWith: 'verified with gearonimo',
     page: (n: number, total: number) => `Page ${n} of ${total}`,
     examKind: { first: 'First thorough examination', periodic: (n: number | null) => n == null ? 'Periodic examination' : `Within an interval of ${n} months`, scheme: 'In accordance with an examination scheme', exceptional: 'After the occurrence of exceptional circumstances' },
+    statusPass: 'Pass',
+    statusFail: 'Fail',
     cols: {
       article: 'Item', brand: 'Brand', category: 'Category',
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
@@ -289,6 +293,8 @@ const CERT_LABELS = {
     verifiedWith: 'vérifié avec gearonimo',
     page: (n: number, total: number) => `Page ${n} sur ${total}`,
     examKind: { first: 'Premier examen approfondi', periodic: (n: number | null) => n == null ? 'Contrôle périodique' : `Périodique, intervalle de ${n} mois`, scheme: "Selon un programme d'examen", exceptional: 'Après des circonstances exceptionnelles' },
+    statusPass: 'Conforme',
+    statusFail: 'Non conforme',
     cols: {
       article: 'Article', brand: 'Marque', category: 'Catégorie',
       sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
@@ -312,6 +318,8 @@ const CERT_LABELS = {
     verifiedWith: 'verifiziert mit gearonimo',
     page: (n: number, total: number) => `Seite ${n} von ${total}`,
     examKind: { first: 'Erstprüfung', periodic: (n: number | null) => n == null ? 'Wiederkehrende Prüfung' : `Wiederkehrend, Intervall ${n} Monate`, scheme: 'Gemäß Prüfprogramm', exceptional: 'Nach außergewöhnlichen Ereignissen' },
+    statusPass: 'Bestanden',
+    statusFail: 'Nicht bestanden',
     cols: {
       article: 'Artikel', brand: 'Marke', category: 'Kategorie',
       sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
@@ -596,6 +604,25 @@ function activeColumns(items: CertItem[], cols: CertLayout['columns']): ColDef[]
   })
 }
 
+// De kolommen zoals ze op het certificaat staan: welke, in welke volgorde,
+// met koppen en datums in de certificaattaal. Eén bron voor de PDF én de
+// Excel-export (Jos, 2026-10-02: "Excel moet gelijk zijn aan het certificaat").
+function certColumns(items: CertItem[], layout: CertLayout, language: CertLanguage): ColDef[] {
+  const L = CERT_LABELS[language]
+  return activeColumns(items, layout.columns).map((c) => ({
+    ...c,
+    header: L.cols[c.key] ?? c.header,
+    // Datumkolommen in de certificaattaal (en-GB e.d.); de standaardwaarden
+    // in ALL_COLUMNS zijn Nederlands. "prev" ontbrak hier eerst: die stond op
+    // een Engels certificaat als "27 september 2026" (Jos, 2026-10-02).
+    value: c.key === 'next'
+      ? (it: CertItem) => (it.next_due ? formatDate(it.next_due, L.dateLocale) : '')
+      : c.key === 'prev'
+        ? (it: CertItem) => (it.previousDate ? formatDate(it.previousDate, L.dateLocale) : '')
+        : c.value,
+  }))
+}
+
 // Toon lege cellen als streepje, behalve de opmerking-kolom (die blijft blank).
 function cellText(col: ColDef, it: CertItem): string {
   const v = col.value(it)
@@ -714,18 +741,7 @@ export async function renderCertificatePdf(
   // datumnotatie van de Volgende keuring-kolom worden hier al vertaald zodat
   // ook de breedteberekening met de juiste teksten meet.
   const L = CERT_LABELS[data.language ?? 'nl']
-  const cols = activeColumns(items, layout.columns).map((c) => ({
-    ...c,
-    header: L.cols[c.key] ?? c.header,
-    // Datumkolommen in de certificaattaal (en-GB e.d.); de standaardwaarden
-    // in ALL_COLUMNS zijn Nederlands. "prev" ontbrak hier: die stond op een
-    // Engels certificaat als "27 september 2026" (Jos, 2026-10-02).
-    value: c.key === 'next'
-      ? (it: CertItem) => (it.next_due ? formatDate(it.next_due, L.dateLocale) : '')
-      : c.key === 'prev'
-        ? (it: CertItem) => (it.previousDate ? formatDate(it.previousDate, L.dateLocale) : '')
-        : c.value,
-  }))
+  const cols = certColumns(items, layout, data.language ?? 'nl')
 
   // Oriëntatie bepalen. Auto = staand, tenzij de tabel echt te breed wordt om
   // nog netjes in staand te passen (dan liggend). Staand is de natuurlijke keuze
@@ -1057,7 +1073,11 @@ function resolveIntervalMonths(
   return getRegime(productType as ProductType, (company.country_code as CountryCode) ?? 'NL')
 }
 
-export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
+// Alles wat op het certificaat komt, gelezen van de server: de keuring, de
+// beoordeelde artikelen en wie ze beoordeelde. Gedeeld door het certificaat
+// (generateCertificate) en de Excel-export (fetchCertificateTable), zodat die
+// twee nooit uit elkaar kunnen lopen.
+async function loadCertificateSource(inspectionId: string) {
   const { data: insp, error: insErr } = await supabase
     .from('inspections')
     .select(
@@ -1259,6 +1279,30 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     const name = r.item_inspector?.name
     if (name && !assessedByNames.includes(name)) assessedByNames.push(name)
   }
+
+  return { inspection, certLanguage, items, assessedByNames }
+}
+
+/**
+ * De certificaattabel als tekst: zelfde artikelen (alleen beoordeelde), zelfde
+ * volgorde, kolommen, koppen en celteksten als de PDF. Voor de Excel-export.
+ * De status-kolom is op de PDF een vinkje/kruis; hier het woord.
+ */
+export async function fetchCertificateTable(inspectionId: string): Promise<{ language: CertLanguage; headers: string[]; rows: string[][] }> {
+  const { inspection, certLanguage, items } = await loadCertificateSource(inspectionId)
+  const L = CERT_LABELS[certLanguage]
+  const cols = certColumns(items, resolveLayout(inspection.company.cert_layout), certLanguage)
+  return {
+    language: certLanguage,
+    headers: cols.map((c) => c.header),
+    rows: items.map((it) =>
+      cols.map((c) => (c.key === 'status' ? (it.result === 'passed' ? L.statusPass : L.statusFail) : cellText(c, it)))
+    ),
+  }
+}
+
+export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
+  const { inspection, certLanguage, items, assessedByNames } = await loadCertificateSource(inspectionId)
 
   const verifyToken = crypto.randomUUID()
   // Certificaatnummer (code review 2026-07-18, keuze Jos): base = datum +

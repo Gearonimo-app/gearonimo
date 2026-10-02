@@ -21,9 +21,10 @@
         </a>
         <!-- Ook na afronden bruikbaar (Jos, 2026-09-08): de items staan nog
              gewoon geladen, alleen dit scherm toont de tabel niet meer. -->
-        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!items.length" @click="exportInspectionCsv">
-          ⧉ {{ $t('inspections.table.exportCsv') }}
+        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!items.length || exporting" @click="exportInspectionCsv">
+          ⧉ {{ exporting ? $t('common.loading') : $t('inspections.table.exportCsv') }}
         </button>
+        <p v-if="exportError" class="iw__state iw__state--error">{{ exportError }}</p>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
           {{ $t('inspections.backToCustomer') }}
         </button>
@@ -134,10 +135,7 @@
           <!-- Vrij artikel: PBM of rigging bepaalt de keurtermijn (6/12 mnd).
                Voorgevuld vanuit de categorie, één klik om te wisselen (Jos,
                2026-10-02: "iedere keer een datum aanklikken kost veel tijd"). -->
-          <div v-if="showFreeType" class="iw__type-toggle" role="group" :title="$t('inspections.freeType.tooltip')">
-            <button type="button" :class="{ 'iw__type-toggle--active': newFreeType === 'ppe' }" @click="setFreeType('ppe')">{{ $t('inspections.freeType.ppe') }}</button>
-            <button type="button" :class="{ 'iw__type-toggle--active': newFreeType === 'rigging' }" @click="setFreeType('rigging')">{{ $t('inspections.freeType.rigging') }}</button>
-          </div>
+          <FreeTypeToggle v-if="showFreeType" :model-value="newFreeType" @update:model-value="setFreeType" />
           <!-- Scan vult hetzelfde veld -- de bestaande SN-zoeklogica (snResults
                hierboven) pikt dat vanzelf op: gevonden = kies uit de lijst,
                niet gevonden = gewoon als nieuw artikel toevoegen. -->
@@ -355,11 +353,12 @@
           <button type="button" class="iw__btn iw__btn--copy" :disabled="refreshing" @click="refreshItems">
             ↻ {{ refreshing ? $t('common.loading') : $t('inspections.table.refresh') }}
           </button>
-          <button type="button" class="iw__btn iw__btn--copy" :disabled="!items.length" @click="exportInspectionCsv">
-            ⧉ {{ $t('inspections.table.exportCsv') }}
+          <button type="button" class="iw__btn iw__btn--copy" :disabled="!items.length || exporting" @click="exportInspectionCsv">
+            ⧉ {{ exporting ? $t('common.loading') : $t('inspections.table.exportCsv') }}
           </button>
         </div>
         <p v-if="refreshError" class="iw__state iw__state--error">{{ refreshError }}</p>
+        <p v-if="exportError" class="iw__state iw__state--error">{{ exportError }}</p>
 
         <div class="iw__table-wrap">
           <table class="iw__table">
@@ -713,6 +712,8 @@
 <script setup lang="ts">
 import AppHeader from '../components/AppHeader.vue'
 import SnReferencePanel from '../components/SnReferencePanel.vue'
+import FreeTypeToggle from '../components/FreeTypeToggle.vue'
+import { useFreeType } from '../composables/useFreeType'
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
@@ -747,7 +748,7 @@ import {
 } from '@gearonimo/core'
 import { GIcon, ScanButton, useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { fetchRejectionCodes, fetchApprovalCodes, findPreviousResult, findPreviousResults, fetchFreeInputFields, ensureInspector, type PreviousResult } from '../composables/useInspections'
-import { generateCertificate } from '../composables/useCertificate'
+import { generateCertificate, fetchCertificateTable } from '../composables/useCertificate'
 import { useOffline } from '../composables/useOffline'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 import CatalogSuggestDialog from '../components/CatalogSuggestDialog.vue'
@@ -1354,36 +1355,13 @@ const newSwl = ref('')
 // het vorige artikel over, standaard Periodiek (Jos, 2026-10-02).
 const newExamKind = ref<ExamKind>('periodic')
 const newSchemeMonths = ref<number | null>(null)
-// Vrij artikel: PBM of rigging (bepaalt 6 of 12 maanden). Voorgevuld vanuit
-// de categorie zolang de keurmeester niet zelf geklikt heeft.
-const newFreeType = ref<'ppe' | 'rigging'>('ppe')
-let freeTypeTouched = false
+// Vrij artikel: PBM of rigging (bepaalt 6 of 12 maanden), zie useFreeType.
+const { freeType: newFreeType, setFreeType, resetFreeType } = useFreeType(products, newCategory)
 function newExamFields(): { exam_type: ExamKind; exam_interval_months: number | null } {
   const kind = newExamKind.value
   return { exam_type: kind, exam_interval_months: kind === 'scheme' ? (newSchemeMonths.value || null) : null }
 }
 const showFreeType = computed(() => !!(newDescription.value.trim() || newCategory.value.trim()) && !matchProduct())
-// Wat de catalogus in deze categorie het meest is. Gemengde categorieën
-// (katrollen, slings, ankers) vallen zo meestal op PBM -- daarom het knopje.
-function guessFreeType(categoryText: string): 'ppe' | 'rigging' {
-  const c = categoryText.trim().toLowerCase()
-  if (!c) return 'ppe'
-  let ppe = 0
-  let rigging = 0
-  for (const p of products.value) {
-    if (categoryLabel(p.category).toLowerCase() !== c) continue
-    if (p.product_type === 'rigging') rigging++
-    else if (p.product_type === 'ppe') ppe++
-  }
-  return rigging > ppe ? 'rigging' : 'ppe'
-}
-function setFreeType(type: 'ppe' | 'rigging') {
-  newFreeType.value = type
-  freeTypeTouched = true
-}
-watch(newCategory, (c) => {
-  if (!freeTypeTouched) newFreeType.value = guessFreeType(c)
-})
 const newPrevDate = ref('')
 const newComment = ref('')
 // Welke extra velden het keurbedrijf bij vrije invoer wil (uit cert-kolommen).
@@ -1829,58 +1807,56 @@ function formatDate(d: string) {
   return sharedFormatDate(d, locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-// Excel-export (Jos, 2026-09-08): alleen de zichtbare gegevens, geen
-// knoppen/iconen -- die propte de browser bij een handmatige kopieer-plak
-// allemaal in één cel. Zelfde CSV-aanpak als exportRecallCsv in
+// Excel-export: precies het certificaat (Jos, 2026-10-02: "Excel moet gelijk
+// zijn aan het certificaat") -- zelfde artikelen (alleen beoordeelde), zelfde
+// volgorde, kolommen, koppen en taal. De gegevens komen daarom uit dezelfde
+// bron als de PDF (fetchCertificateTable), niet uit de tabel op het scherm:
+// die wordt door de toevoegrij gefilterd, en een eerdere export nam daardoor
+// stil maar 1 van de 4 artikelen mee. CSV-vorm als exportRecallCsv in
 // SerialSearch.vue (BOM voor Excel, ; als scheidingsteken, elk veld tussen
-// quotes zodat een komma of ; in bv. een opmerking niet de kolommen verschuift).
-function resultLabel(result: Item['result']): string {
-  if (result === 'passed') return t('inspections.table.pass')
-  if (result === 'rejected') return t('inspections.table.fail')
-  return t('inspections.table.notAssessedShort')
-}
-// Altijd álle artikelen van de keuring, net als het certificaat (Jos,
-// 2026-10-02): niet de zichtbare tabel, want de invulvelden van de
-// toevoegrij filteren die -- er bleef "prot" staan en de export had 1 regel.
-function exportInspectionCsv() {
-  const exportRows = sortBySet(items.value.map(toRow))
-  if (!exportRows.length) return
-  const header = [
-    t('inspections.table.colCategory'), t('inspections.table.colBrand'), t('inspections.table.colDescription'),
-    t('inspections.table.colSerial'), t('inspections.table.colYear'), t('inspections.table.colFirstUse'),
-    t('inspections.table.colUser'), t('inspections.table.colResult'), t('inspections.noCode'),
-    t('inspections.commentPlaceholder'), t('inspections.table.colNextDue'),
-  ].join(';')
-  const lines = exportRows.map((row) => {
-    const it = row.it
-    const year = it.article.manufacture_year
-      ? String(it.article.manufacture_year) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '')
-      : ''
-    const code = it.result === 'rejected'
-      ? rejectionCodes.value.find((c) => c.id === it.rejection_code_id)?.code ?? ''
-      : it.result === 'passed'
-        ? approvalCodes.value.find((c) => c.id === it.approval_code_id)?.code ?? ''
-        : ''
-    return [
-      row.category, row.brand, row.label, it.article.serial_number, year, it.article.first_use_date,
-      it.article.assigned_user_name, resultLabel(it.result), code, it.comment,
-      it.result === 'passed' ? it.next_due : '',
-    ].map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')
-  })
-  const csv = '﻿' + header + '\n' + lines.join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  const customerPart = (inspection.value?.customer?.name ?? 'keuring').replace(/[^a-zA-Z0-9]+/g, '_')
-  a.download = `keuring_${customerPart}_${new Date().toISOString().slice(0, 10)}.csv`
-  a.click()
-  URL.revokeObjectURL(url)
+// quotes zodat een ; in een opmerking de kolommen niet verschuift).
+// Online-only, net als het certificaat zelf: de bron is de server.
+const exporting = ref(false)
+const exportError = ref('')
+async function exportInspectionCsv() {
+  exportError.value = ''
+  if (!isOnline.value) {
+    exportError.value = t('offline.onlineOnlyAction')
+    return
+  }
+  exporting.value = true
+  try {
+    // Eerst wat nog onderweg is laten landen (bv. een opmerking die net bij het
+    // klikken op deze knop werd opgeslagen), anders mist de export die.
+    await flushPendingSaves()
+    if (rowSaveError.value) {
+      exportError.value = t('inspections.table.finishBlockedUnsaved')
+      return
+    }
+    const table = await fetchCertificateTable(id)
+    const toCsvLine = (cells: string[]) => cells.map((v) => '"' + String(v ?? '').replace(/"/g, '""') + '"').join(';')
+    const csv = '\ufeff' + [toCsvLine(table.headers), ...table.rows.map(toCsvLine)].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const customerPart = (inspection.value?.customer?.name ?? 'keuring').replace(/[^a-zA-Z0-9]+/g, '_')
+    a.download = `keuring_${customerPart}_${toIsoDate()}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  } catch (e) {
+    exportError.value = errorMessage(e)
+  } finally {
+    exporting.value = false
+  }
 }
 
+// Zelfde tellingen als het certificaat (goed/fout: alle beoordeelde regels)
+// en als de waarschuwing bij Afronden (open: niet beoordeeld en niet
+// afgevoerd). Telde eerst ook afgevoerde, onzichtbare artikelen als "open".
 const passedCount = computed(() => items.value.filter(i => i.result === 'passed').length)
 const rejectedCount = computed(() => items.value.filter(i => i.result === 'rejected').length)
-const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed').length)
+const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed' && !i.article.retired).length)
 
 function addMonths(date: Date, months: number): Date {
   const d = new Date(date)
@@ -2450,8 +2426,7 @@ function resetAddRow() {
   newMbs.value = ''
   newSwl.value = ''
   autoSwl = ''
-  newFreeType.value = 'ppe'
-  freeTypeTouched = false
+  resetFreeType()
   newPrevDate.value = ''
   newComment.value = ''
   dayHint.value = null
@@ -2760,7 +2735,10 @@ async function retireArticle(it: Item) {
 // de lokale cache + mutatiewachtrij -- dit faalde eerst volledig stil: het
 // veld leek gewijzigd maar er werd niets opgeslagen, ook lokaal niet, en na
 // herladen was de correctie weg (code review 2026-07-01).
-async function saveArticle(it: Item) {
+function saveArticle(it: Item) {
+  return track(saveArticleNow(it))
+}
+async function saveArticleNow(it: Item) {
   const a = it.article
   const patch = {
     serial_number: a.serial_number?.toString().trim() || null,
@@ -2802,7 +2780,25 @@ async function saveArticle(it: Item) {
   if (err) addError.value = err.message
 }
 
-async function saveRow(it: Item) {
+// Opslaan gebeurt "op de achtergrond" (bij blur/change, niet afgewacht). Wie
+// daarna van de server leest -- certificaat, Excel -- moet eerst wachten tot
+// die opslagen geland zijn, anders leest hij het oude resultaat/opmerking.
+const pendingSaves = new Set<Promise<unknown>>()
+function track<T>(p: Promise<T>): Promise<T> {
+  pendingSaves.add(p)
+  p.finally(() => pendingSaves.delete(p)).catch(() => {})
+  return p
+}
+async function flushPendingSaves() {
+  // Een blur-save start pas ná de klik-afhandeling als het veld nog focus had.
+  await nextTick()
+  while (pendingSaves.size) await Promise.allSettled([...pendingSaves])
+}
+
+function saveRow(it: Item) {
+  return track(saveRowNow(it))
+}
+async function saveRowNow(it: Item) {
   // Wie dít artikel daadwerkelijk beoordeelde (2026-09-13, meerdere
   // keurmeesters in dezelfde keuring): laatste die opslaat wint, zelfde
   // last-write-wins-aanpak als result/comment hieronder al hadden. Los van
@@ -2857,7 +2853,10 @@ async function finish() {
   // om diezelfde reden al weg (zie rows), deze check moet dat spiegelen.
   // Niet afronden zolang een resultaat niet is opgeslagen (zie saveRow): het
   // certificaat wordt van de server gelezen en zou anders het OUDE resultaat
-  // tonen. De keurmeester moet eerst de mislukte save opnieuw doen.
+  // tonen. De keurmeester moet eerst de mislukte save opnieuw doen. Eerst
+  // wachten op opslagen die nog onderweg zijn (bv. de opmerking die bij het
+  // klikken op Afronden net werd weggeschreven) -- anders kon die ontbreken.
+  await flushPendingSaves()
   if (rowSaveError.value) {
     completeError.value = t('inspections.table.finishBlockedUnsaved')
     return
@@ -3121,13 +3120,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__select--exam { flex: 0 1 auto; min-width: 9rem; }
 /* In de toevoegrij krijgt de opmerking de ruimte, niet de keuzelijsten. */
 .iw__add .iw__select--sm { flex: 0 1 auto; }
-.iw__type-toggle { display: inline-flex; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; flex-shrink: 0; }
-.iw__type-toggle button {
-  border: none; background: #fff; padding: 0.6rem 0.7rem; font-size: 0.85rem;
-  font-family: inherit; color: #374151; cursor: pointer;
-}
-.iw__type-toggle button + button { border-left: 1px solid #ddd; }
-.iw__type-toggle .iw__type-toggle--active { background: #1a3a2a; color: #fff; }
 .iw__age-warn {
   display: inline-flex; align-items: center; gap: 0.3rem; flex-shrink: 0; white-space: nowrap;
   padding: 0.45rem 0.65rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: help;

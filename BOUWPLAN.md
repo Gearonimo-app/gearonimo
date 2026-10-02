@@ -425,6 +425,35 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-02, Excel = certificaat + controle keuringsroute)
+
+> Jos: "ik vond de Excel-export heftig om zo achter te komen ... goed en
+> grondig graag". Gebouwd:
+> - **Excel = het certificaat**: zelfde artikelen (alleen beoordeelde),
+>   volgorde, kolommen (cert_layout, alleen kolommen met inhoud), koppen,
+>   taal en celteksten. Eén databron: `loadCertificateSource` +
+>   `certColumns` in useCertificate.ts, gebruikt door de PDF én
+>   `fetchCertificateTable` (Excel). Status als woord (Pass/Fail e.d.).
+>   Online-only, net als het certificaat. Bestandsdatum via toIsoDate (was
+>   UTC).
+> - **Opslaan-race**: opslaan bij blur werd niet afgewacht; Excel en
+>   Afronden lazen dan mogelijk de oude opmerking/uitslag. Nu wachten beide
+>   eerst op lopende opslagen (`flushPendingSaves`).
+> - **Teller "open"** telde afgevoerde (onzichtbare) artikelen mee; nu gelijk
+>   aan de waarschuwing bij Afronden.
+> - **PBM/Rigging-knopje ook in Klantartikelen**, als gedeeld component
+>   (`FreeTypeToggle.vue` + `useFreeType.ts`), keuring gebruikt hetzelfde.
+>
+> Getest: export-tabel met nepdata (niet-beoordeeld valt weg, Engelse koppen
+> en datums, volgorde = certificaat), builds + alle tests. Niet getest: echte
+> keuring tegen de live database (door Jos).
+>
+> Gevonden, nog niet gebouwd (voorstel aan Jos): correcties in de tabel
+> tijdens de keuring (serienummer, bouwjaar, gebruiker) komen niet op het
+> certificaat -- dat leest de momentopname van bij het toevoegen. En: een
+> goedgekeurd artikel dat daarna wordt afgevoerd blijft als ✓ op het
+> certificaat staan.
+
 ## Voortgang (2026-10-02, datums per land + levensduur-waarschuwing in toevoegrij)
 
 > - **Datums**: Engels gaf de Amerikaanse norm ("April 2, 2027", 4/2/2027).
