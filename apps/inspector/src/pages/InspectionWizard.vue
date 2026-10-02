@@ -21,7 +21,7 @@
         </a>
         <!-- Ook na afronden bruikbaar (Jos, 2026-09-08): de items staan nog
              gewoon geladen, alleen dit scherm toont de tabel niet meer. -->
-        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+        <button type="button" class="iw__btn iw__btn--cancel" :disabled="!items.length" @click="exportInspectionCsv">
           ⧉ {{ $t('inspections.table.exportCsv') }}
         </button>
         <button class="iw__btn iw__btn--cancel" @click="$router.push(`/customers/${inspection?.customer_id}`)">
@@ -351,7 +351,7 @@
           <button type="button" class="iw__btn iw__btn--copy" :disabled="refreshing" @click="refreshItems">
             ↻ {{ refreshing ? $t('common.loading') : $t('inspections.table.refresh') }}
           </button>
-          <button type="button" class="iw__btn iw__btn--copy" :disabled="!sortedRows.length" @click="exportInspectionCsv">
+          <button type="button" class="iw__btn iw__btn--copy" :disabled="!items.length" @click="exportInspectionCsv">
             ⧉ {{ $t('inspections.table.exportCsv') }}
           </button>
         </div>
@@ -1780,15 +1780,19 @@ function resultLabel(result: Item['result']): string {
   if (result === 'rejected') return t('inspections.table.fail')
   return t('inspections.table.notAssessedShort')
 }
+// Altijd álle artikelen van de keuring, net als het certificaat (Jos,
+// 2026-10-02): niet de zichtbare tabel, want de invulvelden van de
+// toevoegrij filteren die -- er bleef "prot" staan en de export had 1 regel.
 function exportInspectionCsv() {
-  if (!sortedRows.value.length) return
+  const exportRows = sortBySet(items.value.map(toRow))
+  if (!exportRows.length) return
   const header = [
     t('inspections.table.colCategory'), t('inspections.table.colBrand'), t('inspections.table.colDescription'),
     t('inspections.table.colSerial'), t('inspections.table.colYear'), t('inspections.table.colFirstUse'),
     t('inspections.table.colUser'), t('inspections.table.colResult'), t('inspections.noCode'),
     t('inspections.commentPlaceholder'), t('inspections.table.colNextDue'),
   ].join(';')
-  const lines = sortedRows.value.map((row) => {
+  const lines = exportRows.map((row) => {
     const it = row.it
     const year = it.article.manufacture_year
       ? String(it.article.manufacture_year) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '')
@@ -1995,25 +1999,25 @@ function matchScore(it: Item): number {
   return 3
 }
 
-const rows = computed<Row[]>(() => {
-  const result: Row[] = []
-  for (const it of items.value) {
-    if (it.article.retired) continue
-    if (hasFilter.value && !matchesFilters(it)) continue
-    const y = it.article.manufacture_year
-    result.push({
-      it,
-      label: itemLabel(it),
-      brand: itemBrand(it),
-      category: itemCategory(it),
-      year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
-      previous: previousResults.value[it.article_id] ?? null,
-      age: ageInfo(it),
-      score: matchScore(it),
-    })
+function toRow(it: Item): Row {
+  const y = it.article.manufacture_year
+  return {
+    it,
+    label: itemLabel(it),
+    brand: itemBrand(it),
+    category: itemCategory(it),
+    year: y ? String(y) + (it.article.manufacture_month ? '/' + String(it.article.manufacture_month).padStart(2, '0') : '') : '',
+    previous: previousResults.value[it.article_id] ?? null,
+    age: ageInfo(it),
+    score: matchScore(it),
   }
-  return result
-})
+}
+
+const rows = computed<Row[]>(() =>
+  items.value
+    .filter((it) => !it.article.retired && (!hasFilter.value || matchesFilters(it)))
+    .map(toRow)
+)
 
 function compareRows(a: Row, b: Row): number {
   let cmp = 0
@@ -2035,6 +2039,10 @@ const sortedRows = computed(() => {
     list.sort((a, b) => a.score - b.score)
     return list
   }
+  return sortBySet(list)
+})
+
+function sortBySet(list: Row[]): Row[] {
   // Setleden blijven aaneengesloten: een set sorteert op zijn beste lid
   // (volgens de gekozen kolom), en de leden zelf staan daarbinnen met het
   // hoofdartikel voorop.
@@ -2056,7 +2064,7 @@ const sortedRows = computed(() => {
     return compareRows(a, b)
   })
   return list
-})
+}
 
 // Net als bij de artikellijsten: een duidelijke groepskop boven het eerste
 // lid, i.p.v. alleen een klein vlaggetje per rij (dat bleek in de tabel niet

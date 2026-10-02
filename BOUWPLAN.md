@@ -425,6 +425,14 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-02, Excel-export keuring: alle artikelen)
+
+> Jos zag 1 van de 4 artikelen in de Excel, terwijl het certificaat er 4
+> had. Oorzaak: de export nam de zichtbare tabel, en de invulvelden van de
+> toevoegrij filteren die (er stond nog "prot"). Nu neemt de Excel altijd
+> álle artikelen van de keuring mee, ongeacht filter, ook die op "uit
+> gebruik" staan. Sortering blijft als in de tabel (sets bij elkaar).
+
 ## Voortgang (2026-09-30, review-fixes LOLER-kolommen)
 
 > Dubbele check op verzoek van Jos, drie fouten opgelost:
