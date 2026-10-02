@@ -2027,9 +2027,11 @@ function ageInfo(it: Item): AgeInfo | null {
 
 // Alleen tonen als er echt iets aan de hand is: verlopen of verloopt vóór de
 // volgende keuring. Bouwjaar is genoeg; zonder maand rekent endOfLife met januari.
+// Pas bij een volledig jaartal (4 cijfers): halverwege typen ("202") gaf
+// anders meteen een rode "verstreken" (Jos, 2026-10-02).
 const addRowAge = computed<AgeInfo | null>(() => {
   const product = matchProduct()
-  if (!product || !newYear.value) return null
+  if (!product || !newYear.value || newYear.value < 1900) return null
   const info = ageInfo({
     article: { product, manufacture_year: newYear.value, manufacture_month: newMonth.value, first_use_date: null, interval_override_months: null },
     ...newExamFields(),
