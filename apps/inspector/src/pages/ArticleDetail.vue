@@ -30,7 +30,7 @@
         <div v-if="lastInspection" class="ad__view-row">
           <dt>{{ $t('articles.detail.lastInspection') }}</dt>
           <dd>
-            {{ lastInspection.result === 'passed' ? '✅' : '❌' }} {{ lastInspection.date }}
+            {{ lastInspection.result === 'passed' ? '✅' : '❌' }} {{ formatDate(lastInspection.date, locale) }}
             <span v-if="lastInspection.inspector"> — {{ lastInspection.inspector }}</span>
           </dd>
         </div>
@@ -253,12 +253,13 @@ import {
   getCustomer,
   errorMessage,
   fetchAllRows,
+  formatDate,
 } from '@gearonimo/core'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const categoryLabel = useCategoryLabel()
 // Eén keer uitlezen bij het opbouwen van de pagina. Blijft een ref (hij wordt
 // door de hele pagina als id.value gelezen), maar hij verandert niet meer:

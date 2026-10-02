@@ -360,10 +360,10 @@ import {
 } from '../composables/useImportCommit'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import { ensureInspector } from '../composables/useInspections'
-import { supabase } from '@gearonimo/core'
+import { supabase, formatDate } from '@gearonimo/core'
 import CustomerFormModal from './CustomerFormModal.vue'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 const step = ref(1)
 const error = ref('')
@@ -521,7 +521,7 @@ async function removeBatch(id: string) {
 
 function formatBatchDate(iso: string): string {
   const d = new Date(iso)
-  return isNaN(d.getTime()) ? '' : d.toLocaleDateString()
+  return isNaN(d.getTime()) ? '' : formatDate(d, locale.value, { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 onMounted(() => { loadCustomers(); loadInspectors(); loadBatches() })

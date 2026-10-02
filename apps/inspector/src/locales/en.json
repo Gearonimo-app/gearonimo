@@ -390,7 +390,8 @@
       "noticeFlag": "Manufacturer inspection notice",
       "productNotesTitle": "Note from the catalogue",
       "clearFlagPrompt": "Note (e.g. \"resolved\" or \"not within the affected batch\"):",
-      "swlShort": "SWL"
+      "swlShort": "SWL",
+      "ageWarningSoonShort": "Expires soon"
     },
     "deleteDraft": "Delete draft",
     "deleteDraftConfirm": "Permanently delete the draft for {name} ({date}), including entered results? The customer's articles are kept.",

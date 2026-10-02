@@ -717,9 +717,14 @@ export async function renderCertificatePdf(
   const cols = activeColumns(items, layout.columns).map((c) => ({
     ...c,
     header: L.cols[c.key] ?? c.header,
+    // Datumkolommen in de certificaattaal (en-GB e.d.); de standaardwaarden
+    // in ALL_COLUMNS zijn Nederlands. "prev" ontbrak hier: die stond op een
+    // Engels certificaat als "27 september 2026" (Jos, 2026-10-02).
     value: c.key === 'next'
       ? (it: CertItem) => (it.next_due ? formatDate(it.next_due, L.dateLocale) : '')
-      : c.value,
+      : c.key === 'prev'
+        ? (it: CertItem) => (it.previousDate ? formatDate(it.previousDate, L.dateLocale) : '')
+        : c.value,
   }))
 
   // Oriëntatie bepalen. Auto = staand, tenzij de tabel echt te breed wordt om

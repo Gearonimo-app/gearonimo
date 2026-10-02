@@ -33,5 +33,19 @@ export function formatDate(
 ): string {
   const date = typeof d === "string" ? new Date(d) : d;
   if (Number.isNaN(date.getTime())) return typeof d === "string" ? d : "";
-  return date.toLocaleDateString(locale, opts);
+  return date.toLocaleDateString(dateLocale(locale), opts);
+}
+
+/**
+ * App-taal ("en") → land-specifieke datumnorm ("en-GB").
+ *
+ * Een kale taalcode laat Intl de standaardregio kiezen, en voor "en" is dat de
+ * VS: "April 2, 2027" en 4/2/2027 (maand eerst). Een Brits keurbedrijf hoort
+ * de Britse norm te zien (Jos, 2026-10-02: "alle data naar de norm van het
+ * land"). Gearonimo bedient NL en GB, en straks DE/FR -- geen VS -- dus elke
+ * taal krijgt de norm van zijn land. Een code mét regio blijft ongemoeid.
+ */
+const DATE_REGION: Record<string, string> = { en: "en-GB", nl: "nl-NL", de: "de-DE", fr: "fr-FR" };
+export function dateLocale(locale: string): string {
+  return DATE_REGION[locale] ?? locale;
 }

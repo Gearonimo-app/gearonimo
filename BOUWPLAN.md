@@ -425,6 +425,27 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-02, datums per land + levensduur-waarschuwing in toevoegrij)
+
+> - **Datums**: Engels gaf de Amerikaanse norm ("April 2, 2027", 4/2/2027).
+>   Gedeelde `formatDate` (packages/core) zet de app-taal nu om naar de norm
+>   van het land: en→en-GB, nl→nl-NL, de→de-DE, fr→fr-FR. Geldt voor beide
+>   apps. Ook rechtgezet: "Vorige keuring" op het certificaat stond altijd in
+>   het Nederlands; Offline-downloads had nl-NL vast; Import-wizard,
+>   artikeldetail ("laatste keuring") en recall/notice-datums toonden een
+>   kale of browser-afhankelijke datum.
+>   Bewust niet: de datumvelden (kalender-invoer) zijn van de browser zelf --
+>   die volgen de taal van de browser/computer, niet de app. De Excel-export
+>   houdt jjjj-mm-dd (Excel zet dat zelf om naar de landnorm).
+>   Shortcut gemeld: de norm volgt de app-taal, niet `country_code` van het
+>   keurbedrijf. Met NL en GB als enige landen is de uitkomst gelijk; zodra
+>   er een keurbedrijf is waarvan taal en land niet overeenkomen, alsnog via
+>   het land laten lopen.
+> - **Levensduur tijdens het invullen** (Jos: "voordat ik bij het vinkje
+>   ben"): zodra bouwjaar (en maand) ingevuld zijn en het catalogusproduct een
+>   max. leeftijd heeft, verschijnt naast Maand ⛔ "Levensduur verstreken" of
+>   ⚠ "Verloopt binnenkort". Zelfde berekening als het icoon in de tabel.
+
 ## Voortgang (2026-10-02, type keuring per keuringsregel + toevoegrij in 2 rijen)
 
 > Jos: het scherm werd onoverzichtelijk (SWL en type keuring elk een eigen

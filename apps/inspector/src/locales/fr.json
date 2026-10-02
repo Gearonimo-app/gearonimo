@@ -389,7 +389,8 @@
       "clearFlagPrompt": "Remarque (ex. « résolu » ou « ne fait pas partie du lot concerné ») :",
       "refresh": "Actualiser",
       "othersActiveConfirm": "{names} travaille(nt) aussi encore sur ce contrôle. Voulez-vous vraiment terminer ?",
-      "swlShort": "CMU"
+      "swlShort": "CMU",
+      "ageWarningSoonShort": "Expire bientôt"
     },
     "deleteDraft": "Supprimer le brouillon",
     "deleteDraftConfirm": "Supprimer définitivement le brouillon de {name} ({date}), y compris les résultats saisis ? Les articles du client restent conservés.",

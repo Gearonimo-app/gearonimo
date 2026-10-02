@@ -84,12 +84,12 @@
 import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { errorMessage } from '@gearonimo/core'
+import { errorMessage, formatDate } from '@gearonimo/core'
 import { useOffline } from '../composables/useOffline'
 import OfflinePinDialog from '../components/OfflinePinDialog.vue'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
 const {
   session,
   downloads,
@@ -136,7 +136,7 @@ const pickableCustomers = computed(() => {
 })
 
 function downloadMeta(entry: { downloadedAt: string; lastSyncedAt: string | null; pendingMutations: number }) {
-  const downloadedAt = new Date(entry.downloadedAt).toLocaleDateString('nl-NL', {
+  const downloadedAt = formatDate(entry.downloadedAt, locale.value, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',

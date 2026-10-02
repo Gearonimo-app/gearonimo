@@ -389,7 +389,8 @@
       "clearFlagPrompt": "Anmerkung (z. B. „erledigt“ oder „fällt nicht in die betroffene Charge“):",
       "refresh": "Aktualisieren",
       "othersActiveConfirm": "{names} arbeitet/arbeiten ebenfalls noch an dieser Prüfung. Möchten Sie wirklich abschließen?",
-      "swlShort": "SWL"
+      "swlShort": "SWL",
+      "ageWarningSoonShort": "Läuft bald ab"
     },
     "deleteDraft": "Entwurf löschen",
     "deleteDraftConfirm": "Entwurf von {name} ({date}) endgültig löschen, einschließlich der eingegebenen Ergebnisse? Die Artikel des Kunden bleiben erhalten.",

@@ -165,6 +165,11 @@
             <option :value="null">{{ $t('inspections.table.month') }}</option>
             <option v-for="m in 12" :key="m" :value="m">{{ monthName(m) }}</option>
           </select>
+          <!-- Levensduur al tijdens het invullen, vóór het vinkje (Jos,
+               2026-10-02). Zelfde berekening en icoon als in de tabel. -->
+          <span v-if="addRowAge" class="iw__age-warn" :class="'iw__age-warn--' + addRowAge.status" :title="addRowAge.title">
+            {{ addRowAge.icon }} {{ addRowAge.status === 'overdue' ? $t('inspections.table.ageWarningOverdue') : $t('inspections.table.ageWarningSoonShort') }}
+          </span>
           <!-- Gebruiker meteen bij het toevoegen invullen (wens Jos 2026-07-02),
                met suggesties uit eerder gebruikte namen bij deze klant: een
                paar letters typen volstaat. -->
@@ -1400,11 +1405,11 @@ const addRowRecallInfo = computed<{ url: string; kind: 'recall' | 'notice'; titl
   // en als de link zelf kapot is (bv. foute catalogusdata) leek de melding
   // nergens naartoe te gaan zonder eerst de URL te kunnen zien.
   if (p.recall_url) {
-    const dated = p.recall_date ? `${t('inspections.table.noticeDateLabel')} ${p.recall_date} — ` : ''
+    const dated = p.recall_date ? `${t('inspections.table.noticeDateLabel')} ${formatDate(p.recall_date)} — ` : ''
     return { url: p.recall_url, kind: 'recall', title: `${dated}${t('inspections.table.recallHint')}: ${p.recall_url}` }
   }
   if (p.inspection_notice_url) {
-    const dated = p.inspection_notice_date ? `${t('inspections.table.noticeDateLabel')} ${p.inspection_notice_date} — ` : ''
+    const dated = p.inspection_notice_date ? `${t('inspections.table.noticeDateLabel')} ${formatDate(p.inspection_notice_date)} — ` : ''
     return { url: p.inspection_notice_url, kind: 'notice', title: `${dated}${t('inspections.table.noticeHint')}: ${p.inspection_notice_url}` }
   }
   return null
@@ -1738,7 +1743,7 @@ function itemRecallTitle(it: Item): string | null {
   const url = itemRecallUrl(it)
   if (!url) return null
   const date = itemRecallDate(it)
-  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${date} — ` : ''
+  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${formatDate(date)} — ` : ''
   return `${dated}${t('inspections.table.recallHint')}: ${url}`
 }
 function itemRecallClearedNote(it: Item): string | null {
@@ -1775,7 +1780,7 @@ function itemNoticeTitle(it: Item): string | null {
   const url = itemNoticeUrl(it)
   if (!url) return null
   const date = itemNoticeDate(it)
-  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${date} — ` : ''
+  const dated = date ? `${t('inspections.table.noticeDateLabel')} ${formatDate(date)} — ` : ''
   return `${dated}${t('inspections.table.noticeHint')}: ${url}`
 }
 /**
@@ -2014,6 +2019,18 @@ function ageInfo(it: Item): AgeInfo | null {
   }
   return { icon: 'ℹ', status: 'ok', title: detail, mfrText, useText }
 }
+
+// Alleen tonen als er echt iets aan de hand is: verlopen of verloopt vóór de
+// volgende keuring. Bouwjaar is genoeg; zonder maand rekent endOfLife met januari.
+const addRowAge = computed<AgeInfo | null>(() => {
+  const product = matchProduct()
+  if (!product || !newYear.value) return null
+  const info = ageInfo({
+    article: { product, manufacture_year: newYear.value, manufacture_month: newMonth.value, first_use_date: null, interval_override_months: null },
+    ...newExamFields(),
+  } as unknown as Item)
+  return info && (info.status === 'overdue' || info.status === 'soon') ? info : null
+})
 
 interface Row {
   it: Item
@@ -3104,6 +3121,13 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 }
 .iw__type-toggle button + button { border-left: 1px solid #ddd; }
 .iw__type-toggle .iw__type-toggle--active { background: #1a3a2a; color: #fff; }
+.iw__age-warn {
+  display: inline-flex; align-items: center; gap: 0.3rem; flex-shrink: 0; white-space: nowrap;
+  padding: 0.45rem 0.65rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; cursor: help;
+}
+.iw__age-warn--overdue { background: #fee2e2; color: #b91c1c; }
+/* Oranje, zelfde amber als de notice-vlag: aandacht, geen afkeur. */
+.iw__age-warn--soon { background: #fef3c7; color: #b45309; }
 
 .iw__cheatsheet {
   display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
