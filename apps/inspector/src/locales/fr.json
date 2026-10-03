@@ -548,7 +548,7 @@
         "next": "Prochain contrôle",
         "prev": "Dernier contrôle",
         "examType": "Type de contrôle",
-        "note": "Code de refus / remarque"
+        "note": "Code / remarque"
       }
     },
     "inspectors": {

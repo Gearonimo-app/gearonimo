@@ -548,7 +548,7 @@
         "next": "Nächste Prüfung",
         "prev": "Letzte Prüfung",
         "examType": "Prüfungsart",
-        "note": "Ablehnungscode / Anmerkung"
+        "note": "Code / Anmerkung"
       }
     },
     "inspectors": {

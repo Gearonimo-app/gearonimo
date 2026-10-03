@@ -246,7 +246,7 @@ const CERT_LABELS = {
       sn: 'Serienummer', status: 'Status', next: 'Volgende keuring',
       year: 'Bouwjaar', user: 'Gebruiker', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
       prev: 'Vorige keuring', examType: 'Type keuring',
-      note: 'Afkeurcode / opmerking',
+      note: 'Code / opmerking',
     } as Record<string, string>,
   },
   en: {
@@ -271,7 +271,7 @@ const CERT_LABELS = {
       sn: 'Serial number', status: 'Status', next: 'Next inspection',
       year: 'Year', user: 'User', norm: 'Standard', mbs: 'MBS', swl: 'SWL',
       prev: 'Previous examination', examType: 'Examination type',
-      note: 'Rejection code / comment',
+      note: 'Code / comment',
     } as Record<string, string>,
   },
   fr: {
@@ -296,7 +296,7 @@ const CERT_LABELS = {
       sn: 'Numéro de série', status: 'Statut', next: 'Prochain contrôle',
       year: 'Année', user: 'Utilisateur', norm: 'Norme', mbs: 'MBS', swl: 'CMU',
       prev: 'Dernier contrôle', examType: 'Type de contrôle',
-      note: 'Code de refus / remarque',
+      note: 'Code / remarque',
     } as Record<string, string>,
   },
   de: {
@@ -321,7 +321,7 @@ const CERT_LABELS = {
       sn: 'Seriennummer', status: 'Status', next: 'Nächste Prüfung',
       year: 'Baujahr', user: 'Nutzer', norm: 'Norm', mbs: 'MBS', swl: 'SWL',
       prev: 'Letzte Prüfung', examType: 'Prüfungsart',
-      note: 'Ablehnungscode / Anmerkung',
+      note: 'Code / Anmerkung',
     } as Record<string, string>,
   },
 } as const
@@ -585,7 +585,7 @@ const ALL_COLUMNS: ColDef[] = [
   { key: 'swl',      header: 'SWL',                    optional: true,  flex: false, min: 48, cap: 90,  value: (it) => it.swl || '' },
   { key: 'prev',     header: 'Vorige keuring',         optional: true,  flex: false, min: 78, cap: 110, value: (it) => (it.previousDate ? formatDate(it.previousDate) : '') },
   { key: 'examType', header: 'Type keuring',           optional: true,  flex: true,  min: 90, cap: 190, value: (it) => it.examType || '' },
-  { key: 'note',     header: 'Afkeurcode / opmerking', optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
+  { key: 'note',     header: 'Code / opmerking',       optional: true,  flex: true,  min: 90, cap: 240, value: noteStr },
 ]
 
 const CELL_PAD = 6

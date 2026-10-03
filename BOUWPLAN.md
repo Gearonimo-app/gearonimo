@@ -425,6 +425,17 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, Engelse demovideo + kolomnaam "Code / opmerking")
+
+> Engelse demovideo (3,5 min) volgens het script van 1 okt., opgenomen in de
+> live app met het account "Sam Taylor" in Testbedrijf (nu "Testing Arb
+> Company"), ondertitels in het Engels. Bijvangst: een voettekst met ✓/✗
+> wordt "?" op de PDF (WinAnsi-lettertype); het script raadde dat aan --
+> tekst aangepast. Kolomkop "Afkeurcode / opmerking" heet nu "Code /
+> opmerking" (en/fr/de idem): de kolom toont ook goedkeuringscodes (Jos:
+> "pak punt 1 op"). Open: voorbeelddata van het certificaat-voorbeeld in
+> Instellingen is altijd Nederlands, ook voor een Engels bedrijf.
+
 ## Voortgang (2026-10-03, afkeur- en goedkeuringscodes: geen standaardset meer)
 
 > Gevonden bij de voorbereiding van de Engelse demovideo (gemist in het
