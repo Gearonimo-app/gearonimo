@@ -36,6 +36,12 @@ bouwsels meer. Deze regels gelden voor elke sessie.
   dit op (staat in beide `main.ts`) — niet verwijderen.
 - **GitHub Pages**: inspector op `/`, klant-app op `/portal/` (hash-router,
   eigen service-worker-denylist).
+- **Migratie-volgorde ≠ bestandsnaam.** De nummers lopen niet op datum
+  (`20260766_remove_correction` is van ná `20260917`). Wie een functie
+  opnieuw definieert, zoekt de echte laatste versie op met
+  `git log --diff-filter=A --format=%ad -- <bestand>`, en bij twijfel laat Jos
+  `select pg_get_functiondef('public.<naam>'::regproc);` draaien. Op 2026-10-03
+  brak de QR-pagina live doordat een oude versie als basis werd genomen.
 
 ## Projectconventies
 

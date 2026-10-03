@@ -3,25 +3,24 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { DB_ERRORS, translateDbError } from "./dbErrors";
 
-// Alle `raise exception`-teksten uit de LAATSTE definitie van elke functie in
-// supabase/migrations. Platform-admin-functies vallen af: die ziet alleen de
-// platformbeheerder (Nederlands).
+// Alle `raise exception`-teksten uit ALLE migraties (behalve platform-admin-
+// functies: die ziet alleen de platformbeheerder, in het Nederlands).
+// Bewust niet "alleen de laatste definitie": de bestandsnamen staan niet in
+// de volgorde waarin ze gemaakt zijn (20260766 is van ná 20260917), en een
+// gok daarover liep op 2026-10-03 al eens mis. Alles vertalen is altijd goed.
 function databaseMessages(): Map<string, string> {
   const dir = join(__dirname, "../../../supabase/migrations");
-  const latest = new Map<string, string>();
+  const out = new Map<string, string>();
   for (const file of readdirSync(dir).filter((f) => f.endsWith(".sql")).sort()) {
     const sql = readFileSync(join(dir, file), "utf8");
     const re = /create or replace function public\.(\w+)\s*\(/g;
     let m: RegExpExecArray | null;
     while ((m = re.exec(sql))) {
+      if (m[1].startsWith("platform_admin_")) continue;
       const next = sql.indexOf("create or replace function", m.index + 1);
-      latest.set(m[1], sql.slice(m.index, next > 0 ? next : sql.length));
+      const body = sql.slice(m.index, next > 0 ? next : sql.length);
+      for (const r of body.matchAll(/raise exception '((?:[^']|'')*)'/g)) out.set(r[1].replace(/''/g, "'"), `${file} ${m[1]}`);
     }
-  }
-  const out = new Map<string, string>();
-  for (const [fn, body] of latest) {
-    if (fn.startsWith("platform_admin_")) continue;
-    for (const r of body.matchAll(/raise exception '((?:[^']|'')*)'/g)) out.set(r[1].replace(/''/g, "'"), fn);
   }
   return out;
 }

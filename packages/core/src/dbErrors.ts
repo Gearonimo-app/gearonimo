@@ -135,6 +135,63 @@ export const DB_ERRORS: Record<string, Translations> = {
     fr: "Un contrôle terminé ne peut pas être supprimé. Effectuez plutôt une correction.",
     de: "Eine abgeschlossene Prüfung kann nicht gelöscht werden. Erstellen Sie stattdessen eine Korrektur.",
   },
+  // Huidige teksten van de onveranderlijkheids-triggers (20260766, 24 sept.);
+  // de varianten met correct_inspection() hierboven zijn van 20260917.
+  "Een afgeronde keuring kan niet meer gewijzigd worden. Maak een nieuwe keuring aan.": {
+    en: "A completed inspection can no longer be changed. Start a new inspection.",
+    fr: "Un contrôle terminé ne peut plus être modifié. Créez un nouveau contrôle.",
+    de: "Eine abgeschlossene Prüfung kann nicht mehr geändert werden. Legen Sie eine neue Prüfung an.",
+  },
+  "Een afgeronde keuring kan niet verwijderd worden. Maak een nieuwe keuring aan.": {
+    en: "A completed inspection cannot be deleted. Start a new inspection.",
+    fr: "Un contrôle terminé ne peut pas être supprimé. Créez un nouveau contrôle.",
+    de: "Eine abgeschlossene Prüfung kann nicht gelöscht werden. Legen Sie eine neue Prüfung an.",
+  },
+  "Items van een afgeronde keuring kunnen niet meer gewijzigd worden. Maak een nieuwe keuring aan.": {
+    en: "Items of a completed inspection can no longer be changed. Start a new inspection.",
+    fr: "Les articles d'un contrôle terminé ne peuvent plus être modifiés. Créez un nouveau contrôle.",
+    de: "Positionen einer abgeschlossenen Prüfung können nicht mehr geändert werden. Legen Sie eine neue Prüfung an.",
+  },
+  "Het certificaat van een afgeronde keuring kan niet meer gewijzigd of verwijderd worden. Maak een nieuwe keuring aan.": {
+    en: "The certificate of a completed inspection can no longer be changed or deleted. Start a new inspection.",
+    fr: "Le certificat d'un contrôle terminé ne peut plus être modifié ni supprimé. Créez un nouveau contrôle.",
+    de: "Das Zertifikat einer abgeschlossenen Prüfung kann nicht mehr geändert oder gelöscht werden. Legen Sie eine neue Prüfung an.",
+  },
+  "Geen gewijzigde artikelen om te corrigeren.": {
+    en: "No changed items to correct.",
+    fr: "Aucun article modifié à corriger.",
+    de: "Keine geänderten Artikel zu korrigieren.",
+  },
+  "Een of meer artikelen horen niet bij deze keuring (of staan er dubbel in).": {
+    en: "One or more items do not belong to this inspection (or appear twice).",
+    fr: "Un ou plusieurs articles n'appartiennent pas à ce contrôle (ou y figurent deux fois).",
+    de: "Ein oder mehrere Artikel gehören nicht zu dieser Prüfung (oder sind doppelt enthalten).",
+  },
+  "Een of meer artikelen zijn al gecorrigeerd. Corrigeer ze vanaf het nieuwste certificaat.": {
+    en: "One or more items have already been corrected. Correct them from the latest certificate.",
+    fr: "Un ou plusieurs articles ont déjà été corrigés. Corrigez-les à partir du certificat le plus récent.",
+    de: "Ein oder mehrere Artikel wurden bereits korrigiert. Korrigieren Sie sie über das neueste Zertifikat.",
+  },
+  "Onbekende uitnodigingscode.": {
+    en: "Unknown invitation code.",
+    fr: "Code d'invitation inconnu.",
+    de: "Unbekannter Einladungscode.",
+  },
+  "Dit account is een klant-account, geen keurmeester-account.": {
+    en: "This account is a customer account, not an inspector account.",
+    fr: "Ce compte est un compte client, pas un compte contrôleur.",
+    de: "Dieses Konto ist ein Kundenkonto, kein Prüferkonto.",
+  },
+  "Alleen afgekeurd materiaal kan hier afgevoerd worden -- neem voor ander materiaal contact op met je keurmeester.": {
+    en: "Only rejected equipment can be retired here -- for other equipment, contact your inspector.",
+    fr: "Seul le matériel refusé peut être retiré ici -- pour le reste, contactez votre contrôleur.",
+    de: "Hier kann nur abgelehntes Material ausgemustert werden -- für anderes Material wenden Sie sich an Ihren Prüfer.",
+  },
+  "Alleen een beheerder mag materiaal afvoeren.": {
+    en: "Only an administrator can retire equipment.",
+    fr: "Seul un administrateur peut retirer du matériel.",
+    de: "Nur ein Administrator darf Material ausmustern.",
+  },
   "Een controle kan niet in de toekomst liggen.": {
     en: "A check cannot be in the future.",
     fr: "Une vérification ne peut pas être dans le futur.",

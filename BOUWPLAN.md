@@ -425,6 +425,27 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, live test met testaccount + HERSTEL QR-pagina)
+
+> Eerste test in de echte app (testaccount claudetest@jklm.email,
+> Testbedrijf, met akkoord Jos): klant aanmaken, 4 artikelen, levensduur-
+> waarschuwing, PBM/Rigging, verbeteren, Excel, afronden, certificaat --
+> Excel en certificaat identiek (3 regels, verbeterd SN, niet-beoordeeld weg).
+>
+> **Fout van Claude gevonden: QR-pagina kapot** sinds migratie 20261008
+> (gebaseerd op 20260917, terwijl 20260766 van ná die datum de kolom
+> corrects_inspection_id had verwijderd). 20261009 zette bovendien de door
+> Jos verwijderde correct_inspection() terug. Herstel: migratie
+> **`20261012_fix_verify_drop_correction.sql`** (moet nog gedraaid). Les in
+> CLAUDE.md (landmijnen). Vertaalbewaking (dbErrors.test) controleert nu
+> alle meldingen uit alle migraties; 11 ontbrekende toegevoegd.
+>
+> Verder gevonden in de live test (nog niet gebouwd): maandnamen Nederlands
+> in de Engelse app; na "+ Add" klapt de volledige productlijst open;
+> "Bristol ·" met los puntje; "Chamber of Commerce no." (UK: Company
+> number); lange vrije artikelnaam afgekapt in de tabel; land van een
+> keurbedrijf nergens te wijzigen (alleen bij aanmaken).
+
 ## Voortgang (2026-10-03, bevindingen 1 t/m 7 opgelost)
 
 > Jos: "akkoord, los 1 t/m 7 op".
