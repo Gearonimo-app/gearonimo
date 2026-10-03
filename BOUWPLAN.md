@@ -430,7 +430,7 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 > Besluit Jos: artikelen op certificaat, Excel én QR-pagina eerst per
 > **gebruiker**, daarbinnen per **categorie**, daarbinnen per **merk** (a-b-c);
 > daarna artikelnaam en serienummer. Zonder gebruiker onderaan. De invultabel
-> in de keuring blijft in volgorde van invoer.
+> in de keuring blijft zoals hij was.
 >
 > Eén sortering (`packages/core/src/certOrder.ts`, met tests) in
 > `loadCertificateSource` -- dus PDF en Excel altijd gelijk. De volgorde wordt
@@ -438,6 +438,11 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 > die terug, dus ook QR = PDF. Oude certificaten houden hun oude volgorde
 > (gelijk aan hun PDF). Migratie **`20261014_certificate_item_order.sql`** --
 > eerst uitvoeren, dán live zetten.
+>
+> Migratie uitgevoerd door Jos. Getest met lokale build tegen de live database:
+> keuring met Anna/Tom/zonder gebruiker, gemengde merken -- Excel, PDF
+> (20261003-CLAUDE-TEST-3) en QR-pagina exact dezelfde volgorde; oude
+> certificaten -TEST en -TEST-2 op de QR-pagina ongewijzigd.
 
 ## Voortgang (2026-10-03, Engels rondje + vondsten live test opgelost)
 
