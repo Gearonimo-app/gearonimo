@@ -841,7 +841,7 @@ voorkomen.
 | inspection_id | FK → inspections | |
 | article_id | FK → articles | |
 | product_version_id | FK? → product_versions | productdata zoals op keuringsdatum |
-| article_snapshot | jsonb | kopie van artikelvelden op keuringsdatum (serienummer, gebruiker, …) — volledig onveranderlijk dossier |
+| article_snapshot | jsonb | kopie van artikelvelden op keuringsdatum (serienummer, gebruiker, …) — volledig onveranderlijk dossier. **Sinds 2026-10-08** ververst vlak vóór het certificaat (en vóór de Excel-export) via `refresh_inspection_snapshots()`, zolang de keuring niet is afgerond: correcties tijdens de keuring komen zo op het certificaat. `retired` in de momentopname bepaalt of het artikel op certificaat/Excel/QR-pagina staat: afgevoerd zonder afkeuring niet, afgekeurd én afgevoerd wel. |
 | result | text | `passed` / `rejected` / `not_assessed` |
 | next_due | date? | "volgende keuring uiterlijk" (maandprecisie) — bewust níet "goed tot": een keuring is een momentopname, geen garantie. Soms verloopt de levensduur vóór het interval; systeem stelt automatisch de vroegste voor van (keuringsdatum + interval) en (einde levensduur uit productdata: bouwjaar + max. leeftijd, of eerste gebruik + max. gebruiksduur); keurmeester kan handmatig aanpassen |
 | rejection_code_id | FK? → rejection_codes | |

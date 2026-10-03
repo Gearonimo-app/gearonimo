@@ -392,7 +392,8 @@
       "clearFlagPrompt": "Opmerking (bv. \"voldaan\" of \"valt niet binnen de batch\"):",
       "swlShort": "SWL",
       "ageWarningSoonShort": "Verloopt binnenkort",
-      "ageNoSeparateLimit": "geen aparte termijn"
+      "ageNoSeparateLimit": "geen aparte termijn",
+      "retiredBadge": "Afgevoerd"
     },
     "deleteDraft": "Concept verwijderen",
     "deleteDraftConfirm": "Concept van {name} ({date}) definitief verwijderen, inclusief de ingevulde resultaten? De artikelen van de klant blijven bestaan.",

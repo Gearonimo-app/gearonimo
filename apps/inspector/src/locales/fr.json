@@ -391,7 +391,8 @@
       "othersActiveConfirm": "{names} travaille(nt) aussi encore sur ce contrôle. Voulez-vous vraiment terminer ?",
       "swlShort": "CMU",
       "ageWarningSoonShort": "Expire bientôt",
-      "ageNoSeparateLimit": "pas de limite distincte"
+      "ageNoSeparateLimit": "pas de limite distincte",
+      "retiredBadge": "Retiré"
     },
     "deleteDraft": "Supprimer le brouillon",
     "deleteDraftConfirm": "Supprimer définitivement le brouillon de {name} ({date}), y compris les résultats saisis ? Les articles du client restent conservés.",

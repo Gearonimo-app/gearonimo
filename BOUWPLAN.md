@@ -425,6 +425,29 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, momentopname bij afronden + afgevoerd van het certificaat)
+
+> - **Correcties kwamen niet op het certificaat**: de momentopname
+>   (`inspection_items.article_snapshot`) werd alleen bij het toevoegen gezet.
+>   Nu ververst de app hem vlak vóór certificaat en Excel
+>   (`refresh_inspection_snapshots`, alleen bij een open keuring; een
+>   afgeronde keuring blijft onveranderlijk).
+> - **Afgevoerd** (Jos: "hoeft niet meer op het certificaat, ook niet in de
+>   Excel"): afgevoerd zonder afkeuring valt weg van certificaat, Excel,
+>   QR-pagina, tabel en tellers. Afgekeurd én afgevoerd blijft wél (LOLER
+>   §8, Jos: "handig"), in de tabel grijs met "Afgevoerd", knoppen dicht.
+>   Bepaald door `retired` in de momentopname, zodat later afvoeren een oud
+>   certificaat/QR-pagina nooit verandert.
+> - Migratie **`20261008_snapshot_at_completion.sql`** moet vóór de push
+>   naar main gedraaid zijn (de app roept de nieuwe functie aan).
+> - Getest met nepdata: afgevoerd+goed weg, afgevoerd+fout blijft,
+>   verversen alleen bij open keuring. Niet getest tegen de live database.
+>
+> Bijvangst, nog niet gebouwd: de planning "binnenkort keuren"
+> (offline/download.ts) telt ook keurdatums van afgevoerde artikelen mee.
+> `correct_inspection()` neemt exam_type/approval_code_id niet mee (functie
+> wordt door de app niet gebruikt).
+
 ## Voortgang (2026-10-02, Excel = certificaat + controle keuringsroute)
 
 > Jos: "ik vond de Excel-export heftig om zo achter te komen ... goed en

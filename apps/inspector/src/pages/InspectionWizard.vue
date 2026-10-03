@@ -383,7 +383,7 @@
                 <tr v-if="row.isFirstInGroup" class="iw__group-head-row">
                   <td colspan="12">🔗 {{ row.groupName }}</td>
                 </tr>
-                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id, 'iw__row--grouped': !!articleSetInfo[row.it.article_id] }">
+                <tr :id="'iw-row-' + row.it.id" :class="{ 'iw__row--rejected': row.it.result === 'rejected', 'iw__row--passed': row.it.result === 'passed', 'iw__row--highlight': highlightId === row.it.id, 'iw__row--grouped': !!articleSetInfo[row.it.article_id], 'iw__row--retired': row.it.article.retired }">
                   <td class="iw__warn-cell">
                     <!-- Levensduur-waarschuwing (⛔/⚠) staat bewust alléén naast het
                          bouwjaar (zie iw__year-cell), niet ook nog eens vooraan de rij. -->
@@ -472,6 +472,9 @@
                     <span>{{ row.brand || '—' }}</span>
                   </td>
                   <td class="iw__match-cell" :data-label="$t('inspections.table.colDescription')">
+                    <!-- Afgekeurd en daarna afgevoerd: blijft zichtbaar (staat op het
+                         certificaat), grijs met dit label (Jos, 2026-10-03). -->
+                    <span v-if="row.it.article.retired" class="iw__retired-badge">{{ $t('inspections.table.retiredBadge') }}</span>
                     <template v-if="matchingRowId === row.it.id">
                       <input
                         v-model="matchSearch"
@@ -583,11 +586,13 @@
                       <button
                         class="iw__result-btn iw__result-btn--pass"
                         :class="{ 'iw__result-btn--active': row.it.result === 'passed' }"
+                        :disabled="row.it.article.retired"
                         @click="setResult(row.it, 'passed')"
                       >✅ {{ $t('inspections.table.pass') }}</button>
                       <button
                         class="iw__result-btn iw__result-btn--fail"
                         :class="{ 'iw__result-btn--active': row.it.result === 'rejected' }"
+                        :disabled="row.it.article.retired"
                         @click="setResult(row.it, 'rejected')"
                       >❌ {{ $t('inspections.table.fail') }}</button>
                       <select v-if="row.it.result === 'rejected'" v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
@@ -647,7 +652,7 @@
                       :title="$t('sets.addPart.selectTitle')"
                       @change="toggleLinkSelect(row.it)"
                     />
-                    <button class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
+                    <button v-if="!row.it.article.retired" class="iw__retire-btn" :title="$t('articles.detail.retire')" @click="retireArticle(row.it)">🗑</button>
                   </td>
                 </tr>
                 <!-- Opmerking uit de catalogus: altijd in beeld (Jos
@@ -1851,10 +1856,10 @@ async function exportInspectionCsv() {
   }
 }
 
-// Zelfde tellingen als het certificaat (goed/fout: alle beoordeelde regels)
-// en als de waarschuwing bij Afronden (open: niet beoordeeld en niet
-// afgevoerd). Telde eerst ook afgevoerde, onzichtbare artikelen als "open".
-const passedCount = computed(() => items.value.filter(i => i.result === 'passed').length)
+// Zelfde tellingen als het certificaat en als de waarschuwing bij Afronden:
+// afgevoerd telt niet mee, behalve afgekeurd-en-afgevoerd (staat op het
+// certificaat). Telde eerst ook afgevoerde, onzichtbare artikelen als "open".
+const passedCount = computed(() => items.value.filter(i => i.result === 'passed' && !i.article.retired).length)
 const rejectedCount = computed(() => items.value.filter(i => i.result === 'rejected').length)
 const notAssessedCount = computed(() => items.value.filter(i => i.result === 'not_assessed' && !i.article.retired).length)
 
@@ -2058,6 +2063,13 @@ function matchScore(it: Item): number {
   return 3
 }
 
+// Afgevoerd valt weg, tenzij het in deze keuring is afgekeurd: dat staat op
+// het certificaat en moet dus ook hier te zien zijn (Jos, 2026-10-03; zelfde
+// regel als onCertificate in useCertificate.ts).
+function isVisibleInTable(it: Item): boolean {
+  return !it.article.retired || it.result === 'rejected'
+}
+
 function toRow(it: Item): Row {
   const y = it.article.manufacture_year
   return {
@@ -2074,7 +2086,7 @@ function toRow(it: Item): Row {
 
 const rows = computed<Row[]>(() =>
   items.value
-    .filter((it) => !it.article.retired && (!hasFilter.value || matchesFilters(it)))
+    .filter((it) => isVisibleInTable(it) && (!hasFilter.value || matchesFilters(it)))
     .map(toRow)
 )
 
@@ -3159,6 +3171,12 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
    goed/afgekeurd-achtergrond overschrijven (gelijke CSS-specificiteit, deze
    regel staat later in het stylesheet). */
 .iw__row--grouped { box-shadow: inset 3px 0 0 0 #93c5fd; }
+.iw__row--retired { background: #f3f4f6; color: #6b7280; }
+.iw__row--retired .iw__result-btn { opacity: 0.6; cursor: not-allowed; }
+.iw__retired-badge {
+  display: inline-block; margin-bottom: 0.25rem; padding: 0.1rem 0.45rem; border-radius: 6px;
+  background: #e5e7eb; color: #374151; font-size: 0.75rem; font-weight: 600;
+}
 .iw__set-flag { margin-left: 0.3rem; font-size: 0.85rem; opacity: 0.8; }
 /* Zacht/transparant i.p.v. een volle, felle balk (feedback Jos 2026-07-11:
    "schreeuwt van de daken, doet pijn aan de ogen") -- zelfde subtiele tint

@@ -1089,7 +1089,7 @@ async function loadCertificateSource(inspectionId: string) {
       // rechtstreekse FK hier, én via inspection_items als bridge-tabel) en
       // weigert dan met "more than one relationship was found" -- precies de
       // fout die "Afronden" liet mislukken (Jos, 2026-09-14).
-      'id, customer_id, company_id, inspector_id, inspection_date, location, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout, default_interval_ppe_months, default_interval_rigging_months), inspector:inspectors!inspector_id(name, signature_path)'
+      'id, customer_id, company_id, inspector_id, inspection_date, location, status, customer:customers(name, street, house_number, house_number_addition, postal_code, city, province), company:inspection_companies(name, country_code, address, postal_code, city, province, email, phone, registration_number, vat_number, cert_header, cert_footer, logo_path, cert_layout, default_interval_ppe_months, default_interval_rigging_months), inspector:inspectors!inspector_id(name, signature_path)'
     )
     .eq('id', inspectionId)
     .single()
@@ -1100,6 +1100,7 @@ async function loadCertificateSource(inspectionId: string) {
     company_id: string
     inspection_date: string
     location: string | null
+    status: string
     customer: {
       name: string
       street: string | null
@@ -1116,6 +1117,17 @@ async function loadCertificateSource(inspectionId: string) {
   // vertalen -- zelfde regel als de rest van de vaste PDF-teksten.
   const certLanguage = certLanguageForCountry(inspection.company.country_code)
   const L = CERT_LABELS[certLanguage]
+
+  // Momentopname verversen zolang de keuring nog open is (migratie
+  // 20261008): correcties in de tabel (serienummer, bouwjaar, gebruiker) en
+  // "afgevoerd" moeten op het certificaat komen, niet de stand van toen het
+  // artikel werd toegevoegd. Een afgeronde keuring blijft zoals hij was --
+  // de database weigert dat ook. Mislukt dit, dan stopt alles: liever geen
+  // certificaat dan een met oude gegevens.
+  if (inspection.status !== 'completed') {
+    const { error: snapErr } = await supabase.rpc('refresh_inspection_snapshots', { p_inspection_id: inspectionId })
+    if (snapErr) throw snapErr
+  }
 
   const { data: rows, error: itemsErr } = await supabase
     .from('inspection_items')
@@ -1189,6 +1201,7 @@ async function loadCertificateSource(inspectionId: string) {
       manufacture_year?: number | null
       manufacture_month?: number | null
       assigned_user_name?: string | null
+      retired?: boolean | null
     } | null
     article: {
       serial_number: string | null
@@ -1214,7 +1227,15 @@ async function loadCertificateSource(inspectionId: string) {
     rejection_code: { label: string } | null
     approval_code: { label: string } | null
   }
-  const items: CertItem[] = ((rows ?? []) as unknown as ItemRow[]).filter((r) => r.result !== 'not_assessed').map((r) => {
+  // Op het certificaat: alles wat beoordeeld is, behalve wat afgevoerd is
+  // zonder afkeuring (Jos, 2026-10-03). Afgekeurd én afgevoerd blijft staan:
+  // elk gevonden gebrek hoort op het rapport (LOLER Schedule 1 §8). "Afgevoerd"
+  // komt uit de momentopname, niet uit het live artikel -- zelfde regel als
+  // verify_certificate(), zodat PDF, Excel en QR-pagina altijd gelijk zijn.
+  const onCertificate = (r: ItemRow) =>
+    r.result !== 'not_assessed' && !(r.article_snapshot?.retired === true && r.result !== 'rejected')
+  const certRows = ((rows ?? []) as unknown as ItemRow[]).filter(onCertificate)
+  const items: CertItem[] = certRows.map((r) => {
     // Snapshot eerst, live artikel als vangnet -- ook per veld: een lege
     // waarde in de snapshot overschrijft geen gevulde live waarde. Nodig voor
     // een artikel dat bij het keuren aan een catalogusproduct hing (free_* in
@@ -1274,8 +1295,7 @@ async function loadCertificateSource(inspectionId: string) {
   // keuring van vóór 2026-09-13), dan blijft dit leeg en valt de opmaak terug
   // op alleen `inspectorName`.
   const assessedByNames: string[] = []
-  for (const r of (rows ?? []) as unknown as ItemRow[]) {
-    if (r.result === 'not_assessed') continue
+  for (const r of certRows) {
     const name = r.item_inspector?.name
     if (name && !assessedByNames.includes(name)) assessedByNames.push(name)
   }
