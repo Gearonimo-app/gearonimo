@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { supabase, CATEGORIES, fetchAllRows, getRegime, isInspectedType, sortCertItems, type ProductType, type CountryCode } from '@gearonimo/core'
+import { supabase, CATEGORIES, fetchAllRows, getRegime, isInspectedType, sortCertItems, languageForCountry, type CompanyLanguage, type ProductType, type CountryCode } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
 import nlLocale from '../locales/nl.json'
 import enLocale from '../locales/en.json'
@@ -193,17 +193,11 @@ export interface CertData {
   language?: CertLanguage
 }
 
-export type CertLanguage = 'nl' | 'en' | 'fr' | 'de'
+export type CertLanguage = CompanyLanguage
 
-// Zelfde tabel staat in SQL als public.locale_for_country() (taal van de
-// herinneringsmail, migratie 20261010) -- wijzig je de één, wijzig dan de ander.
-export function certLanguageForCountry(countryCode: string | null): CertLanguage {
-  const c = countryCode ?? 'NL'
-  if (['NL', 'BE'].includes(c)) return 'nl'
-  if (c === 'FR') return 'fr'
-  if (['DE', 'AT', 'CH'].includes(c)) return 'de'
-  return 'en'
-}
+// Gedeelde regel land → taal (packages/core/src/language.ts); onder deze
+// naam bewaard voor de bestaande aanroepen.
+export const certLanguageForCountry = languageForCountry
 
 // Vertaling van de `category`-code (products.category, vaste lijst sinds
 // 2026-09-10, zie CATEGORIES in packages/core) naar het certificaat-label.

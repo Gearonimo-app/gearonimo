@@ -425,6 +425,19 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, standaard afkeurcodes in de taal van het land)
+
+> Gevonden bij de voorbereiding van de Engelse demovideo (gemist in het
+> Engelse rondje): de standaard afkeurcodes bestonden alleen in het
+> Nederlands, dus een Engels keurbedrijf kreeg Nederlandse codes in de keuring
+> én op het certificaat ("Leeftijd of label" op 20261003-CLAUDE-TEST-2).
+> Opgelost (Jos: "bouw de afkeurcodes"): standaard in nl/en/fr/de; een nieuw
+> keurbedrijf krijgt automatisch de set in de taal van zijn land; bestaande
+> bedrijven zonder eigen codes worden aangevuld; bedrijven mét eigen codes
+> blijven ongemoeid. Land → taal is nu één gedeelde regel
+> (`packages/core/src/language.ts`). Migratie
+> **`20261015_rejection_codes_language.sql`**.
+
 ## Voortgang (2026-10-03, "Alleen nieuwe" weg)
 
 > Besluit Jos: bij het starten of aanvullen van een keuring alleen nog

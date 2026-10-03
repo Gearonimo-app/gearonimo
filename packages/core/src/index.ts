@@ -11,5 +11,6 @@ export * from "./fetchAll";
 export * from "./dbErrors";
 export * from "./rpcAll";
 export * from "./certOrder";
+export * from "./language";
 export * from "./useOnline";
 export * from "./offline";

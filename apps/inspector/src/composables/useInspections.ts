@@ -26,6 +26,7 @@ import {
   fetchAllRowsIn,
   insertInChunks,
   toIsoDate,
+  languageForCountry,
 } from '@gearonimo/core'
 
 export interface Inspector {
@@ -538,14 +539,25 @@ export async function fetchRejectionCodes(companyId: string): Promise<{ id: stri
       .map((r) => ({ id: r.id, code: r.code, label: r.label }))
   }
 
-  const platform = await supabase
+  return (await fetchPlatformRejectionCodes(companyId))
+    .filter((r) => r.active)
+    .map((r) => ({ id: r.id, code: r.code, label: r.label }))
+}
+
+// De platformstandaard in de taal van het land van het keurbedrijf (migratie
+// 20261015) -- anders kreeg een Engels bedrijf Nederlandse afkeurcodes. Ook de
+// bron voor de eigen kopie die het instellingenscherm aanmaakt.
+export async function fetchPlatformRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null; active: boolean }[]> {
+  const company = await supabase.from('inspection_companies').select('country_code').eq('id', companyId).single()
+  if (company.error) throw company.error
+  const { data, error } = await supabase
     .from('rejection_codes')
-    .select('id, code, label')
-    .eq('active', true)
+    .select('id, code, label, active')
     .is('company_id', null)
+    .eq('language', languageForCountry(company.data.country_code))
     .order('code')
-  if (platform.error) throw platform.error
-  return (platform.data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
+  if (error) throw error
+  return data ?? []
 }
 
 // Goedkeuringscodes (Jos, 2026-09-30): zelfde opzet als afkeurcodes hierboven,

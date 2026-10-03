@@ -77,7 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
-import { ensureInspector } from '../composables/useInspections'
+import { ensureInspector, fetchPlatformRejectionCodes } from '../composables/useInspections'
 
 const { t } = useI18n()
 
@@ -127,14 +127,11 @@ async function fetchOwn(): Promise<Code[]> {
 // (company_id leeg). Vanaf dat moment beheert het bedrijf alléén zijn eigen
 // set — wijzigingen raken geen ander keurbedrijf. (Bestaande bedrijven worden
 // al door de migratie geseed; dit vangt bedrijven op die daarna ontstaan.)
+// Sinds 20261015 doet de database dit al bij het aanmaken van het bedrijf, in
+// de taal van zijn land; dit blijft als vangnet, met dezelfde taalkeuze.
 async function seedFromPlatform() {
-  const { data, error: err } = await supabase
-    .from('rejection_codes')
-    .select('code, label, active')
-    .is('company_id', null)
-    .order('code')
-  if (err) throw err
-  const rows = (data ?? []).map((r) => ({ company_id: companyId.value, ...r }))
+  const platform = await fetchPlatformRejectionCodes(companyId.value)
+  const rows = platform.map((r) => ({ company_id: companyId.value, code: r.code, label: r.label, active: r.active }))
   if (rows.length) {
     const { error: insErr } = await supabase.from('rejection_codes').insert(rows)
     if (insErr) throw insErr

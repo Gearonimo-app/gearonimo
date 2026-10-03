@@ -544,6 +544,13 @@ voorschrijft, gewoon een termijn.
 | label_key | text? | i18n-sleutel voor standaardcodes |
 | label | text? | vrije tekst voor eigen codes |
 | active | boolean | |
+| language | text? | taal van een platformstandaard-rij (nl/en/fr/de, migratie `20261015`); leeg bij eigen codes |
+
+> **Per taal (2026-10-03, migratie `20261015`):** de platformstandaard bestaat
+> in nl/en/fr/de. Een nieuw keurbedrijf krijgt bij het aanmaken (trigger op
+> `inspection_companies`) een eigen kopie in de taal van zijn land
+> (`locale_for_country`, gelijk aan `languageForCountry` in core). `label_key`
+> wordt niet gebruikt.
 
 > **Implementatie fase 2.5 (2026-06-25):** de 8 codes zijn ingevuld als
 > platformstandaard (`company_id = null`), aangeleverd door Jos uit de
