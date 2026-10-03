@@ -44,7 +44,7 @@
           autocapitalize="characters"
           spellcheck="false"
           class="lg__input lg__input--code"
-          placeholder="bv. 3F8A2C1D"
+          :placeholder="$t('joinInspector.codePlaceholder')"
         />
 
         <p v-if="error" class="lg__error">{{ error }}</p>

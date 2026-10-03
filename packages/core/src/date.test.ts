@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate } from "./date";
+import { formatDate, monthName } from "./date";
 
 // Datumnorm per land (Jos, 2026-10-02): "en" mag nooit de Amerikaanse
 // volgorde (maand eerst) opleveren.
@@ -16,5 +16,13 @@ describe("formatDate", () => {
   });
   it("een code mét regio blijft staan", () => {
     expect(formatDate(d, "en-GB")).toBe("2 April 2027");
+  });
+});
+
+describe("monthName", () => {
+  it("in de app-taal, nooit vast Nederlands", () => {
+    expect([3, 5, 10].map((m) => monthName(m, "en"))).toEqual(["Mar", "May", "Oct"]);
+    expect([3, 5, 10].map((m) => monthName(m, "nl"))).toEqual(["mrt", "mei", "okt"]);
+    expect(monthName(3, "en", "long")).toBe("March");
   });
 });

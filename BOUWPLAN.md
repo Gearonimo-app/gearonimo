@@ -425,6 +425,35 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, Engels rondje + vondsten live test opgelost)
+
+> Engels rondje (Testbedrijf op GB gezet door Jos): termijnen 6 mnd PBM /
+> 12 mnd rigging, afgekeurd+afgevoerd touw grijs in de tabel en op
+> certificaat, Excel en QR-pagina; alles Engels met Britse datums.
+> QR-pagina na herstel 20261012 weer in orde (gecontroleerd als buitenstaander).
+>
+> Opgelost (Jos: "doe je ding"), getest op een lokale build tegen de live
+> database met het testaccount:
+> 1. Maandnamen in de app-taal (gedeelde `monthName` in core/date.ts; ook
+>    SN-zoeken) -- was vast Nederlands (mrt/mei/okt).
+> 2. Geen productlijst meer onder een leeg Article-veld na "+ Add" (wel als
+>    merk of categorie al ingevuld is) -- keuring en Klantartikelen.
+> 3. Klantenlijst zonder losse " ·" bij ontbrekend telefoonnummer.
+> 4. EN: "Company registration no." i.p.v. "Chamber of Commerce no." (beide apps).
+> 5. Land van een keurbedrijf wijzigen in Bedrijven (platformbeheerder),
+>    migratie **`20261013_platform_admin_set_company_country.sql`**.
+> 6. Lange naam van een vrij artikel groeit mee in de tabel (gemeten hoogte);
+>    serienummerveld breder (werd afgekapt).
+> Bijvangst: Nederlandse placeholders "JJJJ" (jaar) en "bv. 3F8A2C1D"
+> (aanmelden keurmeester) vertaald; oude CSS-regel die het "Retired"-label
+> half doorzichtig maakte verwijderd.
+>
+> Nog open (voorstel): "Alleen nieuw" telt een artikel dat alleen als
+> niet-beoordeeld op een keuring stond als al gekeurd; volgorde van artikelen
+> op de QR-pagina wijkt af van het certificaat; volgorde van artikelen bij
+> "Alles" volgt het interne id i.p.v. iets logisch. Testdata: klant "Claude
+> Test" met 2 afgeronde keuringen en 1 concept in Testbedrijf.
+
 ## Voortgang (2026-10-03, live test met testaccount + HERSTEL QR-pagina)
 
 > Eerste test in de echte app (testaccount claudetest@jklm.email,

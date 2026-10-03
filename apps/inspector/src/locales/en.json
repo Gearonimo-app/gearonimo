@@ -75,7 +75,7 @@
     "fields": {
       "name": "Company name *",
       "customerNumber": "Customer number",
-      "kvk": "Chamber of Commerce no.",
+      "kvk": "Company registration no.",
       "vat": "VAT number",
       "contactPerson": "Contact person",
       "email": "Email *",
@@ -254,7 +254,8 @@
     "confirmEmailSent": "Check your email — click the confirmation link and come back here to continue.",
     "doneMessage": "Done! Your account is linked to {company}.",
     "continue": "Continue",
-    "backToLogin": "Back to sign in"
+    "backToLogin": "Back to sign in",
+    "codePlaceholder": "e.g. 3F8A2C1D"
   },
   "inspections": {
     "newTitle": "New inspection",
@@ -930,7 +931,9 @@
         "nameRequired": "Name is required.",
         "emailRequired": "Email address is required.",
         "passwordTooShort": "Password must be at least 8 characters."
-      }
+      },
+      "countrySave": "Save country",
+      "countryNote": "Sets the certificate and reminder email language and the statutory inspection intervals for new inspections. Existing certificates do not change."
     },
     "security": {
       "menuTitle": "Password",

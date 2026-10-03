@@ -402,7 +402,13 @@ const {
   scrollToActive: true,
   resolve: (field) => {
     switch (field) {
-      case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
+      // Leeg veld zonder merk/categorie: geen lijst. Anders klapte na "+ Add"
+      // (focus terug op dit veld) meteen de halve catalogus open (live test
+      // 2026-10-03). Met merk of categorie ingevuld blijft bladeren mogelijk.
+      case 'article':
+        return newDescription.value.trim() || newBrand.value.trim() || newCategory.value.trim()
+          ? suggestFilter(matchingArticleLabels.value, newDescription.value)
+          : []
       case 'brand': return suggestFilter(allBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'user': return suggestFilter(memberNames.value, form.value.assigned_user_name)

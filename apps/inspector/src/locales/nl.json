@@ -254,7 +254,8 @@
     "confirmEmailSent": "Check je e-mail — klik op de bevestigingslink en kom hierna terug om verder te gaan.",
     "doneMessage": "Gelukt! Je account is gekoppeld aan {company}.",
     "continue": "Verder",
-    "backToLogin": "Terug naar inloggen"
+    "backToLogin": "Terug naar inloggen",
+    "codePlaceholder": "bv. 3F8A2C1D"
   },
   "inspections": {
     "newTitle": "Nieuwe keuring",
@@ -930,7 +931,9 @@
         "nameRequired": "Naam is verplicht.",
         "emailRequired": "E-mailadres is verplicht.",
         "passwordTooShort": "Wachtwoord moet minstens 8 tekens zijn."
-      }
+      },
+      "countrySave": "Land opslaan",
+      "countryNote": "Bepaalt de taal van certificaat en herinneringsmail en de wettelijke keurtermijnen voor nieuwe keuringen. Bestaande certificaten veranderen niet."
     },
     "security": {
       "menuTitle": "Wachtwoord",

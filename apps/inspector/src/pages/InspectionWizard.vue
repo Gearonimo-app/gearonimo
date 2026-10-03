@@ -498,12 +498,18 @@
                       </div>
                     </template>
                     <template v-else-if="!row.it.article.product">
-                      <input
+                      <!-- Meerdere regels i.p.v. één afgekapte regel ("Custom rigg",
+                           live test 2026-10-03); Enter maakt geen nieuwe regel. -->
+                      <textarea
                         v-model="row.it.article.free_description"
-                        class="iw__cell-input"
+                        class="iw__cell-input iw__cell-textarea"
+                        rows="1"
+                        :ref="autoGrow"
                         :placeholder="$t('inspections.table.description')"
+                        @input="autoGrow($event.target)"
+                        @keydown.enter.prevent
                         @change="saveArticle(row.it)"
-                      />
+                      ></textarea>
                       <button
                         type="button"
                         class="iw__icon-btn iw__match-icon-btn"
@@ -529,7 +535,7 @@
                   <td :data-label="$t('inspections.table.colSerial')">
                     <input
                       v-model="row.it.article.serial_number"
-                      class="iw__cell-input"
+                      class="iw__cell-input iw__cell-input--sn"
                       :placeholder="$t('inspections.table.serial')"
                       @change="saveArticle(row.it)"
                     />
@@ -547,7 +553,7 @@
                       v-model.number="row.it.article.manufacture_year"
                       type="number"
                       class="iw__cell-input iw__cell-input--xs"
-                      placeholder="JJJJ"
+                      :placeholder="$t('inspections.table.year')"
                       @change="saveArticle(row.it)"
                     />
                     <select v-model.number="row.it.article.manufacture_month" class="iw__month-select" @change="saveArticle(row.it)">
@@ -748,6 +754,7 @@ import {
   isUnlimitedAge,
   toIsoDate,
   formatDate as sharedFormatDate,
+  monthName as sharedMonthName,
   findProductByBarcode,
   isValidGtin,
   type ProductType,
@@ -1293,7 +1300,13 @@ const {
   scrollToActive: true,
   resolve: (field) => {
     switch (field) {
-      case 'article': return suggestFilter(matchingArticleLabels.value, newDescription.value)
+      // Leeg veld zonder merk/categorie: geen lijst. Anders klapte na "+ Add"
+      // (focus terug op dit veld) meteen de halve catalogus open (live test
+      // 2026-10-03). Met merk of categorie ingevuld blijft bladeren mogelijk.
+      case 'article':
+        return newDescription.value.trim() || newBrand.value.trim() || newCategory.value.trim()
+          ? suggestFilter(matchingArticleLabels.value, newDescription.value)
+          : []
       case 'brand': return suggestFilter(matchingBrands.value, newBrand.value)
       case 'category': return suggestFilter(matchingCategories.value, newCategory.value)
       case 'serial': return [] // Serienummer heeft een eigen dropdown (snResults)
@@ -1426,8 +1439,21 @@ function copyLastArticle() {
 const dayHint = ref<number | null>(null)
 const showSnRef = ref(false)
 const weekHint = ref<number | null>(null)
-const MONTH_NAMES_NL = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
-function monthName(m: number) { return MONTH_NAMES_NL[m - 1] }
+// Tekstveld precies zo hoog als zijn inhoud (gemeten, niet geschat: een
+// schatting op tekens kapte de laatste regel af in de smalle tabelcel).
+// Na de volgende tekenronde meten: als ref-callback draait dit vóórdat de
+// tekst (v-model) en de opmaak er zijn, en dan is scrollHeight nog te klein.
+function autoGrow(el: unknown) {
+  if (!(el instanceof HTMLTextAreaElement)) return
+  requestAnimationFrame(() => {
+    el.style.height = 'auto'
+    // + de rand: met box-sizing border-box telt die mee in de hoogte.
+    el.style.height = el.scrollHeight + (el.offsetHeight - el.clientHeight) + 'px'
+  })
+}
+
+// Maandnaam in de app-taal (was een vaste Nederlandse lijst).
+function monthName(m: number) { return sharedMonthName(m, locale.value) }
 const dayHintMonth = computed<number | null>(() => {
   const d = dayHint.value
   if (!d || d < 1 || d > 366) return null
@@ -3283,7 +3309,6 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
   padding: 0.6rem 0.85rem; margin-bottom: 0.5rem; font-size: 0.9rem;
 }
 .iw__link-cancel { border: none; background: none; color: #1e40af; cursor: pointer; font-size: 1rem; margin-left: auto; }
-.iw__retired-badge { opacity: 0.5; }
 .iw__date-input { padding: 0.4rem 0.6rem; border-radius: 6px; border: 1px solid #ddd; }
 .iw__cell-input {
   padding: 0.4rem 0.5rem; border-radius: 6px; border: 1px solid transparent;
@@ -3293,6 +3318,9 @@ watch(useOfflineSession().isUnlocked, (unlocked) => {
 .iw__cell-input:hover { border-color: #ddd; }
 .iw__cell-input:focus { border-color: #16a34a; background: #fff; outline: none; }
 .iw__cell-input--xs { min-width: 4rem; width: 4.5rem; }
+.iw__cell-textarea { resize: none; overflow: hidden; line-height: 1.3; display: block; }
+/* Serienummers als 22D12341234 volledig zichtbaar (werd afgekapt, live test 2026-10-03). */
+.iw__cell-input--sn { min-width: 9.5rem; }
 .iw__year-cell { white-space: nowrap; }
 
 .iw__error { color: #dc2626; font-size: 0.9rem; margin: 0.5rem 0; }

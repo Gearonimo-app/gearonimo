@@ -75,6 +75,21 @@
       <button class="ca__back" @click="deselect">← {{ $t('settings.companies.backToList') }}</button>
       <h2 class="ca__title">{{ selected.name }}</h2>
 
+      <!-- Land wijzigen (live test 2026-10-03: kon alleen bij aanmaken). Bepaalt
+           certificaattaal, mailtaal en wettelijke termijnen van NIEUWE keuringen. -->
+      <div class="ca__country">
+        <label class="ca__field ca__field--grow"><span>{{ $t('settings.companies.fields.country') }}</span>
+          <select v-model="countryEdit" class="ca__input">
+            <option v-for="c in COUNTRY_OPTIONS" :key="c" :value="c">{{ countryName(c) }}</option>
+          </select>
+        </label>
+        <button class="ca__btn ca__btn--save ca__country-save" :disabled="countrySaving || countryEdit === selected.country_code" @click="saveCountry">
+          {{ countrySaving ? $t('common.saving') : $t('settings.companies.countrySave') }}
+        </button>
+      </div>
+      <p class="ca__country-note">{{ $t('settings.companies.countryNote') }}</p>
+      <p v-if="countryError" class="ca__error">{{ countryError }}</p>
+
       <div v-if="inspLoading" class="ca__state">{{ $t('common.loading') }}</div>
       <ul v-else class="ca__list">
         <li v-for="i in inspectors" :key="i.id" class="ca__item ca__item--static ca__item--col">
@@ -304,8 +319,28 @@ async function createCompany() {
   }
 }
 
+const countryEdit = ref('')
+const countrySaving = ref(false)
+const countryError = ref('')
+async function saveCountry() {
+  if (!selected.value) return
+  countrySaving.value = true
+  countryError.value = ''
+  const { error: err } = await supabase.rpc('platform_admin_set_company_country', {
+    p_company_id: selected.value.id,
+    p_country_code: countryEdit.value,
+  })
+  countrySaving.value = false
+  if (err) { countryError.value = errorMessage(err); return }
+  selected.value.country_code = countryEdit.value
+  const inList = companies.value.find((c) => c.id === selected.value!.id)
+  if (inList) inList.country_code = countryEdit.value
+}
+
 async function select(c: Company) {
   selected.value = c
+  countryEdit.value = c.country_code
+  countryError.value = ''
   linkForm.email = ''
   linkForm.is_admin = true
   linkError.value = ''
@@ -547,6 +582,9 @@ onMounted(load)
 .ca__field > span { font-size: 0.8rem; color: #374151; font-weight: 600; }
 .ca__field--grow { flex: 1; }
 .ca__row { display: flex; gap: 0.6rem; }
+.ca__country { display: flex; gap: 0.6rem; align-items: flex-end; margin: 0.5rem 0 0.25rem; }
+.ca__country-save { flex: 0 0 auto; padding: 0.65rem 1.1rem; }
+.ca__country-note { margin: 0 0 1rem; font-size: 0.8rem; color: #6b7280; }
 .ca__input { padding: 0.65rem 0.75rem; border-radius: 8px; border: 1px solid #ddd; font-size: 0.95rem; width: 100%; box-sizing: border-box; font-family: inherit; }
 .ca__check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; }
 .ca__error { color: #dc2626; font-size: 0.9rem; margin: 0; }

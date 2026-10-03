@@ -209,7 +209,7 @@ import AppHeader from '../components/AppHeader.vue'
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage, fetchAllRows, inspectorVisibleArticles } from '@gearonimo/core'
+import { supabase, errorMessage, fetchAllRows, inspectorVisibleArticles, monthName as sharedMonthName } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter } from '@gearonimo/ui'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
 
@@ -270,7 +270,7 @@ function label(r: Row) {
   return s || categoryLabel(r.product?.category) || r.free_category || t('articles.untitled')
 }
 function monthName(m: number) {
-  return new Intl.DateTimeFormat(locale.value, { month: 'long' }).format(new Date(2000, m - 1, 1))
+  return sharedMonthName(m, locale.value, 'long')
 }
 function manufactureStr(r: Row) {
   if (!r.manufacture_year) return '—'

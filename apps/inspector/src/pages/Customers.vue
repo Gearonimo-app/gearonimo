@@ -25,7 +25,8 @@
         @click="$router.push(`/customers/${c.id}`)"
       >
         <div class="customers__name">{{ c.name }}</div>
-        <div class="customers__meta">{{ c.city }} · {{ c.phone }}</div>
+        <!-- Alleen wat er is, zonder losse punt ("Bristol ·" bij geen telefoon). -->
+        <div class="customers__meta">{{ [c.city, c.phone].filter(Boolean).join(' · ') }}</div>
         <span class="customers__arrow">›</span>
       </li>
     </ul>

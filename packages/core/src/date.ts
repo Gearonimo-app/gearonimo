@@ -49,3 +49,12 @@ const DATE_REGION: Record<string, string> = { en: "en-GB", nl: "nl-NL", de: "de-
 export function dateLocale(locale: string): string {
   return DATE_REGION[locale] ?? locale;
 }
+
+/**
+ * Naam van maand 1-12 in de app-taal ("Mar", "mrt", "Mär", "mars").
+ * Stond als vaste Nederlandse lijst in de keuring, waardoor de Engelse app
+ * "mrt", "mei" en "okt" toonde (live test 2026-10-03).
+ */
+export function monthName(month: number, locale: string, width: "short" | "long" = "short"): string {
+  return new Intl.DateTimeFormat(dateLocale(locale), { month: width }).format(new Date(2000, month - 1, 1));
+}
