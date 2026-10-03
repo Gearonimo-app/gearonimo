@@ -303,10 +303,10 @@ export interface QuickSelectCustomer {
  *
  * "Deze week" = klanten met een artikel waarvan de LAATSTE afgeronde keuring
  * een volgende keurdatum binnen 14 dagen (of al verlopen) heeft. Zelfde regels
- * als upcoming_reinspections_count() en de herinneringsmail (Jos, 2026-10-03):
+ * als my_articles() en de herinneringsmail (Jos, 2026-10-03):
  * afgevoerde artikelen tellen niet mee, en een oude keurdatum die door een
- * nieuwere keuring is opgevolgd ook niet (laatste = keurdatum, bij gelijke
- * dag completed_at). Gepagineerd: Supabase kapt anders stil af op 1000 rijen. */
+ * nieuwere keuring is opgevolgd ook niet (laatste beoordeelde regel = keurdatum,
+ * bij gelijke dag completed_at). Gepagineerd: Supabase kapt anders stil af op 1000 rijen. */
 export async function fetchQuickSelectCustomers(
   ctx: InspectorContext,
   kind: "today" | "week"
@@ -368,6 +368,10 @@ export async function fetchQuickSelectCustomers(
         .from("inspection_items")
         .select("id, article_id, next_due, inspections!inner(inspection_date, completed_at, company_id, status, customers(id, name))")
         .in("article_id", chunk)
+        // Alleen echt beoordeelde regels, zoals my_articles en de
+        // herinneringsmail: een artikel dat bij de laatste keuring vergeten
+        // werd (niet beoordeeld, geen keurdatum) moet op de planning blijven.
+        .in("result", ["passed", "rejected"])
         .eq("inspections.company_id", ctx.companyId)
         .eq("inspections.status", "completed")
         .order("id")

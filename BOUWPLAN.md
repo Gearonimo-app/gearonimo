@@ -425,6 +425,50 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, controle klaar voor internationale klanten -- bevindingen)
+
+> Jos: "zorg eerst dat de rest van de app goed genoeg is om met echte
+> klanten internationaal te beginnen", klant-app meegenomen. Systematisch
+> per foutsoort door beide apps + database. Nog NIET gebouwd (behalve 0):
+>
+> 0. (Opgelost, eigen fout van vandaag) snelkeuze "Deze week" telde een
+>    vergeten (niet-beoordeeld) artikel niet meer als "nodig"; nu dezelfde
+>    regel als my_articles/herinneringsmail (alleen goed/afgekeurd telt).
+>
+> **Hoog**
+> 1. Grote klanten: keuring starten / artikelen toevoegen
+>    (useInspections startInspectionWithArticles, addArticlesToInspection,
+>    fetchNewArticleIds) stuurt alle artikel-id's in één `.in()` → bij
+>    honderden artikelen te lange URL → fout, met een leeg concept als rest.
+>    En >1000 rijen worden stil afgekapt.
+> 2. Stil afkappen op 1000: certificaat-items (loadCertificateSource), keuring
+>    laden/verversen (InspectionWizard), Klantartikelen-lijst, keuringenlijst,
+>    klantenlijst, en in de klant-app `my_articles` (Home/Materiaal/Leden).
+> 3. Herinneringsmail valt terug op Nederlands als een klant-gebruiker de
+>    app nooit opende én er geen certificaat in de app is (geïmporteerde
+>    klanten). Terugval moet het land van het keurbedrijf zijn.
+> 4. Import: land van keurbedrijf ophalen faalt stil → GB krijgt dan 12 i.p.v.
+>    6 maanden. Klant/artikel/concept-zoeken bij import negeert fouten (en
+>    bij twee klanten met dezelfde naam) → dubbele klanten/artikelen.
+>
+> **Middel**
+> 5. ~20 foutmeldingen uit de database alleen in het Nederlands, o.a. bij
+>    afvoeren, materiaalsoorten, medewerkers, inloggen (klant ziet ze).
+> 6. Dashboardteller "binnenkort keuren" (upcoming_reinspections_count)
+>    telt een vergeten artikel niet; zelfde regel als 0 nodig (migratie).
+> 7. Genegeerde fouten met misleidende uitkomst: QR-pagina toont "niet
+>    gevonden" bij een netwerkfout; vrije-invoervelden verdwijnen stil als
+>    de instellingen niet laden; artikeldetail "nooit gecertificeerd" bij
+>    een fout (database blokkeert verwijderen gelukkig wel).
+>
+> **Klein**
+> 8. Drie bestandsnamen (catalogus-, recall-export, voorbeeldcertificaat)
+>    met UTC-datum. Import maakt nep-e-mailadressen op "@onbekend.nl".
+>
+> Buiten de code: Supabase staat op het gratis plan (geen dagelijkse
+> back-ups, pauzeert na een week zonder gebruik); privacyverklaring/
+> voorwaarden (UK GDPR).
+
 ## Voortgang (2026-10-03, momentopname bij afronden + afgevoerd van het certificaat)
 
 > - **Correcties kwamen niet op het certificaat**: de momentopname
