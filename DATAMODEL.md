@@ -890,6 +890,7 @@ zie BOUWPLAN.
 | issued_at | timestamptz | |
 | pdf_hash | text | hash van het bestand (audit-trail: bewijs dat de PDF onveranderd is) |
 | verify_token | text, uniek | voor de verificatie-QR op het certificaat: scan → publieke pagina toont het echte record |
+| item_order | uuid[] | artikel-id's in de volgorde van de PDF (migratie `20261014`); de QR-pagina toont de regels in deze volgorde. Leeg bij certificaten van vóór 2026-10-03: daar blijft de volgorde van invoer |
 
 Op de PDF staan verplicht: "volgende keuring uiterlijk" (LOLER-eis; per item
 `next_due`, begrensd door einde levensduur — bewust niet "goed tot"), naam +

@@ -1,6 +1,6 @@
 import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage, type Color } from 'pdf-lib'
 import QRCode from 'qrcode'
-import { supabase, CATEGORIES, fetchAllRows, getRegime, isInspectedType, type ProductType, type CountryCode } from '@gearonimo/core'
+import { supabase, CATEGORIES, fetchAllRows, getRegime, isInspectedType, sortCertItems, type ProductType, type CountryCode } from '@gearonimo/core'
 import { gearonimoMarkBytes } from './gearonimoMark'
 import nlLocale from '../locales/nl.json'
 import enLocale from '../locales/en.json'
@@ -1240,7 +1240,7 @@ async function loadCertificateSource(inspectionId: string) {
   const onCertificate = (r: ItemRow) =>
     r.result !== 'not_assessed' && !(r.article_snapshot?.retired === true && r.result !== 'rejected')
   const certRows = ((rows ?? []) as unknown as ItemRow[]).filter(onCertificate)
-  const items: CertItem[] = certRows.map((r) => {
+  const built: (CertItem & { articleId: string })[] = certRows.map((r) => {
     // Snapshot eerst, live artikel als vangnet -- ook per veld: een lege
     // waarde in de snapshot overschrijft geen gevulde live waarde. Nodig voor
     // een artikel dat bij het keuren aan een catalogusproduct hing (free_* in
@@ -1291,8 +1291,15 @@ async function loadCertificateSource(inspectionId: string) {
       rejection_code_label: r.rejection_code?.label ?? null,
       approval_code_label: r.approval_code?.label ?? null,
       comment: r.comment,
+      articleId: r.article_id,
     }
   })
+  // Volgorde: gebruiker → categorie → merk (Jos, 2026-10-03), in de taal van
+  // het certificaat. Eén sortering voor PDF en Excel; itemOrder gaat mee naar
+  // certificates.item_order zodat de QR-pagina dezelfde volgorde toont.
+  const sorted = sortCertItems(built, certLanguage)
+  const itemOrder = sorted.map((it) => it.articleId)
+  const items: CertItem[] = sorted.map(({ articleId: _articleId, ...it }) => it)
 
   // "Gekeurd door": elke keurmeester die minstens één beoordeeld artikel op
   // z'n naam heeft, op volgorde van eerste voorkomen (created_at, dezelfde
@@ -1305,7 +1312,7 @@ async function loadCertificateSource(inspectionId: string) {
     if (name && !assessedByNames.includes(name)) assessedByNames.push(name)
   }
 
-  return { inspection, certLanguage, items, assessedByNames }
+  return { inspection, certLanguage, items, itemOrder, assessedByNames }
 }
 
 /**
@@ -1327,7 +1334,7 @@ export async function fetchCertificateTable(inspectionId: string): Promise<{ lan
 }
 
 export async function generateCertificate(inspectionId: string): Promise<{ verifyToken: string; storagePath: string }> {
-  const { inspection, certLanguage, items, assessedByNames } = await loadCertificateSource(inspectionId)
+  const { inspection, certLanguage, items, itemOrder, assessedByNames } = await loadCertificateSource(inspectionId)
 
   const verifyToken = crypto.randomUUID()
   // Certificaatnummer (code review 2026-07-18, keuze Jos): base = datum +
@@ -1404,6 +1411,9 @@ export async function generateCertificate(inspectionId: string): Promise<{ verif
     language: certLanguage,
     pdf_hash: pdfHash,
     verify_token: verifyToken,
+    // Volgorde van de regels op deze PDF (migratie 20261014): de QR-pagina
+    // toont ze in precies deze volgorde.
+    item_order: itemOrder,
   })
   if (certErr) throw certErr
 

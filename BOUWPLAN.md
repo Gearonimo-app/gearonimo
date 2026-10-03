@@ -425,6 +425,20 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, volgorde artikelen op het certificaat)
+
+> Besluit Jos: artikelen op certificaat, Excel én QR-pagina eerst per
+> **gebruiker**, daarbinnen per **categorie**, daarbinnen per **merk** (a-b-c);
+> daarna artikelnaam en serienummer. Zonder gebruiker onderaan. De invultabel
+> in de keuring blijft in volgorde van invoer.
+>
+> Eén sortering (`packages/core/src/certOrder.ts`, met tests) in
+> `loadCertificateSource` -- dus PDF en Excel altijd gelijk. De volgorde wordt
+> bij het certificaat bewaard (`certificates.item_order`); de QR-pagina leest
+> die terug, dus ook QR = PDF. Oude certificaten houden hun oude volgorde
+> (gelijk aan hun PDF). Migratie **`20261014_certificate_item_order.sql`** --
+> eerst uitvoeren, dán live zetten.
+
 ## Voortgang (2026-10-03, Engels rondje + vondsten live test opgelost)
 
 > Engels rondje (Testbedrijf op GB gezet door Jos): termijnen 6 mnd PBM /
