@@ -443,10 +443,20 @@ inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 > - Getest met nepdata: afgevoerd+goed weg, afgevoerd+fout blijft,
 >   verversen alleen bij open keuring. Niet getest tegen de live database.
 >
-> Bijvangst, nog niet gebouwd: de planning "binnenkort keuren"
-> (offline/download.ts) telt ook keurdatums van afgevoerde artikelen mee.
-> `correct_inspection()` neemt exam_type/approval_code_id niet mee (functie
-> wordt door de app niet gebruikt).
+> Daarna opgelost (Jos: "los het op aub"):
+> - **Snelkeuze "Deze week"** (offline downloaden, enige plek die het nog
+>   fout deed -- herinneringsmail, dashboard en klant-app sloten afgevoerd al
+>   uit): nu alleen artikelen in gebruik, alleen de laatste afgeronde keuring
+>   per artikel (zelfde volgorde als upcoming_reinspections_count), gepagineerd
+>   (stil afkappen op 1000) en de datum in lokale tijd i.p.v. UTC.
+> - **`correct_inspection()`** (migratie `20261009`): neemt nu ook
+>   approval_code_id, exam_type en exam_interval_months mee, en codes volgen
+>   de uitkomst (zoals setResult in de app).
+> - Beide migraties (20261008/09) getest op een echte lokale PostgreSQL 16 met
+>   de echte triggers: correctie+afvoeren komen in de momentopname, QR-pagina
+>   laat afgevoerd+goed weg en afgekeurd+afgevoerd staan, na afronden weigert
+>   de database verversen, later afvoeren verandert de QR-pagina niet,
+>   correcties nemen de nieuwe kolommen mee. Twee keer draaien gaat goed.
 
 ## Voortgang (2026-10-02, Excel = certificaat + controle keuringsroute)
 

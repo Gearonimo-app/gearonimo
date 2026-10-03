@@ -1,4 +1,6 @@
 import { supabase } from "../supabase";
+import { fetchAllRows } from "../fetchAll";
+import { toIsoDate } from "../date";
 import { inspectorVisibleArticles } from "../domains";
 import { getOfflineDb, type DownloadEntry } from "./db";
 import {
@@ -297,9 +299,14 @@ export interface QuickSelectCustomer {
 }
 
 /** Suggesties voor de "Vandaag" / "Deze week"-snelkeuze bij het downloaden.
- * Bewust een ruwe (over-inclusieve) query, geen vervanging van de echte
- * next_due-berekening: het is alleen een startpunt dat de keurmeester nog
- * bevestigt/aanpast in de downloadkeuze, geen besluitvormende logica. */
+ * Een startpunt dat de keurmeester nog bevestigt/aanpast in de downloadkeuze.
+ *
+ * "Deze week" = klanten met een artikel waarvan de LAATSTE afgeronde keuring
+ * een volgende keurdatum binnen 14 dagen (of al verlopen) heeft. Zelfde regels
+ * als upcoming_reinspections_count() en de herinneringsmail (Jos, 2026-10-03):
+ * afgevoerde artikelen tellen niet mee, en een oude keurdatum die door een
+ * nieuwere keuring is opgevolgd ook niet (laatste = keurdatum, bij gelijke
+ * dag completed_at). Gepagineerd: Supabase kapt anders stil af op 1000 rijen. */
 export async function fetchQuickSelectCustomers(
   ctx: InspectorContext,
   kind: "today" | "week"
@@ -319,18 +326,63 @@ export async function fetchQuickSelectCustomers(
 
   const horizon = new Date();
   horizon.setDate(horizon.getDate() + 14);
-  const { data, error } = await supabase
-    .from("inspection_items")
-    .select("next_due, inspections!inner(customer_id, company_id, status, customers(id, name))")
-    .lte("next_due", horizon.toISOString().slice(0, 10))
-    .eq("inspections.company_id", ctx.companyId)
-    .eq("inspections.status", "completed");
-  if (error) throw error;
-  interface WeekRow {
-    inspections: { customers: { id: string; name: string } | null } | null;
+  const horizonIso = toIsoDate(horizon);
+
+  // Stap 1: kandidaten -- artikelen (in gebruik) met ergens een keurdatum
+  // binnen de horizon. Klein, want gefilterd op datum.
+  const candidates = await fetchAllRows<{ article_id: string }>((from, to) =>
+    supabase
+      .from("inspection_items")
+      .select("id, article_id, articles!inner(retired), inspections!inner(company_id, status)")
+      .lte("next_due", horizonIso)
+      .eq("inspections.company_id", ctx.companyId)
+      .eq("inspections.status", "completed")
+      .eq("articles.retired", false)
+      .order("id")
+      .range(from, to)
+  );
+  const articleIds = [...new Set(candidates.map((c) => c.article_id))];
+
+  // Stap 2: van die artikelen de laatste afgeronde keuring bepalen. Per blok
+  // van 100 (anders wordt de URL te lang).
+  interface ItemRow {
+    article_id: string;
+    next_due: string | null;
+    inspections: {
+      inspection_date: string;
+      completed_at: string | null;
+      customers: { id: string; name: string } | null;
+    } | null;
   }
+  const latest = new Map<string, ItemRow>();
+  const isNewer = (a: ItemRow, b: ItemRow) => {
+    const da = a.inspections?.inspection_date ?? "";
+    const db = b.inspections?.inspection_date ?? "";
+    if (da !== db) return da > db;
+    return (a.inspections?.completed_at ?? "") > (b.inspections?.completed_at ?? "");
+  };
+  for (let i = 0; i < articleIds.length; i += 100) {
+    const chunk = articleIds.slice(i, i + 100);
+    const rows = await fetchAllRows<ItemRow>((from, to) =>
+      supabase
+        .from("inspection_items")
+        .select("id, article_id, next_due, inspections!inner(inspection_date, completed_at, company_id, status, customers(id, name))")
+        .in("article_id", chunk)
+        .eq("inspections.company_id", ctx.companyId)
+        .eq("inspections.status", "completed")
+        .order("id")
+        .range(from, to)
+    );
+    for (const r of rows) {
+      const cur = latest.get(r.article_id);
+      if (!cur || isNewer(r, cur)) latest.set(r.article_id, r);
+    }
+  }
+
   return dedupeCustomers(
-    ((data ?? []) as unknown as WeekRow[]).map((r) => ({ customers: r.inspections?.customers ?? null }))
+    [...latest.values()]
+      .filter((r) => r.next_due != null && r.next_due <= horizonIso)
+      .map((r) => ({ customers: r.inspections?.customers ?? null }))
   );
 }
 
