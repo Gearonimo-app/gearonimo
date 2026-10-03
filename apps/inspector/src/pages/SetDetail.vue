@@ -74,6 +74,7 @@ import {
   getArticlesForCustomer,
   getProducts,
   errorMessage,
+  fetchAllRows,
 } from '@gearonimo/core'
 
 const route = useRoute()
@@ -186,12 +187,22 @@ async function load() {
 async function openAddArticle() {
   formError.value = ''
   const memberIds = new Set(members.value.map((m) => m.article_id))
-  const { data } = await supabase
-    .from('articles')
-    .select('id, serial_number, free_brand, free_description, product:products(id, brand, name)')
-    .eq('customer_id', set.value!.customer_id)
-    .eq('retired', false)
-  addableArticles.value = ((data ?? []) as unknown as ArticleRow[])
+  let data: ArticleRow[]
+  try {
+    data = await fetchAllRows<ArticleRow>((from, to) =>
+      supabase
+        .from('articles')
+        .select('id, serial_number, free_brand, free_description, product:products(id, brand, name)')
+        .eq('customer_id', set.value!.customer_id)
+        .eq('retired', false)
+        .order('id')
+        .range(from, to)
+    )
+  } catch (e) {
+    formError.value = errorMessage(e)
+    return
+  }
+  addableArticles.value = data
     .filter((a) => !memberIds.has(a.id))
     .map((a) => ({ id: a.id, label: articleLabel(a) }))
   showAddArticle.value = true

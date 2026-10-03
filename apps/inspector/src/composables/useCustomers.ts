@@ -1,4 +1,4 @@
-import { supabase, useOnline, useOfflineSession, getCustomer, listDownloads } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getCustomer, listDownloads, fetchAllRows } from '@gearonimo/core'
 
 // Eén plek voor alle klant-tabeltoegang, zodat de queries niet verspreid in de
 // componenten staan (lijst, detail, aanmaken, bijwerken, verwijderen). De
@@ -23,12 +23,10 @@ export interface CustomerListItem {
 export async function listCustomers(): Promise<CustomerListItem[]> {
   const { isOnline } = useOnline()
   if (isOnline.value) {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('id, name, city, phone, email')
-      .order('name')
-    if (error) throw error
-    return (data ?? []) as CustomerListItem[]
+    // Gepagineerd: meer dan 1000 klanten werd stil afgekapt (2026-10-03).
+    return fetchAllRows<CustomerListItem>((from, to) =>
+      supabase.from('customers').select('id, name, city, phone, email').order('name').order('id').range(from, to)
+    )
   }
 
   const session = useOfflineSession()

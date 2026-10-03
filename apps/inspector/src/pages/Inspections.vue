@@ -76,7 +76,7 @@ import AppHeader from '../components/AppHeader.vue'
 import { onReactivated } from '../composables/onReactivated'
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { supabase, errorMessage, useOnline, formatDate as sharedFormatDate } from '@gearonimo/core'
+import { supabase, errorMessage, useOnline, fetchAllRows, formatDate as sharedFormatDate } from '@gearonimo/core'
 import { ensureInspector, deleteDraftInspection } from '../composables/useInspections'
 
 const { t, locale } = useI18n()
@@ -142,13 +142,16 @@ async function load() {
   error.value = ''
   try {
     const inspector = await ensureInspector()
-    const { data, error: err } = await supabase
-      .from('inspections')
-      .select('id, customer_id, inspection_date, completed_at, certificate_number, status, customer:customers(name)')
-      .eq('company_id', inspector.company_id)
-      .order('inspection_date', { ascending: false })
-    if (err) throw err
-    inspections.value = (data ?? []) as unknown as InspectionRow[]
+    // Gepagineerd: na 1000 keuringen vielen de oudste stil weg (2026-10-03).
+    inspections.value = await fetchAllRows<InspectionRow>((from, to) =>
+      supabase
+        .from('inspections')
+        .select('id, customer_id, inspection_date, completed_at, certificate_number, status, customer:customers(name)')
+        .eq('company_id', inspector.company_id)
+        .order('inspection_date', { ascending: false })
+        .order('id')
+        .range(from, to)
+    )
   } catch (e) {
     error.value = errorMessage(e)
   } finally {

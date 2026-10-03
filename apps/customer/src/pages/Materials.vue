@@ -270,6 +270,7 @@ import { useI18n } from "vue-i18n";
 import {
   supabase,
   errorMessage,
+  fetchAllRpc,
   domainForType,
   normalizeDomains,
   typeIsInspected,
@@ -539,9 +540,9 @@ async function load() {
     myName.value = row.member_name ?? "";
     enabledDomains.value = normalizeDomains(row.enabled_domains);
 
-    const { data, error: err } = await supabase.rpc("my_articles");
-    if (err) throw err;
-    articles.value = ((data ?? []) as ArticleRow[]).map((a) => ({ ...a, uiStatus: uiStatus(a) }));
+    // Gepagineerd: boven 1000 artikelen viel de rest stil weg (2026-10-03).
+    const data = await fetchAllRpc<ArticleRow>("my_articles", [{ column: "id" }]);
+    articles.value = data.map((a) => ({ ...a, uiStatus: uiStatus(a) }));
     // Een gewone medewerker start op zijn eigen materiaal; de beheerder ziet
     // standaard alles. Wisselen kan altijd via de chips.
     if (!row.is_admin && row.member_name && !memberFilter.value && memberNames.value.includes(row.member_name)) {
@@ -602,9 +603,15 @@ const restoringId = ref<string | null>(null);
 const restoreError = ref("");
 
 async function loadRetired() {
-  const { data, error: err } = await supabase.rpc("my_retired_articles");
   // Zonder deze lijst werkt de rest gewoon; niet de hele pagina laten falen.
-  retired.value = err ? [] : ((data ?? []) as RetiredRow[]);
+  try {
+    retired.value = await fetchAllRpc<RetiredRow>("my_retired_articles", [
+      { column: "retired_at", ascending: false },
+      { column: "id" },
+    ]);
+  } catch {
+    retired.value = [];
+  }
 }
 
 async function restoreArticle(r: RetiredRow) {

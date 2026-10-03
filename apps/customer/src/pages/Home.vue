@@ -88,6 +88,7 @@ import {
   supabase,
   useAuth,
   errorMessage,
+  fetchAllRpc,
   typeIsInspected,
   selfCheckIntervalMonths,
   customerArticleStatus,
@@ -211,13 +212,14 @@ async function load() {
     memberName.value = row.member_name ?? "";
     isAdmin.value = !!row.is_admin;
 
+    // my_articles volledig (gepagineerd): boven 1000 artikelen klopten de
+    // statussen hier anders niet (2026-10-03).
     const [arts, link, reqs] = await Promise.all([
-      supabase.rpc("my_articles"),
+      fetchAllRpc<ArticleRow>("my_articles", [{ column: "id" }]),
       supabase.rpc("my_link_status"),
       supabase.rpc("my_inspection_requests"),
     ]);
-    if (arts.error) throw arts.error;
-    statuses.value = ((arts.data ?? []) as ArticleRow[]).map(uiStatus);
+    statuses.value = arts.map(uiStatus);
     const linkRow = Array.isArray(link.data) ? link.data[0] : link.data;
     companyName.value = linkRow?.company_name ?? "";
     pendingRequest.value = ((reqs.data ?? []) as { status: string; company_name: string }[])

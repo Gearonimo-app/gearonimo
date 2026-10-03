@@ -1129,14 +1129,17 @@ async function loadCertificateSource(inspectionId: string) {
     if (snapErr) throw snapErr
   }
 
-  const { data: rows, error: itemsErr } = await supabase
-    .from('inspection_items')
-    .select(
-      'article_id, result, next_due, exam_type, exam_interval_months, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_product_type, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), approval_code:approval_codes(label), item_inspector:inspectors!inspector_id(name)'
-    )
-    .eq('inspection_id', inspectionId)
-    .order('created_at')
-  if (itemsErr) throw itemsErr
+  // Gepagineerd (2026-10-03): een keuring met meer dan 1000 artikelen gaf
+  // anders stil een onvolledig certificaat.
+  const rows = await fetchAllRows<unknown>((from, to) =>
+    supabase
+      .from('inspection_items')
+      .select('article_id, result, next_due, exam_type, exam_interval_months, comment, article_snapshot, article:articles(serial_number, free_brand, free_description, free_category, free_product_type, free_norm, free_mbs, free_working_load_limit, free_previous_inspection_date, free_exam_type, interval_override_months, manufacture_year, manufacture_month, assigned_user_name, product:products(brand, name, category, standard, breaking_strength, working_load_limit, product_type, interval_override_months)), rejection_code:rejection_codes(label), approval_code:approval_codes(label), item_inspector:inspectors!inspector_id(name)')
+      .eq('inspection_id', inspectionId)
+      .order('created_at')
+      .order('id')
+      .range(from, to)
+  )
 
   // Datum van de vorige keuring per artikel (LOLER Schedule 1 §4). Alleen
   // opgevraagd als de kolom aan staat. Per blok van 100 artikelen (anders

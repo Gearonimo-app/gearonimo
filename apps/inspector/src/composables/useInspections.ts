@@ -23,6 +23,9 @@ import {
   deleteMutationsForInspection,
   touchDownloadActivity,
   inspectorVisibleArticles,
+  fetchAllRows,
+  fetchAllRowsIn,
+  insertInChunks,
   toIsoDate,
 } from '@gearonimo/core'
 
@@ -136,22 +139,26 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
   if (isOnline.value) {
     // Kleding, machines en overig vallen buiten het keurbedrijf en horen dus
     // niet in een keuring te belanden (besluit Jos 2026-08-04).
-    const { data, error } = await inspectorVisibleArticles(
-      supabase
-        .from('articles')
-        .select('id')
-        .eq('customer_id', customerId)
-        .eq('retired', false)
+    // Gepagineerd en in blokken (2026-10-03): een grote klant gaf anders een
+    // te lange URL (honderden id's in één .in()) of werd stil afgekapt op
+    // 1000 rijen.
+    const data = await fetchAllRows<{ id: string }>((from, to) =>
+      inspectorVisibleArticles(
+        supabase
+          .from('articles')
+          .select('id')
+          .eq('customer_id', customerId)
+          .eq('retired', false)
+      )
+        .order('id')
+        .range(from, to)
     )
-    if (error) throw error
-    const allIds = (data ?? []).map((a) => a.id).filter((id) => !exclude.has(id))
+    const allIds = data.map((a) => a.id).filter((id) => !exclude.has(id))
     if (!allIds.length) return { allIds: [], newIds: [] }
-    const { data: inspected, error: insErr } = await supabase
-      .from('inspection_items')
-      .select('article_id')
-      .in('article_id', allIds)
-    if (insErr) throw insErr
-    const inspectedSet = new Set((inspected ?? []).map((r) => r.article_id))
+    const inspected = await fetchAllRowsIn<{ article_id: string }>(allIds, (chunk, from, to) =>
+      supabase.from('inspection_items').select('id, article_id').in('article_id', chunk).order('id').range(from, to)
+    )
+    const inspectedSet = new Set(inspected.map((r) => r.article_id))
     const newIds = allIds.filter((id) => !inspectedSet.has(id))
     return { allIds, newIds }
   }
@@ -175,13 +182,33 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
 export async function fetchInspectionArticleIds(inspectionId: string): Promise<string[]> {
   const { isOnline } = useOnline()
   if (isOnline.value) {
-    const { data, error } = await supabase.from('inspection_items').select('article_id').eq('inspection_id', inspectionId)
-    if (error) throw error
-    return (data ?? []).map((r) => r.article_id)
+    const data = await fetchAllRows<{ article_id: string }>((from, to) =>
+      supabase.from('inspection_items').select('id, article_id').eq('inspection_id', inspectionId).order('id').range(from, to)
+    )
+    return data.map((r) => r.article_id)
   }
   const key = requireOfflineKey()
   const items = await getInspectionItems<{ article_id: string }>(key, inspectionId)
   return items.map((i) => i.article_id)
+}
+
+// Artikelen als nog onbeoordeelde regels aan een keuring hangen, met hun
+// momentopname. In blokken: honderden id's in één .in() gaven een te lange
+// URL (de hele keuring startte dan niet), en één enorm insert-verzoek kan te
+// groot worden.
+async function insertNotAssessedItems(inspectionId: string, articleIds: string[]): Promise<void> {
+  const articles = await fetchAllRowsIn<Record<string, unknown> & { id: string }>(articleIds, (chunk, from, to) =>
+    supabase.from('articles').select('*').in('id', chunk).order('id').range(from, to)
+  )
+  await insertInChunks(
+    articles.map((a) => ({
+      inspection_id: inspectionId,
+      article_id: a.id,
+      article_snapshot: a,
+      result: 'not_assessed',
+    })),
+    (chunk) => supabase.from('inspection_items').insert(chunk)
+  )
 }
 
 // Voegt artikelen toe aan een al bestaande keuring (bijv. een open concept
@@ -192,17 +219,7 @@ export async function addArticlesToInspection(inspectionId: string, articleIds: 
   const { isOnline } = useOnline()
 
   if (isOnline.value) {
-    const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
-    if (artErr) throw artErr
-    const { error: itemsErr } = await supabase.from('inspection_items').insert(
-      (articles ?? []).map((a) => ({
-        inspection_id: inspectionId,
-        article_id: a.id,
-        article_snapshot: a,
-        result: 'not_assessed',
-      }))
-    )
-    if (itemsErr) throw itemsErr
+    await insertNotAssessedItems(inspectionId, articleIds)
     return
   }
 
@@ -248,17 +265,16 @@ export async function startInspectionWithArticles(customerId: string, articleIds
     if (insErr) throw insErr
 
     if (articleIds.length) {
-      const { data: articles, error: artErr } = await supabase.from('articles').select('*').in('id', articleIds)
-      if (artErr) throw artErr
-      const { error: itemsErr } = await supabase.from('inspection_items').insert(
-        (articles ?? []).map((a) => ({
-          inspection_id: inspection.id,
-          article_id: a.id,
-          article_snapshot: a,
-          result: 'not_assessed',
-        }))
-      )
-      if (itemsErr) throw itemsErr
+      try {
+        await insertNotAssessedItems(inspection.id, articleIds)
+      } catch (e) {
+        // Geen half concept achterlaten: zonder (alle) artikelen is deze
+        // keuring niets waard, en een lege concept-keuring zou bij de klant
+        // blijven hangen als "open keuring". Opruimen, dan de echte fout tonen.
+        await supabase.from('inspection_items').delete().eq('inspection_id', inspection.id)
+        await supabase.from('inspections').delete().eq('id', inspection.id)
+        throw e
+      }
     }
 
     return inspection.id
@@ -436,20 +452,57 @@ export async function findPreviousResult(
 
 export type PreviousResult = { result: string; comment: string | null; inspection_date: string; inspector_name: string | null } | null
 
-// Bulk-variant van findPreviousResult voor het laden van de wizard: online
-// gewoon de bestaande per-artikel-aanroepen parallel (gedrag ongewijzigd),
-// offline één decryptie-ronde over de lokale cache i.p.v. per item opnieuw
-// alles ontsleutelen (O(n^2), merkbaar traag op een tablet bij grote sets).
+// Bulk-variant van findPreviousResult voor het laden van de wizard. Online
+// één opvraging in blokken van 100 artikelen (2026-10-03): eerst was het één
+// verzoek per artikel, tegelijk -- bij een grote keuring honderden verzoeken
+// in één keer. Zelfde regels als findPreviousResult: 'not_assessed' telt niet,
+// alleen afgeronde keuringen, laatste op keurdatum en bij gelijke dag de
+// nieuwst aangemaakte. Offline één decryptie-ronde over de lokale cache i.p.v.
+// per item opnieuw alles ontsleutelen (O(n^2), traag op een tablet).
 export async function findPreviousResults(
   articleIds: string[],
   excludeInspectionId: string
 ): Promise<Record<string, PreviousResult>> {
   const { isOnline } = useOnline()
   if (isOnline.value) {
-    const entries = await Promise.all(
-      articleIds.map(async (id) => [id, await findPreviousResult(id, excludeInspectionId)] as const)
+    interface PrevRow {
+      article_id: string
+      result: string
+      comment: string | null
+      created_at: string
+      inspection: { inspection_date: string } | null
+      item_inspector: { name: string | null } | null
+    }
+    const rows = await fetchAllRowsIn<PrevRow>(articleIds, (chunk, from, to) =>
+      supabase
+        .from('inspection_items')
+        .select('id, article_id, result, comment, created_at, inspection:inspections!inner(inspection_date, status), item_inspector:inspectors!inspector_id(name)')
+        .in('article_id', chunk)
+        .neq('inspection_id', excludeInspectionId)
+        .neq('result', 'not_assessed')
+        .eq('inspection.status', 'completed')
+        .order('id')
+        .range(from, to)
     )
-    return Object.fromEntries(entries)
+    const out: Record<string, PreviousResult> = Object.fromEntries(articleIds.map((id) => [id, null]))
+    const best = new Map<string, PrevRow>()
+    for (const r of rows) {
+      if (!r.inspection) continue
+      const cur = best.get(r.article_id)
+      const newer = !cur
+        || r.inspection.inspection_date > cur.inspection!.inspection_date
+        || (r.inspection.inspection_date === cur.inspection!.inspection_date && r.created_at > cur.created_at)
+      if (newer) best.set(r.article_id, r)
+    }
+    for (const [articleId, r] of best) {
+      out[articleId] = {
+        result: r.result,
+        comment: r.comment,
+        inspection_date: r.inspection!.inspection_date,
+        inspector_name: r.item_inspector?.name ?? null,
+      }
+    }
+    return out
   }
 
   const key = requireOfflineKey()

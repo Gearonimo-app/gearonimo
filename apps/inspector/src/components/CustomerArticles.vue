@@ -239,7 +239,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { onReactivated } from '../composables/onReactivated'
 import { useI18n } from 'vue-i18n'
-import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles, findProductByBarcode, isValidGtin } from '@gearonimo/core'
+import { supabase, useOnline, useOfflineSession, getArticlesForCustomer, getProducts, fetchAllRows, inspectorVisibleArticles, findProductByBarcode, isValidGtin, errorMessage } from '@gearonimo/core'
 import { useFieldSuggest, fuzzyFilter, ScanButton } from '@gearonimo/ui'
 import { fetchFreeInputFields } from '../composables/useInspections'
 import { useCategoryLabel } from '../composables/useCategoryLabel'
@@ -286,17 +286,25 @@ async function toggleRetired() {
 async function loadRetired() {
   if (!isOnline.value) return
   loadingRetired.value = true
-  const { data, error: err } = await inspectorVisibleArticles(
-    supabase
-      .from('articles')
-      .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, retired_reason, product:products(id, brand, name)')
-      .eq('customer_id', props.customerId)
-      .eq('retired', true)
-      .order('retired_at', { ascending: false })
-  )
-  loadingRetired.value = false
-  if (err) { error.value = err.message; return }
-  retiredArticles.value = (data ?? []) as unknown as Article[]
+  // Gepagineerd: meer dan 1000 artikelen werd stil afgekapt (2026-10-03).
+  try {
+    retiredArticles.value = await fetchAllRows<Article>((from, to) =>
+      inspectorVisibleArticles(
+        supabase
+          .from('articles')
+          .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, retired_reason, product:products(id, brand, name)')
+          .eq('customer_id', props.customerId)
+          .eq('retired', true)
+      )
+        .order('retired_at', { ascending: false })
+        .order('id')
+        .range(from, to)
+    )
+  } catch (e) {
+    error.value = errorMessage(e)
+  } finally {
+    loadingRetired.value = false
+  }
 }
 
 const showAdd = ref(false)
@@ -544,13 +552,23 @@ const displayRows = computed<DisplayRow[]>(() => {
 
 async function loadSets() {
   if (!isOnline.value) return
-  const { data } = await supabase
-    .from('article_set_members')
-    .select('article_id, set_id, article_sets!inner(name, customer_id)')
-    .eq('article_sets.customer_id', props.customerId)
   type Row = { article_id: string; set_id: string; article_sets: { name: string } }
+  let data: Row[] = []
+  try {
+    data = await fetchAllRows<Row>((from, to) =>
+      supabase
+        .from('article_set_members')
+        .select('id, article_id, set_id, article_sets!inner(name, customer_id)')
+        .eq('article_sets.customer_id', props.customerId)
+        .order('id')
+        .range(from, to)
+    )
+  } catch (e) {
+    error.value = errorMessage(e)
+    return
+  }
   const map: Record<string, { setId: string; setName: string }> = {}
-  for (const row of (data ?? []) as unknown as Row[]) {
+  for (const row of data) {
     // Eerste gevonden set wint (een artikel in meerdere sets is een
     // uitzondering; voor de groepering in de lijst kiezen we er één).
     if (!map[row.article_id]) map[row.article_id] = { setId: row.set_id, setName: row.article_sets.name }
@@ -611,16 +629,22 @@ async function load() {
 
   // Kleding/machines/overig vallen buiten het keurbedrijf (besluit Jos
   // 2026-08-04) -- de keurmeester ziet ze dus ook niet op de klantpagina.
-  const { data, error: err } = await inspectorVisibleArticles(
-    supabase
-      .from('articles')
-      .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
-      .eq('customer_id', props.customerId)
-      .eq('retired', false)
-      .order('created_at', { ascending: false })
-  )
-  if (err) error.value = err.message
-  else articles.value = (data ?? []) as unknown as Article[]
+  try {
+    articles.value = await fetchAllRows<Article>((from, to) =>
+      inspectorVisibleArticles(
+        supabase
+          .from('articles')
+          .select('id, serial_number, free_brand, free_description, product_id, suggest_for_catalog, product:products(id, brand, name)')
+          .eq('customer_id', props.customerId)
+          .eq('retired', false)
+      )
+        .order('created_at', { ascending: false })
+        .order('id')
+        .range(from, to)
+    )
+  } catch (e) {
+    error.value = errorMessage(e)
+  }
   loading.value = false
 }
 

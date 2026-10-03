@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { fetchAllRows } from "./fetchAll";
+import { fetchAllRows, fetchAllRowsIn, insertInChunks, IN_CHUNK_SIZE } from "./fetchAll";
 
 /** Nep-tabel die zich gedraagt als Supabase: nooit meer dan pageSize rijen. */
 function fakeTable(total: number, pageSize: number) {
@@ -36,5 +36,39 @@ describe("fetchAllRows", () => {
     await expect(
       fetchAllRows(() => Promise.resolve({ data: null, error: { message: "permission denied" } })),
     ).rejects.toThrow("permission denied");
+  });
+});
+
+describe("fetchAllRowsIn", () => {
+  it("splitst een lange id-lijst in blokken en pagineert elk blok", async () => {
+    const ids = Array.from({ length: 250 }, (_, i) => `id${i}`);
+    const chunks: number[] = [];
+    // Elk id heeft 15 rijen: blok van 100 id's = 1500 rijen = 2 pagina's.
+    const out = await fetchAllRowsIn<{ id: string }>(ids, (chunk, from, to) => {
+      if (from === 0) chunks.push(chunk.length);
+      const all = chunk.flatMap((id) => Array.from({ length: 15 }, () => ({ id })));
+      return Promise.resolve({ data: all.slice(from, Math.min(to + 1, from + 1000)), error: null });
+    });
+    expect(chunks).toEqual([IN_CHUNK_SIZE, IN_CHUNK_SIZE, 50]);
+    expect(out).toHaveLength(250 * 15);
+  });
+
+  it("lege lijst = geen verzoek", async () => {
+    let called = false;
+    const out = await fetchAllRowsIn([], () => { called = true; return Promise.resolve({ data: [], error: null }); });
+    expect(out).toEqual([]);
+    expect(called).toBe(false);
+  });
+});
+
+describe("insertInChunks", () => {
+  it("schrijft in blokken en stopt bij de eerste fout", async () => {
+    const sizes: number[] = [];
+    const rows = Array.from({ length: 1200 }, (_, i) => i);
+    await insertInChunks(rows, (c) => { sizes.push(c.length); return Promise.resolve({ error: null }); });
+    expect(sizes).toEqual([500, 500, 200]);
+    await expect(
+      insertInChunks(rows, (c) => Promise.resolve({ error: c[0] === 500 ? { message: "boem" } : null }))
+    ).rejects.toThrow("boem");
   });
 });

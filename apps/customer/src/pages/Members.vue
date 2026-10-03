@@ -193,6 +193,7 @@ import {
   domainForType,
   type MaterialDomain,
   formatDate as sharedFormatDate,
+  fetchAllRpc,
 } from "@gearonimo/core";
 import { GIcon } from "@gearonimo/ui";
 import PageHeader from "../components/PageHeader.vue";
@@ -367,9 +368,17 @@ const domainsDirty = computed(
 );
 
 async function loadDomainCounts() {
-  const { data } = await supabase.rpc("my_articles");
+  // Gepagineerd, en een fout niet stil als "0 artikelen" tonen: die tellingen
+  // bepalen of een materiaalsoort uit mag (2026-10-03).
+  let data: { product_type: string | null }[];
+  try {
+    data = await fetchAllRpc<{ product_type: string | null }>("my_articles", [{ column: "id" }]);
+  } catch (e) {
+    error.value = errorMessage(e);
+    return;
+  }
   const counts: Record<string, number> = {};
-  for (const a of (data ?? []) as { product_type: string | null }[]) {
+  for (const a of data) {
     const d = domainForType(a.product_type);
     counts[d] = (counts[d] ?? 0) + 1;
   }

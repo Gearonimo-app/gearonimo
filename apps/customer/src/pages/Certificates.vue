@@ -26,7 +26,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { supabase, errorMessage, formatDate as sharedFormatDate } from "@gearonimo/core";
+import { supabase, errorMessage, fetchAllRpc, formatDate as sharedFormatDate } from "@gearonimo/core";
 import PageHeader from "../components/PageHeader.vue";
 
 const { locale } = useI18n();
@@ -59,9 +59,10 @@ async function load() {
   loading.value = true;
   error.value = "";
   try {
-    const { data, error: err } = await supabase.rpc("my_certificates");
-    if (err) throw err;
-    certificates.value = (data ?? []) as CertificateRow[];
+    certificates.value = await fetchAllRpc<CertificateRow>("my_certificates", [
+      { column: "inspection_date", ascending: false },
+      { column: "inspection_id" },
+    ]);
   } catch (e) {
     error.value = errorMessage(e);
   } finally {

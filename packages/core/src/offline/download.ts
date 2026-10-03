@@ -1,5 +1,5 @@
 import { supabase } from "../supabase";
-import { fetchAllRows } from "../fetchAll";
+import { fetchAllRows, fetchAllRowsIn } from "../fetchAll";
 import { toIsoDate } from "../date";
 import { inspectorVisibleArticles } from "../domains";
 import { getOfflineDb, type DownloadEntry } from "./db";
@@ -95,14 +95,18 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   // 2026-08-04) en worden dus ook niet mee offline gezet -- anders staat een
   // keurmeester zonder netwerk alsnog naar de kledingkast van zijn klant te
   // kijken.
-  const { data: articles, error: artErr } = await inspectorVisibleArticles(
-    supabase
-      .from("articles")
-      .select("*")
-      .eq("customer_id", customerId)
-      .eq("retired", false)
+  // Gepagineerd: meer dan 1000 artikelen werd anders stil afgekapt.
+  const articles = await fetchAllRows<{ id: string; product_id: string | null } & Record<string, unknown>>((from, to) =>
+    inspectorVisibleArticles(
+      supabase
+        .from("articles")
+        .select("*")
+        .eq("customer_id", customerId)
+        .eq("retired", false)
+    )
+      .order("id")
+      .range(from, to)
   );
-  if (artErr) throw artErr;
 
   // Medewerkers en sets horen bij het klantdetailscherm (toonden offline
   // eerst een kale fetch-fout). Sets krijgen hun leden (article_id's)
@@ -123,9 +127,9 @@ export async function downloadCustomer(key: CryptoKey, ctx: InspectorContext, cu
   const productIds = [...new Set((articles ?? []).map((a) => a.product_id).filter((id): id is string => !!id))];
   let products: ({ id: string } & Record<string, unknown>)[] = [];
   if (productIds.length) {
-    const { data, error } = await supabase.from("products").select("*").in("id", productIds);
-    if (error) throw error;
-    products = data ?? [];
+    products = await fetchAllRowsIn<{ id: string } & Record<string, unknown>>(productIds, (chunk, from, to) =>
+      supabase.from("products").select("*").in("id", chunk).order("id").range(from, to)
+    );
   }
 
   const { data: rejectionCodes, error: rcErr } = await supabase

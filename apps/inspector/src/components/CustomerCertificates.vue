@@ -33,7 +33,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { onReactivated } from '../composables/onReactivated'
-import { supabase, errorMessage, useOnline, formatDate as sharedFormatDate } from '@gearonimo/core'
+import { supabase, errorMessage, useOnline, fetchAllRows, formatDate as sharedFormatDate } from '@gearonimo/core'
 
 const props = defineProps<{ customerId: string }>()
 const { isOnline } = useOnline()
@@ -70,13 +70,15 @@ async function load() {
   try {
     // !inner zodat de customer_id-filter op de gejoinde keuring werkt en
     // certificaten zonder (leesbare) keuring niet als losse rijen verschijnen.
-    const { data, error: err } = await supabase
-      .from('certificates')
-      .select('number, storage_path, inspection_id, inspection:inspections!inner(customer_id, inspection_date)')
-      .eq('inspection.customer_id', props.customerId)
-      .order('issued_at', { ascending: false })
-    if (err) throw err
-    certs.value = (data ?? []) as unknown as CertRow[]
+    certs.value = await fetchAllRows<CertRow>((from, to) =>
+      supabase
+        .from('certificates')
+        .select('number, storage_path, inspection_id, inspection:inspections!inner(customer_id, inspection_date)')
+        .eq('inspection.customer_id', props.customerId)
+        .order('issued_at', { ascending: false })
+        .order('id')
+        .range(from, to)
+    )
   } catch (e) {
     error.value = errorMessage(e)
   } finally {

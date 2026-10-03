@@ -743,6 +743,8 @@ import {
   getRegime,
   isInspectedType,
   inspectorVisibleArticles,
+  fetchAllRows,
+  fetchAllRowsIn,
   isUnlimitedAge,
   toIsoDate,
   formatDate as sharedFormatDate,
@@ -1027,13 +1029,17 @@ const sortDir = ref<1 | -1>(1)
 // -> zijn (eerste) set; voedt de groepering in sortedRows hieronder.
 const articleSetInfo = ref<Record<string, { setId: string; setName: string; role: string | null }>>({})
 async function loadArticleSetInfo(customerId: string) {
-  const { data } = await supabase
-    .from('article_set_members')
-    .select('article_id, set_id, role, article_sets!inner(name, customer_id)')
-    .eq('article_sets.customer_id', customerId)
   type Row = { article_id: string; set_id: string; role: string | null; article_sets: { name: string } }
+  const data = await fetchAllRows<Row>((from, to) =>
+    supabase
+      .from('article_set_members')
+      .select('id, article_id, set_id, role, article_sets!inner(name, customer_id)')
+      .eq('article_sets.customer_id', customerId)
+      .order('id')
+      .range(from, to)
+  )
   const map: Record<string, { setId: string; setName: string; role: string | null }> = {}
-  for (const row of (data ?? []) as unknown as Row[]) {
+  for (const row of data) {
     if (!map[row.article_id]) map[row.article_id] = { setId: row.set_id, setName: row.article_sets.name, role: row.role }
   }
   articleSetInfo.value = map
@@ -2178,101 +2184,115 @@ async function load() {
   locationAddress.value = inspection.value.location ?? ''
   showLocation.value = !!inspection.value.location
 
-  const { data: rowsData, error: itemsErr } = await supabase
-    .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment, article:articles(*, product:products(*))')
-    .eq('inspection_id', id)
-    .order('created_at')
-  if (itemsErr) { error.value = itemsErr.message; loading.value = false; return }
-  items.value = (rowsData ?? []) as unknown as Item[]
-
-  rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
-  approvalCodes.value = await fetchApprovalCodes(insp.company_id)
-  freeFields.value = await fetchFreeInputFields()
-
-  previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
-
-  // Hele catalogus laden in pagina's van 1000: PostgREST kapt een query
-  // standaard op 1000 rijen, en de catalogus is groter. Zonder paginering zou
-  // een deel van de producten nooit in de suggesties verschijnen.
-  const PAGE = 1000
-  const allProducts: Product[] = []
-  for (let offset = 0; ; offset += PAGE) {
-    const { data: page, error: prodErr } = await supabase
-      .from('products')
-      .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes, working_load_limit')
-      .order('id')
-      .range(offset, offset + PAGE - 1)
-    if (prodErr) break
-    allProducts.push(...((page ?? []) as Product[]))
-    if (!page || page.length < PAGE) break
+  try {
+    items.value = await fetchInspectionItems()
+  } catch (e) {
+    error.value = errorMessage(e)
+    loading.value = false
+    return
   }
-  products.value = allProducts
+  // Alles hierna (codes, klantartikelen, sets, certificaatlink): mislukt er
+  // iets, dan een duidelijke melding i.p.v. een eeuwig draaiend "Laden..."
+  // of stil ontbrekende gegevens.
+  try {
+    rejectionCodes.value = await fetchRejectionCodes(insp.company_id)
+    approvalCodes.value = await fetchApprovalCodes(insp.company_id)
+    freeFields.value = await fetchFreeInputFields()
 
-  // Al bekende artikelen van deze klant als extra suggestiebron (zie
-  // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
-  // catalogus nog (vrijwel) leeg is.
-  const { data: custArts } = await inspectorVisibleArticles(
-    supabase
-      .from('articles')
-      .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
-      .eq('customer_id', insp.customer_id)
-  )
-  customerArticles.value = (custArts ?? []).map((a: any) => ({
-    id: a.id,
-    serial: a.serial_number ?? '',
-    brand: (a.product?.brand ?? a.free_brand) ?? '',
-    name: (a.product?.name ?? a.free_description) ?? '',
-    category: (categoryLabel(a.product?.category) || a.free_category) ?? '',
-    user: a.assigned_user_name ?? '',
-    retired: !!a.retired,
-    retiredReason: a.retired_reason ?? null,
-    last: null,
-  }))
-  // Laatste afgeronde keuringsresultaat per klant-artikel, voor de
-  // SN-dropdown ("afgekeurd 26 jun 2026"). Eén query voor alle artikelen.
-  const custIds = customerArticles.value.map((a) => a.id)
-  if (custIds.length) {
-    const { data: lastRows } = await supabase
-      .from('inspection_items')
-      .select('article_id, result, inspection:inspections!inner(inspection_date, status)')
-      .in('article_id', custIds)
-      .eq('inspection.status', 'completed')
-      .in('result', ['passed', 'rejected'])
-    const latest = new Map<string, { result: string; date: string }>()
-    for (const r of (lastRows ?? []) as any[]) {
-      const date = r.inspection?.inspection_date
-      if (!date) continue
-      const cur = latest.get(r.article_id)
-      if (!cur || date > cur.date) latest.set(r.article_id, { result: r.result, date })
+    previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
+
+    // Hele catalogus laden in pagina's van 1000: PostgREST kapt een query
+    // standaard op 1000 rijen, en de catalogus is groter. Zonder paginering zou
+    // een deel van de producten nooit in de suggesties verschijnen.
+    const PAGE = 1000
+    const allProducts: Product[] = []
+    for (let offset = 0; ; offset += PAGE) {
+      const { data: page, error: prodErr } = await supabase
+        .from('products')
+        .select('id, brand, name, category, product_type, interval_override_months, max_age_mfr_years, max_age_use_years, recall_url, recall_date, inspection_notice_url, inspection_notice_date, manual_url, manufacturer_code, barcodes, notes, working_load_limit')
+        .order('id')
+        .range(offset, offset + PAGE - 1)
+      if (prodErr) break
+      allProducts.push(...((page ?? []) as Product[]))
+      if (!page || page.length < PAGE) break
     }
-    for (const a of customerArticles.value) a.last = latest.get(a.id) ?? null
-  }
-  // Suggestiebron (merk/artikel/categorie) alleen uit actief materiaal.
-  customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
-    brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
-  }))
+    products.value = allProducts
 
-  await loadArticleSetInfo(insp.customer_id)
+    // Al bekende artikelen van deze klant als extra suggestiebron (zie
+    // catalogEntries): zo zijn de dropdowns ook bruikbaar als de globale
+    // catalogus nog (vrijwel) leeg is.
+    // Gepagineerd: anders vond SN-zoeken bij een klant met >1000 artikelen een
+    // deel stil niet (en kon je een bestaand artikel dubbel invoeren).
+    const custArts = await fetchAllRows<any>((from, to) =>
+      inspectorVisibleArticles(
+        supabase
+          .from('articles')
+          .select('id, serial_number, free_brand, free_category, free_description, assigned_user_name, retired, retired_reason, product:products(brand, name, category)')
+          .eq('customer_id', insp.customer_id)
+      ).order('id').range(from, to)
+    )
+    customerArticles.value = custArts.map((a: any) => ({
+      id: a.id,
+      serial: a.serial_number ?? '',
+      brand: (a.product?.brand ?? a.free_brand) ?? '',
+      name: (a.product?.name ?? a.free_description) ?? '',
+      category: (categoryLabel(a.product?.category) || a.free_category) ?? '',
+      user: a.assigned_user_name ?? '',
+      retired: !!a.retired,
+      retiredReason: a.retired_reason ?? null,
+      last: null,
+    }))
+    // Laatste afgeronde keuringsresultaat per klant-artikel, voor de
+    // SN-dropdown ("afgekeurd 26 jun 2026"). Eén query voor alle artikelen.
+    const custIds = customerArticles.value.map((a) => a.id)
+    if (custIds.length) {
+      const lastRows = await fetchAllRowsIn<any>(custIds, (chunk, from, to) =>
+        supabase
+          .from('inspection_items')
+          .select('id, article_id, result, inspection:inspections!inner(inspection_date, status)')
+          .in('article_id', chunk)
+          .eq('inspection.status', 'completed')
+          .in('result', ['passed', 'rejected'])
+          .order('id')
+          .range(from, to)
+      )
+      const latest = new Map<string, { result: string; date: string }>()
+      for (const r of lastRows) {
+        const date = r.inspection?.inspection_date
+        if (!date) continue
+        const cur = latest.get(r.article_id)
+        if (!cur || date > cur.date) latest.set(r.article_id, { result: r.result, date })
+      }
+      for (const a of customerArticles.value) a.last = latest.get(a.id) ?? null
+    }
+    // Suggestiebron (merk/artikel/categorie) alleen uit actief materiaal.
+    customerEntries.value = customerArticles.value.filter((a) => !a.retired).map((a) => ({
+      brand: a.brand || null, name: a.name || null, category: a.category || null, manufacturer_code: null,
+    }))
 
-  if (insp.status === 'completed') {
-    finished.value = true
-    // De downloadlink ook bij het heropenen tonen, niet alleen direct na het
-    // afronden. Voor offline afgeronde keuringen is dit de enige route: het
-    // certificaat wordt daar pas tijdens de sync op de achtergrond
-    // gegenereerd, dus de keurmeester heeft de link nooit gezien.
-    const { data: cert } = await supabase
-      .from('certificates')
-      .select('storage_path')
-      .eq('inspection_id', id)
-      .maybeSingle()
-    if (cert?.storage_path) {
-      // download-optie: attachment-header zodat de PDF echt in Downloads
-      // belandt i.p.v. alleen in een browsertab te openen.
-      certificateUrl.value = supabase.storage
+    await loadArticleSetInfo(insp.customer_id)
+
+    if (insp.status === 'completed') {
+      finished.value = true
+      // De downloadlink ook bij het heropenen tonen, niet alleen direct na het
+      // afronden. Voor offline afgeronde keuringen is dit de enige route: het
+      // certificaat wordt daar pas tijdens de sync op de achtergrond
+      // gegenereerd, dus de keurmeester heeft de link nooit gezien.
+      const { data: cert } = await supabase
         .from('certificates')
-        .getPublicUrl(cert.storage_path, { download: true }).data.publicUrl
+        .select('storage_path')
+        .eq('inspection_id', id)
+        .maybeSingle()
+      if (cert?.storage_path) {
+        // download-optie: attachment-header zodat de PDF echt in Downloads
+        // belandt i.p.v. alleen in een browsertab te openen.
+        certificateUrl.value = supabase.storage
+          .from('certificates')
+          .getPublicUrl(cert.storage_path, { download: true }).data.publicUrl
+      }
     }
+  } catch (e) {
+    error.value = errorMessage(e)
   }
   loading.value = false
 }
@@ -2980,22 +3000,28 @@ async function activePeerNames(): Promise<string[]> {
 // snel kunnen zien wat collega's intussen hebben toegevoegd. Ververst bewust
 // alléén de artikelregels, niet de hele catalogus (die haalt load() met
 // paginering op -- dat zou de knop traag maken).
+// Alle regels van deze keuring, gepagineerd (2026-10-03): een keuring met
+// meer dan 1000 artikelen werd anders stil afgekapt. Eén loader voor laden
+// en verversen.
+const ITEM_SELECT = 'id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment, article:articles(*, product:products(*))'
+function fetchInspectionItems(): Promise<Item[]> {
+  return fetchAllRows<Item>((from, to) =>
+    supabase.from('inspection_items').select(ITEM_SELECT).eq('inspection_id', id)
+      .order('created_at').order('id').range(from, to)
+  )
+}
+
 const refreshing = ref(false)
 const refreshError = ref('')
 async function refreshItems() {
   if (!isOnline.value) return
   refreshing.value = true
   refreshError.value = ''
-  const { data: rowsData, error: itemsErr } = await supabase
-    .from('inspection_items')
-    .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment, article:articles(*, product:products(*))')
-    .eq('inspection_id', id)
-    .order('created_at')
-  if (itemsErr) {
-    refreshError.value = itemsErr.message
-  } else {
-    items.value = (rowsData ?? []) as unknown as Item[]
+  try {
+    items.value = await fetchInspectionItems()
     previousResults.value = await findPreviousResults(items.value.map((it) => it.article_id), id)
+  } catch (e) {
+    refreshError.value = errorMessage(e)
   }
   refreshing.value = false
 }
