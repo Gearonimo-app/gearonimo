@@ -425,17 +425,22 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
-## Voortgang (2026-10-03, standaard afkeurcodes in de taal van het land)
+## Voortgang (2026-10-03, standaard afkeur- en goedkeuringscodes, per taal)
 
 > Gevonden bij de voorbereiding van de Engelse demovideo (gemist in het
 > Engelse rondje): de standaard afkeurcodes bestonden alleen in het
 > Nederlands, dus een Engels keurbedrijf kreeg Nederlandse codes in de keuring
 > én op het certificaat ("Leeftijd of label" op 20261003-CLAUDE-TEST-2).
-> Opgelost (Jos: "bouw de afkeurcodes"): standaard in nl/en/fr/de; een nieuw
-> keurbedrijf krijgt automatisch de set in de taal van zijn land; bestaande
-> bedrijven zonder eigen codes worden aangevuld; bedrijven mét eigen codes
-> blijven ongemoeid. Land → taal is nu één gedeelde regel
-> (`packages/core/src/language.ts`). Migratie
+> Besluit Jos: codes opnieuw bedenken volgens LOLER, "hoe minder codes hoe
+> beter", ook voor goedkeuren (repareren, smeren). Afkeur: versleten/
+> beschadigd, levensduur of label, eerst repareren, direct gevaarlijk
+> (onderaan, op verzoek). Goedkeur: schoongemaakt/gesmeerd, gerepareerd
+> tijdens de keuring, lichte slijtage, gebrek kan gevaarlijk worden (datum).
+> In nl/en/fr/de; een nieuw keurbedrijf krijgt beide sets automatisch in de
+> taal van zijn land; bestaande bedrijven krijgen ze alleen voor de tabel waar
+> ze nog geen eigen codes hebben. Ophalen en aanvullen van beide soorten codes
+> is één gedeelde opzet (`fetchPlatformCodes` in useInspections.ts); land →
+> taal één regel (`packages/core/src/language.ts`). Migratie
 > **`20261015_rejection_codes_language.sql`**.
 
 ## Voortgang (2026-10-03, "Alleen nieuwe" weg)

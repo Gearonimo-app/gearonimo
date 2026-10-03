@@ -514,44 +514,35 @@ export async function findPreviousResults(
   return out
 }
 
-// Afkeurcodes zijn per keurbedrijf instelbaar (besluit Jos 2026-06-25). Heeft
-// dit bedrijf een eigen set, dan gebruiken we alléén die (ook als sommige
-// uitgezet zijn — bewust niet terugvallen). Heeft het er nog geen, dan vallen
-// we terug op de platformstandaard (company_id leeg) als startset; het
-// instellingenscherm seedt bij eerste opening een eigen kopie. Leeg resultaat
-// = wizard valt terug op vrije tekst (zie 20260624_rejection_codes.sql).
-export async function fetchRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
-  const { isOnline } = useOnline()
-  if (!isOnline.value) {
-    const key = requireOfflineKey()
-    return getRejectionCodes<{ id: string; code: number; label: string | null }>(key, companyId)
-  }
+// Afkeur- en goedkeuringscodes (besluit Jos 2026-06-25 / 2026-09-30) werken
+// hetzelfde, daarom één gedeelde opzet. Heeft het bedrijf een eigen set, dan
+// gebruiken we alléén die (ook als sommige uitgezet zijn — bewust niet
+// terugvallen). Heeft het er nog geen, dan vallen we terug op de
+// platformstandaard in de taal van het land van het bedrijf (migratie
+// 20261015; sinds dan krijgt elk bedrijf bij het aanmaken al een eigen kopie).
+// Leeg resultaat = alleen vrije opmerking.
+export type CodeTable = 'rejection_codes' | 'approval_codes'
+type Code = { id: string; code: number; label: string | null }
 
+async function fetchCompanyCodes(table: CodeTable, companyId: string): Promise<Code[]> {
   const own = await supabase
-    .from('rejection_codes')
+    .from(table)
     .select('id, code, label, active')
     .eq('company_id', companyId)
     .order('code')
   if (own.error) throw own.error
-  if (own.data && own.data.length) {
-    return own.data
-      .filter((r) => r.active)
-      .map((r) => ({ id: r.id, code: r.code, label: r.label }))
-  }
-
-  return (await fetchPlatformRejectionCodes(companyId))
-    .filter((r) => r.active)
-    .map((r) => ({ id: r.id, code: r.code, label: r.label }))
+  const rows = own.data && own.data.length ? own.data : await fetchPlatformCodes(table, companyId)
+  return rows.filter((r) => r.active).map((r) => ({ id: r.id, code: r.code, label: r.label }))
 }
 
-// De platformstandaard in de taal van het land van het keurbedrijf (migratie
-// 20261015) -- anders kreeg een Engels bedrijf Nederlandse afkeurcodes. Ook de
-// bron voor de eigen kopie die het instellingenscherm aanmaakt.
-export async function fetchPlatformRejectionCodes(companyId: string): Promise<{ id: string; code: number; label: string | null; active: boolean }[]> {
+// De platformstandaard in de taal van het land van het keurbedrijf -- anders
+// kreeg een Engels bedrijf Nederlandse codes. Ook de bron voor de eigen kopie
+// die het instellingenscherm aanmaakt als een bedrijf nog niets heeft.
+export async function fetchPlatformCodes(table: CodeTable, companyId: string): Promise<(Code & { active: boolean })[]> {
   const company = await supabase.from('inspection_companies').select('country_code').eq('id', companyId).single()
   if (company.error) throw company.error
   const { data, error } = await supabase
-    .from('rejection_codes')
+    .from(table)
     .select('id, code, label, active')
     .is('company_id', null)
     .eq('language', languageForCountry(company.data.country_code))
@@ -560,35 +551,16 @@ export async function fetchPlatformRejectionCodes(companyId: string): Promise<{ 
   return data ?? []
 }
 
-// Goedkeuringscodes (Jos, 2026-09-30): zelfde opzet als afkeurcodes hierboven,
-// maar voor een goedgekeurd artikel -- bv. "goed, let op verhoogde slijtage"
-// of "goed tot [datum aangepast]". Optioneel: bij niets selecteren blijft het
-// gewoon zoals nu (geen code, eventueel alleen vrije opmerking).
-export async function fetchApprovalCodes(companyId: string): Promise<{ id: string; code: number; label: string | null }[]> {
+export async function fetchRejectionCodes(companyId: string): Promise<Code[]> {
   const { isOnline } = useOnline()
-  if (!isOnline.value) {
-    const key = requireOfflineKey()
-    return getApprovalCodes<{ id: string; code: number; label: string | null }>(key, companyId)
-  }
+  if (!isOnline.value) return getRejectionCodes<Code>(requireOfflineKey(), companyId)
+  return fetchCompanyCodes('rejection_codes', companyId)
+}
 
-  const own = await supabase
-    .from('approval_codes')
-    .select('id, code, label, active')
-    .eq('company_id', companyId)
-    .order('code')
-  if (own.error) throw own.error
-  if (own.data && own.data.length) {
-    return own.data
-      .filter((r) => r.active)
-      .map((r) => ({ id: r.id, code: r.code, label: r.label }))
-  }
-
-  const platform = await supabase
-    .from('approval_codes')
-    .select('id, code, label')
-    .eq('active', true)
-    .is('company_id', null)
-    .order('code')
-  if (platform.error) throw platform.error
-  return (platform.data ?? []).map((r) => ({ id: r.id, code: r.code, label: r.label }))
+// Goedkeuringscodes: optioneel -- bij niets selecteren blijft het gewoon
+// goedgekeurd, eventueel met alleen een vrije opmerking.
+export async function fetchApprovalCodes(companyId: string): Promise<Code[]> {
+  const { isOnline } = useOnline()
+  if (!isOnline.value) return getApprovalCodes<Code>(requireOfflineKey(), companyId)
+  return fetchCompanyCodes('approval_codes', companyId)
 }
