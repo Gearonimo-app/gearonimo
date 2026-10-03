@@ -166,7 +166,7 @@ async function load() {
     .select('*')
     .eq('id', id)
     .maybeSingle()
-  if (setErr) { error.value = setErr.message; loading.value = false; return }
+  if (setErr) { error.value = errorMessage(setErr); loading.value = false; return }
   set.value = setData
   if (!setData) { loading.value = false; return }
 
@@ -174,7 +174,7 @@ async function load() {
     .from('article_set_members')
     .select('id, article_id, article:articles(id, serial_number, free_brand, free_description, product:products(id, brand, name))')
     .eq('set_id', id)
-  if (memberErr) { error.value = memberErr.message; loading.value = false; return }
+  if (memberErr) { error.value = errorMessage(memberErr); loading.value = false; return }
   members.value = ((memberData ?? []) as unknown as RawMember[]).map((m) => ({
     id: m.id,
     article_id: m.article_id,
@@ -212,14 +212,14 @@ async function addMember(articleId: string) {
   const { error: err } = await supabase
     .from('article_set_members')
     .insert({ set_id: id, article_id: articleId })
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   showAddArticle.value = false
   await load()
 }
 
 async function removeMember(memberId: string) {
   const { error: err } = await supabase.from('article_set_members').delete().eq('id', memberId)
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   await load()
 }
 
@@ -235,7 +235,7 @@ async function saveName() {
     .select('*')
     .single()
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   set.value = data
   editMode.value = false
 }
@@ -245,7 +245,7 @@ async function deleteSet() {
   const { error: err } = await supabase.from('article_sets').delete().eq('id', id)
   deleting.value = false
   showDelete.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   router.push(`/customers/${set.value?.customer_id}`)
 }
 

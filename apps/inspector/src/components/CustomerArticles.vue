@@ -621,7 +621,7 @@ async function load() {
           product: a.product_id ? productById.get(a.product_id) ?? null : null,
         }))
     } catch (e) {
-      error.value = e instanceof Error ? e.message : String(e)
+      error.value = errorMessage(e)
     }
     loading.value = false
     return
@@ -694,13 +694,15 @@ async function save() {
     retired: false,
   })
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   closeAdd()
   await load()
 }
 
 onMounted(async () => {
-  fetchFreeInputFields().then((f) => { freeFields.value = f })
+  fetchFreeInputFields()
+    .then((f) => { freeFields.value = f })
+    .catch((e) => { error.value = errorMessage(e) })
   // Offline: geen volledige catalogusaanroep (die is sowieso te groot om
   // mee te downloaden, zie slice 2) -- de typeaheads voor een nieuw artikel
   // blijven dan leeg (toevoegen is al online-only), maar de bestaande

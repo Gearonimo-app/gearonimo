@@ -1232,7 +1232,7 @@ async function applyRowMatch(it: Item, name: string) {
       free_mbs: null,
     })
     .eq('id', it.article.id)
-  if (err) { addError.value = err.message; return }
+  if (err) { addError.value = errorMessage(err); return }
   it.article.product = p
   it.article.free_brand = null
   it.article.free_category = null
@@ -1255,7 +1255,7 @@ async function unlinkRowProduct(it: Item) {
     .from('articles')
     .update({ product_id: null, free_brand: p?.brand ?? null, free_description: p?.name ?? null })
     .eq('id', it.article.id)
-  if (err) { addError.value = err.message; return }
+  if (err) { addError.value = errorMessage(err); return }
   it.article.product = null
   it.article.free_brand = p?.brand ?? null
   it.article.free_description = p?.name ?? null
@@ -1527,13 +1527,13 @@ async function addCustomerArticle(articleId: string) {
   }
   const { data: article, error: artErr } = await supabase
     .from('articles').select('*, product:products(*)').eq('id', articleId).single()
-  if (artErr || !article) { addError.value = artErr?.message ?? ''; return }
+  if (artErr || !article) { addError.value = artErr ? errorMessage(artErr) : ''; return }
   const { data: item, error: itemErr } = await supabase
     .from('inspection_items')
     .insert({ inspection_id: id, article_id: articleId, article_snapshot: article, result: 'not_assessed', ...newExamFields() })
     .select('id, article_id, result, next_due, rejection_code_id, approval_code_id, exam_type, exam_interval_months, comment')
     .single()
-  if (itemErr || !item) { addError.value = itemErr?.message ?? ''; return }
+  if (itemErr || !item) { addError.value = itemErr ? errorMessage(itemErr) : ''; return }
   const newItem = { ...item, article } as Item
   items.value.push(newItem)
   previousResults.value[articleId] = await findPreviousResult(articleId, id)
@@ -1623,7 +1623,7 @@ async function reinstateAndAdd(r: SnResult) {
     .from('articles')
     .update({ retired: false, retired_at: null, retired_reason: null })
     .eq('id', r.id)
-  if (err) { addError.value = err.message; return }
+  if (err) { addError.value = errorMessage(err); return }
   const art = customerArticles.value.find((a) => a.id === r.id)
   if (art) { art.retired = false; art.retiredReason = null }
   resetAddRow()
@@ -2178,7 +2178,7 @@ async function load() {
     .select('*, customer:customers(name), company:inspection_companies(country_code, default_interval_ppe_months, default_interval_rigging_months)')
     .eq('id', id)
     .maybeSingle()
-  if (insErr) { error.value = insErr.message; loading.value = false; return }
+  if (insErr) { error.value = errorMessage(insErr); loading.value = false; return }
   if (!insp) { error.value = t('inspections.notFound'); loading.value = false; return }
   inspection.value = insp as unknown as InspectionRecord
   locationAddress.value = inspection.value.location ?? ''
@@ -2809,7 +2809,7 @@ async function saveArticleNow(it: Item) {
     return
   }
   const { error: err } = await supabase.from('articles').update(patch).eq('id', a.id)
-  if (err) addError.value = err.message
+  if (err) addError.value = errorMessage(err)
 }
 
 // Opslaan gebeurt "op de achtergrond" (bij blur/change, niet afgewacht). Wie
@@ -2875,7 +2875,7 @@ async function saveRowNow(it: Item) {
   // weer te verdwijnen zodra een volgende save wél slaagt, zonder een
   // eventuele losstaande toevoeg-fout mee te wissen.
   const { error: err } = await supabase.from('inspection_items').update(patch).eq('id', it.id)
-  rowSaveError.value = err ? t('inspections.table.saveRowFailed', { name: itemLabel(it) }) + ' ' + err.message : ''
+  rowSaveError.value = err ? t('inspections.table.saveRowFailed', { name: itemLabel(it) }) + ' ' + errorMessage(err) : ''
 }
 
 async function finish() {

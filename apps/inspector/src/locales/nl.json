@@ -424,7 +424,9 @@
     "qualValidUntil": "Geldig tot",
     "qualView": "Bekijk bewijs →",
     "items": "Gekeurde artikelen",
-    "hash": "Bestandshash"
+    "hash": "Bestandshash",
+    "loadError": "Het certificaat kon nu niet gecontroleerd worden (geen verbinding of storing). Dit zegt niets over de echtheid.",
+    "retry": "Opnieuw proberen"
   },
   "settings": {
     "title": "Instellingen",
@@ -599,7 +601,8 @@
       "errors": {
         "nameRequired": "Naam is verplicht",
         "qNameRequired": "Naam van de kwalificatie is verplicht"
-      }
+      },
+      "qualOpenFailed": "Kon bestand niet openen"
     },
     "import": {
       "menuTitle": "Excel/CSV-import",

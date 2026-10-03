@@ -196,7 +196,7 @@ async function save() {
     : await supabase.from('rejection_codes').insert({ company_id: companyId.value, ...patch })
 
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   closeForm()
   await load()
 }
@@ -208,7 +208,7 @@ async function toggleActive(c: Code) {
     .update({ active: !c.active })
     .eq('id', c.id)
   togglingId.value = null
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   c.active = !c.active
 }
 
@@ -218,7 +218,7 @@ async function remove() {
   const { error: err } = await supabase.from('rejection_codes').delete().eq('id', editing.value.id)
   deleting.value = false
   showDelete.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   closeForm()
   await load()
 }

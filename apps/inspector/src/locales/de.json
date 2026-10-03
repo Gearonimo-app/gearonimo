@@ -423,7 +423,9 @@
     "qualValidUntil": "Gültig bis",
     "qualView": "Nachweis ansehen →",
     "items": "Geprüfte Artikel",
-    "hash": "Dateihash"
+    "hash": "Dateihash",
+    "loadError": "Das Zertifikat konnte gerade nicht geprüft werden (keine Verbindung oder Störung). Das sagt nichts über seine Echtheit aus.",
+    "retry": "Erneut versuchen"
   },
   "settings": {
     "title": "Einstellungen",
@@ -598,7 +600,8 @@
       "errors": {
         "nameRequired": "Name ist erforderlich",
         "qNameRequired": "Name der Qualifikation ist erforderlich"
-      }
+      },
+      "qualOpenFailed": "Datei konnte nicht geöffnet werden"
     },
     "import": {
       "menuTitle": "Excel/CSV-Import",

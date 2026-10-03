@@ -423,7 +423,9 @@
     "qualValidUntil": "Valable jusqu'au",
     "qualView": "Voir le justificatif →",
     "items": "Articles contrôlés",
-    "hash": "Empreinte du fichier"
+    "hash": "Empreinte du fichier",
+    "loadError": "Le certificat n'a pas pu être vérifié pour le moment (pas de connexion ou panne). Cela ne dit rien sur son authenticité.",
+    "retry": "Réessayer"
   },
   "settings": {
     "title": "Paramètres",
@@ -598,7 +600,8 @@
       "errors": {
         "nameRequired": "Le nom est obligatoire",
         "qNameRequired": "Le nom de la qualification est obligatoire"
-      }
+      },
+      "qualOpenFailed": "Impossible d'ouvrir le fichier"
     },
     "import": {
       "menuTitle": "Import Excel/CSV",

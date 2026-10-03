@@ -286,7 +286,7 @@ async function addInspector() {
     active: addForm.active,
   })
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   showAdd.value = false
   await load()
 }
@@ -317,7 +317,7 @@ async function saveInspector() {
     .update({ name: editForm.name.trim() || null, is_admin: editForm.is_admin, active: editForm.active, offline_enabled: editForm.offline_enabled })
     .eq('id', selected.value.id)
   savingEdit.value = false
-  if (err) { editError.value = err.message; return }
+  if (err) { editError.value = errorMessage(err); return }
   await load()
   deselect()
 }
@@ -406,7 +406,7 @@ async function removeQual(q: Qualification) {
   if (q.storage_path) await supabase.storage.from('qualifications').remove([q.storage_path])
   if (q.public_path) await supabase.storage.from('branding').remove([q.public_path])
   const { error: err } = await supabase.from('inspector_qualifications').delete().eq('id', q.id)
-  if (err) { qualError.value = err.message; return }
+  if (err) { qualError.value = errorMessage(err); return }
   if (selected.value) await loadQuals(selected.value.id)
 }
 
@@ -450,7 +450,7 @@ async function openFile(q: Qualification) {
   opening.value = q.id
   const { data, error: err } = await supabase.storage.from('qualifications').createSignedUrl(q.storage_path, 120)
   opening.value = null
-  if (err || !data) { qualError.value = err?.message ?? 'Kon bestand niet openen'; return }
+  if (err || !data) { qualError.value = err ? errorMessage(err) : t('settings.inspectors.qualOpenFailed'); return }
   window.open(data.signedUrl, '_blank', 'noopener')
 }
 

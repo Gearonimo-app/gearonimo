@@ -425,6 +425,41 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, bevindingen 1 t/m 7 opgelost)
+
+> Jos: "akkoord, los 1 t/m 7 op".
+> 1+2. Gedeelde helpers in packages/core: `fetchAllRowsIn` (id-lijsten in
+>    blokken van 100, elk blok gepagineerd), `insertInChunks`, `fetchAllRpc`
+>    (RPC-lijsten gepagineerd). Toegepast op keuring starten/artikelen
+>    toevoegen (+ geen leeg concept bij een fout), keuring laden/verversen,
+>    certificaat, klantartikelen, sets, keuringen-/klanten-/certificatenlijst,
+>    set-detail, offline download, klant-app (my_articles,
+>    my_retired_articles, my_certificates). Vorige uitslagen: één opvraging
+>    in blokken i.p.v. één verzoek per artikel. fetchAllRows gooit nu een
+>    fout bij de veiligheidsrem i.p.v. stil een deel te geven.
+> 3. Mailtaal (migratie `20261010`): eigen keuze → laatste certificaat →
+>    land gekoppeld keurbedrijf → land keurbedrijf laatste keuring → nl.
+>    Eén gedeelde functie customer_mail_locale voor beheerder- en
+>    eigenaarsmail.
+> 4. Import: land-opvraging gooit bij een fout (geen stille 12 maanden),
+>    klant/artikel/concept-zoeken: fouten niet meer genegeerd, bij twee
+>    treffers vaste keuze i.p.v. een derde aanmaken.
+> 5. Databasemeldingen: `dbErrors.ts` (54 meldingen, en/fr/de), via
+>    errorMessage() in de taal van de app; test faalt zodra een nieuwe
+>    `raise exception` geen vertaling heeft. Ruwe `err.message` op ~40
+>    plekken vervangen door errorMessage().
+> 6. Dashboardteller (migratie `20261011`): alleen beoordeelde regels.
+> 7. QR-pagina: netwerkfout ≠ "niet gevonden" (eigen melding + opnieuw);
+>    vrije-invoervelden: laadfout wordt gemeld; artikeldetail: afvoeren
+>    opent niet bij een fout in de historiecheck.
+>
+> Getest: core-tests (o.a. blokken/paginering, vertaling + bewaking),
+> migraties 20261010/11 op lokale PostgreSQL 16 (taalkeuze per scenario,
+> teller), builds en alle tests. Niet getest tegen de live database.
+> Nog open (klein): zeldzame app-meldingen in het Nederlands (offline,
+> import-batch, kwalificatie-download), bestandsnamen met UTC-datum,
+> "@onbekend.nl" bij import.
+
 ## Voortgang (2026-10-03, controle klaar voor internationale klanten -- bevindingen)
 
 > Jos: "zorg eerst dat de rest van de app goed genoeg is om met echte

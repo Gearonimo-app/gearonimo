@@ -195,6 +195,8 @@ export interface CertData {
 
 export type CertLanguage = 'nl' | 'en' | 'fr' | 'de'
 
+// Zelfde tabel staat in SQL als public.locale_for_country() (taal van de
+// herinneringsmail, migratie 20261010) -- wijzig je de één, wijzig dan de ander.
 export function certLanguageForCountry(countryCode: string | null): CertLanguage {
   const c = countryCode ?? 'NL'
   if (['NL', 'BE'].includes(c)) return 'nl'

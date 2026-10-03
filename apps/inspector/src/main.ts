@@ -8,7 +8,7 @@ import nl from "./locales/nl.json";
 import en from "./locales/en.json";
 import fr from "./locales/fr.json";
 import de from "./locales/de.json";
-import { useAuth, supabase } from "@gearonimo/core";
+import { useAuth, supabase, setErrorLocale } from "@gearonimo/core";
 import { initialLocale } from "@gearonimo/ui";
 import { ensureInspector } from "./composables/useInspections";
 import { installTabs } from "./composables/useTabs";
@@ -40,6 +40,9 @@ const i18n = createI18n({
   fallbackLocale: "en",
   messages: { nl, en, fr, de },
 });
+// Foutmeldingen uit de database in de taal van de app (zie dbErrors.ts in
+// packages/core); volgt ook een taalwissel via de kopbalk.
+setErrorLocale(() => i18n.global.locale.value);
 
 const router = createRouter({
   history: createWebHistory(),

@@ -424,7 +424,9 @@
     "qualValidUntil": "Valid until",
     "qualView": "View document →",
     "items": "Inspected items",
-    "hash": "File hash"
+    "hash": "File hash",
+    "loadError": "The certificate could not be checked right now (no connection or a fault). This says nothing about whether it is genuine.",
+    "retry": "Try again"
   },
   "settings": {
     "title": "Settings",
@@ -599,7 +601,8 @@
       "errors": {
         "nameRequired": "Name is required",
         "qNameRequired": "Qualification name is required"
-      }
+      },
+      "qualOpenFailed": "Could not open the file"
     },
     "import": {
       "menuTitle": "Excel/CSV import",

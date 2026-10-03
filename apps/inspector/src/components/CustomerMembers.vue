@@ -129,7 +129,7 @@ async function load() {
     .select('*')
     .eq('customer_id', props.customerId)
     .order('created_at', { ascending: false })
-  if (err) error.value = err.message
+  if (err) error.value = errorMessage(err)
   else members.value = (data ?? []) as Member[]
   loading.value = false
 }
@@ -179,7 +179,7 @@ async function save() {
     : await supabase.from('customer_members').insert({ customer_id: props.customerId, ...patch })
 
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   closeForm()
   await load()
 }
@@ -190,7 +190,7 @@ async function remove() {
   const { error: err } = await supabase.from('customer_members').delete().eq('id', editingId.value)
   deleting.value = false
   showDelete.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   closeForm()
   await load()
 }

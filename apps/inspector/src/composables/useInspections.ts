@@ -101,11 +101,14 @@ export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: bool
   const { isOnline } = useOnline()
   let certLayout: { columns?: Record<string, boolean> } | null = null
   if (isOnline.value) {
-    const { data } = await supabase
+    // Fout niet negeren: anders verdwenen de extra invoervelden (SWL, type
+    // keuring, ...) stil, alsof het keurbedrijf ze had uitgezet (2026-10-03).
+    const { data, error } = await supabase
       .from('inspection_companies')
       .select('cert_layout')
       .eq('id', inspector.company_id)
       .single()
+    if (error) throw error
     certLayout = (data?.cert_layout as { columns?: Record<string, boolean> } | null) ?? null
   } else {
     const key = requireOfflineKey()

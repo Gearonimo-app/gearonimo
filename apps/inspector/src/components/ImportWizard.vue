@@ -360,7 +360,7 @@ import {
 } from '../composables/useImportCommit'
 import { listCustomers, type CustomerListItem } from '../composables/useCustomers'
 import { ensureInspector } from '../composables/useInspections'
-import { supabase, formatDate } from '@gearonimo/core'
+import { supabase, formatDate, errorMessage } from '@gearonimo/core'
 import CustomerFormModal from './CustomerFormModal.vue'
 
 const { t, locale } = useI18n()
@@ -513,7 +513,7 @@ async function removeBatch(id: string) {
     confirmDeleteBatchId.value = null
     await loadBatches()
   } catch (e) {
-    error.value = (e as Error).message
+    error.value = errorMessage(e)
   } finally {
     deletingBatchId.value = null
   }
@@ -712,7 +712,7 @@ async function onFileChange(e: Event) {
     }
     await ingest(parsed, picked)
   } catch (err) {
-    error.value = (err as Error).message
+    error.value = errorMessage(err)
   }
 }
 

@@ -374,7 +374,7 @@ async function saveNotes(): Promise<boolean> {
     .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   savingNotes.value = false
-  if (err) { notesError.value = t('articles.detail.notesSaveError', { msg: err.message }); return false }
+  if (err) { notesError.value = t('articles.detail.notesSaveError', { msg: errorMessage(err) }); return false }
   article.value = data
   notesDraft.value = data.notes ?? ''
   return true
@@ -557,7 +557,7 @@ async function unlinkProduct() {
     .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   linking.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   article.value = data
   const s = siblings.value.find((x) => x.id === id.value)
   if (s) s.product_id = null
@@ -580,7 +580,7 @@ async function linkProduct(p: CatalogProduct) {
     .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .single()
   linking.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   article.value = data
   productQuery.value = ''
   productListOpen.value = false
@@ -638,7 +638,7 @@ async function load() {
     .select('*, customer:customers!articles_customer_id_fkey(name), product:products(id, brand, name)')
     .eq('id', id.value)
     .maybeSingle()
-  if (err) error.value = err.message
+  if (err) error.value = errorMessage(err)
   else {
     article.value = data
     customerName.value = (data?.customer as { name: string | null } | null)?.name ?? null
@@ -703,7 +703,7 @@ async function save() {
     .select('*, product:products(id, brand, name)')
     .single()
   saving.value = false
-  if (err) { formError.value = err.message; return }
+  if (err) { formError.value = errorMessage(err); return }
   article.value = data
   editMode.value = false
 }
@@ -712,12 +712,15 @@ async function save() {
 // het écht weg; staat het er al op, dan voorkomen we dat dat certificaat zou
 // "veranderen" en voeren we alleen zacht af (retired).
 async function openRetire() {
-  const { data } = await supabase
+  // Fout niet negeren: anders leek een artikel met keuringshistorie "nooit
+  // gekeurd" en kreeg je de keuze om het echt te verwijderen (2026-10-03).
+  const { data, error: err } = await supabase
     .from('inspection_items')
     .select('id, inspections!inner(status)')
     .eq('article_id', id.value)
     .eq('inspections.status', 'completed')
     .limit(1)
+  if (err) { error.value = errorMessage(err); return }
   everCertified.value = !!(data && data.length)
   showRetire.value = true
 }
@@ -727,7 +730,7 @@ async function remove() {
   const { error: err } = await supabase.from('articles').delete().eq('id', id.value)
   retiring.value = false
   showRetire.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   clearSiblingCache() // dit artikel valt uit de buurlijst van deze klant
   back()
 }
@@ -742,7 +745,7 @@ async function retire() {
     .single()
   retiring.value = false
   showRetire.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   clearSiblingCache() // afgevoerd = uit de buurlijst (die filtert op retired)
   article.value = data
 }
@@ -759,7 +762,7 @@ async function reinstate() {
     .select('*, product:products(id, brand, name)')
     .single()
   reinstating.value = false
-  if (err) { error.value = err.message; return }
+  if (err) { error.value = errorMessage(err); return }
   clearSiblingCache() // staat weer in de buurlijst
   article.value = data
   await loadSiblings()

@@ -8,6 +8,7 @@ export * from "./supabase";
 export * from "./useAuth";
 export * from "./errors";
 export * from "./fetchAll";
+export * from "./dbErrors";
 export * from "./rpcAll";
 export * from "./useOnline";
 export * from "./offline";

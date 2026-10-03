@@ -1,6 +1,12 @@
 <template>
   <div class="vc">
     <div v-if="loading" class="vc__state">{{ $t('common.loading') }}</div>
+    <!-- Netwerk-/serverfout: niet "niet gevonden" zeggen -- dan lijkt een
+         echt certificaat vals voor wie de QR-code scant (2026-10-03). -->
+    <div v-else-if="loadFailed" class="vc__state vc__state--error">
+      {{ $t('verify.loadError') }}
+      <button type="button" class="vc__retry" @click="load">{{ $t('verify.retry') }}</button>
+    </div>
     <div v-else-if="!data" class="vc__state vc__state--error">{{ $t('verify.notFound') }}</div>
 
     <div v-else class="vc__card">
@@ -77,6 +83,7 @@ interface VerifyResult {
 
 const data = ref<VerifyResult | null>(null)
 const loading = ref(true)
+const loadFailed = ref(false)
 
 function formatDate(d: string) {
   return sharedFormatDate(d, locale.value)
@@ -86,17 +93,26 @@ function qualUrl(q: VerifyQualification): string {
   return supabase.storage.from('branding').getPublicUrl(q.public_path).data.publicUrl
 }
 
-onMounted(async () => {
-  const { data: result } = await supabase.rpc('verify_certificate', { token })
-  data.value = (result as VerifyResult) ?? null
+async function load() {
+  loading.value = true
+  loadFailed.value = false
+  const { data: result, error } = await supabase.rpc('verify_certificate', { token })
+  if (error) loadFailed.value = true
+  else data.value = (result as VerifyResult) ?? null
   loading.value = false
-})
+}
+
+onMounted(load)
 </script>
 
 <style scoped>
 .vc { min-height: var(--page-min-h, 100vh); background: #f0f4f8; display: flex; justify-content: center; padding: 2rem 1rem; }
 .vc__state { padding: 3rem 1rem; color: #666; text-align: center; }
 .vc__state--error { color: #dc2626; }
+.vc__retry {
+  display: block; margin: 1rem auto 0; padding: 0.6rem 1.2rem; border-radius: 8px;
+  border: 1px solid #ddd; background: #fff; color: #1a3a2a; font: inherit; cursor: pointer;
+}
 .vc__card { background: #fff; border-radius: 14px; padding: 1.5rem; max-width: 480px; width: 100%; box-shadow: 0 2px 10px rgba(0,0,0,0.06); }
 .vc__badge { color: #16a34a; font-weight: 700; margin: 0 0 0.5rem; }
 .vc__card h1 { margin: 0 0 1rem; font-size: 1.2rem; }

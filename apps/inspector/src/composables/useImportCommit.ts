@@ -1,4 +1,4 @@
-import { supabase, addMonths, toIsoDate } from '@gearonimo/core'
+import { supabase, addMonths, toIsoDate, errorMessage } from '@gearonimo/core'
 import { ensureInspector, fetchRejectionCodes } from './useInspections'
 import { parseMonth, parseYearMonth, type FieldKey, type RawRow } from './useImportMapping'
 
@@ -147,12 +147,15 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   // (GB = 6 mnd per LOLER/PUWER, overige landen 12 mnd — bewust aan de
   // strenge kant, zie besluit Jos 2026-07-22). Per artikel later bij te
   // stellen via de keurtermijn-override op de artikelpagina.
-  const { data: company } = await supabase
+  // Fout niet negeren (2026-10-03): een mislukte opvraging gaf stil de
+  // 12-maandentermijn, ook voor een Engels keurbedrijf (6 maanden).
+  const { data: company, error: companyErr } = await supabase
     .from('inspection_companies')
     .select('country_code')
     .eq('id', inspector.company_id)
-    .maybeSingle()
-  const defaultIntervalMonths = company?.country_code === 'GB' ? 6 : 12
+    .single()
+  if (companyErr) throw companyErr
+  const defaultIntervalMonths = company.country_code === 'GB' ? 6 : 12
   const result: CommitResult = {
     customersCreated: 0,
     articlesCreated: 0,
@@ -170,7 +173,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
   opts.onProgress?.({ phase: 'upload', current: 0, total: opts.rows.length })
   const storagePath = `${inspector.company_id}/${Date.now()}-${opts.file.name}`
   const { error: uploadErr } = await supabase.storage.from('imports').upload(storagePath, opts.file)
-  if (uploadErr) { result.errors.push(uploadErr.message); return result }
+  if (uploadErr) { result.errors.push(errorMessage(uploadErr)); return result }
 
   const { data: batch, error: batchErr } = await supabase
     .from('import_batches')
@@ -184,7 +187,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
     })
     .select('id')
     .single()
-  if (batchErr) { result.errors.push(batchErr.message); return result }
+  if (batchErr) { result.errors.push(errorMessage(batchErr)); return result }
 
   // Afkeurcodes alleen ophalen als er een afkeurcode-kolom is gekoppeld, zodat
   // we de geïmporteerde code naar de juiste rejection_code_id kunnen vertalen.
@@ -229,11 +232,18 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
         customerId = customerCache.get(customerKey) ?? ''
         if (!customerId) {
           const email = cellsForField(opts.mapping, 'customerEmail', row)
-          const { data: existing } = await supabase
+          // Fout = rij overslaan (catch onderaan), niet stil een nieuwe klant
+          // maken. Twee bestaande klanten met deze naam: steeds dezelfde nemen
+          // (vaste sortering op id) i.p.v. -- zoals maybeSingle deed -- de fout
+          // te negeren en er een derde bij te maken (2026-10-03).
+          const { data: matches, error: lookupErr } = await supabase
             .from('customers')
             .select('id')
             .ilike('name', escapeIlike(customerName))
-            .maybeSingle()
+            .order('id')
+            .limit(1)
+          if (lookupErr) throw lookupErr
+          const existing = matches?.[0]
           if (existing) {
             customerId = String(existing.id)
           } else {
@@ -259,12 +269,17 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
 
       let articleId: string | undefined
       if (serial) {
-        const { data: existingArticle } = await supabase
+        // Zelfde als bij de klant: fout niet negeren, en bij twee bestaande
+        // artikelen met dit serienummer niet stil een derde aanmaken.
+        const { data: articleMatches, error: articleLookupErr } = await supabase
           .from('articles')
           .select('id')
           .eq('customer_id', customerId)
           .ilike('serial_number', escapeIlike(serial))
-          .maybeSingle()
+          .order('created_at')
+          .limit(1)
+        if (articleLookupErr) throw articleLookupErr
+        const existingArticle = articleMatches?.[0]
         if (existingArticle) {
           if (opts.skipDuplicateSerials) {
             articleId = existingArticle.id
@@ -363,13 +378,16 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
         // van pas zichtbaar te worden na een handmatige zoekactie.
         let draftInspectionId = draftInspectionCache.get(customerId)
         if (!draftInspectionId) {
-          const { data: existingDraft } = await supabase
+          const { data: draftMatches, error: draftLookupErr } = await supabase
             .from('inspections')
             .select('id')
             .eq('customer_id', customerId)
             .eq('company_id', inspector.company_id)
             .eq('status', 'draft')
-            .maybeSingle()
+            .order('created_at')
+            .limit(1)
+          if (draftLookupErr) throw draftLookupErr
+          const existingDraft = draftMatches?.[0]
           if (existingDraft) {
             draftInspectionId = String(existingDraft.id)
           } else {
@@ -403,7 +421,7 @@ export async function commitImport(opts: CommitOptions): Promise<CommitResult> {
 
       imported++
     } catch (err) {
-      result.errors.push((err as Error).message)
+      result.errors.push(errorMessage(err))
       skipped++
     }
   }
