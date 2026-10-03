@@ -26,7 +26,6 @@ import {
   fetchAllRowsIn,
   insertInChunks,
   toIsoDate,
-  languageForCountry,
 } from '@gearonimo/core'
 
 export interface Inspector {
@@ -515,37 +514,19 @@ export async function findPreviousResults(
 }
 
 // Afkeur- en goedkeuringscodes (besluit Jos 2026-06-25 / 2026-09-30) werken
-// hetzelfde, daarom één gedeelde opzet. Heeft het bedrijf een eigen set, dan
-// gebruiken we alléén die (ook als sommige uitgezet zijn — bewust niet
-// terugvallen). Heeft het er nog geen, dan vallen we terug op de
-// platformstandaard in de taal van het land van het bedrijf (migratie
-// 20261015; sinds dan krijgt elk bedrijf bij het aanmaken al een eigen kopie).
-// Leeg resultaat = alleen vrije opmerking.
+// hetzelfde, daarom één gedeelde opzet: alleen de eigen, actieve codes van het
+// keurbedrijf. Geen standaardset meer (Jos, 2026-10-03): "elk bedrijf mag
+// zonder goed- of afkeurcodes beginnen" -- wie codes wil (bv. voor LOLER),
+// zet ze zelf in Instellingen. Leeg resultaat = alleen vrije opmerking.
 export type CodeTable = 'rejection_codes' | 'approval_codes'
 type Code = { id: string; code: number; label: string | null }
 
 async function fetchCompanyCodes(table: CodeTable, companyId: string): Promise<Code[]> {
-  const own = await supabase
-    .from(table)
-    .select('id, code, label, active')
-    .eq('company_id', companyId)
-    .order('code')
-  if (own.error) throw own.error
-  const rows = own.data && own.data.length ? own.data : await fetchPlatformCodes(table, companyId)
-  return rows.filter((r) => r.active).map((r) => ({ id: r.id, code: r.code, label: r.label }))
-}
-
-// De platformstandaard in de taal van het land van het keurbedrijf -- anders
-// kreeg een Engels bedrijf Nederlandse codes. Ook de bron voor de eigen kopie
-// die het instellingenscherm aanmaakt als een bedrijf nog niets heeft.
-export async function fetchPlatformCodes(table: CodeTable, companyId: string): Promise<(Code & { active: boolean })[]> {
-  const company = await supabase.from('inspection_companies').select('country_code').eq('id', companyId).single()
-  if (company.error) throw company.error
   const { data, error } = await supabase
     .from(table)
-    .select('id, code, label, active')
-    .is('company_id', null)
-    .eq('language', languageForCountry(company.data.country_code))
+    .select('id, code, label')
+    .eq('company_id', companyId)
+    .eq('active', true)
     .order('code')
   if (error) throw error
   return data ?? []

@@ -425,23 +425,23 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
-## Voortgang (2026-10-03, standaard afkeur- en goedkeuringscodes, per taal)
+## Voortgang (2026-10-03, afkeur- en goedkeuringscodes: geen standaardset meer)
 
 > Gevonden bij de voorbereiding van de Engelse demovideo (gemist in het
 > Engelse rondje): de standaard afkeurcodes bestonden alleen in het
 > Nederlands, dus een Engels keurbedrijf kreeg Nederlandse codes in de keuring
 > én op het certificaat ("Leeftijd of label" op 20261003-CLAUDE-TEST-2).
-> Besluit Jos: codes opnieuw bedenken volgens LOLER, "hoe minder codes hoe
-> beter", ook voor goedkeuren (repareren, smeren). Afkeur: versleten/
-> beschadigd, levensduur of label, eerst repareren, direct gevaarlijk
-> (onderaan, op verzoek). Goedkeur: schoongemaakt/gesmeerd, gerepareerd
-> tijdens de keuring, lichte slijtage, gebrek kan gevaarlijk worden (datum).
-> In nl/en/fr/de; een nieuw keurbedrijf krijgt beide sets automatisch in de
-> taal van zijn land; bestaande bedrijven krijgen ze alleen voor de tabel waar
-> ze nog geen eigen codes hebben. Ophalen en aanvullen van beide soorten codes
-> is één gedeelde opzet (`fetchPlatformCodes` in useInspections.ts); land →
-> taal één regel (`packages/core/src/language.ts`). Migratie
-> **`20261015_rejection_codes_language.sql`**.
+> Besluit Jos: *"elk bedrijf mag zonder goed of afkeurcodes beginnen. als een
+> engels bedrijf aan loler wilt voldoen moet hij zelf maar de juiste codes er
+> zelf in zetten"* (een eerder voorstel met standaardsets per taal is
+> verworpen en nooit uitgevoerd). Geen terugval en geen kopie meer van de
+> platformstandaard; bestaande bedrijven zonder eigen afkeurcodes krijgen de
+> standaard als eigen kopie, zodat er voor hen niets verandert. In de keuring
+> geen lege keuzelijst als er geen codes zijn. Ophalen van beide soorten codes
+> is één gedeelde functie. Land → taal van het certificaat staat nu in core
+> (`languageForCountry`). Migratie **`20261015_codes_start_empty.sql`**.
+> Getest: migratie 2x op lokale Postgres; keuring zonder codes (lokale build
+> tegen live database): afkeuren toont alleen het opmerkingenveld.
 
 ## Voortgang (2026-10-03, "Alleen nieuwe" weg)
 

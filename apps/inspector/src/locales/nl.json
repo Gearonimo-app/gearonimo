@@ -435,7 +435,7 @@
       "menuTitle": "Afkeurcodes",
       "menuDesc": "Codes voor afgekeurde artikelen beheren",
       "title": "Afkeurcodes",
-      "intro": "Deze codes kies je bij het afkeuren van een artikel in de keuring. Ze gelden alleen voor jouw keurbedrijf; je begint met de standaardset en past die naar eigen inzicht aan.",
+      "intro": "Deze codes kies je bij het afkeuren van een artikel in de keuring. Ze gelden alleen voor jouw keurbedrijf en je stelt ze zelf samen. Zonder codes typ je bij afkeuren alleen een opmerking.",
       "add": "Code",
       "edit": "Code bewerken",
       "empty": "Nog geen afkeurcodes.",

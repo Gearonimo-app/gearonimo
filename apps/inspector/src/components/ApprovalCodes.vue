@@ -77,7 +77,7 @@
 import { ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { supabase, errorMessage } from '@gearonimo/core'
-import { ensureInspector, fetchPlatformCodes } from '../composables/useInspections'
+import { ensureInspector } from '../composables/useInspections'
 
 const { t } = useI18n()
 
@@ -123,33 +123,14 @@ async function fetchOwn(): Promise<Code[]> {
   return (data ?? []) as Code[]
 }
 
-// Een nieuw keurbedrijf begint met een eigen kopie van de platformstandaard
-// (company_id leeg). Vanaf dat moment beheert het bedrijf alléén zijn eigen
-// set -- wijzigingen raken geen ander keurbedrijf. (Bestaande bedrijven worden
-// al door de migratie geseed; dit vangt bedrijven op die daarna ontstaan.)
-// Sinds 20261015 doet de database dit al bij het aanmaken van het bedrijf, in
-// de taal van zijn land; dit blijft als vangnet, met dezelfde taalkeuze.
-async function seedFromPlatform() {
-  const platform = await fetchPlatformCodes('approval_codes', companyId.value)
-  const rows = platform.map((r) => ({ company_id: companyId.value, code: r.code, label: r.label, active: r.active }))
-  if (rows.length) {
-    const { error: insErr } = await supabase.from('approval_codes').insert(rows)
-    if (insErr) throw insErr
-  }
-}
-
 async function load() {
   loading.value = true
   error.value = ''
   try {
     const inspector = await ensureInspector()
     companyId.value = inspector.company_id
-    let own = await fetchOwn()
-    if (own.length === 0) {
-      await seedFromPlatform()
-      own = await fetchOwn()
-    }
-    codes.value = own
+    // Geen standaardset (Jos, 2026-10-03): een nieuw bedrijf begint leeg.
+    codes.value = await fetchOwn()
   } catch (e) {
     error.value = errorMessage(e)
   } finally {

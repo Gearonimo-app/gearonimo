@@ -434,7 +434,7 @@
       "menuTitle": "Ablehnungscodes",
       "menuDesc": "Codes für abgelehnte Artikel verwalten",
       "title": "Ablehnungscodes",
-      "intro": "Diese Codes wählen Sie beim Ablehnen eines Artikels während einer Prüfung. Sie gelten nur für Ihr Prüfunternehmen; Sie starten mit dem Standardsatz und passen ihn nach Bedarf an.",
+      "intro": "Diese Codes wählen Sie, wenn Sie einen Artikel bei der Prüfung ablehnen. Sie gelten nur für Ihre Prüforganisation und Sie legen sie selbst fest. Ohne Codes geben Sie bei einer Ablehnung einfach eine Bemerkung ein.",
       "add": "Code",
       "edit": "Code bearbeiten",
       "empty": "Noch keine Ablehnungscodes.",

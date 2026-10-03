@@ -208,11 +208,13 @@
               @click="newResult = newResult === 'rejected' ? 'not_assessed' : 'rejected'"
             >❌</button>
           </div>
-          <select v-if="newResult === 'rejected'" v-model="newRejectionCodeId" class="iw__select iw__select--sm">
+          <!-- Codes zijn optioneel en een bedrijf begint zonder (Jos, 2026-10-03):
+               zonder codes geen lege keuzelijst, alleen de opmerking. -->
+          <select v-if="newResult === 'rejected' && rejectionCodes.length" v-model="newRejectionCodeId" class="iw__select iw__select--sm">
             <option :value="null">{{ $t('inspections.noCode') }}</option>
             <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
-          <select v-if="newResult === 'passed'" v-model="newApprovalCodeId" class="iw__select iw__select--sm">
+          <select v-if="newResult === 'passed' && approvalCodes.length" v-model="newApprovalCodeId" class="iw__select iw__select--sm">
             <option :value="null">{{ $t('inspections.noCode') }}</option>
             <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
           </select>
@@ -601,11 +603,11 @@
                         :disabled="row.it.article.retired"
                         @click="setResult(row.it, 'rejected')"
                       >❌ {{ $t('inspections.table.fail') }}</button>
-                      <select v-if="row.it.result === 'rejected'" v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
+                      <select v-if="row.it.result === 'rejected' && (rejectionCodes.length || row.it.rejection_code_id)" v-model="row.it.rejection_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
                         <option :value="null">{{ $t('inspections.noCode') }}</option>
                         <option v-for="c in rejectionCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
                       </select>
-                      <select v-if="row.it.result === 'passed'" v-model="row.it.approval_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
+                      <select v-if="row.it.result === 'passed' && (approvalCodes.length || row.it.approval_code_id)" v-model="row.it.approval_code_id" class="iw__select iw__select--sm" @change="saveRow(row.it)">
                         <option :value="null">{{ $t('inspections.noCode') }}</option>
                         <option v-for="c in approvalCodes" :key="c.id" :value="c.id">{{ c.code }} — {{ c.label }}</option>
                       </select>

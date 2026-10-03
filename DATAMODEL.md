@@ -544,18 +544,13 @@ voorschrijft, gewoon een termijn.
 | label_key | text? | i18n-sleutel voor standaardcodes |
 | label | text? | vrije tekst voor eigen codes |
 | active | boolean | |
-| language | text? | taal van een platformstandaard-rij (nl/en/fr/de, migratie `20261015`); leeg bij eigen codes |
 
-> **Opnieuw opgezet en per taal (Jos, 2026-10-03, migratie `20261015`):**
-> "hoe minder codes hoe beter". Platformstandaard nu 4 codes in nl/en/fr/de:
-> 1 versleten/beschadigd buiten de grens van de fabrikant, 2 levensduur
-> verlopen of geen leesbaar label, 3 eerst repareren, 4 direct gevaarlijk.
-> De oude 8 Nederlandse rijen blijven (oude keuringen verwijzen ernaar) maar
-> hebben geen `language` en worden niet meer uitgedeeld. Een nieuw keurbedrijf
-> krijgt bij het aanmaken (trigger op `inspection_companies`,
-> `seed_company_codes`) een eigen kopie in de taal van zijn land
-> (`locale_for_country`, gelijk aan `languageForCountry` in core). `label_key`
-> wordt niet gebruikt.
+> **Geen standaardset meer (Jos, 2026-10-03, migratie `20261015`):** "elk
+> bedrijf mag zonder goed- of afkeurcodes beginnen" -- een Engels bedrijf dat
+> aan LOLER wil voldoen, zet zelf de juiste codes erin. De app valt niet meer
+> terug op de platformstandaard en kopieert die niet meer. Bestaande bedrijven
+> zonder eigen codes kregen de standaard als eigen kopie (ze zien hetzelfde
+> als voorheen). De platformrijen blijven staan voor oude keuringen.
 
 > **Implementatie fase 2.5 (2026-06-25):** de 8 codes zijn ingevuld als
 > platformstandaard (`company_id = null`), aangeleverd door Jos uit de
@@ -587,13 +582,10 @@ voorschrijft, gewoon een termijn.
 | code | int | |
 | label | text? | vrije tekst |
 | active | boolean | |
-| language | text? | taal van een platformstandaard-rij (nl/en/fr/de, migratie `20261015`); leeg bij eigen codes |
 
-> **Standaardset (Jos, 2026-10-03, migratie `20261015`):** 4 codes in
-> nl/en/fr/de: 1 schoongemaakt/gesmeerd, 2 gerepareerd tijdens de keuring
-> (welk onderdeel in de opmerking, LOLER §8b), 3 lichte slijtage, 4 gebrek kan
-> gevaarlijk worden -- herstellen of herkeuren vóór de datum (LOLER §8c; datum
-> in "Volgende keuring"). Zelfde uitdeling als bij de afkeurcodes.
+> **Geen standaardset (Jos, 2026-10-03):** een bedrijf begint zonder; wie
+> codes wil, zet ze zelf in Instellingen. In de keuring verschijnt de
+> keuzelijst alleen als er codes zijn.
 
 > **Toegevoegd 2026-09-30** (Jos, sparren over LOLER-rapportage): tegenhanger
 > van `rejection_codes`, maar voor een gekéurd artikel -- bv. "goed, let op

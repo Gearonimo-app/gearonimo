@@ -434,7 +434,7 @@
       "menuTitle": "Codes de refus",
       "menuDesc": "Gérer les codes pour les articles refusés",
       "title": "Codes de refus",
-      "intro": "Vous choisissez ces codes lors du refus d'un article pendant un contrôle. Ils ne s'appliquent qu'à votre organisme de contrôle ; vous partez de l'ensemble standard et l'adaptez à votre convenance.",
+      "intro": "Vous choisissez ces codes lorsque vous refusez un article pendant un contrôle. Ils ne s'appliquent qu'à votre organisme de contrôle et vous les définissez vous-même. Sans codes, vous saisissez simplement un commentaire lors d'un refus.",
       "add": "Code",
       "edit": "Modifier le code",
       "empty": "Aucun code de refus pour l'instant.",
