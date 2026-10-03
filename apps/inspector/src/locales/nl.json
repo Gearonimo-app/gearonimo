@@ -273,12 +273,11 @@
     "resumeButton": "▶ HERVAT KEURING — concept van {date}",
     "selectArticles": {
       "title": "Welke artikelen horen bij deze keuring?",
-      "hint": "Kies alles van deze klant, of alleen de artikelen die nog niet eerder gekeurd zijn.",
+      "hint": "Kies alles van deze klant, of begin leeg en voer zelf artikelen in.",
       "allOption": "Alles",
-      "newOption": "Alleen nieuwe",
       "emptyOption": "Leeg beginnen",
       "addTitle": "Nog meer artikelen van deze klant toevoegen?",
-      "addHint": "Deze artikelen staan nog niet in de openstaande keuring. Kies alles erbij, of alleen de nog niet eerder gekeurde."
+      "addHint": "Deze artikelen staan nog niet in de openstaande keuring. Voeg ze allemaal toe, of ga verder zonder."
     },
     "step": "Stap {n}/4",
     "filterPlaceholder": "Zoek op serienummer of omschrijving…",

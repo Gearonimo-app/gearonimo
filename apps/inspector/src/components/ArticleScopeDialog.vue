@@ -8,15 +8,10 @@
           <span class="asd__option-label">{{ $t('inspections.selectArticles.allOption') }}</span>
           <span class="asd__option-count">{{ allCount }}</span>
         </button>
-        <button type="button" class="asd__option" :disabled="newCount === 0" @click="$emit('choose', 'new')">
-          <span class="asd__option-label">{{ $t('inspections.selectArticles.newOption') }}</span>
-          <span class="asd__option-count">{{ newCount }}</span>
-        </button>
         <!-- Leeg beginnen (Jos, 2026-09-14): "ik wil nieuwe producten keuren en
              meteen invoeren" -- zonder dit moest je eerst alles van de klant
-             overnemen (of, als alles al eerder gekeurd is, kon "Alleen nieuwe"
-             niks bieden: 0, uitgegrijsd) voordat je zelf artikelen kon
-             toevoegen via + in de keuringswizard. -->
+             overnemen voordat je zelf artikelen kon toevoegen via + in de
+             keuringswizard. "Alleen nieuwe" is weg (Jos, 2026-10-03). -->
         <button type="button" class="asd__option asd__option--empty" @click="$emit('choose', 'none')">
           <span class="asd__option-label">{{ $t('inspections.selectArticles.emptyOption') }}</span>
         </button>
@@ -31,9 +26,8 @@ defineProps<{
   title: string
   hint: string
   allCount: number
-  newCount: number
 }>()
-defineEmits<{ choose: ['all' | 'new' | 'none']; cancel: [] }>()
+defineEmits<{ choose: ['all' | 'none']; cancel: [] }>()
 </script>
 
 <style scoped>

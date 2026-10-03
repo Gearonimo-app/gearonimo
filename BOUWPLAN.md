@@ -425,6 +425,17 @@ het eerst koppelt wordt beheerder" vervallen.
 Open punt: rand­geval iemand staat bij twee bedrijven op de lijst -> na
 inloggen kiezen (zeldzaam, pas bouwen als het voorkomt).
 
+## Voortgang (2026-10-03, "Alleen nieuwe" weg)
+
+> Besluit Jos: bij het starten of aanvullen van een keuring alleen nog
+> **Alles** of **Leeg beginnen**. "Alleen nieuwe" telde een artikel dat alleen
+> als niet-beoordeeld op een keuring stond al als gekeurd, en is niet nodig:
+> *"iets in de lijst van 200 producten opzoeken is niet heel lastig, begin met
+> het sn te typen"*. Nieuw materiaal (met aankoop-/ingebruiknamedatum) voert de
+> klant in de klant-app of de keurmeester via Klant → Artikelen in. Ook de
+> offline-hulpfunctie `getLocallyInspectedArticleIds` is weg. Geen migratie.
+> Getest: startvenster NL + EN op een lokale build (2 knoppen, geen fouten).
+
 ## Voortgang (2026-10-03, volgorde artikelen op het certificaat)
 
 > Besluit Jos: artikelen op certificaat, Excel én QR-pagina eerst per

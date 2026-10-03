@@ -69,7 +69,6 @@
       :title="$t('inspections.selectArticles.title')"
       :hint="$t('inspections.selectArticles.hint')"
       :all-count="articleScope.allIds.length"
-      :new-count="articleScope.newIds.length"
       @choose="confirmArticleSelect"
       @cancel="showArticleSelect = false"
     />
@@ -79,7 +78,6 @@
       :title="$t('inspections.selectArticles.addTitle')"
       :hint="$t('inspections.selectArticles.addHint')"
       :all-count="articleScope.allIds.length"
-      :new-count="articleScope.newIds.length"
       @choose="confirmAddExtra"
       @cancel="cancelAddExtra"
     />
@@ -149,7 +147,7 @@ const startingInspection = ref(false)
 const startError = ref('')
 const showArticleSelect = ref(false)
 const showAddExtra = ref(false)
-const articleScope = ref<ArticleScope>({ allIds: [], newIds: [] })
+const articleScope = ref<ArticleScope>({ allIds: [] })
 
 function formatDate(d: string) {
   return sharedFormatDate(d, locale.value, { day: 'numeric', month: 'long' })
@@ -199,13 +197,12 @@ async function onStartInspection() {
 
 // 'none' (Jos, 2026-09-14): leeg beginnen -- geen bestaand artikel meenemen,
 // meteen door naar de wizard om daar zelf (nieuwe) artikelen toe te voegen.
-function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'new' | 'none'): string[] {
+function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'none'): string[] {
   if (scopeChoice === 'all') return scope.allIds
-  if (scopeChoice === 'new') return scope.newIds
   return []
 }
 
-async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
+async function confirmArticleSelect(scopeChoice: 'all' | 'none') {
   showArticleSelect.value = false
   startingInspection.value = true
   startError.value = ''
@@ -220,7 +217,7 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
   }
 }
 
-async function confirmAddExtra(scopeChoice: 'all' | 'new' | 'none') {
+async function confirmAddExtra(scopeChoice: 'all' | 'none') {
   showAddExtra.value = false
   if (!draftInspection.value) return
   const draftId = draftInspection.value.id

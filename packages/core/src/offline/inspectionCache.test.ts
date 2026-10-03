@@ -10,7 +10,6 @@ import {
   patchInspectionItem,
   findLocalPreviousResult,
   findLocalPreviousResults,
-  getLocallyInspectedArticleIds,
   markInspectionPendingCompletion,
   listInspectionsPendingCompletion,
   hasInspectionsPendingCompletionForCustomer,
@@ -26,7 +25,7 @@ async function testKey(): Promise<CryptoKey> {
 
 // inspectionItems/inspections delen één database-singleton over alle tests in
 // dit bestand (fake-indexeddb persisteert per proces); de tests die de hele
-// store doorzoeken (findLocalPreviousResult, getLocallyInspectedArticleIds)
+// store doorzoeken (findLocalPreviousResult)
 // zouden anders ook rijen van eerdere tests tegenkomen die met een andere
 // (ondertussen weggegooide) sleutel versleuteld zijn.
 beforeEach(async () => {
@@ -87,17 +86,6 @@ describe("offline inspection cache", () => {
       "insp-new"
     );
     expect(prev?.inspection_id).toBe("insp-old");
-  });
-
-  it("collects all locally inspected article ids across inspections", async () => {
-    const key = await testKey();
-    await putInspectionItems(key, "insp-5", [{ id: "item-d", article_id: "art-d" }]);
-    await putInspectionItems(key, "insp-6", [{ id: "item-e", article_id: "art-e" }]);
-
-    const ids = await getLocallyInspectedArticleIds(key);
-    expect(ids.has("art-d")).toBe(true);
-    expect(ids.has("art-e")).toBe(true);
-    expect(ids.has("art-unknown")).toBe(false);
   });
 
   it("marks a draft inspection as pending_completion and excludes it from the resumable draft", async () => {

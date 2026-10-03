@@ -17,7 +17,6 @@ import {
   findLocalPreviousResult,
   findLocalPreviousResults,
   getApprovalCodes,
-  getLocallyInspectedArticleIds,
   getLocalInspectionStatus,
   deleteInspectionCache,
   deleteMutationsForInspection,
@@ -122,19 +121,13 @@ export async function fetchFreeInputFields(): Promise<{ norm: boolean; mbs: bool
   return { norm: !!cols.norm, mbs: !!cols.mbs, swl: !!cols.swl, prev: !!cols.prev, examType: !!cols.examType }
 }
 
-export interface ArticleScope { allIds: string[]; newIds: string[] }
+export interface ArticleScope { allIds: string[] }
 
-// Bij grote sets (tientallen artikelen) is per-artikel aanvinken onwerkbaar.
-// In plaats daarvan biedt de keurmeester een binaire keuze: alles van de
-// klant erbij, of alleen de artikelen die nog nooit in een keuring hebben
-// gezeten (bijv. net geüpload n.a.v. een oud certificaat, of straks
-// zelf door de klant toegevoegd). "Nieuw" = geen enkele inspection_items-rij
-// ooit, dus onafhankelijk van wanneer het artikel is aangemaakt.
-//
-// Offline-beperking: "nieuw" wordt dan bepaald op basis van wat lokaal
-// gecached is (gedownloade klant + eventuele eerder offline gemaakte
-// keuringen), niet de volledige serverhistorie. Een prima hint, geen
-// besluitvormende logica.
+// Alle actieve artikelen van de klant (afgevoerd en zelfbeheerd niet), voor de
+// keuze bij het starten/aanvullen van een keuring: "Alles" of "Leeg
+// beginnen". De vroegere optie "Alleen nieuwe" is weg (Jos, 2026-10-03):
+// zoeken in de lijst gaat snel op serienummer, en "nieuw" telde een artikel
+// dat alleen als niet-beoordeeld op een keuring stond al als gekeurd.
 export async function fetchArticleScope(customerId: string, excludeArticleIds: string[] = []): Promise<ArticleScope> {
   const exclude = new Set(excludeArticleIds)
   const { isOnline } = useOnline()
@@ -142,8 +135,7 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
   if (isOnline.value) {
     // Kleding, machines en overig vallen buiten het keurbedrijf en horen dus
     // niet in een keuring te belanden (besluit Jos 2026-08-04).
-    // Gepagineerd en in blokken (2026-10-03): een grote klant gaf anders een
-    // te lange URL (honderden id's in één .in()) of werd stil afgekapt op
+    // Gepagineerd (2026-10-03): een grote klant werd anders stil afgekapt op
     // 1000 rijen.
     const data = await fetchAllRows<{ id: string }>((from, to) =>
       inspectorVisibleArticles(
@@ -156,32 +148,21 @@ export async function fetchArticleScope(customerId: string, excludeArticleIds: s
         .order('id')
         .range(from, to)
     )
-    const allIds = data.map((a) => a.id).filter((id) => !exclude.has(id))
-    if (!allIds.length) return { allIds: [], newIds: [] }
-    const inspected = await fetchAllRowsIn<{ article_id: string }>(allIds, (chunk, from, to) =>
-      supabase.from('inspection_items').select('id, article_id').in('article_id', chunk).order('id').range(from, to)
-    )
-    const inspectedSet = new Set(inspected.map((r) => r.article_id))
-    const newIds = allIds.filter((id) => !inspectedSet.has(id))
-    return { allIds, newIds }
+    return { allIds: data.map((a) => a.id).filter((id) => !exclude.has(id)) }
   }
 
   const key = requireOfflineKey()
   const articles = await getArticlesForCustomer<{ id: string; retired: boolean; self_managed?: boolean }>(key, customerId)
   // Spiegel van het serverfilter hierboven; een offline gedownloade klant kan
   // ook kleding bevatten.
-  const allIds = articles
-    .filter((a) => !a.retired && !a.self_managed)
-    .map((a) => a.id)
-    .filter((id) => !exclude.has(id))
-  if (!allIds.length) return { allIds: [], newIds: [] }
-  const inspectedSet = await getLocallyInspectedArticleIds(key)
-  const newIds = allIds.filter((id) => !inspectedSet.has(id))
-  return { allIds, newIds }
+  return {
+    allIds: articles
+      .filter((a) => !a.retired && !a.self_managed)
+      .map((a) => a.id)
+      .filter((id) => !exclude.has(id)),
+  }
 }
 
-// Welke artikelen staan al in deze (concept-)keuring, om bij het hervatten te
-// kunnen tonen wat er nog extra van de klant bij gehaald kan worden.
 export async function fetchInspectionArticleIds(inspectionId: string): Promise<string[]> {
   const { isOnline } = useOnline()
   if (isOnline.value) {

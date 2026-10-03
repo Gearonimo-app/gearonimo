@@ -273,12 +273,11 @@
     "resumeButton": "▶ REPRENDRE LE CONTRÔLE — brouillon du {date}",
     "selectArticles": {
       "title": "Quels articles font partie de ce contrôle ?",
-      "hint": "Choisissez tout le matériel de ce client, ou uniquement les articles jamais encore contrôlés.",
+      "hint": "Choisissez tout le matériel de ce client, ou commencez à vide et saisissez vous-même les articles.",
       "allOption": "Tout",
-      "newOption": "Nouveaux uniquement",
       "emptyOption": "Commencer à vide",
       "addTitle": "Ajouter d'autres articles de ce client ?",
-      "addHint": "Ces articles ne font pas encore partie du contrôle en cours. Ajoutez-les tous, ou uniquement ceux jamais encore contrôlés."
+      "addHint": "Ces articles ne font pas encore partie du contrôle en cours. Ajoutez-les tous, ou continuez sans."
     },
     "step": "Étape {n}/4",
     "filterPlaceholder": "Rechercher par numéro de série ou description…",

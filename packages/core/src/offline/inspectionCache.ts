@@ -157,21 +157,6 @@ export async function deleteInspectionsForCustomer(customerId: string): Promise<
   await tx.done;
 }
 
-/** Alle artikel-id's waar lokaal al minstens één keuringsitem voor bestaat
- * (op dit toestel, ongeacht welke keuring) -- gebruikt om offline te bepalen
- * welke artikelen "nieuw" zijn voor de scope-keuze bij het starten/hervatten
- * van een keuring (zie fetchArticleScope in useInspections.ts). */
-export async function getLocallyInspectedArticleIds(key: CryptoKey): Promise<Set<string>> {
-  const db = await getOfflineDb();
-  const allItems = await db.getAll("inspectionItems");
-  const ids = new Set<string>();
-  for (const row of allItems) {
-    const item = await decryptJson<{ article_id: string }>(key, row.enc);
-    ids.add(item.article_id);
-  }
-  return ids;
-}
-
 /** Alle lokaal bekende eerdere keuringsitems voor een artikel, voor de
  * "vorige keuring"-contexthint in de wizard. Beperking: ziet alleen
  * geschiedenis die op dít toestel ooit gecached is (gedownload of zelf

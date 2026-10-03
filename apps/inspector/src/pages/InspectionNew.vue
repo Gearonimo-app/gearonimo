@@ -34,7 +34,6 @@
       :title="$t('inspections.selectArticles.title')"
       :hint="$t('inspections.selectArticles.hint')"
       :all-count="articleScope.allIds.length"
-      :new-count="articleScope.newIds.length"
       @choose="confirmArticleSelect"
       @cancel="showArticleSelect = false"
     />
@@ -44,7 +43,6 @@
       :title="$t('inspections.selectArticles.addTitle')"
       :hint="$t('inspections.selectArticles.addHint')"
       :all-count="articleScope.allIds.length"
-      :new-count="articleScope.newIds.length"
       @choose="confirmAddExtra"
       @cancel="cancelAddExtra"
     />
@@ -85,7 +83,7 @@ const pickError = ref('')
 const showArticleSelect = ref(false)
 const showAddExtra = ref(false)
 const showNewCustomer = ref(false)
-const articleScope = ref<ArticleScope>({ allIds: [], newIds: [] })
+const articleScope = ref<ArticleScope>({ allIds: [] })
 const pendingCustomerId = ref<string | null>(null)
 const pendingDraftId = ref<string | null>(null)
 
@@ -146,13 +144,12 @@ async function pick(customerId: string) {
 }
 
 // 'none' (Jos, 2026-09-14): leeg beginnen, zelf artikelen toevoegen in de wizard.
-function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'new' | 'none'): string[] {
+function resolveArticleIds(scope: ArticleScope, scopeChoice: 'all' | 'none'): string[] {
   if (scopeChoice === 'all') return scope.allIds
-  if (scopeChoice === 'new') return scope.newIds
   return []
 }
 
-async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
+async function confirmArticleSelect(scopeChoice: 'all' | 'none') {
   showArticleSelect.value = false
   if (!pendingCustomerId.value) return
   picking.value = true
@@ -168,7 +165,7 @@ async function confirmArticleSelect(scopeChoice: 'all' | 'new' | 'none') {
   }
 }
 
-async function confirmAddExtra(scopeChoice: 'all' | 'new' | 'none') {
+async function confirmAddExtra(scopeChoice: 'all' | 'none') {
   showAddExtra.value = false
   if (!pendingDraftId.value) return
   const draftId = pendingDraftId.value
